@@ -69,7 +69,7 @@ const Sidebar = () => {
       </div>
 
       <div className='flex flex-col items-center mb-8'>
-        <div className='w-[245px] h-[1px] bg-black mb-4'></div>
+        <div className='w-[245px] h-[1px] bg-black mb-8'></div>
         <ul className='gap-2 flex flex-col w-full items-center'>
           {bottomMenuItems.map((item) => {
             const Icon = item.icon;
