@@ -1,5 +1,8 @@
 import { MantineProvider } from '@mantine/core';
 import '@mantine/core/styles.css';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import './App.css';
+import Home from './components/home/Home';
 
 function App() {
   return (
@@ -8,9 +11,11 @@ function App() {
         fontFamily: 'Poppins, sans-serif',
       }}
     >
-      <div className='flex justify-center items-center h-screen'>
-        <header className='flex flex-col justify-center items-center space-y-4'></header>
-      </div>
+      <Router>
+        <Routes>
+          <Route path='/' element={<Home />} />
+        </Routes>
+      </Router>
     </MantineProvider>
   );
 }
