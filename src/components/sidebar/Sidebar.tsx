@@ -33,7 +33,7 @@ const Sidebar = () => {
   ];
 
   return (
-    <div className='w-full h-screen flex flex-col'>
+    <div className='min-h-screen flex flex-col w-[285px] bg-[#FFFFFF]'>
       <div className='flex justify-center items-center pt-[20px] pb-[20px]'>
         <h3 className='flex items-center gap-[4px]'>
           <FlowKeyIcon className='w-[33.43px] h-[29px]' />
@@ -50,16 +50,22 @@ const Sidebar = () => {
               <li
                 key={item.name}
                 onClick={() => setActiveItem(item.name)}
-                className={`flex justify-center items-center cursor-pointer w-[245px] h-[54px] rounded-md px-4 font-urbanist text-[16px] ${
-                  isActive ? 'bg-[#1D9B5E] text-[#222B45]' : 'hover:bg-gray-100'
+                className={`flex justify-center items-center cursor-pointer w-[245px] h-[42px] rounded-md px-4 font-urbanist text-[14px] ${
+                  isActive
+                    ? 'bg-[#1D9B5E] text-white'
+                    : 'text-black hover:bg-gray-100'
                 }`}
               >
                 <div className='relative w-full flex items-center justify-center -ml-8'>
                   <div className='absolute left-1/2 -translate-x-full pr-[24px]'>
-                    <Icon className='w-[24px] h-[24px]' />
+                    <Icon
+                      className={`w-[20px] h-[20px] ${
+                        isActive ? 'text-white' : ''
+                      }`}
+                    />
                   </div>
                   <div className='absolute left-1/2 translate-x-0'>
-                    <span>{item.name}</span>
+                    <span className='text-[14px] font-[400]'>{item.name}</span>
                   </div>
                 </div>
               </li>
@@ -68,7 +74,7 @@ const Sidebar = () => {
         </ul>
       </div>
 
-      <div className='flex flex-col items-center mb-8'>
+      <div className='mt-auto flex flex-col items-center mb-8'>
         <div className='w-[245px] h-[1px] bg-black mb-8'></div>
         <ul className='gap-2 flex flex-col w-full items-center'>
           {bottomMenuItems.map((item) => {
@@ -78,16 +84,22 @@ const Sidebar = () => {
               <li
                 key={item.name}
                 onClick={() => setActiveItem(item.name)}
-                className={`flex justify-center items-center cursor-pointer w-[245px] h-[54px] rounded-md px-4 font-urbanist text-[16px] ${
-                  isActive ? 'bg-[#1D9B5E] text-[#222B45]' : 'hover:bg-gray-100'
+                className={`flex justify-center items-center cursor-pointer w-[245px] h-[42px] rounded-md px-4 font-urbanist text-[14px] ${
+                  isActive
+                    ? 'bg-[#1D9B5E] text-white'
+                    : 'text-black hover:bg-gray-100'
                 }`}
               >
                 <div className='relative w-full flex items-center justify-center -ml-8'>
                   <div className='absolute left-1/2 -translate-x-full pr-[24px]'>
-                    <Icon className='w-[24px] h-[24px]' />
+                    <Icon
+                      className={`w-[20px] h-[20px] ${
+                        isActive ? 'text-white' : ''
+                      }`}
+                    />
                   </div>
                   <div className='absolute left-1/2 translate-x-0'>
-                    <span>{item.name}</span>
+                    <span className='text-[14px] font-[400]'>{item.name}</span>
                   </div>
                 </div>
               </li>

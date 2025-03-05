@@ -3,11 +3,9 @@ import Sidebar from '../sidebar/Sidebar';
 
 const Home = () => {
   return (
-    <div className='flex'>
-      <div className='w-[285px] bg-slate-100 h-screen'>
-        <Sidebar />
-      </div>
-      <div>
+    <div className='flex bg-[#F5F5F5]'>
+      <Sidebar />
+      <div className='flex-1'>
         <Header />
       </div>
     </div>

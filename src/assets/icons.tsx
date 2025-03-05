@@ -444,3 +444,104 @@ export const LogoutIcon = (props: React.SVGProps<SVGSVGElement>) => (
     />
   </svg>
 );
+
+export const SearchIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg
+    width='16'
+    height='16'
+    viewBox='0 0 16 16'
+    fill='none'
+    xmlns='http://www.w3.org/2000/svg'
+    className='size-6'
+    {...props}
+  >
+    <path
+      d='M14.4842 12.8608L11.8881 10.2647C11.771 10.1475 11.6121 10.0824 11.4455 10.0824H11.021C11.7397 9.16322 12.1667 8.00708 12.1667 6.74939C12.1667 3.75749 9.74251 1.33325 6.75061 1.33325C3.75871 1.33325 1.33447 3.75749 1.33447 6.74939C1.33447 9.74129 3.75871 12.1655 6.75061 12.1655C8.0083 12.1655 9.16444 11.7385 10.0836 11.0198V11.4442C10.0836 11.6109 10.1487 11.7697 10.2659 11.8869L12.862 14.483C13.1068 14.7278 13.5026 14.7278 13.7447 14.483L14.4816 13.7461C14.7264 13.5013 14.7264 13.1055 14.4842 12.8608ZM6.75061 10.0824C4.90964 10.0824 3.4176 8.59296 3.4176 6.74939C3.4176 4.90842 4.90704 3.41638 6.75061 3.41638C8.59158 3.41638 10.0836 4.90582 10.0836 6.74939C10.0836 8.59036 8.59418 10.0824 6.75061 10.0824Z'
+      fill='#6A778B'
+    />
+  </svg>
+);
+
+export const MessageNotificationIcon = (
+  props: React.SVGProps<SVGSVGElement>
+) => (
+  <svg
+    width='24'
+    height='24'
+    viewBox='0 0 24 24'
+    fill='none'
+    xmlns='http://www.w3.org/2000/svg'
+    className='size-6'
+    {...props}
+  >
+    <path
+      d='M22 10V13C22 17 20 19 16 19H15.5C15.19 19 14.89 19.15 14.7 19.4L13.2 21.4C12.54 22.28 11.46 22.28 10.8 21.4L9.3 19.4C9.14 19.18 8.77 19 8.5 19H8C4 19 2 18 2 13V8C2 4 4 2 8 2H14'
+      stroke='#1D9B5E'
+      strokeWidth='1.5'
+      strokeMiterlimit='10'
+      strokeLinecap='round'
+      strokeLinejoin='round'
+    />
+    <path
+      d='M19.5 7C20.8807 7 22 5.88071 22 4.5C22 3.11929 20.8807 2 19.5 2C18.1193 2 17 3.11929 17 4.5C17 5.88071 18.1193 7 19.5 7Z'
+      stroke='#1D9B5E'
+      strokeWidth='1.5'
+      strokeLinecap='round'
+      strokeLinejoin='round'
+    />
+    <path
+      d='M15.9965 11H16.0054'
+      stroke='#1D9B5E'
+      strokeWidth='2'
+      strokeLinecap='round'
+      strokeLinejoin='round'
+    />
+    <path
+      d='M11.9955 11H12.0045'
+      stroke='#1D9B5E'
+      strokeWidth='2'
+      strokeLinecap='round'
+      strokeLinejoin='round'
+    />
+    <path
+      d='M7.99451 11H8.00349'
+      stroke='#1D9B5E'
+      strokeWidth='2'
+      strokeLinecap='round'
+      strokeLinejoin='round'
+    />
+  </svg>
+);
+
+export const NotificationBingIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg
+    width='24'
+    height='24'
+    viewBox='0 0 24 24'
+    fill='none'
+    xmlns='http://www.w3.org/2000/svg'
+    className='size-6'
+    {...props}
+  >
+    <path
+      d='M12 6.43994V9.76994'
+      stroke='#1D9B5E'
+      strokeWidth='1.5'
+      strokeMiterlimit='10'
+      strokeLinecap='round'
+    />
+    <path
+      d='M12.02 2C8.34002 2 5.36002 4.98 5.36002 8.66V10.76C5.36002 11.44 5.08002 12.46 4.73002 13.04L3.46002 15.16C2.68002 16.47 3.22002 17.93 4.66002 18.41C9.44002 20 14.61 20 19.39 18.41C20.74 17.96 21.32 16.38 20.59 15.16L19.32 13.04C18.97 12.46 18.69 11.43 18.69 10.76V8.66C18.68 5 15.68 2 12.02 2Z'
+      stroke='#1D9B5E'
+      strokeWidth='1.5'
+      strokeMiterlimit='10'
+      strokeLinecap='round'
+    />
+    <path
+      d='M15.33 18.8201C15.33 20.6501 13.83 22.1501 12 22.1501C11.09 22.1501 10.25 21.7701 9.65004 21.1701C9.05004 20.5701 8.67004 19.7301 8.67004 18.8201'
+      stroke='#1D9B5E'
+      strokeWidth='1.5'
+      strokeMiterlimit='10'
+    />
+  </svg>
+);
