@@ -3,6 +3,12 @@ import '@mantine/core/styles.css';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import './App.css';
 import Home from './components/home/Home';
+import Login from './components/authentication/Login';
+import Signup from './components/authentication/Signup';
+import ForgotPassword from './components/authentication/ForgotPassword';
+import PasswordResetLink from './components/authentication/PasswordResetLink';
+import ResetPassword from './components/authentication/ResetPassword';
+import SuccessfulPassReset from './components/authentication/SuccessfulPassReset';
 
 function App() {
   return (
@@ -14,6 +20,12 @@ function App() {
       <Router>
         <Routes>
           <Route path='/' element={<Home />} />
+          <Route path='/signup' element={<Signup />} />
+          <Route path='/login' element={<Login />} />
+          <Route path='/forgot-password' element={<ForgotPassword />} />
+          <Route path='/password-reset' element={<PasswordResetLink />} />
+          <Route path='/reset-password' element={<ResetPassword />} />
+          <Route path='/successful-password-reset' element={<SuccessfulPassReset />} />
         </Routes>
       </Router>
     </MantineProvider>

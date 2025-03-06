@@ -15,6 +15,7 @@ interface ButtonProps extends Omit<MantineButtonProps, 'children'> {
   disabled?: boolean;
   leftSection?: ReactNode;
   rightSection?: ReactNode;
+  type?: 'button' | 'submit' | 'reset';
   onClick?: () => void;
 }
 
@@ -29,6 +30,7 @@ const Button = ({
   disabled = false,
   leftSection,
   rightSection,
+  type = 'button',
   onClick,
   ...props
 }: ButtonProps) => {
@@ -40,9 +42,10 @@ const Button = ({
       radius={radius}
       loading={loading}
       fullWidth={fullWidth}
-      disabled={disabled}
+      disabled={disabled || loading}
       leftSection={leftSection}
       rightSection={rightSection}
+      type={type}
       onClick={onClick}
       {...props}
     >
