@@ -44,19 +44,17 @@ const Input: React.FC<InputProps> = ({
           errors[name] ? 'border-red-500' : 'border-gray-300'
         } rounded-lg focus:outline-none focus:ring-1 ${
           errors[name] ? 'focus:ring-red-500' : 'focus:ring-green-500'
-        } text-xs`}
+        }`}
         style={{
           fontSize: '12px',
           fontWeight: '100',
-          ...(placeholder && {
-            '::placeholder': {
-              fontSize: '12px',
-            },
-          }),
         }}
       />
       {label && (
-        <label htmlFor={name} className='absolute top-2 left-2 text-xs'>
+        <label
+          htmlFor={name}
+          className='absolute top-2 left-2 text-xs text-gray-500'
+        >
           {label}
         </label>
       )}

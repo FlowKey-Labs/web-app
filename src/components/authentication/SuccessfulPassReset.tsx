@@ -10,7 +10,7 @@ const SuccessfulPassReset = () => {
             <a className='underline text-[#1D9B5E] font-[500]' href='/login'>
               Back to Sign in
             </a>
-          </p>{' '}
+          </p>
         </p>
       }
     >

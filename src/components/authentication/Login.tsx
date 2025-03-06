@@ -31,7 +31,6 @@ const Login = () => {
   const onSubmit: SubmitHandler<FormData> = (data) => {
     console.log(data);
     navigate('/');
-
   };
 
   return (
