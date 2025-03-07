@@ -27,11 +27,13 @@ interface FormData {
 }
 
 const ResetPassword = () => {
-  const [isResetting, setIsResetting] = useState(false);
   const navigate = useNavigate();
+  const [isResetting, setIsResetting] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
 
   const methods = useForm<FormData>({
     resolver: yupResolver(schema),
+    mode: 'onChange',
   });
 
   const onSubmit: SubmitHandler<FormData> = async (data) => {
@@ -72,9 +74,14 @@ const ResetPassword = () => {
             w={'100%'}
             type='submit'
             h={'50px'}
-            className='w-full mt-6 bg-[#1D9B5E] text-white py-3 rounded-lg hover:bg-[#168a4e] transition-colors'
-            style={{ backgroundColor: '#1D9B5E', hover: '#168a4e' }}
             disabled={isResetting}
+            className='w-full mt-6 text-white py-3 rounded-lg'
+            style={{
+              backgroundColor: isHovered ? '#20aa67' : '#1D9B5E',
+              transition: 'background-color 200ms ease-in-out',
+            }}
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
           >
             {isResetting ? 'Resetting...' : 'Submit'}
           </Button>

@@ -1,11 +1,11 @@
 #root {
-  max-width: 1400px;
+  max-width: 1600px;
   background-color: #efeded;
   width: 100%;
   margin: 0 auto;
 }
 
-@media screen and (min-width: 1400px) {
+@media screen and (min-width: 1600px) {
   body {
     background-color: #fafafa;
   }

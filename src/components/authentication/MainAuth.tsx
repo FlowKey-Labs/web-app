@@ -25,8 +25,8 @@ const Main: React.FC<MainAuthProps> = ({
             </h3>
           </div>
           <div className='w-full lg:w-[604px] flex flex-col justify-center items-center pt-4'>
-            <RegistrationIcon className='w-[200px] h-[200px] lg:w-[402px] lg:h-[402px]' />
-            <p className='text-white text-sm lg:text-base w-full lg:w-[361px] text-center pt-4'>
+            <RegistrationIcon className='w-[200px] h-[200px] lg:w-[402px] lg:h-[402px] hidden sm:block' />
+            <p className='text-white w-[80%] text-sm lg:text-base lg:w-[361px] text-center pt-4'>
               Manage all your clients, appointments and schedules with no time
               wasted
             </p>

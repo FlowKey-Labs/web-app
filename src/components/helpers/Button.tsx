@@ -16,6 +16,8 @@ interface ButtonProps extends Omit<MantineButtonProps, 'children'> {
   leftSection?: ReactNode;
   rightSection?: ReactNode;
   type?: 'button' | 'submit' | 'reset';
+  onMouseEnter?: () => void;
+  onMouseLeave?: () => void;
   onClick?: () => void;
 }
 
@@ -31,6 +33,8 @@ const Button = ({
   leftSection,
   rightSection,
   type = 'button',
+  onMouseEnter,
+  onMouseLeave,
   onClick,
   ...props
 }: ButtonProps) => {
@@ -47,6 +51,8 @@ const Button = ({
       rightSection={rightSection}
       type={type}
       onClick={onClick}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
       {...props}
     >
       {children}
