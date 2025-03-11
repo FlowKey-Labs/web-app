@@ -46,7 +46,7 @@ const MonthlyClients = () => {
               return (
                 <div
                   key={option.id}
-                  className={`flex items-center justify-center text-primary h-[42px] rounded-lg cursor-pointer transition-all duration-200 text-sm font-medium select-none ${
+                  className={`flex items-center justify-center bg-white hover:bg-transparent text-primary h-[42px] rounded-lg cursor-pointer transition-all duration-200 text-sm font-medium select-none ${
                     isSelected
                       ? 'border-[1px] border-[#1D9B5E] bg-[#F8FBF9]'
                       : hoveredOption === option.id
