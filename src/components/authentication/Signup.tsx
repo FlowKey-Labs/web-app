@@ -5,6 +5,7 @@ import * as yup from 'yup';
 import Input from '../helpers/Input';
 import Main from '../authentication/MainAuth';
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const schema = yup
   .object({
@@ -44,8 +45,11 @@ const Signup = () => {
     mode: 'onChange',
   });
 
+  const navigate = useNavigate();
+
   const onSubmit: SubmitHandler<FormData> = (data) => {
     console.log(data);
+    navigate('/welcome');
   };
 
   const [isHovered, setIsHovered] = useState(false);

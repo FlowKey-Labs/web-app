@@ -23,4 +23,15 @@ body {
   place-items: center;
   min-width: 320px;
   min-height: 100vh;
+  font-family: 'Urbanist';
+}
+
+.text-primary {
+  color: #162f3b;
+  font-family: 'Urbanist';
+}
+
+.text-secondary {
+  color: #1d9b5e;
+  font-family: 'Urbanist';
 }

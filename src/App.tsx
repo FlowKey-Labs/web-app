@@ -9,6 +9,11 @@ import ForgotPassword from './components/authentication/ForgotPassword';
 import PasswordResetLink from './components/authentication/PasswordResetLink';
 import ResetPassword from './components/authentication/ResetPassword';
 import SuccessfulPassReset from './components/authentication/SuccessfulPassReset';
+import Welcome from './components/onboarding/Welcome';
+import TeamMembers from './components/onboarding/TeamMembers';
+import BusinessType from './components/onboarding/BusinessType';
+import Purpose from './components/onboarding/Purpose';
+import MonthlyClients from './components/onboarding/MonthlyClients';
 
 function App() {
   return (
@@ -25,7 +30,15 @@ function App() {
           <Route path='/forgot-password' element={<ForgotPassword />} />
           <Route path='/password-reset' element={<PasswordResetLink />} />
           <Route path='/reset-password' element={<ResetPassword />} />
-          <Route path='/successful-password-reset' element={<SuccessfulPassReset />} />
+          <Route
+            path='/successful-password-reset'
+            element={<SuccessfulPassReset />}
+          />
+          <Route path='/welcome' element={<Welcome />} />
+          <Route path='/team-members' element={<TeamMembers />} />
+          <Route path='/business-type' element={<BusinessType />} />
+          <Route path='/monthly-clients' element={<MonthlyClients />} />
+          <Route path='/purpose' element={<Purpose />} />
         </Routes>
       </Router>
     </MantineProvider>
