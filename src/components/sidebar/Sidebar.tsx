@@ -39,7 +39,7 @@ const Sidebar = ({ activeItem }: SidebarProps) => {
 
   return (
     <div className='min-h-screen flex flex-col w-[200px] bg-[#0F2028] fixed left-0 py-6'>
-      <div className='flex justify-start items-center mb-12'>
+      <div className='flex justify-start items-center mb-6'>
         <h3
           className='flex items-center gap-2 px-6 cursor-pointer transition-opacity hover:opacity-90'
           onClick={() => navigate('/dashboard')}
@@ -51,7 +51,7 @@ const Sidebar = ({ activeItem }: SidebarProps) => {
 
       <div className='flex flex-col items-center flex-1'>
         <ul className='gap-2 flex flex-col w-[90%] items-center'>
-          <h4 className='text-[#A7A9AA] text-[12px] self-start px-6 font-[500] mb-2'>
+          <h4 className='text-[#A7A9AA] text-[12px] self-start px-6 font-[500]'>
             MENU
           </h4>
           {menuItems.map((item) => {
@@ -85,9 +85,9 @@ const Sidebar = ({ activeItem }: SidebarProps) => {
         </ul>
       </div>
 
-      <div className='flex flex-col items-center mb-8 flex-1 mt-8'>
+      <div className='flex flex-col items-center mb-8 flex-1 mt-5'>
         <ul className='gap-2 flex flex-col w-[90%] items-center'>
-          <h4 className='text-[#A7A9AA]  text-[12px] self-start px-6 font-[500] mb-2'>
+          <h4 className='text-[#A7A9AA]  text-[12px] self-start px-6 font-[500]'>
             OTHER
           </h4>
           {bottomMenuItems.map((item) => {
