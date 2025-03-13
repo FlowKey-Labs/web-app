@@ -28,7 +28,7 @@ const SearchInput = React.forwardRef<HTMLInputElement, SearchInputProps>(
           ref={ref}
           className={twMerge(
             'w-full h-12 pl-16 pr-4 text-sm text-primary bg-white shade-sm rounded-md',
-            'placeholder:text-primary outline-none transition-all duration-200',
+            'placeholder:text-gray-400 outline-none text-sm transition-all duration-200',
             'hover:border-gray-300',
             inputClassName
           )}

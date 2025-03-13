@@ -12,7 +12,6 @@ import {
   ProfileIcon,
 } from '../../assets/icons';
 import Button from '../common/Button';
-
 import { useNavigate } from 'react-router-dom';
 
 interface SidebarProps {
@@ -38,7 +37,7 @@ const Sidebar = ({ activeItem }: SidebarProps) => {
   ];
 
   return (
-    <div className='min-h-screen flex flex-col w-[200px] bg-[#0F2028] fixed left-0 py-6'>
+    <div className='min-h-screen flex flex-col w-[200px] bg-[#0F2028] py-6'>
       <div className='flex justify-start items-center mb-6'>
         <h3
           className='flex items-center gap-2 px-6 cursor-pointer transition-opacity hover:opacity-90'
@@ -49,79 +48,86 @@ const Sidebar = ({ activeItem }: SidebarProps) => {
         </h3>
       </div>
 
-      <div className='flex flex-col items-center flex-1'>
-        <ul className='gap-2 flex flex-col w-[90%] items-center'>
-          <h4 className='text-[#A7A9AA] text-[12px] self-start px-6 font-[500]'>
-            MENU
-          </h4>
-          {menuItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = activeItem === item.name.toLowerCase();
-            return (
-              <li
-                key={item.name}
-                onClick={() => navigate(`/${item.name.toLowerCase()}`)}
-                className={`flex items-center cursor-pointer w-[168px] h-[35px] rounded-xl px-4 text-[14px] transition-colors hover:opacity-90 ${
-                  isActive ? 'bg-[#F2FDB3] text-[#242424]' : 'text-[#6D7172]'
-                }`}
-              >
-                <div className='relative w-full flex items-center justify-center -ml-8'>
-                  <div className='absolute left-1/2 -translate-x-full pr-[16px]'>
-                    <Icon
-                      className={`w-[20px] h-[20px] ${
-                        isActive
-                          ? 'text-[#242424] stroke-[#242424]'
-                          : 'text-[#6D7172] stroke-[#6D7172]'
-                      }`}
-                    />
+      <div className='flex-1 '>
+        <div className='flex flex-col items-center'>
+          <ul className='gap-2 flex flex-col w-[90%] items-center'>
+            <h4 className='text-[#A7A9AA] text-[12px] self-start px-6 font-[500]'>
+              MENU
+            </h4>
+            {menuItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = activeItem === item.name.toLowerCase();
+              return (
+                <li
+                  key={item.name}
+                  onClick={() => navigate(`/${item.name.toLowerCase()}`)}
+                  className={`flex items-center cursor-pointer w-[168px] h-[35px] rounded-xl px-4 text-[14px] transition-colors hover:opacity-90 ${
+                    isActive ? 'bg-[#F2FDB3] text-[#242424]' : 'text-[#6D7172]'
+                  }`}
+                >
+                  <div className='relative w-full flex items-center justify-center -ml-8'>
+                    <div className='absolute left-1/2 -translate-x-full pr-[16px]'>
+                      <Icon
+                        className={`w-[20px] h-[20px] ${
+                          isActive
+                            ? 'text-[#242424] stroke-[#242424]'
+                            : 'text-[#6D7172] stroke-[#6D7172]'
+                        }`}
+                      />
+                    </div>
+                    <div className='absolute left-1/2 translate-x-0'>
+                      <span className='text-[14px] font-[400]'>
+                        {item.name}
+                      </span>
+                    </div>
                   </div>
-                  <div className='absolute left-1/2 translate-x-0'>
-                    <span className='text-[14px] font-[400]'>{item.name}</span>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+
+        <div className='flex flex-col items-center mt-5'>
+          <ul className='gap-2 flex flex-col w-[90%] items-center'>
+            <h4 className='text-[#A7A9AA] text-[12px] self-start px-6 font-[500]'>
+              OTHER
+            </h4>
+            {bottomMenuItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = activeItem === item.name.toLowerCase();
+              return (
+                <li
+                  key={item.name}
+                  onClick={() => navigate(`/${item.name.toLowerCase()}`)}
+                  className={`flex items-center cursor-pointer w-[168px] h-[35px] rounded-xl px-4 text-[14px] transition-colors hover:opacity-90 ${
+                    isActive ? 'bg-[#F2FDB3] text-[#242424]' : 'text-[#6D7172]'
+                  }`}
+                >
+                  <div className='relative w-full flex items-center justify-center -ml-8'>
+                    <div className='absolute left-1/2 -translate-x-full pr-[16px]'>
+                      <Icon
+                        className={`w-[20px] h-[20px] ${
+                          isActive
+                            ? 'text-[#242424] stroke-[#242424]'
+                            : 'text-[#6D7172] stroke-[#6D7172]'
+                        }`}
+                      />
+                    </div>
+                    <div className='absolute left-1/2 translate-x-0'>
+                      <span className='text-[14px] font-[400]'>
+                        {item.name}
+                      </span>
+                    </div>
                   </div>
-                </div>
-              </li>
-            );
-          })}
-        </ul>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
       </div>
 
-      <div className='flex flex-col items-center mb-8 flex-1 mt-5'>
-        <ul className='gap-2 flex flex-col w-[90%] items-center'>
-          <h4 className='text-[#A7A9AA]  text-[12px] self-start px-6 font-[500]'>
-            OTHER
-          </h4>
-          {bottomMenuItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = activeItem === item.name.toLowerCase();
-            return (
-              <li
-                key={item.name}
-                onClick={() => navigate(`/${item.name.toLowerCase()}`)}
-                className={`flex items-center cursor-pointer w-[168px] h-[35px] rounded-xl px-4 text-[14px] transition-colors hover:opacity-90 ${
-                  isActive ? 'bg-[#F2FDB3] text-[#242424]' : 'text-[#6D7172]'
-                }`}
-              >
-                <div className='relative w-full flex items-center justify-center -ml-8'>
-                  <div className='absolute left-1/2 -translate-x-full pr-[16px]'>
-                    <Icon
-                      className={`w-[20px] h-[20px] ${
-                        isActive
-                          ? 'text-[#242424] stroke-[#242424]'
-                          : 'text-[#6D7172] stroke-[#6D7172]'
-                      }`}
-                    />
-                  </div>
-                  <div className='absolute left-1/2 translate-x-0'>
-                    <span className='text-[14px] font-[400]'>{item.name}</span>
-                  </div>
-                </div>
-              </li>
-            );
-          })}
-        </ul>
-      </div>
-      <div className='flex h-full justify-center items-center w-full'>
-        <div className='flex flex-col h-[160px] rounded-xl text-center p-4 items-center justify-between bg-flowkeySecondary w-[90%] '>
+      <div className='flex justify-center items-center w-full mt-4'>
+        <div className='flex flex-col h-[160px] rounded-xl text-center p-4 items-center justify-between bg-flowkeySecondary w-[90%]'>
           <h4 className='text-[14px] font-[600] text-primary'>
             Let's Manage Your Data Better in Your Hand
           </h4>

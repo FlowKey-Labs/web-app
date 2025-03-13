@@ -1,4 +1,4 @@
-import Header from '../header/Header';
+import MembersHeader from '../headers/MembersHeader';
 import { createColumnHelper } from '@tanstack/react-table';
 import { useState } from 'react';
 import actioEyeIcon from '../../assets/icons/actionEye.svg';
@@ -206,8 +206,8 @@ const AllStaff = () => {
   return (
     <div className='flex min-h-screen bg-[#0F2028]'>
       <div className='flex flex-col min-h-screen bg-white w-full rounded-l-[36px]'>
-        <Header />
-        <div className='flex-1 p-6'>
+        <MembersHeader />
+        <div className='flex-1 px-6'>
           <Table
             data={data}
             columns={columns}

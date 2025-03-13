@@ -107,7 +107,7 @@ const Table = <T extends object>({
                     <button
                       key={page}
                       onClick={() => table.setPageIndex(page - 1)}
-                      className={`px-3 py-2 border border-gray-300 rounded-lg text-xs  ${
+                      className={`px-2 py-1 border border-gray-300 rounded-lg text-xs  ${
                         page === table.getState().pagination.pageIndex + 1
                           ? 'bg-[#DBDEDF] text-primary'
                           : 'text-[#6D7172] hover:bg-gray-50'

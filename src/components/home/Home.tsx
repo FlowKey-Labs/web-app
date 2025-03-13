@@ -7,10 +7,12 @@ const Home = () => {
   const activeSection = path === '' ? 'dashboard' : path;
 
   return (
-    <div className='flex min-h-screen bg-[#F8F9FA]'>
-      <Sidebar activeItem={activeSection} />
-      <div className='flex-1 ml-[200px]'>
-        <Outlet />
+    <div className='flex min-h-screen bg-[#F8F9FA] justify-center'>
+      <div className='flex w-full max-w-[1600px]'>
+        <Sidebar activeItem={activeSection} />
+        <div className='flex-grow'>
+          <Outlet />
+        </div>
       </div>
     </div>
   );

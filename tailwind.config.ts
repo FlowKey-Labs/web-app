@@ -12,6 +12,7 @@ export default {
         flowkeySecondary: '#D2F801',
         active: '#DAF8E6',
         tableHeader: '#DBDEDF',
+        cardsBg: '#F8F7F7',
       },
     },
   },
