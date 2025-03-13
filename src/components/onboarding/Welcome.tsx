@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { GreenArrowIcon } from '../../assets/icons';
 import waveIcon from '../../assets/icons/wave.svg';
-import Button from '../helpers/Button';
+import Button from '../common/Button';
 import MainOnboarding from './MainOnboarding';
 import { useNavigate } from 'react-router-dom';
-import { FlowkeyHeader } from '../helpers/FlowkeyHeader';
+import { FlowkeyOnboardingHeader } from '../common/FlowkeyHeader';
 
 const WelcomePage = () => {
   const [isHovered, setIsHovered] = useState(false);
@@ -14,7 +14,7 @@ const WelcomePage = () => {
     <MainOnboarding>
       <div className='flex flex-col w-full lg:w-[60%] min-h-[90vh] justify-around lg:justify-center px-4 lg:px-0'>
         <div className='mb-12 lg:mb-28 self-start'>
-          <FlowkeyHeader />
+          <FlowkeyOnboardingHeader />
         </div>
 
         <div className='flex flex-col space-y-1 text-left'>

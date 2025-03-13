@@ -1,8 +1,8 @@
 import { useForm, SubmitHandler, FormProvider } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
-import Input from '../helpers/Input';
-import Button from '../helpers/Button';
+import Input from '../common/Input';
+import Button from '../common/Button';
 import Main from '../authentication/MainAuth';
 import { SubmittingIcon } from '../../assets/icons';
 import { useState } from 'react';
@@ -33,7 +33,6 @@ const ForgotPassword = () => {
 
   const onSubmit: SubmitHandler<FormData> = async (data) => {
     setIsSubmitting(true);
-    console.log('Form Data ====>', data);
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
     setIsSubmitting(false);

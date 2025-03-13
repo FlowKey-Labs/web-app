@@ -1,9 +1,9 @@
 import MainOnboarding from './MainOnboarding';
-import { FlowkeyHeader } from '../helpers/FlowkeyHeader';
+import { FlowkeyOnboardingHeader } from '../common/FlowkeyHeader';
 import { useState } from 'react';
-import Button from '../helpers/Button';
+import Button from '../common/Button';
 import { useNavigate } from 'react-router-dom';
-import { OnboardingProgress } from '../helpers/OnboardingProgress';
+import { OnboardingProgress } from '../common/OnboardingProgress';
 
 import musicIcon from '../../assets/icons/music.svg';
 import spaIcon from '../../assets/icons/spa.svg';
@@ -59,7 +59,7 @@ const BusinessType = () => {
     <MainOnboarding>
       <div className='flex flex-col w-[80%] min-h-[90vh]'>
         <div className='mb-4 self-start'>
-          <FlowkeyHeader />
+          <FlowkeyOnboardingHeader />
         </div>
         <div className='flex flex-col text-left mb-8'>
           <h3 className='text-xl font-bold mb-2 text-primary'>

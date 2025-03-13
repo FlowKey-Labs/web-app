@@ -18,8 +18,8 @@ const MainOnboarding: React.FC<MainOnboardingProps> = ({ children }) => {
       }}
     >
       <div className='flex w-full h-[48px] justify-end items-center mb-4 lg:mb-8 px-4 lg:px-0'>
-        <h3 className='text-sm font-urbanist text-[#162F3B] mr-6'>
-          Having trouble? <span className='text-[#1D9B5E]'>Get Help</span>
+        <h3 className='text-sm text-primary mr-6'>
+          Having trouble? <span className='text-secondary'>Get Help</span>
         </h3>
       </div>
 

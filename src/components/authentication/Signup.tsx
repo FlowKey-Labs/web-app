@@ -1,8 +1,8 @@
-import Button from '../helpers/Button';
+import Button from '../common/Button';
 import { useForm, SubmitHandler, FormProvider } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
-import Input from '../helpers/Input';
+import Input from '../common/Input';
 import Main from '../authentication/MainAuth';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -48,7 +48,6 @@ const Signup = () => {
   const navigate = useNavigate();
 
   const onSubmit: SubmitHandler<FormData> = (data) => {
-    console.log(data);
     navigate('/welcome');
   };
 
