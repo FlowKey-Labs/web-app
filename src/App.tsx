@@ -1,35 +1,48 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { MantineProvider } from '@mantine/core';
+import '@mantine/core/styles.css';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import './App.css';
+import Home from './components/home/Home';
+import Login from './components/authentication/Login';
+import Signup from './components/authentication/Signup';
+import ForgotPassword from './components/authentication/ForgotPassword';
+import PasswordResetLink from './components/authentication/PasswordResetLink';
+import ResetPassword from './components/authentication/ResetPassword';
+import SuccessfulPassReset from './components/authentication/SuccessfulPassReset';
+import Welcome from './components/onboarding/Welcome';
+import TeamMembers from './components/onboarding/TeamMembers';
+import BusinessType from './components/onboarding/BusinessType';
+import Purpose from './components/onboarding/Purpose';
+import MonthlyClients from './components/onboarding/MonthlyClients';
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <MantineProvider
+      theme={{
+        fontFamily: 'Poppins, sans-serif',
+      }}
+    >
+      <Router>
+        <Routes>
+          <Route path='/' element={<Home />} />
+          <Route path='/signup' element={<Signup />} />
+          <Route path='/login' element={<Login />} />
+          <Route path='/forgot-password' element={<ForgotPassword />} />
+          <Route path='/password-reset' element={<PasswordResetLink />} />
+          <Route path='/reset-password' element={<ResetPassword />} />
+          <Route
+            path='/successful-password-reset'
+            element={<SuccessfulPassReset />}
+          />
+          <Route path='/welcome' element={<Welcome />} />
+          <Route path='/team-members' element={<TeamMembers />} />
+          <Route path='/business-type' element={<BusinessType />} />
+          <Route path='/monthly-clients' element={<MonthlyClients />} />
+          <Route path='/purpose' element={<Purpose />} />
+        </Routes>
+      </Router>
+    </MantineProvider>
+  );
 }
 
-export default App
+export default App;
