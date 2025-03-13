@@ -48,7 +48,6 @@ const Signup = () => {
   const navigate = useNavigate();
 
   const onSubmit: SubmitHandler<FormData> = (data) => {
-    console.log(data);
     navigate('/welcome');
   };
 

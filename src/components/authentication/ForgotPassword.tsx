@@ -33,7 +33,6 @@ const ForgotPassword = () => {
 
   const onSubmit: SubmitHandler<FormData> = async (data) => {
     setIsSubmitting(true);
-    console.log('Form Data ====>', data);
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
     setIsSubmitting(false);

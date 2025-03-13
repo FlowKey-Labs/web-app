@@ -38,7 +38,6 @@ const ResetPassword = () => {
 
   const onSubmit: SubmitHandler<FormData> = async (data) => {
     setIsResetting(true);
-    console.log('Form Data ====>', data);
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
     setIsResetting(false);

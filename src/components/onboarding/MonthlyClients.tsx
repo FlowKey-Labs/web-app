@@ -5,11 +5,7 @@ import Button from '../helpers/Button';
 import { useNavigate } from 'react-router-dom';
 import { OnboardingProgress } from '../helpers/OnboardingProgress';
 import { useState } from 'react';
-
-interface MonthlyClientOption {
-  id: string;
-  label: string;
-}
+import { monthlyClientOptions } from '../utils/dummyData';
 
 const MonthlyClients = () => {
   const navigate = useNavigate();
@@ -18,14 +14,6 @@ const MonthlyClients = () => {
   >(null);
   const [hoveredOption, setHoveredOption] = useState<string | null>(null);
   const [buttonHovered, setButtonHovered] = useState(false);
-
-  const monthlyClientOptions: MonthlyClientOption[] = [
-    { id: '1', label: '<10' },
-    { id: '2', label: '10-20' },
-    { id: '3', label: '20-30' },
-    { id: '4', label: '30-40' },
-    { id: '5', label: '>50' },
-  ];
 
   return (
     <MainOnboarding>

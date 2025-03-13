@@ -5,56 +5,13 @@ import Button from '../helpers/Button';
 import { useNavigate } from 'react-router-dom';
 import { OnboardingProgress } from '../helpers/OnboardingProgress';
 
-import musicIcon from '../../assets/icons/music.svg';
-import spaIcon from '../../assets/icons/spa.svg';
-import swimIcon from '../../assets/icons/swim.svg';
-import gymIcon from '../../assets/icons/gym.svg';
-import therapyIcon from '../../assets/icons/therapy.svg';
-
-interface BusinessOption {
-  id: string;
-  icon: string;
-  title: string;
-  description: string;
-}
+import { businessOptions } from '../utils/dummyData';
 
 const BusinessType = () => {
   const navigate = useNavigate();
   const [isHovered, setIsHovered] = useState(false);
   const [selectedBusiness, setSelectedBusiness] = useState<string | null>(null);
 
-  const businessOptions: BusinessOption[] = [
-    {
-      id: 'music',
-      icon: musicIcon,
-      title: 'Music School',
-      description: 'Just the usual music classes I guess',
-    },
-    {
-      id: 'spa',
-      icon: spaIcon,
-      title: 'Spa',
-      description: 'Just the usual spa classes I guess',
-    },
-    {
-      id: 'swim',
-      icon: swimIcon,
-      title: 'Swim School',
-      description: 'Just the usual swim classes I guess',
-    },
-    {
-      id: 'gym',
-      icon: gymIcon,
-      title: 'Gym',
-      description: 'Just the usual gym classes I guess',
-    },
-    {
-      id: 'therapy',
-      icon: therapyIcon,
-      title: 'Therapy',
-      description: 'Just the usual therapy classes I guess',
-    },
-  ];
   return (
     <MainOnboarding>
       <div className='flex flex-col w-[80%] min-h-[90vh]'>
