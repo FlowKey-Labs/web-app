@@ -20,7 +20,8 @@ const Input: React.FC<InputProps> = ({
   const {
     register,
     formState: { errors },
-    trigger,  } = useFormContext();
+    trigger,
+  } = useFormContext();
 
   const [showPassword, setShowPassword] = useState(false);
 
