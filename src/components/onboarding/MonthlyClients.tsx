@@ -1,9 +1,9 @@
 import MainOnboarding from './MainOnboarding';
-import { FlowkeyHeader } from '../helpers/FlowkeyHeader';
+import { FlowkeyOnboardingHeader } from '../common/FlowkeyHeader';
 
-import Button from '../helpers/Button';
+import Button from '../common/Button';
 import { useNavigate } from 'react-router-dom';
-import { OnboardingProgress } from '../helpers/OnboardingProgress';
+import { OnboardingProgress } from '../common/OnboardingProgress';
 import { useState } from 'react';
 import { monthlyClientOptions } from '../utils/dummyData';
 
@@ -19,7 +19,7 @@ const MonthlyClients = () => {
     <MainOnboarding>
       <div className='flex flex-col w-[80%] min-h-[90vh]'>
         <div className='mb-10 self-start'>
-          <FlowkeyHeader />
+          <FlowkeyOnboardingHeader />
         </div>
         <div className='flex flex-col text-left mb-8'>
           <h3 className='text-2xl lg:text-3xl font-bold mb-2 text-primary'>

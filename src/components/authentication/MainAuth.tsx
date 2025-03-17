@@ -45,10 +45,8 @@ const Main: React.FC<MainAuthProps> = ({
         <div className='w-full lg:w-auto'>
           <div className='flex justify-center bg-white p-6 lg:p-8 rounded-lg shadow-md w-full lg:w-[480px] h-auto'>
             <div className='w-full max-w-[350px]'>
-              <h3 className='text-2xl lg:text-3xl font-bold mb-2 font-urbanist'>
-                {title}
-              </h3>
-              <p className='text-gray-600 text-sm lg:text-base mb-6 font-urbanist'>
+              <h3 className='text-2xl lg:text-3xl font-bold mb-2 '>{title}</h3>
+              <p className='text-gray-600 text-sm lg:text-base mb-6 '>
                 {subtitle}
               </p>
               {children}

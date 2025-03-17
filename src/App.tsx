@@ -14,17 +14,21 @@ import TeamMembers from './components/onboarding/TeamMembers';
 import BusinessType from './components/onboarding/BusinessType';
 import Purpose from './components/onboarding/Purpose';
 import MonthlyClients from './components/onboarding/MonthlyClients';
+import GettingStarted from './components/dashboard/GettingStarted';
+import AllStaff from './components/staff/AllStaff';
+import AllClasses from './components/classes/AllClasses';
+import ClassDetails from './components/classes/ClassDetails';
+import StaffDetails from './components/staff/StaffDetails';
 
 function App() {
   return (
     <MantineProvider
       theme={{
-        fontFamily: 'Poppins, sans-serif',
+        fontFamily: 'Urbanist, sans-serif',
       }}
     >
       <Router>
         <Routes>
-          <Route path='/' element={<Home />} />
           <Route path='/signup' element={<Signup />} />
           <Route path='/login' element={<Login />} />
           <Route path='/forgot-password' element={<ForgotPassword />} />
@@ -39,6 +43,15 @@ function App() {
           <Route path='/business-type' element={<BusinessType />} />
           <Route path='/monthly-clients' element={<MonthlyClients />} />
           <Route path='/purpose' element={<Purpose />} />
+          <Route path='/' element={<Home />}>
+            <Route index element={<GettingStarted />} />
+            <Route path='dashboard' element={<GettingStarted />} />
+            <Route path='staff' element={<AllStaff />} />
+            <Route path='staff/:id' element={<StaffDetails />} />
+            <Route path='classes' element={<AllClasses />} />
+            <Route path='classes/:id' element={<ClassDetails />} />
+            <Route path='*' element={<GettingStarted />} />
+          </Route>
         </Routes>
       </Router>
     </MantineProvider>

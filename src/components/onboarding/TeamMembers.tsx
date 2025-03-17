@@ -1,9 +1,9 @@
 import MainOnboarding from './MainOnboarding';
-import { FlowkeyHeader } from '../helpers/FlowkeyHeader';
+import { FlowkeyOnboardingHeader } from '../common/FlowkeyHeader';
 
-import Button from '../helpers/Button';
+import Button from '../common/Button';
 import { useNavigate } from 'react-router-dom';
-import { OnboardingProgress } from '../helpers/OnboardingProgress';
+import { OnboardingProgress } from '../common/OnboardingProgress';
 import { useState } from 'react';
 
 import { teamOptions } from '../utils/dummyData';
@@ -20,7 +20,7 @@ const TeamMembers = () => {
     <MainOnboarding>
       <div className='flex flex-col w-[80%] min-h-[90vh]'>
         <div className='mb-10 self-start'>
-          <FlowkeyHeader />
+          <FlowkeyOnboardingHeader />
         </div>
         <div className='flex flex-col text-left mb-8'>
           <h3 className='text-2xl lg:text-3xl font-bold mb-2 text-primary'>
@@ -37,7 +37,7 @@ const TeamMembers = () => {
                   key={option.id}
                   className={`flex items-center bg-white hover:bg-transparent justify-center text-primary h-[42px] rounded-lg cursor-pointer transition-all duration-200 text-sm font-medium select-none ${
                     isSelected
-                      ? 'border-[1px] border-[#1D9B5E] bg-[#F8FBF9]'
+                      ? 'border-[1px] border-secondary bg-[#F8FBF9]'
                       : hoveredOption === option.id
                       ? 'border-[1px] border-gray-300 bg-[#F8FBF9]'
                       : 'border-[1px] border-gray-200'
@@ -71,6 +71,7 @@ const TeamMembers = () => {
             className='text-primary font-bold'
             variant='filled'
             style={{
+              fontFamily: 'Urbanist',
               backgroundColor: buttonHovered ? '#20aa67' : '#1D9B5E',
               transition: 'background-color 200ms ease-in-out',
             }}
