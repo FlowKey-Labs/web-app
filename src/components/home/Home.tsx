@@ -8,7 +8,7 @@ const Home = () => {
 
   return (
     <div className='flex min-h-screen bg-[#F8F9FA] justify-center'>
-      <div className='flex w-full max-w-[1600px]'>
+      <div className='flex w-full'>
         <Sidebar activeItem={activeSection} />
         <div className='flex-grow overflow-auto '>
           <Outlet />

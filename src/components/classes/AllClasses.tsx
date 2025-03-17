@@ -11,7 +11,7 @@ import { navigateToClassDetails } from '../utils/navigationHelpers';
 import actioEyeIcon from '../../assets/icons/actionEye.svg';
 import actionEditIcon from '../../assets/icons/actionEdit.svg';
 import actionOptionIcon from '../../assets/icons/actionOption.svg';
-import plusIcon from '../../assets/icons/plus.svg';
+import plusIcon from '../../assets/icons/plusWhite.svg';
 import classesFilterIcon from '../../assets/icons/classesFilter.svg';
 import resetIcon from '../../assets/icons/resetIcon.svg';
 import dropIcon from '../../assets/icons/dropIcon.svg';
@@ -128,7 +128,7 @@ const AllClasses = () => {
             title='Classes'
             buttonText='New Class'
             searchPlaceholder='Search by ID, Name or Subject'
-            buttonIcon={plusIcon}
+            leftIcon={plusIcon}
             onButtonClick={openModal}
           />
           <div className='flex h-[70px] w-[70%]  ml-6 text-sm p-2 border rounded-md'>

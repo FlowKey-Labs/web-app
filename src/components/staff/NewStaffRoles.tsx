@@ -122,11 +122,12 @@ const NewStaffRoles = ({ onNext, onBack }: NewStaffRolesProps) => {
               type='button'
               onClick={onBack}
               radius='md'
-              color='black'
+              color='#1D9B5E'
               w={100}
+              h={52}
               style={{
-                color: '#0F2028',
-                fontSize: '12px',
+                color: '#1D9B5E',
+                fontSize: '14px',
                 fontWeight: '700',
               }}
             >
@@ -134,17 +135,18 @@ const NewStaffRoles = ({ onNext, onBack }: NewStaffRolesProps) => {
             </Button>
             <Button
               radius='md'
-              w={100}
+              w={120}
+              h={52}
               type='submit'
               disabled={!methods.formState.isValid}
               style={{
-                backgroundColor: '#D2F801',
-                color: '#0F2028',
-                fontSize: '12px',
+                backgroundColor: '#1D9B5E',
+                color: '#FFF',
+                fontSize: '14px',
                 fontWeight: '700',
               }}
             >
-              Next
+              Continue
             </Button>
           </div>
         </form>

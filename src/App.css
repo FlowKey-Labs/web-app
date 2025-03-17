@@ -1,7 +1,7 @@
 @import '@mantine/notifications/styles.css';
 
 #root {
-  max-width: 1600px;
+  /* max-width: 1600px; */
   background-color: #efeded;
   width: 100%;
   margin: 0 auto;
