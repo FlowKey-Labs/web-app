@@ -6,10 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { OnboardingProgress } from '../common/OnboardingProgress';
 import { useState } from 'react';
 
-interface TeamOption {
-  id: string;
-  label: string;
-}
+import { teamOptions } from '../utils/dummyData';
 
 const TeamMembers = () => {
   const navigate = useNavigate();
@@ -17,16 +14,7 @@ const TeamMembers = () => {
   const [hoveredOption, setHoveredOption] = useState<string | null>(null);
   const [buttonHovered, setButtonHovered] = useState(false);
 
-  const teamOptions: TeamOption[] = [
-    { id: 'just-me', label: 'Just me' },
-    { id: '1', label: '1' },
-    { id: '2', label: '2' },
-    { id: '3', label: '3' },
-    { id: '4', label: '4' },
-    { id: '5', label: '5' },
-    { id: '6', label: '6' },
-    { id: '7-plus', label: '7 +' },
-  ];
+  
 
   return (
     <MainOnboarding>

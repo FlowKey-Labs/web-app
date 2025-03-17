@@ -6,44 +6,14 @@ import { useNavigate } from 'react-router-dom';
 import { OnboardingProgress } from '../common/OnboardingProgress';
 import { useState } from 'react';
 
-import calendarIcon from '../../assets/icons/calender.svg';
 import arrowRightIcon from '../../assets/icons/arrowRight.svg';
 
-interface BusinessOption {
-  id: string;
-  icon: string;
-  title: string;
-  description: string;
-}
+import { businessPurpose } from '../utils/dummyData';
 
 const Purpose = () => {
   const navigate = useNavigate();
   const [selectedBusiness, setSelectedBusiness] = useState<string | null>(null);
   const [buttonHovered, setButtonHovered] = useState(false);
-
-  const businessOptions: BusinessOption[] = [
-    {
-      id: '1',
-      icon: calendarIcon,
-      title: 'Scheduling',
-      description:
-        'Just the usual music classes I guess. Just the usual music classes I guess',
-    },
-    {
-      id: '2',
-      icon: calendarIcon,
-      title: 'Scheduling',
-      description:
-        'Just the usual music classes I guess. Just the usual music classes I guess',
-    },
-    {
-      id: '3',
-      icon: calendarIcon,
-      title: 'Scheduling',
-      description:
-        'Just the usual music classes I guess. Just the usual music classes I guess',
-    },
-  ];
 
   return (
     <MainOnboarding>
@@ -59,7 +29,7 @@ const Purpose = () => {
         </div>
         <div className='flex flex-col flex-grow'>
           <div className='grid gap-3 mb-auto'>
-            {businessOptions.map((business) => {
+            {businessPurpose.map((business) => {
               const isSelected = selectedBusiness === business.id;
               const IconComponent = business.icon;
 
