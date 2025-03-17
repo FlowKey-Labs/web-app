@@ -173,28 +173,32 @@ const ClassesModal = ({ isOpen, onClose }: ClassModalProps) => {
                           name='startTime'
                           control={methods.control}
                           render={({ field }) => (
-                            <Input
-                              {...field}
-                              type='time'
-                              label='Start Time'
-                              placeholder='Select Start Time'
-                              className='w-full'
-                              focusColor='flowkeySecondary'
-                            />
+                            <div className='w-[250px]'>
+                              <Input
+                                {...field}
+                                type='time'
+                                label='Start Time'
+                                placeholder='Select Start Time'
+                                className='w-full'
+                                focusColor='flowkeySecondary'
+                              />
+                            </div>
                           )}
                         />
                         <Controller
                           name='endTime'
                           control={methods.control}
                           render={({ field }) => (
-                            <Input
-                              {...field}
-                              type='time'
-                              label='End Time'
-                              placeholder='Select End Time'
-                              focusColor='flowkeySecondary'
-                              className='w-full'
-                            />
+                            <div className='w-[250px]'>
+                              <Input
+                                {...field}
+                                type='time'
+                                label='End Time'
+                                placeholder='Select End Time'
+                                focusColor='flowkeySecondary'
+                                className='w-[200px]'
+                              />
+                            </div>
                           )}
                         />
                       </div>
