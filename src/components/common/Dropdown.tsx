@@ -33,12 +33,14 @@ const Option = (props: any) => {
   return (
     <components.Option {...props}>
       <div className='flex items-center'>
-        <input
-          type='checkbox'
-          checked={props.isSelected}
-          onChange={() => null}
-          className='mr-2'
-        />
+        {props.isMulti && 
+          <input
+            type='checkbox'
+            checked={props.isSelected}
+            onChange={() => null}
+            className='mr-2'
+          />
+        }
         <label>{props.label}</label>
       </div>
     </components.Option>
@@ -55,7 +57,7 @@ export default function DropdownSelectInput({
   width = '100%',
   placeholder = 'Select',
   defaultValue,
-  singleSelect,
+  singleSelect = true,
   hasError,
   onSelectItem,
   onRemoveItem,
@@ -80,15 +82,15 @@ export default function DropdownSelectInput({
   const customStyles = {
     control: (base: any) => ({
       ...base,
-      minHeight: '42px',
+      minHeight: '58px',
       backgroundColor: 'white',
       border: hasError ? '1px solid #FF0000' : '1px solid #E5E7EB',
       borderRadius: '0.5rem',
       boxShadow: 'none',
       '&:hover': {
-        border: hasError ? '1px solid #FF0000' : '1px solid #E5E7EB',
+        border: hasError ? '1px solid #FF0000' : '1px solid #D2F801',
       },
-      padding: '2px 8px',
+      padding: '20px 5px 5px',
     }),
     menu: (base: any) => ({
       ...base,
@@ -104,21 +106,30 @@ export default function DropdownSelectInput({
       margin: '0',
       padding: '0',
     }),
+    option: (base, {isSelected}) => ({
+      ...base, 
+      '&:hover': {
+        backgroundColor: "#F8FED9",
+        color: 'black'
+      },
+      backgroundColor: isSelected ? "#D2F801" : "",
+      color: isSelected ? 'black' : ''
+    })
   };
 
   return (
     <div className={`relative ${className}`} style={{ width }} {...props}>
       {label && (
         <label
-          className={`absolute text-xs bg-white px-2 -translate-y-1/2 left-3 z-10 transition-all ${
-            hasError ? 'text-red-500' : 'text-gray-500'
+          className={`absolute text-xs bg-white px-2 top-2 left-2 z-10 transition-all ${
+            hasError ? 'text-red-500' : 'text-black'
           }`}
         >
           {label}
         </label>
       )}
       <Select
-        className={selectClassName || 'w-full'}
+        className={selectClassName || 'w-full text-sm'}
         classNamePrefix={placeholder}
         value={value}
         isDisabled={isDisabled}

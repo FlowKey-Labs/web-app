@@ -117,7 +117,7 @@ const NewStaffProfile = ({ onNext }: NewStaffProfileProps) => {
               style={{
                 backgroundColor: '#1D9B5E',
                 color: '#FFF',
-                fontSize: '12px',
+                fontSize: '14px',
                 fontWeight: '700',
               }}
             >
