@@ -10,7 +10,7 @@ const Home = () => {
     <div className='flex min-h-screen bg-[#F8F9FA] justify-center'>
       <div className='flex w-full max-w-[1600px]'>
         <Sidebar activeItem={activeSection} />
-        <div className='flex-grow'>
+        <div className='flex-grow overflow-auto '>
           <Outlet />
         </div>
       </div>

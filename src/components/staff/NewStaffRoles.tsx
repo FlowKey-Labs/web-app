@@ -2,6 +2,7 @@ import { useForm, SubmitHandler, FormProvider } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import Button from '../common/Button';
+import DropdownSelectInput from '../common/Dropdown';
 
 interface RoleFormData {
   role: string;
@@ -32,9 +33,21 @@ const NewStaffRoles = ({ onNext, onBack }: NewStaffRolesProps) => {
   });
 
   const onSubmit: SubmitHandler<RoleFormData> = (data) => {
-    console.log('Role Data:', data);
     onNext(data);
   };
+
+  const roleOptions = [
+    { label: 'Manager', value: 'manager' },
+    { label: 'Supervisor', value: 'supervisor' },
+    { label: 'Staff', value: 'staff' },
+    { label: 'Intern', value: 'intern' },
+  ];
+
+  const payTypeOptions = [
+    { label: 'Hourly', value: 'hourly' },
+    { label: 'Salary', value: 'salary' },
+    { label: 'Commission', value: 'commission' },
+  ];
 
   return (
     <FormProvider {...methods}>
@@ -48,67 +61,27 @@ const NewStaffRoles = ({ onNext, onBack }: NewStaffRolesProps) => {
           className='space-y-4 h-full flex flex-col'
         >
           <div className='space-y-4 flex-grow'>
-            <div className='relative'>
-              <select
-                {...methods.register('role')}
-                className={`w-full px-3 pt-8 pb-2 border text-sm text-gray-500 ${
-                  methods.formState.errors.role
-                    ? 'border-red-500'
-                    : 'border-gray-300'
-                } rounded-lg focus:ring-2 ${
-                  methods.formState.errors.role
-                    ? 'focus:ring-red-500'
-                    : 'focus:ring-[#D2F801]'
-                } focus:border-transparent outline-none pr-10`}
-              >
-                <option value=''>Select or create new role</option>
-                <option value='manager'>Manager</option>
-                <option value='supervisor'>Supervisor</option>
-                <option value='staff'>Staff</option>
-                <option value='intern'>Intern</option>
-              </select>
-              <label
-                htmlFor='role'
-                className='absolute top-2 left-4 text-xs text-primary'
-              >
-                Role
-              </label>
-              {methods.formState.errors.role && (
-                <p className='text-sm text-red-500 mt-1'>
-                  {methods.formState.errors.role.message as string}
-                </p>
-              )}
-            </div>
+            <DropdownSelectInput
+              label='Role'
+              options={roleOptions}
+              placeholder='Select or create new role'
+              onSelectItem={(selectedItem) =>
+                methods.setValue('role', selectedItem.value as string)
+              }
+              hasError={!!methods.formState.errors.role}
+              errorMessage={methods.formState.errors.role?.message}
+            />
 
-            <div className='relative'>
-              <select
-                {...methods.register('payType')}
-                className={`w-full px-3 pt-8 pb-2 border text-sm text-gray-500 ${
-                  methods.formState.errors.payType
-                    ? 'border-red-500'
-                    : 'border-gray-300'
-                } rounded-lg focus:ring-2 ${
-                  methods.formState.errors.payType
-                    ? 'focus:ring-red-500'
-                    : 'focus:ring-[#D2F801]'
-                } focus:border-transparent outline-none pr-10`}
-              >
-                <option value='hourly'>Hourly</option>
-                <option value='salary'>Salary</option>
-                <option value='commission'>Commission</option>
-              </select>
-              <label
-                htmlFor='payType'
-                className='absolute top-2 left-4 text-xs text-primary'
-              >
-                Pay Type
-              </label>
-              {methods.formState.errors.payType && (
-                <p className='text-sm text-red-500 mt-1'>
-                  {methods.formState.errors.payType.message as string}
-                </p>
-              )}
-            </div>
+            <DropdownSelectInput
+              label='Pay Type'
+              options={payTypeOptions}
+              placeholder='Select pay type'
+              onSelectItem={(selectedItem) =>
+                methods.setValue('payType', selectedItem.value as string)
+              }
+              hasError={!!methods.formState.errors.payType}
+              errorMessage={methods.formState.errors.payType?.message}
+            />
 
             <div className='relative'>
               <input
@@ -163,7 +136,7 @@ const NewStaffRoles = ({ onNext, onBack }: NewStaffRolesProps) => {
               radius='md'
               w={100}
               type='submit'
-              disabled={!methods.formState.isValid || !methods.formState.isDirty}
+              disabled={!methods.formState.isValid}
               style={{
                 backgroundColor: '#D2F801',
                 color: '#0F2028',

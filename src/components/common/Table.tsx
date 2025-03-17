@@ -15,6 +15,7 @@ interface TableProps<T> {
   columns: ColumnDef<T, any>[];
   rowSelection?: RowSelectionState;
   onRowSelectionChange?: OnChangeFn<RowSelectionState>;
+  onRowClick?: (row: T) => void;
   className?: string;
   pageSize?: number;
 }
@@ -24,6 +25,7 @@ const Table = <T extends object>({
   columns,
   rowSelection,
   onRowSelectionChange,
+  onRowClick,
   className,
   pageSize = 10,
 }: TableProps<T>) => {
@@ -45,7 +47,7 @@ const Table = <T extends object>({
 
   return (
     <div
-      className={`overflow-x-auto shadow-lg rounded-t-lg rounded-b-3xl ${
+      className={`overflow-x-auto shadow-lg rounded-t-lg rounded-b-3xl  ${
         className || ''
       }`}
     >
@@ -67,18 +69,29 @@ const Table = <T extends object>({
             </tr>
           ))}
         </thead>
-        <tbody className='divide-y divide-gray-200'>
+        <tbody className='divide-y divide-gray-200 '>
           {table.getRowModel().rows.map((row) => (
             <tr
               key={row.id}
-              className={`hover:bg-gray-50 transition-colors ${
+              className={`hover:bg-[#F8FED9] hover:scale-[0.99] transition-all duration-200 ${
                 row.getIsSelected() ? 'bg-[#F8FED9]' : ''
               }`}
             >
               {row.getVisibleCells().map((cell) => (
                 <td
                   key={cell.id}
-                  className='px-6 py-3 text-sm text-center text-primary'
+                  className={`px-6 py-3 text-sm text-center text-primary ${
+                    onRowClick && cell.column.id !== 'select'
+                      ? 'cursor-pointer'
+                      : ''
+                  }`}
+                  onClick={(e) => {
+                    if (cell.column.id === 'select') {
+                      e.stopPropagation();
+                      return;
+                    }
+                    onRowClick?.(row.original);
+                  }}
                 >
                   {flexRender(cell.column.columnDef.cell, cell.getContext())}
                 </td>

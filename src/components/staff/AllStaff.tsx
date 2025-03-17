@@ -8,6 +8,8 @@ import Table from '../common/Table';
 import { data, Staff } from '../utils/dummyData';
 import plusIcon from '../../assets/icons/plus.svg';
 import StaffModal from './StaffModal';
+import { navigateToStaffDetails } from '../utils/navigationHelpers';
+import { useNavigate } from 'react-router-dom';
 
 const columnHelper = createColumnHelper<Staff>();
 
@@ -101,6 +103,7 @@ const columns = [
 ];
 
 const AllStaff = () => {
+    const navigate = useNavigate();
   const [rowSelection, setRowSelection] = useState({});
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -118,14 +121,17 @@ const AllStaff = () => {
             buttonIcon={plusIcon}
             onButtonClick={openModal}
           />
-          <div className='flex-1 p-6'>
+          <div className='flex-1 px-6 py-3'>
             <Table
               data={data}
               columns={columns}
               rowSelection={rowSelection}
               onRowSelectionChange={setRowSelection}
               className='mt-4'
-              pageSize={7}
+              pageSize={8}
+              onRowClick={(row: Staff) =>
+                navigateToStaffDetails(navigate, row.id.toString())
+              }
             />
           </div>
         </div>

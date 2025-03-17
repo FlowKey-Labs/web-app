@@ -19,7 +19,10 @@ const schema = yup
     phoneNumber: yup.string().required('Phone number is required'),
     email: yup
       .string()
-      .email('Invalid email format')
+      .matches(
+        /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
+        'Invalid email format'
+      )
       .required('Email is required'),
     userId: yup.string().required('User ID is required'),
   })
@@ -36,7 +39,6 @@ const NewStaffProfile = ({ onNext }: NewStaffProfileProps) => {
   });
 
   const onSubmit: SubmitHandler<ProfileFormData> = (data) => {
-    console.log('Profile Data:', data);
     onNext(data);
   };
 
@@ -61,6 +63,7 @@ const NewStaffProfile = ({ onNext }: NewStaffProfileProps) => {
                 label='Preferred Name'
                 placeholder='Enter preferred name'
                 type='text'
+                focusColor='flowkeySecondary'
                 validation={{ required: 'Name is required' }}
               />
               <Input
@@ -68,6 +71,7 @@ const NewStaffProfile = ({ onNext }: NewStaffProfileProps) => {
                 label='Phone Number'
                 placeholder='Enter phone number'
                 type='tel'
+                focusColor='flowkeySecondary'
                 validation={{ required: 'Phone number is required' }}
               />
               <Input
@@ -75,6 +79,7 @@ const NewStaffProfile = ({ onNext }: NewStaffProfileProps) => {
                 label='User ID'
                 placeholder='Enter user ID'
                 type='text'
+                focusColor='flowkeySecondary'
                 validation={{ required: 'User ID is required' }}
               />
               <Input
@@ -82,6 +87,7 @@ const NewStaffProfile = ({ onNext }: NewStaffProfileProps) => {
                 label='Last Name'
                 placeholder='Enter last name'
                 type='text'
+                focusColor='flowkeySecondary'
                 validation={{ required: 'Last name is required' }}
               />
               <Input
@@ -89,11 +95,13 @@ const NewStaffProfile = ({ onNext }: NewStaffProfileProps) => {
                 label='Email'
                 type='email'
                 placeholder='Enter email address'
+                focusColor='flowkeySecondary'
                 validation={{
                   required: 'Email is required',
                   pattern: {
-                    value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                    message: 'Invalid email format',
+                    value: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
+                    message:
+                      'Please enter a valid email address (e.g., name@example.com)',
                   },
                 }}
               />

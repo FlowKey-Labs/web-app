@@ -37,7 +37,7 @@ const Sidebar = ({ activeItem }: SidebarProps) => {
   ];
 
   return (
-    <div className='min-h-screen flex flex-col w-[200px] bg-[#0F2028] py-6'>
+    <div className='min-h-screen flex flex-col w-[200px] bg-[#0F2028] py-6 h-screen overflow-y-auto'>
       <div className='flex justify-start items-center mb-6'>
         <h3
           className='flex items-center gap-2 px-6 cursor-pointer transition-opacity hover:opacity-90'

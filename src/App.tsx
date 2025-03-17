@@ -16,6 +16,9 @@ import Purpose from './components/onboarding/Purpose';
 import MonthlyClients from './components/onboarding/MonthlyClients';
 import GettingStarted from './components/dashboard/GettingStarted';
 import AllStaff from './components/staff/AllStaff';
+import AllClasses from './components/classes/AllClasses';
+import ClassDetails from './components/classes/ClassDetails';
+import StaffDetails from './components/staff/StaffDetails';
 
 function App() {
   return (
@@ -44,6 +47,9 @@ function App() {
             <Route index element={<GettingStarted />} />
             <Route path='dashboard' element={<GettingStarted />} />
             <Route path='staff' element={<AllStaff />} />
+            <Route path='staff/:id' element={<StaffDetails />} />
+            <Route path='classes' element={<AllClasses />} />
+            <Route path='classes/:id' element={<ClassDetails />} />
             <Route path='*' element={<GettingStarted />} />
           </Route>
         </Routes>

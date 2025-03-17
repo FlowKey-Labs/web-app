@@ -35,7 +35,6 @@ const NewStaffPermissions = ({ onNext, onBack }: NewStaffPermissionsProps) => {
   });
 
   const onSubmit: SubmitHandler<PermissionsFormData> = (data) => {
-    console.log('Permissions Data:', data);
     onNext(data);
   };
 

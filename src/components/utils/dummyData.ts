@@ -4,7 +4,7 @@ import swimIcon from '../../assets/icons/swim.svg';
 import gymIcon from '../../assets/icons/gym.svg';
 import therapyIcon from '../../assets/icons/therapy.svg';
 import calendarIcon from '../../assets/icons/calender.svg';
-import Avatar from '../../assets/images/avatar.png';
+import Avatar from '../../assets/images/greyPhoto.png';
 
 interface BusinessOption {
   id: string;
@@ -30,9 +30,29 @@ interface TeamOption {
   label: string;
 }
 
+export type ClassLevel = 'Beginner' | 'Intermediate' | 'Advanced';
+export type ClassType = 'Trial' | 'Nomal' | 'MakeUp';
+export type RepeatDays = 'Mon' | 'Tue' | 'Wed' | 'Thu' | 'Fri' | 'Sat' | 'Sun';
+
+export interface ClassData {
+  id: number;
+  class: string;
+  classLevel: ClassLevel;
+  AssignedTo: string;
+  classType: ClassType;
+  slots: number;
+  date: Date;
+  duration: string;
+  repeats: RepeatDays[];
+  profileImage: string;
+}
+
 export type Staff = {
   id: number;
   name: string;
+  firstName: string;
+  lastName: string,
+  role: string,
   staffNumber: string;
   idNumber: number;
   phoneNumber: string;
@@ -122,6 +142,9 @@ export const data: Staff[] = [
   {
     id: 1,
     name: 'John Doe',
+    firstName: 'John',
+    lastName: 'Doe',
+    role: 'Math Teacher',
     staffNumber: 'SN001',
     idNumber: 366357,
     phoneNumber: '+1234567890',
@@ -133,6 +156,9 @@ export const data: Staff[] = [
   {
     id: 2,
     name: 'Jane Smith',
+    firstName: 'Jane',
+    lastName: 'Smith',
+    role: 'English Teacher',
     staffNumber: 'SN002',
     idNumber: 366358,
     phoneNumber: '+1234567891',
@@ -144,6 +170,9 @@ export const data: Staff[] = [
   {
     id: 3,
     name: 'Alice Johnson',
+    firstName: 'Alice',
+    lastName: 'Johnson',
+    role: 'Physics Teacher',
     staffNumber: 'SN003',
     idNumber: 366359,
     phoneNumber: '+1234567892',
@@ -155,6 +184,9 @@ export const data: Staff[] = [
   {
     id: 4,
     name: 'Bob Brown',
+    firstName: 'Bob',
+    lastName: 'Brown',
+    role: 'Biology Teacher',
     staffNumber: 'SN004',
     idNumber: 366360,
     phoneNumber: '+1234567893',
@@ -166,6 +198,9 @@ export const data: Staff[] = [
   {
     id: 5,
     name: 'Emma Wilson',
+    firstName: 'Emma',
+    lastName: 'Wilson',
+    role: 'Art Teacher',
     staffNumber: 'SN005',
     idNumber: 366361,
     phoneNumber: '+1234567894',
@@ -177,6 +212,9 @@ export const data: Staff[] = [
   {
     id: 6,
     name: 'Michael Clark',
+    firstName: 'Michael',
+    lastName: 'Clark',
+    role: 'Physical Education Teacher',
     staffNumber: 'SN006',
     idNumber: 366362,
     phoneNumber: '+1234567895',
@@ -188,6 +226,9 @@ export const data: Staff[] = [
   {
     id: 7,
     name: 'Sarah Davis',
+    firstName: 'Sarah',
+    lastName: 'Davis',
+    role: 'Computer Science Teacher',
     staffNumber: 'SN007',
     idNumber: 366363,
     phoneNumber: '+1234567896',
@@ -199,12 +240,202 @@ export const data: Staff[] = [
   {
     id: 8,
     name: 'James Wilson',
+    firstName: 'James',
+    lastName: 'Wilson',
+    role: 'Literature Teacher',
     staffNumber: 'SN008',
     idNumber: 366364,
     phoneNumber: '+1234567897',
     email: 'james.wilson@example.com',
     assignedClasses: 'Literature, Drama',
     status: 'Active',
+    profileImage: Avatar,
+  },
+  {
+    id: 9,
+    name: 'Sarah Daviss',
+    firstName: 'Sarah',
+    lastName: 'Daviss',
+    role: 'Computer Science Teacher',
+    staffNumber: 'SN009',
+    idNumber: 366365,
+    phoneNumber: '+1234567898',
+    email: 'sarah.daviss@example.com',
+    assignedClasses: 'Computer Science',
+    status: 'Active',
+    profileImage: Avatar,
+  },
+  {
+    id: 10,
+    name: 'James Wilsonn',
+    firstName: 'James',
+    lastName: 'Wilsonn',
+    role: 'Literature Teacher',
+    staffNumber: 'SN010',
+    idNumber: 366366,
+    phoneNumber: '+1234567899',
+    email: 'james.wilsonn@example.com',
+    assignedClasses: 'Literature',
+    status: 'Active',
+    profileImage: Avatar,
+  },
+];
+
+export const classesData: ClassData[] = [
+  {
+    id: 1,
+    class: 'SWM 401',
+    classLevel: 'Advanced',
+    AssignedTo: 'Coach Raymond',
+    classType: 'Trial',
+    slots: 24,
+    date: new Date('2025-01-12'),
+    duration: '10.00am-12.00pm',
+    repeats: ['Mon', 'Wed', 'Fri'],
+    profileImage: Avatar,
+  },
+  {
+    id: 2,
+    class: 'SWM 201',
+    classLevel: 'Intermediate',
+    AssignedTo: 'Coach Sarah',
+    classType: 'Nomal',
+    slots: 20,
+    date: new Date('2025-01-15'),
+    duration: '2.00pm-4.00pm',
+    repeats: ['Tue', 'Thu'],
+    profileImage: Avatar,
+  },
+  {
+    id: 3,
+    class: 'SWM 101',
+    classLevel: 'Beginner',
+    AssignedTo: 'Coach John',
+    classType: 'Trial',
+    slots: 18,
+    date: new Date('2025-01-18'),
+    duration: '9.00am-11.00am',
+    repeats: ['Mon', 'Wed', 'Fri'],
+    profileImage: Avatar,
+  },
+  {
+    id: 4,
+    class: 'SWM 301',
+    classLevel: 'Intermediate',
+    AssignedTo: 'Coach Emily',
+    classType: 'Nomal',
+    slots: 22,
+    date: new Date('2025-01-20'),
+    duration: '3.00pm-5.00pm',
+    repeats: ['Tue', 'Thu', 'Sat'],
+    profileImage: Avatar,
+  },
+  {
+    id: 5,
+    class: 'SWM 501',
+    classLevel: 'Advanced',
+    AssignedTo: 'Coach Michael',
+    classType: 'Trial',
+    slots: 16,
+    date: new Date('2025-01-22'),
+    duration: '1.00pm-3.00pm',
+    repeats: ['Mon', 'Wed', 'Fri'],
+    profileImage: Avatar,
+  },
+  {
+    id: 6,
+    class: 'SWM 102',
+    classLevel: 'Beginner',
+    AssignedTo: 'Coach Laura',
+    classType: 'MakeUp',
+    slots: 20,
+    date: new Date('2025-01-25'),
+    duration: '10.00am-12.00pm',
+    repeats: ['Tue', 'Thu'],
+    profileImage: Avatar,
+  },
+  {
+    id: 7,
+    class: 'SWM 202',
+    classLevel: 'Intermediate',
+    AssignedTo: 'Coach David',
+    classType: 'Trial',
+    slots: 18,
+    date: new Date('2025-01-28'),
+    duration: '2.00pm-4.00pm',
+    repeats: ['Mon', 'Wed', 'Fri'],
+    profileImage: Avatar,
+  },
+  {
+    id: 8,
+    class: 'SWM 302',
+    classLevel: 'Intermediate',
+    AssignedTo: 'Coach Rachel',
+    classType: 'Nomal',
+    slots: 24,
+    date: new Date('2025-01-30'),
+    duration: '9.00am-11.00am',
+    repeats: ['Tue', 'Thu', 'Sat'],
+    profileImage: Avatar,
+  },
+  {
+    id: 9,
+    class: 'SWM 402',
+    classLevel: 'Advanced',
+    AssignedTo: 'Coach Daniel',
+    classType: 'Trial',
+    slots: 20,
+    date: new Date('2025-02-02'),
+    duration: '3.00pm-5.00pm',
+    repeats: ['Mon', 'Wed', 'Fri'],
+    profileImage: Avatar,
+  },
+  {
+    id: 10,
+    class: 'SWM 502',
+    classLevel: 'Advanced',
+    AssignedTo: 'Coach Olivia',
+    classType: 'MakeUp',
+    slots: 22,
+    date: new Date('2025-02-05'),
+    duration: '1.00pm-3.00pm',
+    repeats: ['Tue', 'Thu'],
+    profileImage: Avatar,
+  },
+  {
+    id: 11,
+    class: 'SWM 103',
+    classLevel: 'Beginner',
+    AssignedTo: 'Coach Ethan',
+    classType: 'Trial',
+    slots: 18,
+    date: new Date('2025-02-08'),
+    duration: '10.00am-12.00pm',
+    repeats: ['Mon', 'Wed', 'Fri'],
+    profileImage: Avatar,
+  },
+  {
+    id: 12,
+    class: 'SWM 203',
+    classLevel: 'Intermediate',
+    AssignedTo: 'Coach Sophia',
+    classType: 'Nomal',
+    slots: 20,
+    date: new Date('2025-02-10'),
+    duration: '2.00pm-4.00pm',
+    repeats: ['Tue', 'Thu', 'Sat'],
+    profileImage: Avatar,
+  },
+  {
+    id: 13,
+    class: 'SWM 303',
+    classLevel: 'Intermediate',
+    AssignedTo: 'Coach Liam',
+    classType: 'Trial',
+    slots: 24,
+    date: new Date('2025-02-12'),
+    duration: '9.00am-11.00am',
+    repeats: ['Mon', 'Wed', 'Fri'],
     profileImage: Avatar,
   },
 ];
@@ -225,19 +456,19 @@ export const sectionsData = [
 ];
 
 export const permissionsData = [
-    {
-      id: 'createEvents',
-      label: 'Create New Events',
-      description: 'Add new classes, appointments and personal appointments',
-    },
-    {
-      id: 'addClients',
-      label: 'Add New Clients',
-      description: 'Onboard new clients.',
-    },
-    {
-      id: 'createInvoices',
-      label: 'Create and Send Client Invoices',
-      description: 'Generate payment receipts and confirm transactions',
-    },
-  ]
+  {
+    id: 'createEvents',
+    label: 'Create New Events',
+    description: 'Add new classes, appointments and personal appointments',
+  },
+  {
+    id: 'addClients',
+    label: 'Add New Clients',
+    description: 'Onboard new clients.',
+  },
+  {
+    id: 'createInvoices',
+    label: 'Create and Send Client Invoices',
+    description: 'Generate payment receipts and confirm transactions',
+  },
+];

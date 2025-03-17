@@ -9,12 +9,14 @@ interface NewStaffReviewProps {
   formData: FormData;
   onBack: () => void;
   onSubmit: () => void;
+  onSectionClick: (section: string) => void;
 }
 
 const NewStaffReview = ({
   formData,
   onBack,
   onSubmit,
+  onSectionClick,
 }: NewStaffReviewProps) => {
   const handleSubmit = () => {
     onSubmit();
@@ -51,23 +53,7 @@ const NewStaffReview = ({
           <div key={index}>
             <div
               className='p-4 rounded-lg hover:bg-gray-50 transition-all cursor-pointer group'
-              onClick={() => {
-                const sectionMap: Record<string, number> = {
-                  Profile: 0,
-                  Roles: 1,
-                  Permissions: 2,
-                };
-                const currentSection = sectionMap[section.title];
-                if (currentSection !== undefined) {
-                  for (
-                    let i = Object.keys(sectionMap).length - 1;
-                    i > currentSection;
-                    i--
-                  ) {
-                    onBack();
-                  }
-                }
-              }}
+              onClick={() => onSectionClick(section.title)}
               role='tab'
               aria-selected='false'
               aria-controls={`section-${section.title.toLowerCase()}`}

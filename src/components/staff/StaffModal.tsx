@@ -10,7 +10,7 @@ interface StaffModalProps {
   onClose: () => void;
 }
 
-type SectionType = 'Profile' | 'Role' | 'Permissions' | 'Review';
+type SectionType = 'Profile' | 'Roles' | 'Permissions' | 'Review';
 type SectionTypes = { title: SectionType }[];
 
 type Section = {
@@ -19,7 +19,7 @@ type Section = {
 
 const sections: SectionTypes = [
   { title: 'Profile' },
-  { title: 'Role' },
+  { title: 'Roles' },
   { title: 'Permissions' },
   { title: 'Review' },
 ];
@@ -30,7 +30,7 @@ const StaffModal = ({ isOpen, onClose }: StaffModalProps) => {
 
   const handleProfileSubmit = (data: FormData['profile']) => {
     setFormData((prev) => ({ ...prev, profile: data }));
-    setActiveSection('Role');
+    setActiveSection('Roles');
   };
 
   const handleRoleSubmit = (data: FormData['role']) => {
@@ -53,7 +53,7 @@ const StaffModal = ({ isOpen, onClose }: StaffModalProps) => {
 
   const contentMap: Record<SectionType, React.ReactNode> = {
     Profile: <NewStaffProfile onNext={handleProfileSubmit} />,
-    Role: <NewStaffRoles onNext={handleRoleSubmit} onBack={handleBack} />,
+    Roles: <NewStaffRoles onNext={handleRoleSubmit} onBack={handleBack} />,
     Permissions: (
       <NewStaffPermissions
         onNext={handlePermissionsSubmit}
@@ -65,8 +65,13 @@ const StaffModal = ({ isOpen, onClose }: StaffModalProps) => {
         formData={formData}
         onBack={handleBack}
         onSubmit={() => {
-          console.log('Submit:', formData);
           onClose();
+        }}
+        onSectionClick={(section) => {
+          const targetSection = section as SectionType;
+          if (targetSection !== 'Review') {
+            setActiveSection(targetSection);
+          }
         }}
       />
     ),
@@ -88,7 +93,7 @@ const StaffModal = ({ isOpen, onClose }: StaffModalProps) => {
         <div className='flex justify-end'>
           <button
             onClick={onClose}
-            className='text-gray-500 hover:text-gray-700 transition-colors p-2 rounded-lg hover:bg-gray-100'
+            className='text-gray-500 hover:text-gray-700 transition-colors p-2 rounded-full hover:bg-gray-100'
             aria-label='Close modal'
           >
             <svg
