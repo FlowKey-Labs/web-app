@@ -1,0 +1,19 @@
+.fc-toolbar-chunk div {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: nowrap;
+  }
+
+  .fc-customToggle-button {
+    background-color: #4caf50 !important; /* Green background */
+    color: white !important; /* White text */
+    border-radius: 5px; /* Rounded corners */
+    padding: 5px 10px; /* Padding */
+    font-weight: bold;
+    transition: all 0.3s ease;
+  }
+  
+  .fc-customToggle-button:hover {
+    background-color: #45a049 !important; /* Darker green on hover */
+  }
