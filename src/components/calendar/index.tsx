@@ -121,7 +121,7 @@ const CalendarView = () => {
     return (
       <div className="flex justify-between w-full h-full py-1">
         <div className={cn("flex items-center gap-1 w-[70%]", {
-          'w-[50%]': currentView.type === 'Week'
+          'w-[40%]': currentView.type === 'Week',
         })}>
           <div className="rounded-full w-2 h-2 bg-green-400" />
           <i className="text-xs truncate">{eventInfo.event.title}</i>

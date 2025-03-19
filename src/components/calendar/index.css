@@ -5,7 +5,6 @@
 .fc-daygrid-day-top {
   flex-direction: row !important;
   padding-left: 5px;
-  margin-bottom: 8px;
 }
 
 .fc .fc-daygrid-day.fc-day-today {
@@ -54,4 +53,8 @@
 
 .fc-theme-standard .fc-popover {
   background-color: white !important;
+}
+
+.fc .fc-timegrid-slot-minor {
+  border-top-style: none;
 }
