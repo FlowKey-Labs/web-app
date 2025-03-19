@@ -2,12 +2,13 @@ import { SearchIcon } from '../../assets/icons';
 import SearchInput from '../common/SearchInput';
 import Button from '../common/Button';
 import filterIcon from '../../assets/icons/filter.svg';
-import filter2Icon from '../../assets/icons/filter2.svg';
+import filter2Icon from '../../assets/icons/filter2.svg'
 
 interface HeaderProps {
   title?: string;
   buttonText?: string;
   buttonIcon?: string;
+  leftIcon?: string;
   searchPlaceholder?: string;
   onButtonClick?: () => void;
   showFilterIcons?: boolean;
@@ -19,18 +20,19 @@ const Header = ({
   title = '',
   buttonText = '',
   buttonIcon = '',
+  leftIcon = '',
   searchPlaceholder = '',
   onButtonClick,
-  showFilterIcons = true,
+  showFilterIcons = false,
   showButton = true,
   showSearch = true,
 }: HeaderProps) => {
   return (
-    <div className='h-[80px] flex items-center justify-between px-8 space-x-12'>
+    <div className='h-[80px] flex items-center justify-between px-8 py-12 space-x-12'>
       <div className='flex-shrink-0 justify-center items-center'>
         {title && (
           <div className='flex-shrink-0 self-start'>
-            <h1 className='text-xl font-bold text-primary text-center'>
+            <h1 className='text-[32px] font-bold text-primary text-center'>
               {title}
             </h1>
           </div>
@@ -68,14 +70,19 @@ const Header = ({
           <div>
             <Button
               w={140}
+              h={52}
               size='sm'
-              radius='xl'
+              radius='md'
+              leftSection={
+                leftIcon && <img src={leftIcon} alt='Icon' className='w-3 h-3' />
+              }
               rightSection={
-                <img src={buttonIcon} alt='Icon' className='w-4 h-4' />
+                buttonIcon && <img src={buttonIcon} alt='Icon' className='w-3 h-3' />
               }
               style={{
-                backgroundColor: '#D2F801',
-                color: '#162F3B',
+                backgroundColor: '#1D9B5E',
+                color: '#fff',
+                fontSize: "16px",
               }}
               onClick={onButtonClick}
             >

@@ -110,17 +110,18 @@ const NewStaffProfile = ({ onNext }: NewStaffProfileProps) => {
           <div className='flex justify-end mt-8'>
             <Button
               radius='md'
-              w={100}
+              w={120}
+              h={52}
               type='submit'
               disabled={!methods.formState.isDirty}
               style={{
-                backgroundColor: '#D2F801',
-                color: '#0F2028',
-                fontSize: '12px',
+                backgroundColor: '#1D9B5E',
+                color: '#FFF',
+                fontSize: '14px',
                 fontWeight: '700',
               }}
             >
-              Next
+              Continue
             </Button>
           </div>
         </form>

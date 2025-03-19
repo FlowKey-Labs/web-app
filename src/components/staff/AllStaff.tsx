@@ -6,7 +6,7 @@ import actionEditIcon from '../../assets/icons/actionEdit.svg';
 import actionOptionIcon from '../../assets/icons/actionOption.svg';
 import Table from '../common/Table';
 import { data, Staff } from '../utils/dummyData';
-import plusIcon from '../../assets/icons/plus.svg';
+import plusIcon from '../../assets/icons/plusWhite.svg';
 import StaffModal from './StaffModal';
 import { navigateToStaffDetails } from '../utils/navigationHelpers';
 import { useNavigate } from 'react-router-dom';
@@ -118,7 +118,7 @@ const AllStaff = () => {
             title='All Staff'
             buttonText='New Staff'
             searchPlaceholder='Search by ID, Name or Subject'
-            buttonIcon={plusIcon}
+            leftIcon={plusIcon}
             onButtonClick={openModal}
           />
           <div className='flex-1 px-6 py-3'>
