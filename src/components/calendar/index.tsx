@@ -2,90 +2,212 @@ import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import dayGridWeek from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
-import { useRef, useState } from "react";
-import './index.css'
+import { useCallback, useRef, useState } from "react";
+import Button from "../common/Button";
+import plusIcon from "../../assets/icons/plusWhite.svg";
+import { addHours, subDays, subHours, format, parse } from "date-fns";
+import "./index.css";
+import DropDownMenu from "../common/DropdownMenu";
+import { cn } from "../utils/mergeClass";
+import dropdownIcon from '../../assets/icons/dropIcon.svg'
+
+const formatTimeTo12Hour = (timeStr: string): string => {
+  try {
+    // Handle time range format: "12:33 - 16:33"
+    if (timeStr.includes(" - ")) {
+      const [start, end] = timeStr.split(" - ");
+      return `${format(parse(start, "HH:mm", new Date()), "h:mm a")} - ${format(
+        parse(end, "HH:mm", new Date()),
+        "h:mm a"
+      )}`;
+    }
+
+    // Handle single time format: "12:33" or "12:33p"
+    return format(
+      parse(timeStr.replace(/[ap]$/, ""), "HH:mm", new Date()),
+      "h:mm a"
+    );
+  } catch (error) {
+    console.error("Error formatting time:", error);
+    return timeStr; // Return original if parsing fails
+  }
+};
 
 const events = [
   {
     title: "Meeting",
-    start: new Date(),
+    start: subHours(new Date(), 3),
+    backgroundColor: "rgba(29, 155, 94, 0.2)",
+  },
+  {
+    title: "Breakfast Meeting",
+    start: subHours(new Date(), 5),
+    end: subHours(new Date(), 2),
+    backgroundColor: "rgba(29, 155, 94, 0.2)",
+  },
+  {
+    title: "Dinner Meeting",
+    start: addHours(new Date(), 3),
+    backgroundColor: "rgba(29, 155, 94, 0.2)",
+  },
+  {
+    title: "Bricks Meeting",
+    start: subDays(new Date(), 3),
+    backgroundColor: "rgba(29, 155, 94, 0.2)",
+  },
+  {
+    title: "Meeting with stakeholder",
+    start: subDays(new Date(), 5),
     backgroundColor: "rgba(29, 155, 94, 0.2)",
   },
 ];
 
+const headerToolbar = {
+  start: "title",
+  center: "",
+  end: "",
+};
+
+type CalendarView = {
+  type: string;
+  view: string;
+};
+
+const calendarViews: CalendarView[] = [
+  {
+    type: "Month",
+    view: "dayGridMonth",
+  },
+  {
+    type: "Week",
+    view: "timeGridWeek",
+  },
+  {
+    type: "Day",
+    view: "timeGridDay",
+  },
+];
 
 const CalendarView = () => {
-    const calendarRef = useRef<FullCalendar>(null);
-    const [currentView, setCurrentView] = useState("dayGridMonth");
-  
-    // const toggleView = () => {
-    //   const nextView =
-    //     currentView === "dayGridMonth"
-    //       ? "timeGridWeek"
-    //       : currentView === "timeGridWeek"
-    //       ? "timeGridDay"
-    //       : "dayGridMonth";
-  
-    //   setCurrentView(nextView);
-    //   calendarRef.current?.getApi().changeView(nextView);
-    // };
-    const changeView = (view: string) => {
-        setCurrentView(view);
-        calendarRef.current?.getApi().changeView(view);
-      };
+  const calendarRef = useRef<FullCalendar>(null);
+  const [currentView, setCurrentView] = useState<CalendarView>(
+    calendarViews[0]
+  );
+  const [dropdownOpen, setDropdownOpen] = useState(false);
 
-    const customButtons = {
-        myCustomButton: {
-            text: "Toggle View",
-            // click: toggleView,
-        }
-      }
+  const changeView = (view: CalendarView) => {
+    setCurrentView(view);
+    calendarRef.current?.getApi().changeView(view.view);
+    setDropdownOpen(false);
+  };
 
-    const headerToolbar = 
-      {
-        start: 'title,myCustomButton',
-        center: '',
-        end: ''
-      }
-  return (
-    <div>
-      <div className="mb-4">
-        <select
-          id="viewSelect"
-          value={currentView}
-          onChange={(e) => changeView(e.target.value)}
-          className="p-2 border rounded"
-        >
-          <option value="dayGridMonth">Month</option>
-          <option value="timeGridWeek">Week</option>
-          <option value="timeGridDay">Day</option>
-        </select>
+  const handleAddEvent = () => {
+    const calendarApi = calendarRef.current?.getApi();
+
+    if (calendarApi) {
+      calendarApi.addEvent({
+        title: "New Event",
+        start: new Date(),
+        end: new Date(new Date().getTime() + 60 * 60 * 1000),
+        allDay: false,
+      });
+    }
+  };
+
+  const renderEventContent = useCallback((eventInfo: {
+    timeText: string;
+    event: { title: string };
+  }) => {  
+    return (
+      <div className="flex justify-between w-full h-full py-1">
+        <div className={cn("flex items-center gap-1 w-[70%]", {
+          'w-[50%]': currentView.type === 'Week'
+        })}>
+          <div className="rounded-full w-2 h-2 bg-green-400" />
+          <i className="text-xs truncate">{eventInfo.event.title}</i>
+        </div>
+        <b className="text-xs flex items-center">
+          {formatTimeTo12Hour(eventInfo.timeText)}
+        </b>
       </div>
-      <FullCalendar
-        ref={calendarRef}
-        plugins={[dayGridPlugin, timeGridPlugin, dayGridWeek]}
-        initialView={currentView}
-        events={events}
-        eventContent={renderEventContent}
-        dayMaxEventRows={true}
-        headerToolbar={headerToolbar}
-        customButtons={customButtons}
-        height={'100vh'}
-      />
+    );
+  }, [currentView])
+
+  return (
+    <div className="pt-5 px-5 bg-[#f5f5f5]">
+      <h1 className="text-[32px] font-bold text-primary pb-4">Calendar</h1>
+      <div className="relative pt-5 bg-white">
+        <div className="absolute top-5 left-[250px]">
+          <DropDownMenu
+            show={dropdownOpen}
+            setShow={setDropdownOpen}
+            dropDownPosition="center"
+            actionElement={
+              <div
+                id="viewSelect"
+                className="p-2 border rounded w-20 h-10 outline-none cursor-pointer flex items-center justify-between"
+              >
+                <p>{currentView?.type}</p>
+                <img src={dropdownIcon} />
+              </div>
+            }
+          >
+            {calendarViews.map((view) => (
+              <div
+                className={cn("w-20 p-2 cursor-pointer hover:bg-[#F8FED9]", {
+                  "bg-[#F8FED9]": view.type === currentView.type,
+                })}
+                onClick={() => changeView(view)}
+              >
+                <p>{view.type}</p>
+              </div>
+            ))}
+          </DropDownMenu>
+        </div>
+        <div className="absolute top-4 right-[20px]">
+          <Button
+            w={140}
+            h={52}
+            size="sm"
+            radius="md"
+            leftSection={<img src={plusIcon} alt="Icon" className="w-3 h-3" />}
+            style={{
+              backgroundColor: "#1D9B5E",
+              color: "#fff",
+              fontSize: "16px",
+            }}
+            onClick={handleAddEvent}
+          >
+            New Event
+          </Button>
+        </div>
+        <FullCalendar
+          ref={calendarRef}
+          plugins={[dayGridPlugin, timeGridPlugin, dayGridWeek]}
+          initialView={currentView.view}
+          events={events}
+          eventContent={renderEventContent}
+          dayMaxEventRows={true}
+          allDaySlot={false}
+          headerToolbar={headerToolbar}
+          dayCellClassNames={"items-start"}
+          height={`calc(100vh - 130px)`}
+          slotLabelFormat={{
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: false,
+          }}
+          eventTimeFormat={{
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: false,
+          }}
+        />
+      </div>
     </div>
   );
 };
 
-function renderEventContent(eventInfo: {
-  timeText: string;
-  event: { title: string };
-}) {
-  return (
-    <div className="flex items-end w-full h-full">
-      <b>{eventInfo.timeText}</b>
-      <i>{eventInfo.event.title}</i>
-    </div>
-  );
-}
+
 
 export default CalendarView;
