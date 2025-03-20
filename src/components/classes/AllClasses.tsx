@@ -8,7 +8,6 @@ import ClassesModal from './ClassesModal';
 import { classesData, ClassData, categoryOptions } from '../utils/dummyData';
 import { navigateToClassDetails } from '../utils/navigationHelpers';
 import { DatePickerInput } from '@mantine/dates';
-import { Modal } from '@mantine/core';
 
 import actioEyeIcon from '../../assets/icons/actionEye.svg';
 import actionEditIcon from '../../assets/icons/actionEdit.svg';
