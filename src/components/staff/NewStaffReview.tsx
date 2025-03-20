@@ -1,23 +1,150 @@
-import { Checkbox } from '@mantine/core';
+import { Checkbox, Accordion } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import Button from '../common/Button';
 import { FormData } from './types';
-import rightIcon from '../../assets/icons/tableRight.svg';
-import { sectionsData } from '../../components/utils/dummyData';
+import DropdownSelectInput, { DropDownItem } from '../common/Dropdown';
+import { SingleValue } from 'react-select';
+
+interface DisplayInputProps
+  extends React.InputHTMLAttributes<HTMLInputElement> {
+  label: string;
+  value: string;
+}
+
+const DisplayInput: React.FC<DisplayInputProps> = ({
+  label,
+  value,
+  ...props
+}) => (
+  <div className='mt-4 relative'>
+    <input
+      {...props}
+      value={value}
+      disabled
+      className='w-full p-2 pt-8 border text-sm border-gray-300 rounded-lg focus:outline-none'
+      style={{ fontSize: '12px', fontWeight: '100' }}
+    />
+    <label className='absolute top-2 left-2 text-sm text-gray-500'>
+      {label}
+    </label>
+  </div>
+);
 
 interface NewStaffReviewProps {
   formData: FormData;
   onBack: () => void;
   onSubmit: () => void;
-  onSectionClick: (section: string) => void;
 }
 
 const NewStaffReview = ({
   formData,
   onBack,
   onSubmit,
-  onSectionClick,
 }: NewStaffReviewProps) => {
+  const sections = [
+    {
+      title: 'Profile',
+      description: 'Personal Information',
+      completed: formData.profile !== undefined,
+      content: formData.profile && (
+        <div className='space-y-4 px-2 py-2'>
+          <DisplayInput
+            label='Preferred Name'
+            value={formData.profile.preferedName}
+          />
+          <DisplayInput label='Last Name' value={formData.profile.lastName} />
+          <DisplayInput
+            label='Phone Number'
+            value={formData.profile.phoneNumber}
+          />
+          <DisplayInput label='Email' value={formData.profile.email} />
+          <DisplayInput label='User ID' value={formData.profile.userId} />
+        </div>
+      ),
+    },
+    {
+      title: 'Role',
+      description: 'Staff Role and Payment',
+      completed: formData.role !== undefined,
+      content: formData.role && (
+        <div className='space-y-4 px-2 py-2'>
+          <DropdownSelectInput
+            label='Role'
+            options={[{ value: formData.role.role, label: formData.role.role }]}
+            defaultValue={
+              {
+                value: formData.role.role,
+                label: formData.role.role,
+              } as SingleValue<DropDownItem> & string
+            }
+            isDisabled
+            onSelectItem={() => {}}
+            isSearchable={false}
+            isClearable={false}
+          />
+          <DropdownSelectInput
+            label='Pay Type'
+            options={[
+              { value: formData.role.payType, label: formData.role.payType },
+            ]}
+            defaultValue={
+              {
+                value: formData.role.payType,
+                label: formData.role.payType,
+              } as SingleValue<DropDownItem> & string
+            }
+            isDisabled
+            onSelectItem={() => {}}
+            isSearchable={false}
+            isClearable={false}
+          />
+          <DisplayInput label='Hourly Rate' value={formData.role.hourlyRate} />
+        </div>
+      ),
+    },
+    {
+      title: 'Permissions',
+      description: 'Access and Permissions',
+      completed: formData.permissions !== undefined,
+      content: formData.permissions && (
+        <div className='space-y-4 px-2 py-2'>
+          <div className='space-y-3'>
+            <div className='flex items-center gap-2'>
+              <Checkbox
+                checked={formData.permissions.createEvents}
+                readOnly
+                radius='xl'
+                size='sm'
+                color='#32936F3D'
+              />
+              <span className='text-sm text-gray-700'>Create Events</span>
+            </div>
+            <div className='flex items-center gap-2'>
+              <Checkbox
+                checked={formData.permissions.addClients}
+                readOnly
+                radius='xl'
+                size='sm'
+                color='#32936F3D'
+              />
+              <span className='text-sm text-gray-700'>Add Clients</span>
+            </div>
+            <div className='flex items-center gap-2'>
+              <Checkbox
+                checked={formData.permissions.createInvoices}
+                readOnly
+                radius='xl'
+                size='sm'
+                color='#32936F3D'
+              />
+              <span className='text-sm text-gray-700'>Create Invoices</span>
+            </div>
+          </div>
+        </div>
+      ),
+    },
+  ];
+
   const handleSubmit = () => {
     onSubmit();
     notifications.show({
@@ -27,7 +154,6 @@ const NewStaffReview = ({
       position: 'top-right',
     });
   };
-  const sections = sectionsData;
 
   return (
     <div className='flex flex-col space-y-6 w-[90%] h-full'>
@@ -42,30 +168,32 @@ const NewStaffReview = ({
             marginTop: '1px',
           }}
         />
-        <p className='text-[#32936F] text-xs '>
-          Everything looks good. We’ll invite this team member to finish setting
+        <p className='text-[#32936F] text-xs'>
+          Everything looks good. We'll invite this team member to finish setting
           up their account.
         </p>
       </div>
 
-      <form className='space-y-2 flex-grow' role='tablist'>
+      <Accordion
+        className='flex-grow'
+        transitionDuration={200}
+        chevronPosition='right'
+      >
         {sections.map((section, index) => (
-          <div key={index}>
-            <div
-              className='p-4 rounded-lg hover:bg-gray-50 transition-all cursor-pointer group'
-              onClick={() => onSectionClick(section.title)}
-              role='tab'
-              aria-selected='false'
-              aria-controls={`section-${section.title.toLowerCase()}`}
-              tabIndex={0}
-            >
+          <Accordion.Item
+            key={index}
+            value={section.title}
+            className='border border-gray-200 rounded-lg mb-2 overflow-hidden group'
+          >
+            <Accordion.Control>
               <div className='flex justify-center gap-4'>
                 <div className='relative w-4 h-4 top-1'>
                   <Checkbox
-                    defaultChecked
+                    checked={section.completed}
                     radius='xl'
                     size='sm'
                     color='#32936F3D'
+                    readOnly
                   />
                 </div>
                 <div className='flex-grow'>
@@ -74,17 +202,14 @@ const NewStaffReview = ({
                   </h4>
                   <p className='text-sm text-gray-400'>{section.description}</p>
                 </div>
-                <div className='flex items-center'>
-                  <img src={rightIcon} alt='right icon' className='w-4 h-4' />
-                </div>
               </div>
-            </div>
-            {index < sections.length - 1 && (
-              <div className='h-[1px] bg-gray-200 my-1' />
-            )}
-          </div>
+            </Accordion.Control>
+            <Accordion.Panel>
+              <div className='py-4'>{section.content}</div>
+            </Accordion.Panel>
+          </Accordion.Item>
         ))}
-      </form>
+      </Accordion>
 
       <div className='flex justify-between w-full mt-8 self-end gap-6'>
         <Button
@@ -93,13 +218,13 @@ const NewStaffReview = ({
           onClick={onBack}
           radius='md'
           color='#1D9B5E'
-            w={100}
-            h={52}
-            style={{
-              color: '#1D9B5E',
-              fontSize: '14px',
-              fontWeight: '700',
-            }}
+          w={100}
+          h={52}
+          style={{
+            color: '#1D9B5E',
+            fontSize: '14px',
+            fontWeight: '700',
+          }}
         >
           Back
         </Button>

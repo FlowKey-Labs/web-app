@@ -9,7 +9,7 @@ export default {
       colors: {
         primary: '#162F3B',
         secondary: '#1D9B5E',
-        flowkeySecondary: '#D2F801',
+        flowkeySecondary: '#EAFCF3',
         active: '#DAF8E6',
         tableHeader: '#DBDEDF',
         cardsBg: '#F8F7F7',

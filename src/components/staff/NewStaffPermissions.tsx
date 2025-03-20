@@ -88,9 +88,6 @@ const NewStaffPermissions = ({ onNext, onBack }: NewStaffPermissionsProps) => {
                 </p>
               </div>
             ))}
-            <p className='text-secondary text-sm cursor-pointer'>
-              Add more permissions
-            </p>
           </div>
 
           <div className='flex w-full justify-between mt-8 self-end'>

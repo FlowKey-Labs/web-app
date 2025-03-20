@@ -73,8 +73,8 @@ const Table = <T extends object>({
           {table.getRowModel().rows.map((row) => (
             <tr
               key={row.id}
-              className={`hover:bg-[#F8FED9] hover:scale-[0.99] transition-all duration-200 ${
-                row.getIsSelected() ? 'bg-[#F8FED9]' : ''
+              className={`hover:bg-flowkeySecondary hover:scale-[0.99] transition-all duration-200 ${
+                row.getIsSelected() ? 'bg-flowkeySecondary' : ''
               }`}
             >
               {row.getVisibleCells().map((cell) => (

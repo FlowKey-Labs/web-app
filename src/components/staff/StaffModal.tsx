@@ -67,12 +67,6 @@ const StaffModal = ({ isOpen, onClose }: StaffModalProps) => {
         onSubmit={() => {
           onClose();
         }}
-        onSectionClick={(section) => {
-          const targetSection = section as SectionType;
-          if (targetSection !== 'Review') {
-            setActiveSection(targetSection);
-          }
-        }}
       />
     ),
   };

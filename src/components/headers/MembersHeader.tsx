@@ -50,7 +50,7 @@ const Header = ({
                 </div>
               }
               containerClassName='w-full'
-              inputClassName='border rounded-full w-[350px] pl-12 h-10'
+              inputClassName='border rounded-full w-[350px] pl-12 h-12'
             />
           </div>
         )}

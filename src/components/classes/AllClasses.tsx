@@ -5,7 +5,7 @@ import { createColumnHelper } from '@tanstack/react-table';
 import MembersHeader from '../headers/MembersHeader';
 import Table from '../common/Table';
 import ClassesModal from './ClassesModal';
-import { classesData, ClassData } from '../utils/dummyData';
+import { classesData, ClassData, categoryOptions } from '../utils/dummyData';
 import { navigateToClassDetails } from '../utils/navigationHelpers';
 
 import actioEyeIcon from '../../assets/icons/actionEye.svg';
@@ -116,84 +116,97 @@ const AllClasses = () => {
     'class' | 'appointment'
   >('class');
 
-
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
 
   return (
     <>
-      <div className='flex min-h-screen bg-[#0F2028]'>
-        <div className='flex flex-col min-h-screen bg-white w-full rounded-l-[36px]'>
-          <MembersHeader
-            title='Classes'
-            buttonText='New Class'
-            searchPlaceholder='Search by ID, Name or Subject'
-            leftIcon={plusIcon}
-            onButtonClick={openModal}
-          />
-          <div className='flex h-[70px] w-[70%]  ml-6 text-sm p-2 border rounded-md'>
-            <div className='flex items-center justify-between w-full px-6 font-bold'>
-              <div className='flex justify-center items-center'>
-                <img
-                  src={classesFilterIcon}
-                  alt='filter section'
-                  className='self-center'
-                />
-              </div>
-              <div className='h-full w-[1px] bg-gray-200'></div>
-              <div className=''>
-                <p>Filter By</p>
-              </div>
-              <div className='h-full w-[1px] bg-gray-200'></div>
+      <div className='flex flex-col h-screen bg-cardsBg w-full overflow-y-auto'>
+        <MembersHeader
+          title='Classes'
+          buttonText='New Class'
+          searchPlaceholder='Search by ID, Name or Subject'
+          leftIcon={plusIcon}
+          onButtonClick={openModal}
+        />
+        <div className='flex h-[70px] w-[70%]  ml-6 text-sm p-2 border rounded-md'>
+          <div className='flex items-center justify-between w-full px-6 font-bold'>
+            <div className='flex justify-center items-center'>
+              <img
+                src={classesFilterIcon}
+                alt='filter section'
+                className='self-center'
+              />
+            </div>
+            <div className='h-full w-[1px] bg-gray-200'></div>
+            <div className=''>
+              <p className='text-primary text-sm font-normal'>Filter By</p>
+            </div>
+            <div className='h-full w-[1px] bg-gray-200'></div>
 
-              <div className='flex items-center space-x-2 cursor-pointer'>
-                <p>14 Feb 2025</p>
-                <img src={dropIcon} alt='' />
-              </div>
-              <div className='h-full w-[1px] bg-gray-200'></div>
+            <div className='flex items-center space-x-2 cursor-pointer'>
+              <p className='text-primary text-sm font-normal'>14 Feb 2025</p>
+              <img
+                src={dropIcon}
+                alt=''
+                className='text-primary text-sm font-normal'
+              />
+            </div>
+            <div className='h-full w-[1px] bg-gray-200'></div>
 
-              <div
-                className='flex items-center space-x-2 cursor-pointer'
-                onClick={() => {
-                  setModalContentType('class');
-                  setIsClassTypeModalOpen(true);
-                }}
-              >
-                <p>Class Type</p>
-                <img src={dropIcon} alt='' />
-              </div>
-              <div className='h-full w-[1px] bg-gray-200'></div>
+            <div
+              className='flex items-center space-x-2 cursor-pointer'
+              onClick={() => {
+                setModalContentType('class');
+                setIsClassTypeModalOpen(true);
+              }}
+            >
+              <p className='text-primary text-sm font-normal'>Class Type</p>
+              <img
+                src={dropIcon}
+                alt=''
+                className='text-primary text-sm font-normal'
+              />
+            </div>
+            <div className='h-full w-[1px] bg-gray-200'></div>
 
-              <div
-                className='flex items-center space-x-2 cursor-pointer'
-                onClick={() => {
-                  setModalContentType('appointment');
-                  setIsClassTypeModalOpen(true);
-                }}
-              >
-                <p>Category</p>
-                <img src={dropIcon} alt='' />
-              </div>
-              <div className='h-full w-[1px] bg-gray-200'></div>
-              <div className='flex items-center space-x-2 cursor-pointer'>
-                <img src={resetIcon} alt='reset filter' />
-                <p className='text-[#EA0234]'>Reset Filter</p>
-              </div>
+            <div
+              className='flex items-center space-x-2 cursor-pointer'
+              onClick={() => {
+                setModalContentType('appointment');
+                setIsClassTypeModalOpen(true);
+              }}
+            >
+              <p className='text-primary text-sm font-normal'>Category</p>
+              <img
+                src={dropIcon}
+                alt=''
+                className='text-primary text-sm font-normal'
+              />
+            </div>
+            <div className='h-full w-[1px] bg-gray-200'></div>
+            <div className='flex items-center space-x-2 cursor-pointer'>
+              <img
+                src={resetIcon}
+                alt='reset filter'
+                className='text-[#EA0234] text-sm font-normal'
+              />
+              <p className='text-[#EA0234] text-sm font-normal'>Reset Filter</p>
             </div>
           </div>
-          <div className='flex-1 px-6 py-2'>
-            <Table
-              data={classesData}
-              columns={columns}
-              rowSelection={rowSelection}
-              onRowSelectionChange={setRowSelection}
-              className='mt-4'
-              pageSize={7}
-              onRowClick={(row: ClassData) =>
-                navigateToClassDetails(navigate, row.id.toString())
-              }
-            />
-          </div>
+        </div>
+        <div className='flex-1 px-6 py-2'>
+          <Table
+            data={classesData}
+            columns={columns}
+            rowSelection={rowSelection}
+            onRowSelectionChange={setRowSelection}
+            className='mt-4'
+            pageSize={7}
+            onRowClick={(row: ClassData) =>
+              navigateToClassDetails(navigate, row.id.toString())
+            }
+          />
         </div>
       </div>
       <ClassesModal isOpen={isModalOpen} onClose={closeModal} />
@@ -210,7 +223,7 @@ const AllClasses = () => {
 
           {modalContentType === 'class' ? (
             <div>
-              <div className='flex flex-wrap gap-4 mt-4'>
+              <div className='flex flex-wrap gap-4 mt-4 min-w-[300px]'>
                 <button className='w-[calc(33.33%-12px)] px-2 py-1 border rounded-full border-gray-400 transition-colors'>
                   Trial
                 </button>
@@ -230,21 +243,14 @@ const AllClasses = () => {
           ) : (
             <div>
               <div className='flex flex-wrap gap-4 mt-4'>
-                <button className='w-[calc(33.33%-12px)] px-2 py-1 border rounded-full border-gray-400  transition-colors'>
-                  STARfish
-                </button>
-                <button className='w-[calc(33.33%-12px)] px-2 py-1 border rounded-full border-gray-400  transition-colors'>
-                  STAnley
-                </button>
-                <button className='w-[calc(33.33%-12px)] px-2 py-1 border rounded-full border-gray-400  transition-colors'>
-                  Grade
-                </button>
-                <button className='w-[calc(33.33%-12px)] px-2 py-1 border rounded-full border-gray-400  transition-colors'>
-                  Advanced
-                </button>
-                <button className='w-[calc(33.33%-12px)] px-2 py-1 border rounded-full border-gray-400  transition-colors'>
-                  Platinum
-                </button>
+                {categoryOptions.map((label, index) => (
+                  <button
+                    key={index}
+                    className='w-[calc(33.33%-12px)] px-2 py-1 border rounded-full border-gray-400 transition-colors'
+                  >
+                    {label}
+                  </button>
+                ))}
               </div>
               <div className='pt-16'>
                 <p className='text-gray-400 text-sm'>
@@ -256,7 +262,7 @@ const AllClasses = () => {
 
           <div className='flex justify-center mt-6'>
             <button
-              className='px-6 py-2 bg-black rounded-lg font-semibold text-sm text-white transition-colors'
+              className='px-6 py-2 bg-gray-600 rounded-lg font-semibold text-sm text-white transition-colors'
               onClick={() => setIsClassTypeModalOpen(false)}
             >
               Apply Now

@@ -1,5 +1,11 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import Select, { components, MultiValue, SingleValue } from 'react-select';
+import Select, {
+  components,
+  MultiValue,
+  SingleValue,
+  CSSObjectWithLabel,
+  OptionProps,
+} from 'react-select';
 
 export type DropDownItem = {
   label: string;
@@ -8,7 +14,7 @@ export type DropDownItem = {
 };
 
 type Props = {
-  label: string;
+  label?: string;
   isDisabled?: boolean;
   isLoading?: boolean;
   isClearable?: boolean;
@@ -29,18 +35,18 @@ type Props = {
   selectClassName?: string;
 };
 
-const Option = (props: any) => {
+const Option = (props: OptionProps<DropDownItem>) => {
   return (
     <components.Option {...props}>
       <div className='flex items-center'>
-        {props.isMulti && 
+        {props.isMulti && (
           <input
             type='checkbox'
             checked={props.isSelected}
             onChange={() => null}
             className='mr-2'
           />
-        }
+        )}
         <label>{props.label}</label>
       </div>
     </components.Option>
@@ -82,7 +88,7 @@ export default function DropdownSelectInput({
   const customStyles = {
     control: (base: any) => ({
       ...base,
-      minHeight: '58px',
+      minHeight: label ? '58px' : '28px',
       backgroundColor: 'white',
       border: hasError ? '1px solid #FF0000' : '1px solid #E5E7EB',
       borderRadius: '0.5rem',
@@ -90,7 +96,7 @@ export default function DropdownSelectInput({
       '&:hover': {
         border: hasError ? '1px solid #FF0000' : '1px solid #D2F801',
       },
-      padding: '20px 5px 5px',
+      padding: label ? '20px 5px 5px' : '2px',
     }),
     menu: (base: any) => ({
       ...base,
@@ -99,29 +105,32 @@ export default function DropdownSelectInput({
     placeholder: (base: any) => ({
       ...base,
       color: '#6B7280',
-      fontSize: '12px', 
+      fontSize: '12px',
     }),
     input: (base: any) => ({
       ...base,
       margin: '0',
       padding: '0',
     }),
-    option: (base, {isSelected}) => ({
-      ...base, 
+    option: (
+      base: CSSObjectWithLabel,
+      { isSelected }: { isSelected: boolean }
+    ) => ({
+      ...base,
       '&:hover': {
-        backgroundColor: "#F8FED9",
-        color: 'black'
+        backgroundColor: '#F8FED9',
+        color: 'black',
       },
-      backgroundColor: isSelected ? "#D2F801" : "",
-      color: isSelected ? 'black' : ''
-    })
+      backgroundColor: isSelected ? '#D2F801' : '',
+      color: isSelected ? 'black' : '',
+    }),
   };
 
   return (
     <div className={`relative ${className}`} style={{ width }} {...props}>
       {label && (
         <label
-          className={`absolute text-xs bg-white px-2 top-2 left-2 z-10 transition-all ${
+          className={`absolute text-xs px-2 top-2 left-2 z-10 transition-all ${
             hasError ? 'text-red-500' : 'text-black'
           }`}
         >
