@@ -63,15 +63,14 @@ const NewStaffProfile = ({ onNext }: NewStaffProfileProps) => {
                 label='Preferred Name'
                 placeholder='Enter preferred name'
                 type='text'
-                focusColor='flowkeySecondary'
                 validation={{ required: 'Name is required' }}
+                focusColor='secondary'
               />
               <Input
                 name='phoneNumber'
                 label='Phone Number'
                 placeholder='Enter phone number'
                 type='tel'
-                focusColor='flowkeySecondary'
                 validation={{ required: 'Phone number is required' }}
               />
               <Input
@@ -79,7 +78,6 @@ const NewStaffProfile = ({ onNext }: NewStaffProfileProps) => {
                 label='User ID'
                 placeholder='Enter user ID'
                 type='text'
-                focusColor='flowkeySecondary'
                 validation={{ required: 'User ID is required' }}
               />
               <Input
@@ -87,7 +85,6 @@ const NewStaffProfile = ({ onNext }: NewStaffProfileProps) => {
                 label='Last Name'
                 placeholder='Enter last name'
                 type='text'
-                focusColor='flowkeySecondary'
                 validation={{ required: 'Last name is required' }}
               />
               <Input
@@ -95,7 +92,6 @@ const NewStaffProfile = ({ onNext }: NewStaffProfileProps) => {
                 label='Email'
                 type='email'
                 placeholder='Enter email address'
-                focusColor='flowkeySecondary'
                 validation={{
                   required: 'Email is required',
                   pattern: {

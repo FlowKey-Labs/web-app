@@ -4,6 +4,7 @@ import NewStaffRoles from './NewStaffRoles';
 import NewStaffPermissions from './NewStaffPermissions';
 import NewStaffReview from './NewStaffReview';
 import { FormData } from './types';
+import cancelIcon from '../../assets/icons/cancel.svg';
 
 interface StaffModalProps {
   isOpen: boolean;
@@ -81,7 +82,7 @@ const StaffModal = ({ isOpen, onClose }: StaffModalProps) => {
       onClick={onClose}
     >
       <div
-        className='w-2/3 h-full bg-white p-6 flex flex-col'
+        className='w-2/3 h-screen bg-white p-6 flex flex-col overflow-y-auto'
         onClick={(e) => e.stopPropagation()}
       >
         <div className='flex justify-end'>
@@ -90,20 +91,7 @@ const StaffModal = ({ isOpen, onClose }: StaffModalProps) => {
             className='text-gray-500 hover:text-gray-700 transition-colors p-2 rounded-full hover:bg-gray-100'
             aria-label='Close modal'
           >
-            <svg
-              xmlns='http://www.w3.org/2000/svg'
-              className='h-5 w-5'
-              fill='none'
-              viewBox='0 0 24 24'
-              stroke='currentColor'
-            >
-              <path
-                strokeLinecap='round'
-                strokeLinejoin='round'
-                strokeWidth={2}
-                d='M6 18L18 6M6 6l12 12'
-              />
-            </svg>
+            <img src={cancelIcon} alt='' className='w-6 h-6' />
           </button>
         </div>
 
@@ -127,7 +115,7 @@ const StaffModal = ({ isOpen, onClose }: StaffModalProps) => {
                     <div
                       className={`w-6 h-6 rounded-full border-2 transition-all ${
                         activeSection === section.title
-                          ? 'border-4 border-flowkeySecondary'
+                          ? 'border-4 border-secondary'
                           : 'border-gray-300'
                       }`}
                     />

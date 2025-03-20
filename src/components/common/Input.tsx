@@ -1,15 +1,14 @@
-import React, { useRef, useState } from 'react';
+import React, { useState } from 'react';
 import { useFormContext, RegisterOptions } from 'react-hook-form';
 import { DatePickerInput, TimeInput } from '@mantine/dates';
 import { rem } from '@mantine/core';
-import { ActionIcon } from '@mantine/core';
 import { IconClock, IconCalendar } from '@tabler/icons-react';
 
 interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   name: string;
   label?: string;
   validation?: RegisterOptions;
-  focusColor?: string;
+  focusColor?: string; // Allow focusColor to be passed as a prop
   containerClassName?: string;
 }
 
@@ -21,7 +20,7 @@ const Input: React.FC<InputProps> = ({
   validation,
   className,
   containerClassName,
-  focusColor = 'green-500',
+  focusColor = 'secondary', // Default focus color
   ...props
 }) => {
   const {
@@ -36,6 +35,12 @@ const Input: React.FC<InputProps> = ({
   const handleDateChange = (date: Date | null) => {
     setSelectedDate(date);
     setValue(name, date);
+  };
+
+  // Function to get the focus color based on errors and focusColor prop
+  const getFocusColor = () => {
+    if (errors[name]) return '#FF0000'; // Error color
+    return focusColor === 'green-500' ? '#1D9B5E' : focusColor; // Default or custom focus color
   };
 
   if (type === 'date' || type === 'time') {
@@ -60,9 +65,7 @@ const Input: React.FC<InputProps> = ({
                   borderRadius: rem(8),
                   '&:focus': {
                     borderColor: 'transparent',
-                    boxShadow: `0 0 0 1px ${
-                      errors[name] ? '#FF0000' : '#1D9B5E'
-                    }`,
+                    boxShadow: `0 0 0 1px ${getFocusColor()}`,
                   },
                 },
               }}
@@ -93,11 +96,11 @@ const Input: React.FC<InputProps> = ({
                   fontSize: rem(14),
                   borderColor: errors[name] ? '#FF0000' : '#E5E7EB',
                   borderRadius: rem(8),
+                  transition: 'border-color 0.2s, box-shadow 0.2s',
                   '&:focus': {
-                    borderColor: 'transparent',
-                    boxShadow: `0 0 0 1px ${
-                      errors[name] ? '#FF0000' : '#1D9B5E'
-                    }`,
+                    borderColor: getFocusColor(),
+                    boxShadow: `0 0 0 1px ${getFocusColor()}`,
+                    outline: 'none',
                   },
                 },
               }}

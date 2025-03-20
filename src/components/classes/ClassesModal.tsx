@@ -156,7 +156,6 @@ const ClassesModal = ({ isOpen, onClose }: ClassModalProps) => {
                               {...field}
                               label='Class Name'
                               placeholder='Enter Class Name'
-                              focusColor='flowkeySecondary'
                             />
                           )}
                         />
@@ -190,7 +189,6 @@ const ClassesModal = ({ isOpen, onClose }: ClassModalProps) => {
                                 type='date'
                                 label='Date'
                                 placeholder='2020/12/12'
-                                focusColor='flowkeySecondary'
                                 containerClassName='mb-4'
                               />
                             )}
@@ -205,7 +203,6 @@ const ClassesModal = ({ isOpen, onClose }: ClassModalProps) => {
                                   type='time'
                                   label='Start Time'
                                   placeholder='12:00 PM'
-                                  focusColor='flowkeySecondary'
                                 />
                               )}
                             />
@@ -218,7 +215,6 @@ const ClassesModal = ({ isOpen, onClose }: ClassModalProps) => {
                                   type='time'
                                   label='End Time'
                                   placeholder='12:00 PM'
-                                  focusColor='flowkeySecondary'
                                 />
                               )}
                             />
@@ -254,7 +250,6 @@ const ClassesModal = ({ isOpen, onClose }: ClassModalProps) => {
                                 {...field}
                                 label='Spots Available'
                                 placeholder='Enter '
-                                focusColor='flowkeySecondary'
                               />
                             )}
                           />
@@ -338,7 +333,6 @@ const ClassesModal = ({ isOpen, onClose }: ClassModalProps) => {
                                 {...field}
                                 label='Email'
                                 placeholder='Enter Email'
-                                focusColor='flowkeySecondary'
                               />
                             )}
                           />
@@ -350,7 +344,6 @@ const ClassesModal = ({ isOpen, onClose }: ClassModalProps) => {
                                 {...field}
                                 label='Phone'
                                 placeholder='Enter Phone Number'
-                                focusColor='flowkeySecondary'
                               />
                             )}
                           />
@@ -369,7 +362,6 @@ const ClassesModal = ({ isOpen, onClose }: ClassModalProps) => {
                               type='date'
                               label='Date'
                               placeholder='2020/12/12'
-                              focusColor='flowkeySecondary'
                             />
                           )}
                         />
@@ -383,7 +375,6 @@ const ClassesModal = ({ isOpen, onClose }: ClassModalProps) => {
                                 type='time'
                                 label='Start Time'
                                 placeholder='12:00 PM'
-                                focusColor='flowkeySecondary'
                               />
                             )}
                           />
@@ -396,7 +387,6 @@ const ClassesModal = ({ isOpen, onClose }: ClassModalProps) => {
                                 type='time'
                                 label='End Time'
                                 placeholder='12:00 PM'
-                                focusColor='flowkeySecondary'
                               />
                             )}
                           />

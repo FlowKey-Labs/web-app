@@ -71,10 +71,7 @@ const NewStaffRoles = ({ onNext, onBack }: NewStaffRolesProps) => {
         >
           <div className='flex-grow overflow-y-auto max-h-[calc(100vh-300px)] px-4 space-y-8'>
             {fields.map((field, index) => (
-              <div
-                key={field.id}
-                className='space-y-4 border-b border-gray-100 pb-8'
-              >
+              <div key={field.id} className='space-y-4 pb-8'>
                 <DropdownSelectInput
                   label='Role'
                   options={roleOptions}
@@ -115,10 +112,10 @@ const NewStaffRoles = ({ onNext, onBack }: NewStaffRolesProps) => {
                       methods.formState.errors.roles?.[index]?.hourlyRate
                         ? 'border-red-500'
                         : 'border-gray-300'
-                    } rounded-lg focus:ring-2 ${
+                    } rounded-lg focus:ring-1 ${
                       methods.formState.errors.roles?.[index]?.hourlyRate
                         ? 'focus:ring-red-500'
-                        : 'focus:ring-[#D2F801]'
+                        : 'focus:ring-[#1D9B5E]'
                     } focus:border-transparent outline-none`}
                     placeholder='Ksh 0.00'
                   />

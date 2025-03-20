@@ -94,7 +94,7 @@ export default function DropdownSelectInput({
       borderRadius: '0.5rem',
       boxShadow: 'none',
       '&:hover': {
-        border: hasError ? '1px solid #FF0000' : '1px solid #D2F801',
+        border: hasError ? '1px solid #FF0000' : '1px solid #1D9B5E',
       },
       padding: label ? '20px 5px 5px' : '2px',
     }),
@@ -118,10 +118,10 @@ export default function DropdownSelectInput({
     ) => ({
       ...base,
       '&:hover': {
-        backgroundColor: '#F8FED9',
+        backgroundColor: '#DAF8E6',
         color: 'black',
       },
-      backgroundColor: isSelected ? '#D2F801' : '',
+      backgroundColor: isSelected ? '#EAFCF3' : '',
       color: isSelected ? 'black' : '',
     }),
   };

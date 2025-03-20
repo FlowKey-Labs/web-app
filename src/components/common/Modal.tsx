@@ -7,7 +7,7 @@ interface ModalProps {
   className?: string;
 }
 
-const Modal: React.FC<ModalProps> = ({
+const CustomModal: React.FC<ModalProps> = ({
   isOpen,
   onClose,
   children,
@@ -33,4 +33,4 @@ const Modal: React.FC<ModalProps> = ({
   );
 };
 
-export default Modal;
+export default CustomModal;

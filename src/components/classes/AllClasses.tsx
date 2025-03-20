@@ -7,6 +7,8 @@ import Table from '../common/Table';
 import ClassesModal from './ClassesModal';
 import { classesData, ClassData, categoryOptions } from '../utils/dummyData';
 import { navigateToClassDetails } from '../utils/navigationHelpers';
+import { DatePickerInput } from '@mantine/dates';
+import { Modal } from '@mantine/core';
 
 import actioEyeIcon from '../../assets/icons/actionEye.svg';
 import actionEditIcon from '../../assets/icons/actionEdit.svg';
@@ -15,7 +17,7 @@ import plusIcon from '../../assets/icons/plusWhite.svg';
 import classesFilterIcon from '../../assets/icons/classesFilter.svg';
 import resetIcon from '../../assets/icons/resetIcon.svg';
 import dropIcon from '../../assets/icons/dropIcon.svg';
-import Modal from '../common/Modal';
+import CustomModal from '../common/Modal';
 
 const columnHelper = createColumnHelper<ClassData>();
 
@@ -112,12 +114,21 @@ const AllClasses = () => {
   const [rowSelection, setRowSelection] = useState({});
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isClassTypeModalOpen, setIsClassTypeModalOpen] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(
+    new Date('2025-02-14')
+  );
   const [modalContentType, setModalContentType] = useState<
     'class' | 'appointment'
   >('class');
 
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
+
+  const handleDateChange = (value: Date | null) => {
+    if (value) {
+      setSelectedDate(value);
+    }
+  };
 
   return (
     <>
@@ -129,8 +140,8 @@ const AllClasses = () => {
           leftIcon={plusIcon}
           onButtonClick={openModal}
         />
-        <div className='flex h-[70px] w-[70%]  ml-6 text-sm p-2 border rounded-md'>
-          <div className='flex items-center justify-between w-full px-6 font-bold'>
+        <div className='flex h-[70px] w-[70%]  ml-6 text-sm p-2 border rounded-md bg-white'>
+          <div className='flex items-center justify-between w-full px-6 font-bold '>
             <div className='flex justify-center items-center'>
               <img
                 src={classesFilterIcon}
@@ -144,8 +155,31 @@ const AllClasses = () => {
             </div>
             <div className='h-full w-[1px] bg-gray-200'></div>
 
-            <div className='flex items-center space-x-2 cursor-pointer'>
-              <p className='text-primary text-sm font-normal'>14 Feb 2025</p>
+            <div
+              className='flex items-center space-x-2 cursor-pointer'
+              onClick={() => {}}
+            >
+              <DatePickerInput
+                w={130}
+                pointer
+                value={selectedDate}
+                onChange={handleDateChange}
+                placeholder='Pick a date'
+                styles={{
+                  input: {
+                    border: 'none',
+                    padding: '0',
+                    color: '#162F3B',
+                    fontSize: '14px',
+                    fontWeight: 'normal',
+                    cursor: 'pointer',
+                    '&:focus': {
+                      border: 'none',
+                      outline: 'none',
+                    },
+                  },
+                }}
+              />
               <img
                 src={dropIcon}
                 alt=''
@@ -210,7 +244,7 @@ const AllClasses = () => {
         </div>
       </div>
       <ClassesModal isOpen={isModalOpen} onClose={closeModal} />
-      <Modal
+      <CustomModal
         isOpen={isClassTypeModalOpen}
         onClose={() => setIsClassTypeModalOpen(false)}
       >
@@ -269,7 +303,7 @@ const AllClasses = () => {
             </button>
           </div>
         </div>
-      </Modal>
+      </CustomModal>
     </>
   );
 };

@@ -73,7 +73,7 @@ const Table = <T extends object>({
           {table.getRowModel().rows.map((row) => (
             <tr
               key={row.id}
-              className={`hover:bg-flowkeySecondary hover:scale-[0.99] transition-all duration-200 ${
+              className={`hover:bg-flowkeySecondary hover:scale-[1.01] transition-all duration-200 ${
                 row.getIsSelected() ? 'bg-flowkeySecondary' : ''
               }`}
             >
