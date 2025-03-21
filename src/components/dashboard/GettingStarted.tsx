@@ -131,7 +131,7 @@ const GettingStarted = () => {
           </div>
         </div>
         <div className='flex justify-between px-4 mt-6 '>
-          <div className='flex w-[250px] h-[91px] bg-[#EEEAF2] rounded-lg px-6 py-2 gap-1 '>
+          <div className='flex w-[250px] h-[91px] bg-[#EEEAF2] rounded-lg px-6 py-2 gap-1 border-[1px] border-[#BAA7CB]'>
             <div className='w-[20%]'>
               <img src={sessionsIcon} alt='' className='' />
             </div>
@@ -143,7 +143,7 @@ const GettingStarted = () => {
               </div>
             </div>
           </div>
-          <div className='flex w-[250px] h-[91px] bg-[#D6E9E7] rounded-lg px-6 py-2 gap-1'>
+          <div className='flex w-[250px] h-[91px] bg-[#D6E9E7] rounded-lg px-6 py-2 gap-1 border-[1px] border-[#ADD4CE]'>
             <div className='w-[20%]'>
               <img src={revenueIcon} alt='' className='' />
             </div>
@@ -155,7 +155,7 @@ const GettingStarted = () => {
               </div>
             </div>
           </div>
-          <div className='flex w-[250px] h-[91px] bg-[#FEF5E2CC] rounded-lg px-6 py-2 gap-1'>
+          <div className='flex w-[250px] h-[91px] bg-[#FEF5E2CC] rounded-lg px-6 py-2 gap-1 border-[1px] border-[#FAD684]'>
             <div className='w-[20%]'>
               <img src={totalClientsIcon} alt='' className='' />
             </div>
@@ -167,7 +167,7 @@ const GettingStarted = () => {
               </div>
             </div>
           </div>
-          <div className='flex w-[250px] h-[91px] bg-[#E0EFFF] rounded-lg px-6 py-2 gap-1'>
+          <div className='flex w-[250px] h-[91px] bg-[#E0EFFF] rounded-lg px-6 py-2 gap-1 border-[1px] border-[#1717171A]'>
             <div className='w-[20%]'>
               <img src={totalStaffIcon} alt='' className='' />
             </div>
