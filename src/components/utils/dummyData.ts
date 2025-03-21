@@ -274,7 +274,7 @@ export const data: Staff[] = [
     idNumber: 366357,
     phoneNumber: '+1234567890',
     email: 'john.doe@example.com',
-    assignedClasses: 'Beginner Swim, Advanced Swim',
+    assignedClasses: 'Beginner Swim, Advanced Swim, MakeUp Swim',
     status: 'Active',
     profileImage: Avatar,
   },
