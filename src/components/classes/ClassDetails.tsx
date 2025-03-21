@@ -303,7 +303,7 @@ const ClassDetails = () => {
                       className='mt-4'
                       pageSize={5}
                     />
-                  </div>{' '}
+                  </div>
                 </div>
               </div>
             </div>
