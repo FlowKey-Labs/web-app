@@ -20,6 +20,8 @@ import AllClasses from './components/classes/AllClasses';
 import ClassDetails from './components/classes/ClassDetails';
 import StaffDetails from './components/staff/StaffDetails';
 import CalendarView from './components/calendar';
+import AllClients from './components/clients/AllClients';
+import Profile from './components/profile';
 
 function App() {
   return (
@@ -52,6 +54,8 @@ function App() {
             <Route path='classes' element={<AllClasses />} />
             <Route path='classes/:id' element={<ClassDetails />} />
             <Route path='calendar' element={<CalendarView />} />
+            <Route path='clients' element={<AllClients />} />
+            <Route path='profile' element={<Profile />} />
             <Route path='*' element={<GettingStarted />} />
           </Route>
         </Routes>

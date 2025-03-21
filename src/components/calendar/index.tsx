@@ -85,7 +85,7 @@ const events = randomDates.map((date) => {
     start: setMinutes(setHours(date, hour), minute),
     backgroundColor: "rgba(29, 155, 94, 0.2)",
   };
-}).slice(0, 8);
+}).slice(0, 15);
 
 const headerToolbar = {
   start: "title",
@@ -149,28 +149,28 @@ const CalendarView = () => {
     if (spaceBottom < popupHeight && spaceTop >= popupHeight) {
       y = rect.top + window.scrollY - popupHeight - 10; // Move above event
       if (spaceRight < popupHeight) {
-        x = rect.left - popupWidth - 230; // Move to the left
+        x = rect.left - popupWidth - 260; // Move to the left
       } else {
-        x = rect.right - 212; // Move to the right
+        x = rect.right - 237; // Move to the right
       }
     }
     if (spaceTop < popupHeight && spaceBottom < popupHeight) {
       if (spaceRight >= popupWidth) {
-        x = rect.right - 212; // Move to the right
+        x = rect.right - 237; // Move to the right
       } else if (spaceLeft >= popupWidth || spaceRight <= popupWidth) {
-        x = rect.left - popupWidth - 230; // Move to the left
+        x = rect.left - popupWidth - 260; // Move to the left
       } else {
         y = rect.bottom + window.scrollY + 10; // Stay below
       }
     }
     if (spaceTop < popupHeight && spaceRight < popupWidth) {
-      x = rect.left - popupWidth - 230; // Move to the left
+      x = rect.left - popupWidth - 260; // Move to the left
     } else if (spaceTop < popupHeight && spaceRight > popupWidth) {
-      x = rect.right - 212; // Move to the right
+      x = rect.right - 237; // Move to the right
     }
 
     if (spaceTop <= popupHeight - 200 && spaceLeft <= popupWidth) {
-      x = rect.right - 212; // Move to the right
+      x = rect.right - 237; // Move to the right
     }
 
     setPopupData({
@@ -271,8 +271,8 @@ const CalendarView = () => {
           >
             {calendarViews.map((view) => (
               <div
-                className={cn("w-20 p-2 cursor-pointer hover:bg-[#F8FED9]", {
-                  "bg-[#F8FED9]": view.type === currentView.type,
+                className={cn("w-20 p-2 cursor-pointer hover:bg-[#DAF8E6]", {
+                  "bg-[#EAFCF3]": view.type === currentView.type,
                 })}
                 onClick={() => changeView(view)}
               >

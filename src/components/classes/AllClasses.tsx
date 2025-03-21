@@ -295,7 +295,7 @@ const AllClasses = () => {
 
           <div className='flex justify-center mt-6'>
             <button
-              className='px-6 py-2 bg-gray-600 rounded-lg font-semibold text-sm text-white transition-colors'
+              className='px-6 py-2 bg-secondary rounded-lg font-semibold text-sm text-white transition-colors'
               onClick={() => setIsClassTypeModalOpen(false)}
             >
               Apply Now
