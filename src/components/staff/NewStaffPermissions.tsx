@@ -63,9 +63,9 @@ const NewStaffPermissions = ({ onNext, onBack }: NewStaffPermissionsProps) => {
                       )}
                       className='sr-only peer'
                     />
-                    <div className='w-6 h-6 border-2 border-gray-300 rounded-full transition-all peer-checked:border-4 peer-checked:border-flowkeySecondary group-hover:border-flowkeySecondary'>
+                    <div className='w-6 h-6 border-2 border-gray-300 rounded-full transition-all peer-checked:border-4 peer-checked:border-secondary group-hover:border-secondary'>
                       <svg
-                        className='w-3 h-3 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-flowkeySecondary opacity-0 peer-checked:opacity-100 transition-opacity'
+                        className='w-3 h-3 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-secondary opacity-0 peer-checked:opacity-100 transition-opacity'
                         fill='none'
                         viewBox='0 0 24 24'
                         stroke='currentColor'
@@ -88,9 +88,6 @@ const NewStaffPermissions = ({ onNext, onBack }: NewStaffPermissionsProps) => {
                 </p>
               </div>
             ))}
-            <p className='text-secondary text-sm cursor-pointer'>
-              Add more permissions
-            </p>
           </div>
 
           <div className='flex w-full justify-between mt-8 self-end'>

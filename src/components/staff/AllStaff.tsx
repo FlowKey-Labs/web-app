@@ -63,10 +63,6 @@ const columns = [
     header: 'Email',
     cell: (info) => info.getValue(),
   }),
-  columnHelper.accessor('assignedClasses', {
-    header: 'Assigned Classes',
-    cell: (info) => info.getValue(),
-  }),
   columnHelper.accessor('status', {
     header: 'Status',
     cell: (info) => (
@@ -103,7 +99,7 @@ const columns = [
 ];
 
 const AllStaff = () => {
-    const navigate = useNavigate();
+  const navigate = useNavigate();
   const [rowSelection, setRowSelection] = useState({});
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -112,28 +108,26 @@ const AllStaff = () => {
 
   return (
     <>
-      <div className='flex min-h-screen bg-[#0F2028]'>
-        <div className='flex flex-col min-h-screen bg-white w-full rounded-l-[36px]'>
-          <MembersHeader
-            title='All Staff'
-            buttonText='New Staff'
-            searchPlaceholder='Search by ID, Name or Subject'
-            leftIcon={plusIcon}
-            onButtonClick={openModal}
+      <div className='flex flex-col h-screen bg-cardsBg w-full overflow-y-auto'>
+        <MembersHeader
+          title='All Staff'
+          buttonText='New Staff'
+          searchPlaceholder='Search by ID, Name or Subject'
+          leftIcon={plusIcon}
+          onButtonClick={openModal}
+        />
+        <div className='flex-1 px-6 py-3'>
+          <Table
+            data={data}
+            columns={columns}
+            rowSelection={rowSelection}
+            onRowSelectionChange={setRowSelection}
+            className='mt-4'
+            pageSize={8}
+            onRowClick={(row: Staff) =>
+              navigateToStaffDetails(navigate, row.id.toString())
+            }
           />
-          <div className='flex-1 px-6 py-3'>
-            <Table
-              data={data}
-              columns={columns}
-              rowSelection={rowSelection}
-              onRowSelectionChange={setRowSelection}
-              className='mt-4'
-              pageSize={8}
-              onRowClick={(row: Staff) =>
-                navigateToStaffDetails(navigate, row.id.toString())
-              }
-            />
-          </div>
         </div>
       </div>
       <StaffModal isOpen={isModalOpen} onClose={closeModal} />

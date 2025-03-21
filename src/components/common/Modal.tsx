@@ -4,9 +4,15 @@ interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
   children: React.ReactNode;
+  className?: string;
 }
 
-const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children }) => {
+const CustomModal: React.FC<ModalProps> = ({
+  isOpen,
+  onClose,
+  children,
+  className,
+}) => {
   if (!isOpen) return null;
 
   return (
@@ -18,7 +24,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children }) => {
       }}
     >
       <div
-        className='bg-white rounded-2xl p-6 min-w-[500px]'
+        className={`${className} bg-white rounded-2xl p-6`}
         onClick={(e) => e.stopPropagation()}
       >
         {children}
@@ -27,4 +33,4 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children }) => {
   );
 };
 
-export default Modal;
+export default CustomModal;
