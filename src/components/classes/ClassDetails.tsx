@@ -1,4 +1,4 @@
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { classesData, clientsData } from '../utils/dummyData';
 import MembersHeader from '../headers/MembersHeader';
 import { Progress } from '@mantine/core';
@@ -12,10 +12,13 @@ import { createColumnHelper } from '@tanstack/react-table';
 import actioEyeIcon from '../../assets/icons/actionEye.svg';
 import actionEditIcon from '../../assets/icons/actionEdit.svg';
 import actionOptionIcon from '../../assets/icons/actionOption.svg';
+import { navigateToStaff } from '../utils/navigationHelpers';
 
 const ClassDetails = () => {
   const { id } = useParams();
   const classId = id;
+
+  const navigate = useNavigate();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'overview' | 'clients'>(
@@ -285,7 +288,10 @@ const ClassDetails = () => {
                     <h3 className='text-primary text-xl font-semibold'>
                       Clients
                     </h3>
-                    <div className='flex item-center justify-center gap-2 cursor-pointer'>
+                    <div
+                      className='flex item-center justify-center gap-2 cursor-pointer'
+                      onClick={() => navigateToStaff(navigate)}
+                    >
                       <h3 className='text-secondary font-medium'>View All</h3>
                       <img
                         src={rightIcon}
