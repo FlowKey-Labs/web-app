@@ -12,7 +12,7 @@ import { createColumnHelper } from '@tanstack/react-table';
 import actioEyeIcon from '../../assets/icons/actionEye.svg';
 import actionEditIcon from '../../assets/icons/actionEdit.svg';
 import actionOptionIcon from '../../assets/icons/actionOption.svg';
-import { navigateToStaff } from '../utils/navigationHelpers';
+import { navigateToClients } from '../utils/navigationHelpers';
 
 const ClassDetails = () => {
   const { id } = useParams();
@@ -290,7 +290,7 @@ const ClassDetails = () => {
                     </h3>
                     <div
                       className='flex item-center justify-center gap-2 cursor-pointer'
-                      onClick={() => navigateToStaff(navigate)}
+                      onClick={() => navigateToClients(navigate)}
                     >
                       <h3 className='text-secondary font-medium'>View All</h3>
                       <img

@@ -19,3 +19,9 @@ export const navigateToStaff = (
 ) => {
   navigate(`/staff`);
 };
+
+export const navigateToClients = (
+  navigate: ReturnType<typeof useNavigate>,
+) => {
+  navigate(`/clients`);
+};
