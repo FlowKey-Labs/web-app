@@ -5,6 +5,7 @@ import gymIcon from '../../assets/icons/gym.svg';
 import therapyIcon from '../../assets/icons/therapy.svg';
 import calendarIcon from '../../assets/icons/calender.svg';
 import Avatar from '../../assets/images/greyPhoto.png';
+import { DropDownItem } from '../common/Dropdown';
 
 interface BusinessOption {
   id: string;
@@ -627,4 +628,66 @@ export const chartData = [
   { day: 'Fri', clients: 48 },
   { day: 'Sat', clients: 15 },
   { day: 'Sun', clients: 10 },
+];
+
+interface Service {
+  id: number;
+  day: string;
+  date: string;
+  title: string;
+  time: string;
+  schedule: string;
+}
+
+export const services: Service[] = [
+  {
+    id: 1,
+    day: 'Tuesday',
+    date: '17 May',
+    title: 'Advanced Swimming',
+    time: '9:00 AM - 9:30 AM',
+    schedule: 'Tue, Thur, Sat',
+  },
+  {
+    id: 2,
+    day: 'Wednesday',
+    date: '18 May',
+    title: 'Beginner Swimming',
+    time: '10:00 AM - 10:45 AM',
+    schedule: 'Wed, Fri',
+  },
+  {
+    id: 3,
+    day: 'Thursday',
+    date: '19 May',
+    title: 'Competitive Swimming',
+    time: '3:00 PM - 4:00 PM',
+    schedule: 'Thur, Sat',
+  },
+  {
+    id: 4,
+    day: 'Friday',
+    date: '20 May',
+    title: 'Parent & Child Class',
+    time: '4:30 PM - 5:15 PM',
+    schedule: 'Fri, Sun',
+  },
+];
+
+export const profileRoleOptions: DropDownItem[] = [
+  { label: 'Owner', value: 'owner' },
+  { label: 'Manager', value: 'manager' },
+  { label: 'Staff', value: 'staff' },
+];
+
+export const regionOptions: DropDownItem[] = [
+  { label: 'Kiambu', value: 'Kiambu' },
+  { label: 'Nairobi', value: 'Nairobi' },
+  { label: 'Mombasa', value: 'Mombasa' },
+];
+
+export const cityOptions: DropDownItem[] = [
+  { label: 'Nairobi', value: 'Nairobi' },
+  { label: 'Mombasa', value: 'Mombasa' },
+  { label: 'Kisumu', value: 'Kisumu' },
 ];

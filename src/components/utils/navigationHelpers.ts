@@ -1,10 +1,10 @@
 import { useNavigate } from 'react-router-dom';
 
-export const navigateToClassDetails = (
+export const navigateToSessionDetails = (
   navigate: ReturnType<typeof useNavigate>,
-  classId: string
+  sessionId: string
 ) => {
-  navigate(`/classes/${classId}`);
+  navigate(`/sessions/${sessionId}`);
 };
 
 export const navigateToStaffDetails = (

@@ -8,7 +8,7 @@ import SearchInput from '../common/SearchInput';
 
 const Header = () => {
   return (
-    <div className='h-[80px] flex items-center justify-center px-8'>
+    <div className='h-[80px] flex items-center justify-center px-11'>
       <div className='w-1/2'>
         <SearchInput
           placeholder='Search Appointment, Clients, Staff etc'
@@ -43,7 +43,7 @@ const Header = () => {
           </div>
         </div>
 
-        <span className='text-primary flex mr-12 w-1/2 justify-end cursor-pointer'>
+        <span className='text-primary flex w-1/2 justify-end cursor-pointer'>
           Doris Waithira
         </span>
       </div>

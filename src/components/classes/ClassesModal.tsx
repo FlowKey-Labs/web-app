@@ -3,11 +3,23 @@ import Button from '../common/Button';
 import DropdownSelectInput, { DropDownItem } from '../common/Dropdown';
 import Input from '../common/Input';
 import { useState } from 'react';
+import * as yup from 'yup';
+import { yupResolver } from '@hookform/resolvers/yup';
 import Modal from '../common/Modal';
 import cancelIcon from '../../assets/icons/cancel.svg';
 import { categoryOptions } from '../utils/dummyData';
 import ChevronUp from '../../assets/icons/up.svg';
 import ChevronDown from '../../assets/icons/down.svg';
+
+const schema = yup
+  .object({
+    mobile: yup.number().typeError('Mobile number must be a number'),
+    clientEmail: yup
+      .string()
+      .email('Invalid email format')
+      .required('Email is required'),
+  })
+  .required();
 
 interface ClassModalProps {
   isOpen: boolean;
@@ -32,7 +44,10 @@ interface FormData {
 }
 
 const ClassesModal = ({ isOpen, onClose }: ClassModalProps) => {
-  const methods = useForm<FormData>();
+  const methods = useForm<FormData>({
+    resolver: yupResolver(schema),
+    mode: 'onChange',
+  });
   const [isCustomRepetitionModalOpen, setIsCustomRepetitionModalOpen] =
     useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -96,6 +111,9 @@ const ClassesModal = ({ isOpen, onClose }: ClassModalProps) => {
         </div>
 
         <div className='w-[90%] h-full flex flex-col'>
+          <h3 className='px-8 mt-4 text-primary font-bold text-[24px]'>
+            New Session
+          </h3>
           <div className='flex gap-4 pt-8 px-8'>
             <button
               type='button'
@@ -333,6 +351,7 @@ const ClassesModal = ({ isOpen, onClose }: ClassModalProps) => {
                                 {...field}
                                 label='Email'
                                 placeholder='Enter Email'
+                                type='email'
                               />
                             )}
                           />

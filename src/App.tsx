@@ -21,7 +21,8 @@ import ClassDetails from './components/classes/ClassDetails';
 import StaffDetails from './components/staff/StaffDetails';
 import CalendarView from './components/calendar';
 import AllClients from './components/clients/AllClients';
-import Profile from './components/profile';
+import Profile from './components/profile/Index';
+import LogoutSuccess from './components/authentication/Logout';
 
 function App() {
   return (
@@ -44,6 +45,7 @@ function App() {
           <Route path='/welcome' element={<Welcome />} />
           <Route path='/team-members' element={<TeamMembers />} />
           <Route path='/business-type' element={<BusinessType />} />
+          <Route path='/logout' element={<LogoutSuccess />} />
           <Route path='/monthly-clients' element={<MonthlyClients />} />
           <Route path='/purpose' element={<Purpose />} />
           <Route path='/' element={<Home />}>
@@ -51,8 +53,8 @@ function App() {
             <Route path='dashboard' element={<GettingStarted />} />
             <Route path='staff' element={<AllStaff />} />
             <Route path='staff/:id' element={<StaffDetails />} />
-            <Route path='classes' element={<AllClasses />} />
-            <Route path='classes/:id' element={<ClassDetails />} />
+            <Route path='sessions' element={<AllClasses />} />
+            <Route path='sessions/:id' element={<ClassDetails />} />
             <Route path='calendar' element={<CalendarView />} />
             <Route path='clients' element={<AllClients />} />
             <Route path='profile' element={<Profile />} />

@@ -11,7 +11,6 @@ import {
   LogoutIcon,
   ProfileIcon,
 } from '../../assets/icons';
-import Button from '../common/Button';
 import { useNavigate } from 'react-router-dom';
 
 interface SidebarProps {
@@ -24,7 +23,7 @@ const Sidebar = ({ activeItem }: SidebarProps) => {
     { name: 'Dashboard', icon: DashboardIcon },
     { name: 'Staff', icon: StaffIcon },
     { name: 'Clients', icon: ClientsIcon },
-    { name: 'Classes', icon: ClassesIcon },
+    { name: 'Sessions', icon: ClassesIcon },
     { name: 'Transactions', icon: TransactionsIcon },
     { name: 'Calendar', icon: CalendarIcon },
     { name: 'Chats', icon: ChatsIcon },
@@ -38,7 +37,6 @@ const Sidebar = ({ activeItem }: SidebarProps) => {
 
   return (
     <div className='min-h-screen flex flex-col w-[230px] bg-[#ffffff] py-6 h-screen overflow-y-auto'>
-      {/* Header */}
       <div className='flex justify-center items-center mb-6'>
         <h3
           className='flex items-center gap-2 px-6 cursor-pointer transition-opacity hover:opacity-90'
@@ -49,7 +47,6 @@ const Sidebar = ({ activeItem }: SidebarProps) => {
         </h3>
       </div>
 
-      {/* Main Content */}
       <div className='flex-1 overflow-y-auto'>
         <div className='flex flex-col items-center'>
           <ul className='gap-2 flex flex-col w-[90%] items-center'>
@@ -87,7 +84,6 @@ const Sidebar = ({ activeItem }: SidebarProps) => {
         </div>
       </div>
 
-      {/* Section B - Bottom Menu */}
       <div className='mt-auto flex flex-col items-center pb-6'>
         <div className='h-[1px] w-[80%] mb-2 bg-gray-400'></div>
         <ul className='gap-2 flex flex-col w-[90%] items-center'>

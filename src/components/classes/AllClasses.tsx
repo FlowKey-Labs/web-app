@@ -6,7 +6,7 @@ import MembersHeader from '../headers/MembersHeader';
 import Table from '../common/Table';
 import ClassesModal from './ClassesModal';
 import { classesData, ClassData, categoryOptions } from '../utils/dummyData';
-import { navigateToClassDetails } from '../utils/navigationHelpers';
+import { navigateToSessionDetails } from '../utils/navigationHelpers';
 import { DatePickerInput } from '@mantine/dates';
 
 import actioEyeIcon from '../../assets/icons/actionEye.svg';
@@ -133,8 +133,8 @@ const AllClasses = () => {
     <>
       <div className='flex flex-col h-screen bg-cardsBg w-full overflow-y-auto'>
         <MembersHeader
-          title='Classes'
-          buttonText='New Class'
+          title='Sessions'
+          buttonText='New Session'
           searchPlaceholder='Search by ID, Name or Subject'
           leftIcon={plusIcon}
           onButtonClick={openModal}
@@ -237,7 +237,7 @@ const AllClasses = () => {
             className='mt-4'
             pageSize={7}
             onRowClick={(row: ClassData) =>
-              navigateToClassDetails(navigate, row.id.toString())
+              navigateToSessionDetails(navigate, row.id.toString())
             }
           />
         </div>

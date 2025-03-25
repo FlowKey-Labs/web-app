@@ -8,7 +8,7 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   name: string;
   label?: string;
   validation?: RegisterOptions;
-  focusColor?: string; // Allow focusColor to be passed as a prop
+  focusColor?: string;
   containerClassName?: string;
 }
 
@@ -20,7 +20,7 @@ const Input: React.FC<InputProps> = ({
   validation,
   className,
   containerClassName,
-  focusColor = 'secondary', // Default focus color
+  focusColor = 'secondary', 
   ...props
 }) => {
   const {
@@ -37,10 +37,9 @@ const Input: React.FC<InputProps> = ({
     setValue(name, date);
   };
 
-  // Function to get the focus color based on errors and focusColor prop
   const getFocusColor = () => {
-    if (errors[name]) return '#FF0000'; // Error color
-    return focusColor === 'green-500' ? '#1D9B5E' : focusColor; // Default or custom focus color
+    if (errors[name]) return '#FF0000';
+    return focusColor === 'green-500' ? '#1D9B5E' : focusColor;
   };
 
   if (type === 'date' || type === 'time') {
