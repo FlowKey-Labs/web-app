@@ -486,7 +486,7 @@ const Schedule = () => {
                               onClick={() =>
                                 handleRemoveTimeSlot(exception.id, timeSlot.id)
                               }
-                              className='text-red-500 text-xs hover:text-red-700'
+                              className='text-red-500 text-xs font-semibold hover:text-red-700'
                             >
                               Delete
                             </button>
@@ -532,7 +532,7 @@ const Schedule = () => {
                       ))}
                       <button
                         onClick={() => handleAddTimeSlot(exception.id)}
-                        className='flex items-center gap-1 text-secondary text-sm mt-2'
+                        className='flex items-center gap-1 text-secondary text-sm font-semibold mt-2 underline'
                       >
                         Add Time Slot
                       </button>
