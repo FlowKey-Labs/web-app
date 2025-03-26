@@ -130,7 +130,7 @@ const GettingStarted = () => {
             </DropDownMenu>
           </div>
         </div>
-        <div className='flex justify-between px-4 mt-6 '>
+        <div className='flex gap-6 px-4 mt-6 '>
           <div className='flex w-[250px] h-[91px] bg-[#EEEAF2] rounded-lg px-6 py-2 gap-1 border-[1px] border-[#BAA7CB]'>
             <div className='w-[20%]'>
               <img src={sessionsIcon} alt='' className='' />
@@ -143,7 +143,7 @@ const GettingStarted = () => {
               </div>
             </div>
           </div>
-          <div className='flex w-[250px] h-[91px] bg-[#D6E9E7] rounded-lg px-6 py-2 gap-1 border-[1px] border-[#ADD4CE]'>
+          {/* <div className='flex w-[250px] h-[91px] bg-[#D6E9E7] rounded-lg px-6 py-2 gap-1 border-[1px] border-[#ADD4CE]'>
             <div className='w-[20%]'>
               <img src={revenueIcon} alt='' className='' />
             </div>
@@ -154,7 +154,7 @@ const GettingStarted = () => {
                 <p className='text-sm text-secondary self-end -top-8'>+4.5%</p>
               </div>
             </div>
-          </div>
+          </div> */}
           <div className='flex w-[250px] h-[91px] bg-[#FEF5E2CC] rounded-lg px-6 py-2 gap-1 border-[1px] border-[#FAD684]'>
             <div className='w-[20%]'>
               <img src={totalClientsIcon} alt='' className='' />
@@ -182,15 +182,16 @@ const GettingStarted = () => {
         </div>
         <div className='flex p-4 mt-8 gap-8 '>
           <div className='flex flex-col w-[30%] space-y-6'>
-            <div className='flex justify-center items-center h-[350px] bg-white rounded-lg p-4'>
+            <div className='flex justify-center items-center max-w-[350px] bg-white rounded-lg p-4'>
               <Calendar
+                highlightToday
                 getDayProps={(date) => ({
                   selected: selectedDate
                     ? date.getTime() === selectedDate.getTime()
                     : false,
                   onClick: () => setSelectedDate(date),
                 })}
-                size='xl'
+                size='md'
                 styles={(theme) => ({
                   cell: {
                     border: `${rem(1)} solid ${theme.colors.gray[2]}`,
@@ -201,14 +202,14 @@ const GettingStarted = () => {
                     width: rem(40),
                     fontSize: theme.fontSizes.sm,
                     '&[data-selected]': {
-                      backgroundColor: '#00A76F',
+                      backgroundColor: '#1D9B5E',
                       color: 'white',
                       '&:hover': {
-                        backgroundColor: '#00A76F',
+                        backgroundColor: '#1D9B5E',
                       },
                     },
                     '&:hover': {
-                      backgroundColor: '#E4FFF2',
+                      backgroundColor: '#1D9B5E',
                     },
                   },
                   weekday: {
@@ -378,8 +379,8 @@ const GettingStarted = () => {
                         Rescheduled
                       </button>
                       <DropDownMenu
-                        show={dropdownOpen}
-                        setShow={setDropdownOpen}
+                        show={dropdownCancelOpen}
+                        setShow={setDropdownCancelOpen}
                         dropDownPosition='center'
                         actionElement={
                           <div
@@ -389,7 +390,7 @@ const GettingStarted = () => {
                             <img src={cancelIcon} />
                           </div>
                         }
-                      ></DropDownMenu>{' '}
+                      ></DropDownMenu>
                     </div>
                   </div>
                 </div>

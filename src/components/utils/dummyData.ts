@@ -62,7 +62,6 @@ export type Staff = {
   lastName: string;
   role: string;
   staffNumber: string;
-  idNumber: number;
   phoneNumber: string;
   email: string;
   assignedClasses: string;
@@ -272,7 +271,6 @@ export const data: Staff[] = [
     lastName: 'Doe',
     role: 'Swim Instructor',
     staffNumber: 'SN001',
-    idNumber: 366357,
     phoneNumber: '+1234567890',
     email: 'john.doe@example.com',
     assignedClasses: 'Beginner Swim, Advanced Swim, MakeUp Swim',
@@ -286,7 +284,6 @@ export const data: Staff[] = [
     lastName: 'Smith',
     role: 'Lifeguard',
     staffNumber: 'SN002',
-    idNumber: 366358,
     phoneNumber: '+1234567891',
     email: 'jane.smith@example.com',
     assignedClasses: 'Pool Safety, First Aid',
@@ -300,7 +297,6 @@ export const data: Staff[] = [
     lastName: 'Johnson',
     role: 'Swim Coach',
     staffNumber: 'SN003',
-    idNumber: 366359,
     phoneNumber: '+1234567892',
     email: 'alice.johnson@example.com',
     assignedClasses: 'Competitive Swim, Swim Team',
@@ -314,7 +310,6 @@ export const data: Staff[] = [
     lastName: 'Brown',
     role: 'Swim Instructor',
     staffNumber: 'SN004',
-    idNumber: 366360,
     phoneNumber: '+1234567893',
     email: 'bob.brown@example.com',
     assignedClasses: 'Kids Swim, Parent-Child Swim',
@@ -328,7 +323,6 @@ export const data: Staff[] = [
     lastName: 'Wilson',
     role: 'Aquatics Director',
     staffNumber: 'SN005',
-    idNumber: 366361,
     phoneNumber: '+1234567894',
     email: 'emma.wilson@example.com',
     assignedClasses: 'Swim Program Management',
@@ -342,7 +336,6 @@ export const data: Staff[] = [
     lastName: 'Clark',
     role: 'Water Aerobics Instructor',
     staffNumber: 'SN006',
-    idNumber: 366362,
     phoneNumber: '+1234567895',
     email: 'michael.clark@example.com',
     assignedClasses: 'Water Aerobics, Senior Swim',
@@ -356,7 +349,6 @@ export const data: Staff[] = [
     lastName: 'Davis',
     role: 'Swim Instructor',
     staffNumber: 'SN007',
-    idNumber: 366363,
     phoneNumber: '+1234567896',
     email: 'sarah.davis@example.com',
     assignedClasses: 'Teen Swim, Adult Swim',
@@ -370,7 +362,6 @@ export const data: Staff[] = [
     lastName: 'Wilson',
     role: 'Diving Coach',
     staffNumber: 'SN008',
-    idNumber: 366364,
     phoneNumber: '+1234567897',
     email: 'james.wilson@example.com',
     assignedClasses: 'Diving, Springboard Training',
@@ -384,7 +375,6 @@ export const data: Staff[] = [
     lastName: 'Daviss',
     role: 'Swim Instructor',
     staffNumber: 'SN009',
-    idNumber: 366365,
     phoneNumber: '+1234567898',
     email: 'sarah.daviss@example.com',
     assignedClasses: 'Private Swim Lessons',
@@ -398,7 +388,6 @@ export const data: Staff[] = [
     lastName: 'Wilsonn',
     role: 'Swim Team Coordinator',
     staffNumber: 'SN010',
-    idNumber: 366366,
     phoneNumber: '+1234567899',
     email: 'james.wilsonn@example.com',
     assignedClasses: 'Swim Team, Swim Meets',
@@ -690,4 +679,14 @@ export const cityOptions: DropDownItem[] = [
   { label: 'Nairobi', value: 'Nairobi' },
   { label: 'Mombasa', value: 'Mombasa' },
   { label: 'Kisumu', value: 'Kisumu' },
+];
+
+export const days = [
+  'Sunday',
+  'Monday',
+  'Tuesday',
+  'Wednesday',
+  'Thursday',
+  'Friday',
+  'Saturday',
 ];

@@ -21,7 +21,7 @@ const columns = [
         type='checkbox'
         checked={table.getIsAllRowsSelected()}
         onChange={table.getToggleAllRowsSelectedHandler()}
-        className='w-4 h-4 rounded cursor-pointer bg-[#F7F8FA] accent-[#0F2028]'
+        className='w-4 h-4 rounded cursor-pointer bg-[#F7F8FA] accent-[#DBDEDF]'
       />
     ),
     cell: ({ row }) => (
@@ -29,7 +29,7 @@ const columns = [
         type='checkbox'
         checked={row.getIsSelected()}
         onChange={row.getToggleSelectedHandler()}
-        className='w-4 h-4 rounded cursor-pointer bg-[#F7F8FA] accent-[#0F2028]'
+        className='w-4 h-4 rounded cursor-pointer bg-[#F7F8FA] accent-[#DBDEDF]'
       />
     ),
   }),
@@ -50,10 +50,6 @@ const columns = [
         </div>
       </div>
     ),
-  }),
-  columnHelper.accessor('idNumber', {
-    header: 'ID Number',
-    cell: (info) => info.getValue(),
   }),
   columnHelper.accessor('phoneNumber', {
     header: 'Phone Number',
