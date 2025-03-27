@@ -1,6 +1,4 @@
 import { useForm, SubmitHandler, FormProvider } from 'react-hook-form';
-import { yupResolver } from '@hookform/resolvers/yup';
-import * as yup from 'yup';
 import Button from '../common/Button';
 import { permissionsData } from '../utils/dummyData';
 
@@ -10,14 +8,6 @@ interface PermissionsFormData {
   createInvoices: boolean;
 }
 
-const schema = yup
-  .object({
-    createEvents: yup.boolean().required(),
-    addClients: yup.boolean().required(),
-    createInvoices: yup.boolean().required(),
-  })
-  .required();
-
 interface NewStaffPermissionsProps {
   onNext: (data: PermissionsFormData) => void;
   onBack: () => void;
@@ -25,8 +15,6 @@ interface NewStaffPermissionsProps {
 
 const NewStaffPermissions = ({ onNext, onBack }: NewStaffPermissionsProps) => {
   const methods = useForm<PermissionsFormData>({
-    resolver: yupResolver(schema),
-    mode: 'onChange',
     defaultValues: {
       createEvents: false,
       addClients: false,
@@ -63,21 +51,7 @@ const NewStaffPermissions = ({ onNext, onBack }: NewStaffPermissionsProps) => {
                       )}
                       className='sr-only peer'
                     />
-                    <div className='w-6 h-6 border-2 border-gray-300 rounded-full transition-all peer-checked:border-4 peer-checked:border-secondary group-hover:border-secondary'>
-                      <svg
-                        className='w-3 h-3 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-secondary opacity-0 peer-checked:opacity-100 transition-opacity'
-                        fill='none'
-                        viewBox='0 0 24 24'
-                        stroke='currentColor'
-                      >
-                        <path
-                          strokeLinecap='round'
-                          strokeLinejoin='round'
-                          strokeWidth={2}
-                          d='M5 13l4 4L19 7'
-                        />
-                      </svg>
-                    </div>
+                    <div className='w-6 h-6 border-2 border-gray-300 rounded-full transition-all peer-checked:border-4 peer-checked:border-secondary group-hover:border-secondary'></div>
                   </div>
                   <span className='text-sm font-medium text-gray-700 group-hover:text-gray-900'>
                     {permission.label}

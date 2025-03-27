@@ -7,6 +7,7 @@ import { generateTimeOptions } from '../common/TimeDropdown';
 import { Calendar } from '@mantine/dates';
 import calendarIcon from '../../assets/icons/calendar.svg';
 import { days } from '../utils/dummyData';
+import './index.css';
 
 type DaySchedule = {
   isOpen: boolean;
@@ -223,7 +224,7 @@ const Schedule = () => {
   return (
     <div className='w-full bg-white rounded-lg p-6'>
       <div className='flex justify-between'>
-        <div className='flex-1 px-8'>
+        <div className='flex-1 px-8 '>
           <div className='space-y-2'>
             <h3 className='text-primary font-semibold text-[32px]'>
               Working Hours
@@ -232,7 +233,7 @@ const Schedule = () => {
               Add Time Slots Based On Your Availability.
             </p>
           </div>
-          <div className='mt-6'>
+          <div className='mt-6 max-w-[340px]'>
             <p className='text-primary font-semibold text-sm mb-2'>
               Appointment Duration
             </p>
@@ -243,7 +244,7 @@ const Schedule = () => {
               actionElement={
                 <div
                   id='viewSelect'
-                  className='p-2 border-b border-gray-200 w-96 h-10 rounded-md outline-none cursor-pointer flex items-center justify-between'
+                  className='p-2 border-b border-gray-200 w-72 h-10 rounded-md outline-none cursor-pointer flex items-center justify-between'
                 >
                   <p className='text-primary text-sm'>{selectedDuration} Min</p>
                   <img src={dropdownIcon} alt='dropdown icon' />
@@ -268,7 +269,7 @@ const Schedule = () => {
             </DropDownMenu>
           </div>
 
-          <div className='mt-6 space-y-8'>
+          <div className='mt-6 space-y-8 max-w-[340px]'>
             {days.map((day) => (
               <div key={day} className='space-y-3'>
                 <div className='flex items-center justify-between'>
@@ -390,20 +391,10 @@ const Schedule = () => {
                     height: rem(40),
                     width: rem(40),
                     fontSize: theme.fontSizes.sm,
-                    '&[data-selected]': {
-                      backgroundColor: '#1D9B5E',
-                      color: 'white',
-                      '&:hover': {
-                        backgroundColor: '#1D9B5E',
-                      },
-                    },
-                    '&:hover': {
-                      backgroundColor: '#1D9B5E',
-                    },
                   },
                   weekday: {
                     fontSize: theme.fontSizes.sm,
-                    color: theme.colors.gray[6],
+                    color: 'white',
                   },
                   month: {
                     fontSize: theme.fontSizes.md,
@@ -412,6 +403,7 @@ const Schedule = () => {
                 })}
                 classNames={{
                   calendarHeader: 'mb-4',
+                  day: 'my-day-class',
                 }}
               />
             </div>

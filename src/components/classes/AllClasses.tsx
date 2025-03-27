@@ -113,21 +113,12 @@ const AllClasses = () => {
   const [rowSelection, setRowSelection] = useState({});
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isClassTypeModalOpen, setIsClassTypeModalOpen] = useState(false);
-  const [selectedDate, setSelectedDate] = useState<Date | null>(
-    new Date('2025-02-14')
-  );
   const [modalContentType, setModalContentType] = useState<
     'class' | 'appointment'
   >('class');
 
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
-
-  const handleDateChange = (value: Date | null) => {
-    if (value) {
-      setSelectedDate(value);
-    }
-  };
 
   return (
     <>
@@ -163,8 +154,6 @@ const AllClasses = () => {
                 clearable
                 w={130}
                 pointer
-                // value={selectedDate}
-                // onChange={handleDateChange}
                 placeholder='Pick a date'
                 styles={{
                   input: {

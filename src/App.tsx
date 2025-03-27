@@ -23,6 +23,7 @@ import CalendarView from './components/calendar';
 import AllClients from './components/clients/AllClients';
 import Profile from './components/profile/Index';
 import LogoutSuccess from './components/authentication/Logout';
+import Settings from './components/settings/Index';
 
 function App() {
   return (
@@ -58,6 +59,7 @@ function App() {
             <Route path='calendar' element={<CalendarView />} />
             <Route path='clients' element={<AllClients />} />
             <Route path='profile' element={<Profile />} />
+            <Route path='settings' element={<Settings />} />
             <Route path='*' element={<GettingStarted />} />
           </Route>
         </Routes>

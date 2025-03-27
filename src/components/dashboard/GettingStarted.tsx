@@ -3,11 +3,11 @@ import Header from '../headers/Header';
 import { Calendar } from '@mantine/dates';
 import { rem } from '@mantine/core';
 import { navigateToStaff } from '../utils/navigationHelpers';
+import './index.css';
 
 import dropdownIcon from '../../assets/icons/dropIcon.svg';
 import calenderIcon from '../../assets/icons/calendar.svg';
 import sessionsIcon from '../../assets/icons/sessions.svg';
-import revenueIcon from '../../assets/icons/revenue.svg';
 import totalClientsIcon from '../../assets/icons/totalClients.svg';
 import totalStaffIcon from '../../assets/icons/totalStaff.svg';
 import rightIcon from '../../assets/icons/greenRight.svg';
@@ -201,16 +201,6 @@ const GettingStarted = () => {
                     height: rem(40),
                     width: rem(40),
                     fontSize: theme.fontSizes.sm,
-                    '&[data-selected]': {
-                      backgroundColor: '#1D9B5E',
-                      color: 'white',
-                      '&:hover': {
-                        backgroundColor: '#1D9B5E',
-                      },
-                    },
-                    '&:hover': {
-                      backgroundColor: '#1D9B5E',
-                    },
                   },
                   weekday: {
                     fontSize: theme.fontSizes.sm,
@@ -223,6 +213,7 @@ const GettingStarted = () => {
                 })}
                 classNames={{
                   calendarHeader: 'mb-4',
+                  day: 'my-day-dashboard-class',
                 }}
               />
             </div>

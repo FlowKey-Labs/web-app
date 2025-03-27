@@ -1,21 +1,14 @@
-import { useForm, SubmitHandler, FormProvider } from 'react-hook-form';
-import { yupResolver } from '@hookform/resolvers/yup';
-import * as yup from 'yup';
+import {
+  useForm,
+  SubmitHandler,
+  FormProvider,
+  Controller,
+} from 'react-hook-form';
 import Input from '../common/Input';
 import Button from '../common/Button';
 import Main from '../authentication/MainAuth';
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
-
-const schema = yup
-  .object({
-    email: yup
-      .string()
-      .email('Invalid email format')
-      .required('Email is required'),
-    password: yup.string().required('Password is required'),
-  })
-  .required();
 
 interface FormData {
   email: string;
@@ -26,10 +19,7 @@ const Login = () => {
   const navigate = useNavigate();
   const [isHovered, setIsHovered] = useState(false);
 
-  const methods = useForm<FormData>({
-    resolver: yupResolver(schema),
-    mode: 'onChange',
-  });
+  const methods = useForm<FormData>();
 
   const onSubmit: SubmitHandler<FormData> = (data) => {
     navigate('/');
@@ -50,18 +40,64 @@ const Login = () => {
     >
       <FormProvider {...methods}>
         <form onSubmit={methods.handleSubmit(onSubmit)}>
-          <Input
+          <Controller
             name='email'
-            label='Email address'
-            type='email'
-            placeholder='Enter your email'
+            control={methods.control}
+            rules={{
+              required: 'Email is required',
+              pattern: {
+                value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                message: 'Invalid email address',
+              },
+            }}
+            render={({ field }) => (
+              <Input
+                {...field}
+                name='email'
+                label='Email address'
+                type='email'
+                placeholder='Enter your email'
+              />
+            )}
           />
-          <Input
+          <Controller
             name='password'
-            label='Password'
-            type='password'
-            placeholder='Enter your password'
+            control={methods.control}
+            rules={{
+              required: 'Password is required',
+              minLength: {
+                value: 8,
+                message: 'Password must be at least 8 characters',
+              },
+              validate: (value) => {
+                const hasUpperCase = /[A-Z]/.test(value);
+                const hasLowerCase = /[a-z]/.test(value);
+                const hasNumber = /[0-9]/.test(value);
+                const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(value);
+
+                let errorMessage = '';
+                if (!hasUpperCase)
+                  errorMessage += 'At least one uppercase letter. ';
+                if (!hasLowerCase)
+                  errorMessage += 'At least one lowercase letter. ';
+                if (!hasNumber) errorMessage += 'At least one number. ';
+                if (!hasSpecialChar)
+                  errorMessage += 'At least one special character. ';
+
+                return errorMessage === '' || errorMessage.trim();
+              },
+            }}
+            render={({ field }) => (
+              <Input
+                {...field}
+                name='password'
+                label='Password'
+                type='password'
+                placeholder='Enter your password'
+              />
+            )}
           />
+
           <p className='text-sm text-gray-600 mt-4'>
             <a
               className='underline text-[#1D9B5E] font-[500]'

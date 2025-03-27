@@ -1,0 +1,26 @@
+.my-day-class {
+  color: var(--mantine-color-gray-2);
+  border-radius: 50%;
+  height: var(--mantine-spacing-xl);
+  width: var(--mantine-spacing-xl);
+  font-size: var(--mantine-font-size-sm);
+}
+
+.my-day-class[data-selected] {
+  background-color: white;
+  color: black !important;
+}
+
+.my-day-class:hover {
+  background-color: var(--mantine-color-green-6);
+  color: black !important;
+}
+
+.my-day-class[data-selected]:hover {
+  background-color: var(--mantine-color-green-7);
+  color: white !important;
+}
+
+.mantine-Calendar-calendarHeader:hover {
+  color: black !important;
+}

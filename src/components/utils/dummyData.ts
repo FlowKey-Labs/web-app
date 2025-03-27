@@ -690,3 +690,49 @@ export const days = [
   'Friday',
   'Saturday',
 ];
+
+export const classTypes = [
+  { value: 'regular', label: 'Regular Class' },
+  { value: 'private', label: 'Private Class' },
+  { value: 'workshop', label: 'Workshop' },
+];
+
+export const repetition = [
+  { value: 'daily', label: 'Daily' },
+  { value: 'weekly', label: 'Weekly on Tuesday' },
+  {
+    value: 'monthly',
+    label: 'Monthly on Third Tuesday',
+  },
+  { value: 'custom', label: 'Custom ...' },
+];
+
+export const assignStaff = [
+  { value: 'john', label: 'John Doe' },
+  { value: 'jane', label: 'Jane Smith' },
+  { value: 'mike', label: 'Mike Johnson' },
+];
+
+export const selectClient = [
+  { value: 'client1', label: 'Client 1' },
+  { value: 'client2', label: 'Client 2' },
+  { value: 'client3', label: 'Client 3' },
+];
+
+export const selectClass = [
+  { value: 'class1', label: 'Class 1' },
+  { value: 'class2', label: 'Class 2' },
+  { value: 'class3', label: 'Class 3' },
+];
+
+export const selectDays = [
+  { value: 'day', label: 'Day(s)' },
+  { value: 'week', label: 'Week(s)' },
+  { value: 'month', label: 'Month(s)' },
+]
+
+export const assignCoach = [
+  { value: 'coach1', label: 'Coach 1' },
+  { value: 'coach2', label: 'Coach 2' },
+  { value: 'coach3', label: 'Coach 3' },
+]

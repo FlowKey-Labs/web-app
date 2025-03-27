@@ -1,25 +1,16 @@
-import { useForm, SubmitHandler, FormProvider } from 'react-hook-form';
-import { yupResolver } from '@hookform/resolvers/yup';
-import * as yup from 'yup';
+import {
+  useForm,
+  SubmitHandler,
+  FormProvider,
+  Controller,
+  useWatch,
+} from 'react-hook-form';
 import Input from '../common/Input';
 import Button from '../common/Button';
 import Main from '../authentication/MainAuth';
 import { useState } from 'react';
-import { SubmittingIcon } from '../../assets/icons';
+import { EyeClosedIcon, EyeOpenIcon, SubmittingIcon } from '../../assets/icons';
 import { useNavigate } from 'react-router-dom';
-
-const schema = yup
-  .object({
-    password: yup
-      .string()
-      .min(6, 'Password must be at least 6 characters')
-      .required('Password is required'),
-    confirmPassword: yup
-      .string()
-      .oneOf([yup.ref('password')], 'Passwords must match')
-      .required('Confirm password is required'),
-  })
-  .required();
 
 interface FormData {
   password: string;
@@ -31,10 +22,16 @@ const ResetPassword = () => {
   const [isResetting, setIsResetting] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
 
-  const methods = useForm<FormData>({
-    resolver: yupResolver(schema),
-    mode: 'onChange',
-  });
+  const methods = useForm<FormData>();
+  const { control } = methods;
+  const password = useWatch({ control, name: 'password' });
+
+
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const togglePasswordVisibility = () => setShowPassword(!showPassword);
+  const toggleConfirmPasswordVisibility = () =>
+    setShowConfirmPassword(!showConfirmPassword);
 
   const onSubmit: SubmitHandler<FormData> = async (data) => {
     setIsResetting(true);
@@ -48,17 +45,88 @@ const ResetPassword = () => {
     <Main title='Reset Password'>
       <FormProvider {...methods}>
         <form onSubmit={methods.handleSubmit(onSubmit)}>
-          <Input
+          <Controller
             name='password'
-            label='New Password'
-            type='password'
-            placeholder='Enter your password'
+            control={control}
+            rules={{
+              required: 'Password is required',
+              minLength: {
+                value: 6,
+                message: 'Password must be at least 6 characters',
+              },
+              validate: (value) => {
+                const hasUpperCase = /[A-Z]/.test(value);
+                const hasLowerCase = /[a-z]/.test(value);
+                const hasNumber = /[0-9]/.test(value);
+                const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(value);
+
+                let errorMessage = '';
+                if (!hasUpperCase) errorMessage += '1 uppercase letter. ';
+                if (!hasLowerCase) errorMessage += '1 lowercase letter. ';
+                if (!hasNumber) errorMessage += '1 number. ';
+                if (!hasSpecialChar) errorMessage += '1 special character. ';
+
+                return (
+                  errorMessage === '' || `Must contain: ${errorMessage.trim()}`
+                );
+              },
+            }}
+            render={({ field }) => (
+              <div className='relative pb-6'>
+                <Input
+                  {...field}
+                  label='Password'
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder='Enter your password'
+                />
+                <button
+                  type='button'
+                  className='absolute right-3 top-[20px]'
+                  onClick={togglePasswordVisibility}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? (
+                    <EyeClosedIcon className='w-5 h-5 text-gray-500' />
+                  ) : (
+                    <EyeOpenIcon className='w-5 h-5 text-gray-500' />
+                  )}
+                </button>
+              </div>
+            )}
           />
-          <Input
+
+          <Controller
             name='confirmPassword'
-            label='Confirm Password'
-            type='password'
-            placeholder='Confirm your password'
+            control={control}
+            rules={{
+              required: 'Please confirm your password',
+              validate: (value) =>
+                value === password || 'Passwords do not match',
+            }}
+            render={({ field }) => (
+              <div className='relative pb-6'>
+                <Input
+                  {...field}
+                  label='Confirm Password'
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  placeholder='Confirm your password'
+                />
+                <button
+                  type='button'
+                  className='absolute right-3 top-[20px]'
+                  onClick={toggleConfirmPasswordVisibility}
+                  aria-label={
+                    showConfirmPassword ? 'Hide password' : 'Show password'
+                  }
+                >
+                  {showConfirmPassword ? (
+                    <EyeClosedIcon className='w-5 h-5 text-gray-500' />
+                  ) : (
+                    <EyeOpenIcon className='w-5 h-5 text-gray-500' />
+                  )}
+                </button>
+              </div>
+            )}
           />
           <p className='text-sm text-gray-600 mt-4'>
             Remembered your password?{' '}

@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { useFormContext, RegisterOptions } from 'react-hook-form';
+import { ColorInput } from '@mantine/core';
 import { DatePickerInput, TimeInput } from '@mantine/dates';
 import { rem } from '@mantine/core';
-import { IconClock, IconCalendar } from '@tabler/icons-react';
+import { IconClock, IconCalendar, IconDroplet } from '@tabler/icons-react';
 
 interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   name: string;
@@ -20,13 +21,14 @@ const Input: React.FC<InputProps> = ({
   validation,
   className,
   containerClassName,
-  focusColor = 'secondary', 
+  focusColor = 'secondary',
   ...props
 }) => {
   const {
     register,
     formState: { errors },
     setValue,
+    watch,
   } = useFormContext();
 
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
@@ -41,6 +43,76 @@ const Input: React.FC<InputProps> = ({
     if (errors[name]) return '#FF0000';
     return focusColor === 'green-500' ? '#1D9B5E' : focusColor;
   };
+
+  if (type === 'color') {
+    return (
+      <div className={`w-full ${containerClassName || ''}`}>
+        <div className='relative w-full'>
+          <ColorInput
+            value={watch(name)}
+            onChange={(color) => setValue(name, color)}
+            placeholder={placeholder}
+            withPicker={false}
+            disallowInput
+            swatches={[
+              '#1D9B5E',
+              '#25262b',
+              '#868e96',
+              '#fa5252',
+              '#e64980',
+              '#be4bdb',
+              '#7950f2',
+              '#4c6ef5',
+              '#228be6',
+              '#15aabf',
+              '#12b886',
+              '#40c057',
+              '#82c91e',
+              '#fab005',
+              '#fd7e14',
+            ]}
+            swatchesPerRow={7}
+            styles={{
+              input: {
+                height: rem(58),
+                paddingTop: rem(24),
+                paddingBottom: rem(8),
+                fontSize: rem(14),
+                borderColor: errors[name] ? '#FF0000' : '#E5E7EB',
+                borderRadius: rem(8),
+                '&:focus': {
+                  borderColor: getFocusColor(),
+                  boxShadow: `0 0 0 1px ${getFocusColor()}`,
+                },
+              },
+              label: {
+                position: 'absolute',
+                top: rem(8),
+                left: rem(16),
+                fontSize: rem(12),
+                zIndex: 1,
+                pointerEvents: 'none',
+                color: '#6B7280',
+              },
+            }}
+          />
+          {label && (
+            <label
+              htmlFor={name}
+              className='absolute top-2 text-xs left-4 transition-all duration-200 text-primary'
+            >
+              {label}
+            </label>
+          )}
+        </div>
+        {errors[name] && (
+          <p className='text-xs text-red-500 mt-1'>
+            {errors[name]?.message as string}
+          </p>
+        )}
+      </div>
+    );
+  }
 
   if (type === 'date' || type === 'time') {
     return (
@@ -125,7 +197,7 @@ const Input: React.FC<InputProps> = ({
   }
 
   return (
-    <div className='mt-4 relative w-full'>
+    <div className={`mt-4 relative w-full ${containerClassName || ''}`}>
       <input
         {...props}
         id={name}

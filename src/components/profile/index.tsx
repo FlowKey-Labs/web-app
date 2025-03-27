@@ -1,7 +1,5 @@
 import { JSX, useState } from 'react';
 import { useForm, UseFormReturn } from 'react-hook-form';
-import { yupResolver } from '@hookform/resolvers/yup';
-import * as yup from 'yup';
 
 import Button from '../common/Button';
 import Header from '../headers/Header';
@@ -9,9 +7,6 @@ import Services from './Services';
 import Schedule from './Schedule';
 import BusinessInformation, { ProfileFormData } from './BusinessInformation';
 
-const schema = yup.object({
-  email: yup.string().email('Invalid email'),
-});
 
 type TabType = 'business' | 'services' | 'schedule';
 
@@ -25,8 +20,6 @@ const Profile = () => {
   };
 
   const methods: UseFormReturn<ProfileFormData> = useForm<ProfileFormData>({
-    resolver: yupResolver(schema),
-    mode: 'onChange',
     defaultValues: {
       businessName: 'RayFish School',
       contactPerson: 'Doris Waithera',
@@ -35,7 +28,6 @@ const Profile = () => {
     },
   });
 
-  // Content map configuration
   const contentMap: Record<TabType, JSX.Element> = {
     business: (
       <BusinessInformation

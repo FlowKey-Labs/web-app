@@ -201,6 +201,13 @@ const BusinessInformation = ({
                           <Controller
                             name='email'
                             control={control}
+                            rules={{
+                              pattern: {
+                                value:
+                                  /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                                message: 'Invalid email format',
+                              },
+                            }}
                             render={({ field }) => (
                               <Input
                                 {...field}

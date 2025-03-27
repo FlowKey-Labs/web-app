@@ -1,0 +1,22 @@
+.my-day-dashboard-class {
+  color: var(--mantine-color-gray-2);
+  border-radius: 50%;
+  height: var(--mantine-spacing-xl);
+  width: var(--mantine-spacing-xl);
+  font-size: var(--mantine-font-size-sm);
+}
+
+.my-day-dashboard-class[data-selected] {
+  background-color: #1d9b5e !important;
+  color: white !important;
+}
+
+.my-day-dashboard-class[data-selected]:hover {
+  background-color: #1d9b5e !important;
+  color: white !important;
+}
+
+.my-day-dashboard-class:hover {
+  background-color: var(--mantine-color-green-6);
+  color: black !important;
+}

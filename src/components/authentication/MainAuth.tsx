@@ -17,7 +17,7 @@ const Main: React.FC<MainAuthProps> = ({
 }) => {
   return (
     <div
-      className='flex justify-center items-center min-h-screen  p-4'
+      className='flex justify-center items-center h-screen  p-4'
       style={{
         backgroundImage: `url(${background})`,
         backgroundPosition: 'center',
@@ -42,11 +42,11 @@ const Main: React.FC<MainAuthProps> = ({
           </div>
         </div>
 
-        <div className='w-full lg:w-auto'>
-          <div className='flex justify-center bg-white p-6 lg:p-8 rounded-lg shadow-md w-full lg:w-[480px] h-auto'>
+        <div className='flex justify-center items-center w-full lg:w-auto h-[95vh] rounded-lg shadow-md overflow-y-auto'>
+          <div className='flex justify-center bg-white p-2 rounded-lg lg:py-4   w-full lg:w-[480px]'>
             <div className='w-full max-w-[350px]'>
-              <h3 className='text-2xl lg:text-3xl font-bold mb-2 '>{title}</h3>
-              <p className='text-gray-600 text-sm lg:text-base mb-6 '>
+              <h3 className='text-xl lg:text-xl font-bold mb-1 '>{title}</h3>
+              <p className='text-gray-600 text-sm lg:text-base mb-2 '>
                 {subtitle}
               </p>
               {children}
