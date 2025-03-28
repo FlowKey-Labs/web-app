@@ -3,7 +3,7 @@ import { useFormContext, RegisterOptions } from 'react-hook-form';
 import { ColorInput } from '@mantine/core';
 import { DatePickerInput, TimeInput } from '@mantine/dates';
 import { rem } from '@mantine/core';
-import { IconClock, IconCalendar, IconDroplet } from '@tabler/icons-react';
+import { IconClock, IconCalendar } from '@tabler/icons-react';
 
 interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   name: string;

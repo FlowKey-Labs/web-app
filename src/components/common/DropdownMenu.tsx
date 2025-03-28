@@ -1,6 +1,6 @@
 import { useRef, useEffect, PropsWithChildren, JSX } from 'react';
 
-type Positions = 'left' | 'right' | 'center';
+type Positions = 'left' | 'right' | 'center' | 'top';
 
 type Props = {
   actionElement?: JSX.Element;
@@ -28,6 +28,7 @@ const DropDownMenu = ({
       left: 'left-0',
       right: 'right-0',
       center: 'left-1/2 transform -translate-x-1/2',
+      top: '-top-0'
     }[type];
   };
 

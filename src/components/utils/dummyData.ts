@@ -609,6 +609,8 @@ export const categoryOptions = [
   'Platinum',
 ];
 
+export const classTypesOptions = ['Trial', 'Makeup', 'Nomal'];
+
 export const chartData = [
   { day: 'Mon', clients: 25 },
   { day: 'Tue', clients: 38 },
@@ -729,10 +731,39 @@ export const selectDays = [
   { value: 'day', label: 'Day(s)' },
   { value: 'week', label: 'Week(s)' },
   { value: 'month', label: 'Month(s)' },
-]
+];
 
 export const assignCoach = [
   { value: 'coach1', label: 'Coach 1' },
   { value: 'coach2', label: 'Coach 2' },
   { value: 'coach3', label: 'Coach 3' },
-]
+];
+
+export const months = [
+  { label: 'January', value: '01' },
+  { label: 'February', value: '02' },
+  { label: 'March', value: '03' },
+  { label: 'April', value: '04' },
+  { label: 'May', value: '05' },
+  { label: 'June', value: '06' },
+  { label: 'July', value: '07' },
+  { label: 'August', value: '08' },
+  { label: 'September', value: '09' },
+  { label: 'October', value: '10' },
+  { label: 'November', value: '11' },
+  { label: 'December', value: '12' },
+];
+
+
+export const swimClasses = [
+  { label: 'Beginner Swim Lessons', value: 'beginner-swim' },
+  { label: 'Intermediate Swim Training', value: 'intermediate-swim' },
+  { label: 'Advanced Swim Team', value: 'advanced-swim-team' },
+  { label: 'Adult Swim Fitness', value: 'adult-swim-fitness' },
+  { label: 'Parent & Child Swim', value: 'parent-child-swim' },
+  { label: 'Competitive Swim Training', value: 'competitive-swim' },
+  { label: 'Water Safety Classes', value: 'water-safety' },
+  { label: 'Synchronized Swimming', value: 'synchronized-swim' },
+  { label: 'Open Water Swim Training', value: 'open-water-swim' },
+  { label: 'Aqua Aerobics', value: 'aqua-aerobics' }
+];

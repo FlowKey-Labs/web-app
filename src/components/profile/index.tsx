@@ -7,7 +7,6 @@ import Services from './Services';
 import Schedule from './Schedule';
 import BusinessInformation, { ProfileFormData } from './BusinessInformation';
 
-
 type TabType = 'business' | 'services' | 'schedule';
 
 const Profile = () => {
@@ -52,7 +51,7 @@ const Profile = () => {
   return (
     <div className='flex flex-col h-screen bg-cardsBg w-full overflow-y-auto'>
       <div className='mt-2'>
-        <Header />
+        <Header showSearch={false} />
       </div>
       <div className='flex-1 p-6'>
         <div className='flex justify-between items-center px-4'>
@@ -71,7 +70,7 @@ const Profile = () => {
           {tabConfig.map((tab) => (
             <p
               key={tab.id}
-              className={`text-base font-[600] cursor-pointer ${
+              className={`text-base font-[600] cursor-pointer hover:text-secondary ${
                 activeTab === tab.id ? 'text-secondary' : 'text-primary'
               }`}
               onClick={() => setActiveTab(tab.id as TabType)}

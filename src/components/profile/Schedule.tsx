@@ -244,7 +244,7 @@ const Schedule = () => {
               actionElement={
                 <div
                   id='viewSelect'
-                  className='p-2 border-b border-gray-200 w-72 h-10 rounded-md outline-none cursor-pointer flex items-center justify-between'
+                  className='p-2 border-b border-gray-200 w-28 h-10 rounded-md outline-none cursor-pointer flex items-center justify-between'
                 >
                   <p className='text-primary text-sm'>{selectedDuration} Min</p>
                   <img src={dropdownIcon} alt='dropdown icon' />

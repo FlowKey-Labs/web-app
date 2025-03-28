@@ -27,7 +27,7 @@
     "@types/node": "^22.13.8",
     "date-fns": "^4.1.0",
     "dayjs": "^1.11.13",
-    "lucide-react": "^0.483.0",
+    "lucide-react": "^0.484.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-hook-form": "^7.54.2",

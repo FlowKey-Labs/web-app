@@ -3,7 +3,6 @@ import Button from '../common/Button';
 import DropdownSelectInput, { DropDownItem } from '../common/Dropdown';
 import Input from '../common/Input';
 import { useState } from 'react';
-import Modal from '../common/Modal';
 import cancelIcon from '../../assets/icons/cancel.svg';
 import { categoryOptions } from '../utils/dummyData';
 import ChevronUp from '../../assets/icons/up.svg';
@@ -17,6 +16,7 @@ import {
   selectDays,
   assignCoach,
 } from '../utils/dummyData';
+import DropDownMenu from '../common/DropdownMenu';
 
 interface ClassModalProps {
   isOpen: boolean;
@@ -234,16 +234,215 @@ const ClassesModal = ({ isOpen, onClose }: ClassModalProps) => {
                           name='repetition'
                           control={methods.control}
                           render={({ field }) => (
-                            <DropdownSelectInput
-                              {...field}
-                              label='Set Repetition'
-                              placeholder='Does not repeat'
-                              options={repetition.map((item) => ({
-                                label: item.label,
-                                value: item.value,
-                              }))}
-                              onSelectItem={handleRepetitionChange}
-                            />
+                            <DropDownMenu
+                              dropDownPosition='top'
+                              show={isCustomRepetitionModalOpen}
+                              setShow={setIsCustomRepetitionModalOpen}
+                              actionElement={
+                                <DropdownSelectInput
+                                  selectClassName='w-96'
+                                  {...field}
+                                  label='Set Repetition'
+                                  placeholder='Does not repeat'
+                                  options={repetition.map((item) => ({
+                                    label: item.label,
+                                    value: item.value,
+                                  }))}
+                                  onSelectItem={(selectedItem) => {
+                                    field.onChange(selectedItem);
+                                    if (selectedItem.value === 'custom') {
+                                      setIsCustomRepetitionModalOpen(true);
+                                    }
+                                  }}
+                                />
+                              }
+                            >
+                              <div className='space-y-8 min-w-[300px] p-6 z-50'>
+                                <h3 className='text-lg font-bold text-gray-700'>
+                                  Set Repetition
+                                </h3>
+
+                                <div className='flex items-center gap-2 justify-between'>
+                                  <p>Repeat every</p>
+                                  <div className='flex items-center gap-1'>
+                                    <span className='px-2 py-1 bg-gray-100 rounded'>
+                                      {repetitionFrequency}
+                                    </span>
+                                    <div className='flex flex-col'>
+                                      <button
+                                        onClick={() =>
+                                          setRepetitionFrequency(
+                                            (prev) => prev + 1
+                                          )
+                                        }
+                                        className='p-1 rounded-full hover:bg-gray-100'
+                                      >
+                                        <img
+                                          src={ChevronUp}
+                                          alt='increase'
+                                          className='w-4 h-4'
+                                        />
+                                      </button>
+                                      <button
+                                        onClick={() =>
+                                          setRepetitionFrequency((prev) =>
+                                            Math.max(1, prev - 1)
+                                          )
+                                        }
+                                        className='p-1 rounded-full hover:bg-gray-100'
+                                      >
+                                        <img
+                                          src={ChevronDown}
+                                          alt='decrease'
+                                          className='w-4 h-4'
+                                        />
+                                      </button>
+                                    </div>
+                                  </div>
+                                  <div className='w-[150px]'>
+                                    <DropdownSelectInput
+                                      options={selectDays.map((item) => ({
+                                        label: item.label,
+                                        value: item.value,
+                                      }))}
+                                      onSelectItem={(selectedItem) =>
+                                        console.log(selectedItem)
+                                      }
+                                      className='w-full'
+                                      selectClassName='text-sm'
+                                    />
+                                  </div>
+                                </div>
+
+                                <div className='space-y-2'>
+                                  <p className='text-[16px] font-[400]'>
+                                    Repeat On
+                                  </p>
+                                  <div className='flex gap-2'>
+                                    {[
+                                      'Sun',
+                                      'Mon',
+                                      'Tue',
+                                      'Wed',
+                                      'Thu',
+                                      'Fri',
+                                      'Sat',
+                                    ].map((day) => (
+                                      <button
+                                        key={day}
+                                        className={`h-10 w-10 rounded-full flex items-center justify-center p-4 text-xs ${
+                                          selectedWeekdays.includes(day)
+                                            ? 'bg-[#1D9B5E33]'
+                                            : 'bg-cardsBg text-gray-700'
+                                        }`}
+                                        onClick={() => handleWeekdayClick(day)}
+                                      >
+                                        {day}
+                                      </button>
+                                    ))}
+                                  </div>
+                                </div>
+
+                                <div className='space-y-2'>
+                                  <p className='text-[16px] font-[400]'>Ends</p>
+                                  <div className='flex gap-8'>
+                                    {['never', 'on', 'after'].map((option) => (
+                                      <label
+                                        key={option}
+                                        className='flex items-center gap-2'
+                                      >
+                                        <div className='relative flex items-center'>
+                                          <input
+                                            type='checkbox'
+                                            checked={endsOption === option}
+                                            onChange={() =>
+                                              handleEndsOptionChange(
+                                                option as
+                                                  | 'never'
+                                                  | 'on'
+                                                  | 'after'
+                                              )
+                                            }
+                                            className='w-4 h-4 border-2 border-gray-700 focus:ring-2 focus:border-none focus:ring-secondary focus:ring-offset-2 appearance-none rounded-full cursor-pointer bg-white'
+                                          />
+                                          <div className='absolute inset-0 flex items-center justify-center pointer-events-none'>
+                                            <div
+                                              className={`w-3 h-3 rounded-full transition-colors ${
+                                                endsOption === option
+                                                  ? 'bg-secondary'
+                                                  : 'bg-transparent'
+                                              }`}
+                                            ></div>
+                                          </div>
+                                        </div>
+                                        <span>
+                                          {option.charAt(0).toUpperCase() +
+                                            option.slice(1)}
+                                        </span>
+                                      </label>
+                                    ))}
+                                  </div>
+                                </div>
+
+                                <div className='flex justify-between gap-4'>
+                                  <div className='flex justify-center items-center cursor-pointer w-[133px] h-[43px] bg-cardsBg text-center rounded-lg text-sm'>
+                                    April 20, 2025
+                                  </div>
+                                  <div className='flex items-center gap-2'>
+                                    <span className='flex justify-center items-center cursor-pointer w-[133px] h-[43px] bg-cardsBg text-center rounded-lg text-sm'>
+                                      {occurrences} occurrences
+                                    </span>
+                                    <div className='flex flex-col'>
+                                      <button
+                                        onClick={() =>
+                                          handleOccurrencesChange(1)
+                                        }
+                                        className='p-1 rounded-full hover:bg-gray-100'
+                                      >
+                                        <img
+                                          src={ChevronUp}
+                                          alt='increase'
+                                          className='w-4 h-4'
+                                        />
+                                      </button>
+                                      <button
+                                        onClick={() =>
+                                          handleOccurrencesChange(-1)
+                                        }
+                                        className='p-1 rounded-full hover:bg-gray-100'
+                                      >
+                                        <img
+                                          src={ChevronDown}
+                                          alt='decrease'
+                                          className='w-4 h-4'
+                                        />
+                                      </button>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <div className='flex justify-end gap-2 mt-6'>
+                                  <Button
+                                    variant='subtle'
+                                    color='#0F2028'
+                                    onClick={() =>
+                                      setIsCustomRepetitionModalOpen(false)
+                                    }
+                                  >
+                                    Close
+                                  </Button>
+                                  <Button
+                                    color='#1D9B5E'
+                                    radius='md'
+                                    onClick={() =>
+                                      setIsCustomRepetitionModalOpen(false)
+                                    }
+                                  >
+                                    Save
+                                  </Button>
+                                </div>
+                              </div>
+                            </DropDownMenu>
                           )}
                         />
                         <div className='flex justify-between items-center gap-4'>
@@ -462,145 +661,6 @@ const ClassesModal = ({ isOpen, onClose }: ClassModalProps) => {
           </FormProvider>
         </div>
       </div>
-      <Modal
-        isOpen={isCustomRepetitionModalOpen}
-        onClose={() => setIsCustomRepetitionModalOpen(false)}
-      >
-        <div className='space-y-8 min-w-[300px]'>
-          <h3 className='text-lg font-bold text-gray-700'>Set Repetition</h3>
-
-          <div className='flex items-center gap-2 justify-between'>
-            <p>Repeat every</p>
-            <div className='flex items-center gap-1'>
-              <span className='px-2 py-1 bg-gray-100 rounded'>
-                {repetitionFrequency}
-              </span>
-              <div className='flex flex-col'>
-                <button
-                  onClick={() => setRepetitionFrequency((prev) => prev + 1)}
-                  className='p-1 rounded-full hover:bg-gray-100'
-                >
-                  <img src={ChevronUp} alt='increase' className='w-4 h-4' />
-                </button>
-                <button
-                  onClick={() =>
-                    setRepetitionFrequency((prev) => Math.max(1, prev - 1))
-                  }
-                  className='p-1 rounded-full hover:bg-gray-100'
-                >
-                  <img src={ChevronDown} alt='decrease' className='w-4 h-4' />
-                </button>
-              </div>
-            </div>
-            <div className='w-[150px]'>
-              <DropdownSelectInput
-                options={selectDays.map((item) => ({
-                  label: item.label,
-                  value: item.value,
-                }))}
-                onSelectItem={(selectedItem) => console.log(selectedItem)}
-                className='w-full'
-                selectClassName='text-sm'
-              />
-            </div>
-          </div>
-
-          <div className='space-y-2'>
-            <p className='text-[16px] font-[400]'>Repeat On</p>
-            <div className='flex gap-2'>
-              {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
-                <button
-                  key={day}
-                  className={`h-10 w-10 rounded-full flex items-center justify-center p-4 text-xs ${
-                    selectedWeekdays.includes(day)
-                      ? 'bg-[#1D9B5E33]'
-                      : 'bg-cardsBg text-gray-700'
-                  }`}
-                  onClick={() => handleWeekdayClick(day)}
-                >
-                  {day}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className='space-y-2'>
-            <p className='text-[16px] font-[400]'>Ends</p>
-            <div className='flex gap-8'>
-              {['never', 'on', 'after'].map((option) => (
-                <label key={option} className='flex items-center gap-2'>
-                  <div className='relative flex items-center'>
-                    <input
-                      type='checkbox'
-                      checked={endsOption === option}
-                      onChange={() =>
-                        handleEndsOptionChange(
-                          option as 'never' | 'on' | 'after'
-                        )
-                      }
-                      className='w-4 h-4 border-2 border-gray-700 focus:ring-2 focus:border-none focus:ring-secondary focus:ring-offset-2 appearance-none rounded-full cursor-pointer bg-white'
-                    />
-                    <div className='absolute inset-0 flex items-center justify-center pointer-events-none'>
-                      <div
-                        className={`w-3 h-3 rounded-full transition-colors ${
-                          endsOption === option
-                            ? 'bg-secondary'
-                            : 'bg-transparent'
-                        }`}
-                      ></div>
-                    </div>
-                  </div>
-                  <span>
-                    {option.charAt(0).toUpperCase() + option.slice(1)}
-                  </span>
-                </label>
-              ))}
-            </div>
-          </div>
-
-          <div className='flex justify-between gap-4'>
-            <div className='flex justify-center items-center cursor-pointer w-[133px] h-[43px] bg-cardsBg text-center rounded-lg text-sm'>
-              April 20, 2025
-            </div>
-            <div className='flex items-center gap-2'>
-              <span className='flex justify-center items-center cursor-pointer w-[133px] h-[43px] bg-cardsBg text-center rounded-lg text-sm'>
-                {occurrences} occurrences
-              </span>
-              <div className='flex flex-col'>
-                <button
-                  onClick={() => handleOccurrencesChange(1)}
-                  className='p-1 rounded-full hover:bg-gray-100'
-                >
-                  <img src={ChevronUp} alt='increase' className='w-4 h-4' />
-                </button>
-                <button
-                  onClick={() => handleOccurrencesChange(-1)}
-                  className='p-1 rounded-full hover:bg-gray-100'
-                >
-                  <img src={ChevronDown} alt='decrease' className='w-4 h-4' />
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <div className='flex justify-end gap-2 mt-6'>
-            <Button
-              variant='subtle'
-              color='#0F2028'
-              onClick={() => setIsCustomRepetitionModalOpen(false)}
-            >
-              Close
-            </Button>
-            <Button
-              color='#1D9B5E'
-              radius='md'
-              onClick={() => setIsCustomRepetitionModalOpen(false)}
-            >
-              Save
-            </Button>
-          </div>
-        </div>
-      </Modal>
     </div>
   );
 };

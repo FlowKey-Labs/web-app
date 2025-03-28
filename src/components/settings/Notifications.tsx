@@ -18,8 +18,8 @@ interface NotificationsSettingsProps {
   openedAccordion: string | null;
   setOpenedAccordion: (value: string | null) => void;
   methods: UseFormReturn<NotificationsFormData>;
-  control: Control<NotificationsFormData>; 
-  handleSubmit: UseFormHandleSubmit<NotificationsFormData>; 
+  control: Control<NotificationsFormData>;
+  handleSubmit: UseFormHandleSubmit<NotificationsFormData>;
 }
 
 const Notifications = ({
