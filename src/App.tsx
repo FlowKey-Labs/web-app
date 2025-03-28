@@ -23,7 +23,7 @@ import CalendarView from './components/calendar';
 import AllClients from './components/clients/AllClients';
 import Profile from './components/profile';
 import LogoutSuccess from './components/authentication/Logout';
-import Settings from './components/settings/settings';
+import Settings from './components/accountSettings';
 
 function App() {
   return (
