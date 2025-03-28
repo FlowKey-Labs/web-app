@@ -1,6 +1,9 @@
-import { useForm, SubmitHandler, FormProvider } from 'react-hook-form';
-import { yupResolver } from '@hookform/resolvers/yup';
-import * as yup from 'yup';
+import {
+  useForm,
+  SubmitHandler,
+  FormProvider,
+  Controller,
+} from 'react-hook-form';
 import Input from '../common/Input';
 import Button from '../common/Button';
 
@@ -12,29 +15,12 @@ interface ProfileFormData {
   userId: string;
 }
 
-const schema = yup
-  .object({
-    preferedName: yup.string().required('Name is required'),
-    lastName: yup.string().required('Last name is required'),
-    phoneNumber: yup.string().required('Phone number is required'),
-    email: yup
-      .string()
-      .matches(
-        /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
-        'Invalid email format'
-      )
-      .required('Email is required'),
-    userId: yup.string().required('User ID is required'),
-  })
-  .required();
-
 interface NewStaffProfileProps {
   onNext: (data: ProfileFormData) => void;
 }
 
 const NewStaffProfile = ({ onNext }: NewStaffProfileProps) => {
   const methods = useForm<ProfileFormData>({
-    resolver: yupResolver(schema),
     mode: 'onChange',
   });
 
@@ -48,7 +34,7 @@ const NewStaffProfile = ({ onNext }: NewStaffProfileProps) => {
         Personal Information
       </h3>
       <p className='text-primary text-sm'>
-        Enter your team member’s phone number or email to send them an
+        Enter your team member's phone number or email to send them an
         invitation to access FlowKey
       </p>
       <FormProvider {...methods}>
@@ -58,41 +44,72 @@ const NewStaffProfile = ({ onNext }: NewStaffProfileProps) => {
         >
           <div className='flex flex-col gap-6 flex-grow'>
             <div className='space-y-4'>
-              <Input
+              {/* Preferred Name */}
+              <Controller
                 name='preferedName'
-                label='Preferred Name'
-                placeholder='Enter preferred name'
-                type='text'
-                validation={{ required: 'Name is required' }}
-                focusColor='secondary'
+                control={methods.control}
+                rules={{ required: 'Name is required' }}
+                render={({ field }) => (
+                  <Input
+                    {...field}
+                    label='Preferred Name'
+                    placeholder='Enter preferred name'
+                    type='text'
+                    focusColor='secondary'
+                  />
+                )}
               />
-              <Input
-                name='phoneNumber'
-                label='Phone Number'
-                placeholder='Enter phone number'
-                type='tel'
-                validation={{ required: 'Phone number is required' }}
-              />
-              <Input
-                name='userId'
-                label='User ID'
-                placeholder='Enter user ID'
-                type='text'
-                validation={{ required: 'User ID is required' }}
-              />
-              <Input
+
+              {/* Last Name */}
+              <Controller
                 name='lastName'
-                label='Last Name'
-                placeholder='Enter last name'
-                type='text'
-                validation={{ required: 'Last name is required' }}
+                control={methods.control}
+                rules={{ required: 'Last name is required' }}
+                render={({ field }) => (
+                  <Input
+                    {...field}
+                    label='Last Name'
+                    placeholder='Enter last name'
+                    type='text'
+                  />
+                )}
               />
-              <Input
+
+              {/* Phone Number */}
+              <Controller
+                name='phoneNumber'
+                control={methods.control}
+                rules={{
+                  required: 'Phone number is required',
+                  pattern: {
+                    value:
+                      /^[+]?[(]?[0-9]{3}[)]?[-\s.]?[0-9]{3}[-\s.]?[0-9]{4,6}$/im,
+                    message: 'Invalid phone number',
+                  },
+                  minLength: {
+                    value: 10,
+                    message: 'phone number must be at least 10 digits',
+                  },
+                  maxLength: {
+                    value: 15,
+                    message: 'phone number must not exceed 15 digits',
+                  },
+                }}
+                render={({ field }) => (
+                  <Input
+                    {...field}
+                    label='Phone Number'
+                    placeholder='(000) 000 000'
+                    type='tel'
+                  />
+                )}
+              />
+
+              {/* Email */}
+              <Controller
                 name='email'
-                label='Email'
-                type='email'
-                placeholder='Enter email address'
-                validation={{
+                control={methods.control}
+                rules={{
                   required: 'Email is required',
                   pattern: {
                     value: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
@@ -100,6 +117,28 @@ const NewStaffProfile = ({ onNext }: NewStaffProfileProps) => {
                       'Please enter a valid email address (e.g., name@example.com)',
                   },
                 }}
+                render={({ field }) => (
+                  <Input
+                    {...field}
+                    label='Email'
+                    type='email'
+                    placeholder='user@email.com'
+                  />
+                )}
+              />
+
+              {/* User ID */}
+              <Controller
+                name='userId'
+                control={methods.control}
+                render={({ field }) => (
+                  <Input
+                    {...field}
+                    label='User ID'
+                    placeholder='Team member ID (optional)'
+                    type='text'
+                  />
+                )}
               />
             </div>
           </div>

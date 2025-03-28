@@ -21,7 +21,7 @@ type Props = {
   isSearchable?: boolean;
   isMulti?: boolean;
   options: DropDownItem[];
-  defaultValue?: MultiValue<DropDownItem> | SingleValue<DropDownItem>;
+  defaultValue?: DropDownItem[] | DropDownItem | null;
   placeholder?: string;
   width?: string | number;
   selectionLimit?: number;

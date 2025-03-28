@@ -69,7 +69,7 @@ const Header = ({
         {showButton && (
           <div>
             <Button
-              w={140}
+              w={150}
               h={52}
               size='sm'
               radius='md'

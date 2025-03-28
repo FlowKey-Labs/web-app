@@ -5,9 +5,15 @@ import { createColumnHelper } from '@tanstack/react-table';
 import MembersHeader from '../headers/MembersHeader';
 import Table from '../common/Table';
 import ClassesModal from './ClassesModal';
-import { classesData, ClassData, categoryOptions } from '../utils/dummyData';
-import { navigateToClassDetails } from '../utils/navigationHelpers';
+import {
+  classesData,
+  ClassData,
+  categoryOptions,
+  classTypesOptions,
+} from '../utils/dummyData';
+import { navigateToSessionDetails } from '../utils/navigationHelpers';
 import { DatePickerInput } from '@mantine/dates';
+import DropDownMenu from '../common/DropdownMenu';
 
 import actioEyeIcon from '../../assets/icons/actionEye.svg';
 import actionEditIcon from '../../assets/icons/actionEdit.svg';
@@ -16,7 +22,8 @@ import plusIcon from '../../assets/icons/plusWhite.svg';
 import classesFilterIcon from '../../assets/icons/classesFilter.svg';
 import resetIcon from '../../assets/icons/resetIcon.svg';
 import dropIcon from '../../assets/icons/dropIcon.svg';
-import CustomModal from '../common/Modal';
+import dropdownIcon from '../../assets/icons/dropIcon.svg';
+import Button from '../common/Button';
 
 const columnHelper = createColumnHelper<ClassData>();
 
@@ -28,7 +35,7 @@ const columns = [
         type='checkbox'
         checked={table.getIsAllRowsSelected()}
         onChange={table.getToggleAllRowsSelectedHandler()}
-        className='w-4 h-4 rounded cursor-pointer bg-[#F7F8FA] accent-[#0F2028]'
+        className='w-4 h-4 rounded cursor-pointer bg-[#F7F8FA] accent-[#DBDEDF]'
       />
     ),
     cell: ({ row }) => (
@@ -36,7 +43,7 @@ const columns = [
         type='checkbox'
         checked={row.getIsSelected()}
         onChange={row.getToggleSelectedHandler()}
-        className='w-4 h-4 rounded cursor-pointer bg-[#F7F8FA] accent-[#0F2028]'
+        className='w-4 h-4 rounded cursor-pointer bg-[#F7F8FA] accent-[#DBDEDF]'
       />
     ),
   }),
@@ -112,29 +119,19 @@ const AllClasses = () => {
   const navigate = useNavigate();
   const [rowSelection, setRowSelection] = useState({});
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isClassTypeModalOpen, setIsClassTypeModalOpen] = useState(false);
-  const [selectedDate, setSelectedDate] = useState<Date | null>(
-    new Date('2025-02-14')
-  );
-  const [modalContentType, setModalContentType] = useState<
-    'class' | 'appointment'
-  >('class');
+  const [classTypeDropdownOpen, setClassTypeDropdownOpen] = useState(false);
+  const [categoryTypeDropdownOpen, setCategoryTypeDropdownOpen] =
+    useState(false);
 
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
-
-  const handleDateChange = (value: Date | null) => {
-    if (value) {
-      setSelectedDate(value);
-    }
-  };
 
   return (
     <>
       <div className='flex flex-col h-screen bg-cardsBg w-full overflow-y-auto'>
         <MembersHeader
-          title='Classes'
-          buttonText='New Class'
+          title='Sessions'
+          buttonText='New Session'
           searchPlaceholder='Search by ID, Name or Subject'
           leftIcon={plusIcon}
           onButtonClick={openModal}
@@ -159,10 +156,10 @@ const AllClasses = () => {
               onClick={() => {}}
             >
               <DatePickerInput
+                type='range'
+                clearable
                 w={130}
                 pointer
-                value={selectedDate}
-                onChange={handleDateChange}
                 placeholder='Pick a date'
                 styles={{
                   input: {
@@ -187,36 +184,103 @@ const AllClasses = () => {
             </div>
             <div className='h-full w-[1px] bg-gray-200'></div>
 
-            <div
-              className='flex items-center space-x-2 cursor-pointer'
-              onClick={() => {
-                setModalContentType('class');
-                setIsClassTypeModalOpen(true);
-              }}
+            <DropDownMenu
+              show={classTypeDropdownOpen}
+              setShow={setClassTypeDropdownOpen}
+              dropDownPosition='center'
+              actionElement={
+                <div
+                  id='viewSelect'
+                  className='p-2 w-28 h-10 rounded-md outline-none cursor-pointer flex items-center justify-between'
+                >
+                  <p className='text-primary text-sm font-normal'>Class Type</p>
+                  <img src={dropdownIcon} alt='dropdown icon' />
+                </div>
+              }
             >
-              <p className='text-primary text-sm font-normal'>Class Type</p>
-              <img
-                src={dropIcon}
-                alt=''
-                className='text-primary text-sm font-normal'
-              />
-            </div>
-            <div className='h-full w-[1px] bg-gray-200'></div>
+              <div className='space-y-4 p-6'>
+                <h3 className='text-lg font-bold text-gray-700'>
+                  Select Class Type
+                </h3>
 
-            <div
-              className='flex items-center space-x-2 cursor-pointer'
-              onClick={() => {
-                setModalContentType('appointment');
-                setIsClassTypeModalOpen(true);
-              }}
+                <div>
+                  <div className='flex flex-wrap gap-4 mt-4 min-w-[300px]'>
+                    {classTypesOptions.map((label, index) => (
+                      <button
+                        key={index}
+                        className='w-[calc(33.33%-12px)] px-2 py-2 border rounded-full border-gray-400 text-primary font-nomal text-xs'
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                  <div className='pt-16'>
+                    <p className='text-gray-400 text-sm'>
+                      *You can choose multiple Class types
+                    </p>
+                  </div>
+                </div>
+                <div className='flex justify-center mt-6'>
+                  <Button
+                    color='#1D9B5E'
+                    radius='md'
+                    size='sm'
+                    onClick={() => setClassTypeDropdownOpen(false)}
+                  >
+                    Apply Now
+                  </Button>
+                </div>
+              </div>
+            </DropDownMenu>
+            <div className='h-full w-[1px] bg-gray-200'></div>
+            <DropDownMenu
+              show={categoryTypeDropdownOpen}
+              setShow={setCategoryTypeDropdownOpen}
+              dropDownPosition='center'
+              actionElement={
+                <div
+                  id='viewSelect'
+                  className='p-2 w-28 h-10 rounded-md outline-none cursor-pointer flex items-center justify-between'
+                >
+                  <p className='text-primary text-sm font-normal'>Category</p>
+                  <img src={dropdownIcon} alt='dropdown icon' />
+                </div>
+              }
             >
-              <p className='text-primary text-sm font-normal'>Category</p>
-              <img
-                src={dropIcon}
-                alt=''
-                className='text-primary text-sm font-normal'
-              />
-            </div>
+              <div className='space-y-4 p-6'>
+                <h3 className='text-lg font-bold text-gray-700'>
+                  Select Category
+                </h3>
+
+                <div>
+                  <div className='flex flex-wrap gap-4 mt-4 min-w-[300px]'>
+                    {categoryOptions.map((label, index) => (
+                      <button
+                        key={index}
+                        className='w-[calc(33.33%-12px)] px-2 py-2 border rounded-full border-gray-400 text-primary font-nomal text-xs'
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                  <div className='pt-16'>
+                    <p className='text-gray-400 text-sm'>
+                      *You can choose multiple Categories
+                    </p>
+                  </div>
+                </div>
+                <div className='flex justify-center mt-6'>
+                  <Button
+                    color='#1D9B5E'
+                    radius='md'
+                    size='sm'
+                    onClick={() => setCategoryTypeDropdownOpen(false)}
+                  >
+                    Apply Now
+                  </Button>
+                </div>
+              </div>
+            </DropDownMenu>
             <div className='h-full w-[1px] bg-gray-200'></div>
             <div className='flex items-center space-x-2 cursor-pointer'>
               <img
@@ -237,72 +301,12 @@ const AllClasses = () => {
             className='mt-4'
             pageSize={7}
             onRowClick={(row: ClassData) =>
-              navigateToClassDetails(navigate, row.id.toString())
+              navigateToSessionDetails(navigate, row.id.toString())
             }
           />
         </div>
       </div>
       <ClassesModal isOpen={isModalOpen} onClose={closeModal} />
-      <CustomModal
-        isOpen={isClassTypeModalOpen}
-        onClose={() => setIsClassTypeModalOpen(false)}
-      >
-        <div className='space-y-4'>
-          <h3 className='text-lg font-bold text-gray-700'>
-            {modalContentType === 'class'
-              ? 'Select Class Type'
-              : 'Select Category'}
-          </h3>
-
-          {modalContentType === 'class' ? (
-            <div>
-              <div className='flex flex-wrap gap-4 mt-4 min-w-[300px]'>
-                <button className='w-[calc(33.33%-12px)] px-2 py-1 border rounded-full border-gray-400 transition-colors'>
-                  Trial
-                </button>
-                <button className='w-[calc(33.33%-12px)] px-2 py-1 border rounded-full border-gray-400  transition-colors'>
-                  Makeup
-                </button>
-                <button className='w-[calc(33.33%-12px)] px-2 py-1 border rounded-full border-gray-400  transition-colors'>
-                  Normal
-                </button>
-              </div>
-              <div className='pt-16'>
-                <p className='text-gray-400 text-sm'>
-                  *You can choose multiple Class types
-                </p>
-              </div>
-            </div>
-          ) : (
-            <div>
-              <div className='flex flex-wrap gap-4 mt-4'>
-                {categoryOptions.map((label, index) => (
-                  <button
-                    key={index}
-                    className='w-[calc(33.33%-12px)] px-2 py-1 border rounded-full border-gray-400 transition-colors'
-                  >
-                    {label}
-                  </button>
-                ))}
-              </div>
-              <div className='pt-16'>
-                <p className='text-gray-400 text-sm'>
-                  *You can choose multiple Categories
-                </p>
-              </div>
-            </div>
-          )}
-
-          <div className='flex justify-center mt-6'>
-            <button
-              className='px-6 py-2 bg-secondary rounded-lg font-semibold text-sm text-white transition-colors'
-              onClick={() => setIsClassTypeModalOpen(false)}
-            >
-              Apply Now
-            </button>
-          </div>
-        </div>
-      </CustomModal>
     </>
   );
 };

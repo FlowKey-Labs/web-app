@@ -5,6 +5,7 @@ import gymIcon from '../../assets/icons/gym.svg';
 import therapyIcon from '../../assets/icons/therapy.svg';
 import calendarIcon from '../../assets/icons/calender.svg';
 import Avatar from '../../assets/images/greyPhoto.png';
+import { DropDownItem } from '../common/Dropdown';
 
 interface BusinessOption {
   id: string;
@@ -61,7 +62,6 @@ export type Staff = {
   lastName: string;
   role: string;
   staffNumber: string;
-  idNumber: number;
   phoneNumber: string;
   email: string;
   assignedClasses: string;
@@ -271,7 +271,6 @@ export const data: Staff[] = [
     lastName: 'Doe',
     role: 'Swim Instructor',
     staffNumber: 'SN001',
-    idNumber: 366357,
     phoneNumber: '+1234567890',
     email: 'john.doe@example.com',
     assignedClasses: 'Beginner Swim, Advanced Swim, MakeUp Swim',
@@ -285,7 +284,6 @@ export const data: Staff[] = [
     lastName: 'Smith',
     role: 'Lifeguard',
     staffNumber: 'SN002',
-    idNumber: 366358,
     phoneNumber: '+1234567891',
     email: 'jane.smith@example.com',
     assignedClasses: 'Pool Safety, First Aid',
@@ -299,7 +297,6 @@ export const data: Staff[] = [
     lastName: 'Johnson',
     role: 'Swim Coach',
     staffNumber: 'SN003',
-    idNumber: 366359,
     phoneNumber: '+1234567892',
     email: 'alice.johnson@example.com',
     assignedClasses: 'Competitive Swim, Swim Team',
@@ -313,7 +310,6 @@ export const data: Staff[] = [
     lastName: 'Brown',
     role: 'Swim Instructor',
     staffNumber: 'SN004',
-    idNumber: 366360,
     phoneNumber: '+1234567893',
     email: 'bob.brown@example.com',
     assignedClasses: 'Kids Swim, Parent-Child Swim',
@@ -327,7 +323,6 @@ export const data: Staff[] = [
     lastName: 'Wilson',
     role: 'Aquatics Director',
     staffNumber: 'SN005',
-    idNumber: 366361,
     phoneNumber: '+1234567894',
     email: 'emma.wilson@example.com',
     assignedClasses: 'Swim Program Management',
@@ -341,7 +336,6 @@ export const data: Staff[] = [
     lastName: 'Clark',
     role: 'Water Aerobics Instructor',
     staffNumber: 'SN006',
-    idNumber: 366362,
     phoneNumber: '+1234567895',
     email: 'michael.clark@example.com',
     assignedClasses: 'Water Aerobics, Senior Swim',
@@ -355,7 +349,6 @@ export const data: Staff[] = [
     lastName: 'Davis',
     role: 'Swim Instructor',
     staffNumber: 'SN007',
-    idNumber: 366363,
     phoneNumber: '+1234567896',
     email: 'sarah.davis@example.com',
     assignedClasses: 'Teen Swim, Adult Swim',
@@ -369,7 +362,6 @@ export const data: Staff[] = [
     lastName: 'Wilson',
     role: 'Diving Coach',
     staffNumber: 'SN008',
-    idNumber: 366364,
     phoneNumber: '+1234567897',
     email: 'james.wilson@example.com',
     assignedClasses: 'Diving, Springboard Training',
@@ -383,7 +375,6 @@ export const data: Staff[] = [
     lastName: 'Daviss',
     role: 'Swim Instructor',
     staffNumber: 'SN009',
-    idNumber: 366365,
     phoneNumber: '+1234567898',
     email: 'sarah.daviss@example.com',
     assignedClasses: 'Private Swim Lessons',
@@ -397,7 +388,6 @@ export const data: Staff[] = [
     lastName: 'Wilsonn',
     role: 'Swim Team Coordinator',
     staffNumber: 'SN010',
-    idNumber: 366366,
     phoneNumber: '+1234567899',
     email: 'james.wilsonn@example.com',
     assignedClasses: 'Swim Team, Swim Meets',
@@ -619,6 +609,8 @@ export const categoryOptions = [
   'Platinum',
 ];
 
+export const classTypesOptions = ['Trial', 'Makeup', 'Nomal'];
+
 export const chartData = [
   { day: 'Mon', clients: 25 },
   { day: 'Tue', clients: 38 },
@@ -627,4 +619,151 @@ export const chartData = [
   { day: 'Fri', clients: 48 },
   { day: 'Sat', clients: 15 },
   { day: 'Sun', clients: 10 },
+];
+
+interface Service {
+  id: number;
+  day: string;
+  date: string;
+  title: string;
+  time: string;
+  schedule: string;
+}
+
+export const services: Service[] = [
+  {
+    id: 1,
+    day: 'Tuesday',
+    date: '17 May',
+    title: 'Advanced Swimming',
+    time: '9:00 AM - 9:30 AM',
+    schedule: 'Tue, Thur, Sat',
+  },
+  {
+    id: 2,
+    day: 'Wednesday',
+    date: '18 May',
+    title: 'Beginner Swimming',
+    time: '10:00 AM - 10:45 AM',
+    schedule: 'Wed, Fri',
+  },
+  {
+    id: 3,
+    day: 'Thursday',
+    date: '19 May',
+    title: 'Competitive Swimming',
+    time: '3:00 PM - 4:00 PM',
+    schedule: 'Thur, Sat',
+  },
+  {
+    id: 4,
+    day: 'Friday',
+    date: '20 May',
+    title: 'Parent & Child Class',
+    time: '4:30 PM - 5:15 PM',
+    schedule: 'Fri, Sun',
+  },
+];
+
+export const profileRoleOptions: DropDownItem[] = [
+  { label: 'Owner', value: 'owner' },
+  { label: 'Manager', value: 'manager' },
+  { label: 'Staff', value: 'staff' },
+];
+
+export const regionOptions: DropDownItem[] = [
+  { label: 'Kiambu', value: 'Kiambu' },
+  { label: 'Nairobi', value: 'Nairobi' },
+  { label: 'Mombasa', value: 'Mombasa' },
+];
+
+export const cityOptions: DropDownItem[] = [
+  { label: 'Nairobi', value: 'Nairobi' },
+  { label: 'Mombasa', value: 'Mombasa' },
+  { label: 'Kisumu', value: 'Kisumu' },
+];
+
+export const days = [
+  'Sunday',
+  'Monday',
+  'Tuesday',
+  'Wednesday',
+  'Thursday',
+  'Friday',
+  'Saturday',
+];
+
+export const classTypes = [
+  { value: 'regular', label: 'Regular Class' },
+  { value: 'private', label: 'Private Class' },
+  { value: 'workshop', label: 'Workshop' },
+];
+
+export const repetition = [
+  { value: 'daily', label: 'Daily' },
+  { value: 'weekly', label: 'Weekly on Tuesday' },
+  {
+    value: 'monthly',
+    label: 'Monthly on Third Tuesday',
+  },
+  { value: 'custom', label: 'Custom ...' },
+];
+
+export const assignStaff = [
+  { value: 'john', label: 'John Doe' },
+  { value: 'jane', label: 'Jane Smith' },
+  { value: 'mike', label: 'Mike Johnson' },
+];
+
+export const selectClient = [
+  { value: 'client1', label: 'Client 1' },
+  { value: 'client2', label: 'Client 2' },
+  { value: 'client3', label: 'Client 3' },
+];
+
+export const selectClass = [
+  { value: 'class1', label: 'Class 1' },
+  { value: 'class2', label: 'Class 2' },
+  { value: 'class3', label: 'Class 3' },
+];
+
+export const selectDays = [
+  { value: 'day', label: 'Day(s)' },
+  { value: 'week', label: 'Week(s)' },
+  { value: 'month', label: 'Month(s)' },
+];
+
+export const assignCoach = [
+  { value: 'coach1', label: 'Coach 1' },
+  { value: 'coach2', label: 'Coach 2' },
+  { value: 'coach3', label: 'Coach 3' },
+];
+
+export const months = [
+  { label: 'January', value: '01' },
+  { label: 'February', value: '02' },
+  { label: 'March', value: '03' },
+  { label: 'April', value: '04' },
+  { label: 'May', value: '05' },
+  { label: 'June', value: '06' },
+  { label: 'July', value: '07' },
+  { label: 'August', value: '08' },
+  { label: 'September', value: '09' },
+  { label: 'October', value: '10' },
+  { label: 'November', value: '11' },
+  { label: 'December', value: '12' },
+];
+
+
+export const swimClasses = [
+  { label: 'Beginner Swim Lessons', value: 'beginner-swim' },
+  { label: 'Intermediate Swim Training', value: 'intermediate-swim' },
+  { label: 'Advanced Swim Team', value: 'advanced-swim-team' },
+  { label: 'Adult Swim Fitness', value: 'adult-swim-fitness' },
+  { label: 'Parent & Child Swim', value: 'parent-child-swim' },
+  { label: 'Competitive Swim Training', value: 'competitive-swim' },
+  { label: 'Water Safety Classes', value: 'water-safety' },
+  { label: 'Synchronized Swimming', value: 'synchronized-swim' },
+  { label: 'Open Water Swim Training', value: 'open-water-swim' },
+  { label: 'Aqua Aerobics', value: 'aqua-aerobics' }
 ];

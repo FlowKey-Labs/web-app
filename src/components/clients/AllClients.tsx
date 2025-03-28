@@ -9,6 +9,7 @@ import actioEyeIcon from '../../assets/icons/actionEye.svg';
 import actionEditIcon from '../../assets/icons/actionEdit.svg';
 import actionOptionIcon from '../../assets/icons/actionOption.svg';
 import { useState } from 'react';
+import ClientsModal from './ClientsModal';
 
 const columnHelper = createColumnHelper<(typeof clientsData)[0]>();
 
@@ -20,7 +21,7 @@ const columns = [
         type='checkbox'
         checked={table.getIsAllRowsSelected()}
         onChange={table.getToggleAllRowsSelectedHandler()}
-        className='w-4 h-4 rounded cursor-pointer bg-[#F7F8FA] accent-[#0F2028]'
+        className='w-4 h-4 rounded cursor-pointer bg-[#F7F8FA] accent-[#DBDEDF]'
       />
     ),
     cell: ({ row }) => (
@@ -28,7 +29,7 @@ const columns = [
         type='checkbox'
         checked={row.getIsSelected()}
         onChange={row.getToggleSelectedHandler()}
-        className='w-4 h-4 rounded cursor-pointer bg-[#F7F8FA] accent-[#0F2028]'
+        className='w-4 h-4 rounded cursor-pointer bg-[#F7F8FA] accent-[#DBDEDF]'
       />
     ),
   }),
@@ -86,14 +87,20 @@ const columns = [
 
 const AllClients = () => {
   const [rowSelection, setRowSelection] = useState({});
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const openModal = () => setIsModalOpen(true);
+  const closeModal = () => setIsModalOpen(false);
 
   return (
+    <>
     <div className='flex flex-col h-screen bg-cardsBg w-full overflow-y-auto'>
       <MembersHeader
         title='All Clients'
         buttonText='New Client'
         searchPlaceholder='Search by ID, Name or Subject'
         leftIcon={plusIcon}
+        onButtonClick={openModal}
       />
       <div className='flex-1 px-6 py-3'>
         <Table
@@ -106,6 +113,8 @@ const AllClients = () => {
         />
       </div>
     </div>
+    <ClientsModal isOpen={isModalOpen} onClose={closeModal} />
+    </>
   );
 };
 
