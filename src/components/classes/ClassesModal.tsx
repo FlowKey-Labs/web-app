@@ -81,7 +81,10 @@ const ClassesModal = ({ isOpen, onClose }: ClassModalProps) => {
     setOccurrences((prev) => Math.max(1, prev + delta));
   };
 
-  const onSubmit = (data: FormData) => {};
+  const onSubmit = (data: FormData) => {
+    console.log(data);
+    
+  };
 
   if (!isOpen) return null;
 
