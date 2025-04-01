@@ -64,14 +64,14 @@ const ClientsModal = ({ isOpen, onClose }: ClientsModalProps) => {
         </div>
 
         <div className='w-[90%] h-full flex flex-col'>
-          <h3 className='px-8 mt-4 text-primary font-bold text-[24px]'>
+          <h3 className='px-2 mt-4 text-primary font-bold text-[24px]'>
             Create New Client
           </h3>
 
           <FormProvider {...methods}>
             <form
               onSubmit={handleSubmit(onSubmit)}
-              className='flex-1 flex flex-col p-8'
+              className='flex-1 flex flex-col p-2'
             >
               <div className='space-y-4 mb-8'>
                 <h4 className='text-lg font-semibold text-gray-700'>

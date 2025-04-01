@@ -1,6 +1,6 @@
 import MembersHeader from '../headers/MembersHeader';
 import plusIcon from '../../assets/icons/plusWhite.svg';
-import { clientsData } from '../utils/dummyData';
+import { Client, clientsData } from '../utils/dummyData';
 import Table from '../common/Table';
 import { createColumnHelper } from '@tanstack/react-table';
 import { Progress } from '@mantine/core';
@@ -10,6 +10,8 @@ import actionEditIcon from '../../assets/icons/actionEdit.svg';
 import actionOptionIcon from '../../assets/icons/actionOption.svg';
 import { useState } from 'react';
 import ClientsModal from './ClientsModal';
+import { useNavigate } from 'react-router-dom';
+import { navigateToClientDetails } from '../utils/navigationHelpers';
 
 const columnHelper = createColumnHelper<(typeof clientsData)[0]>();
 
@@ -49,7 +51,7 @@ const columns = [
     header: 'Status',
     cell: (info) => (
       <span
-        className={`px-2 py-1 rounded-full text-sm ${
+        className={`inline-block px-2 py-1 rounded-lg text-sm text-center min-w-[70px] ${
           info.getValue() === 'active'
             ? 'bg-green-100 text-green-700'
             : 'bg-red-100 text-red-700'
@@ -89,31 +91,36 @@ const AllClients = () => {
   const [rowSelection, setRowSelection] = useState({});
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  const navigate = useNavigate();
+
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
 
   return (
     <>
-    <div className='flex flex-col h-screen bg-cardsBg w-full overflow-y-auto'>
-      <MembersHeader
-        title='All Clients'
-        buttonText='New Client'
-        searchPlaceholder='Search by ID, Name or Subject'
-        leftIcon={plusIcon}
-        onButtonClick={openModal}
-      />
-      <div className='flex-1 px-6 py-3'>
-        <Table
-          data={clientsData}
-          columns={columns}
-          rowSelection={rowSelection}
-          onRowSelectionChange={setRowSelection}
-          className='mt-4'
-          pageSize={12}
+      <div className='flex flex-col h-screen bg-cardsBg w-full overflow-y-auto'>
+        <MembersHeader
+          title='All Clients'
+          buttonText='New Client'
+          searchPlaceholder='Search by ID, Name or Subject'
+          leftIcon={plusIcon}
+          onButtonClick={openModal}
         />
+        <div className='flex-1 px-6 py-3'>
+          <Table
+            data={clientsData}
+            columns={columns}
+            rowSelection={rowSelection}
+            onRowSelectionChange={setRowSelection}
+            className='mt-4'
+            pageSize={12}
+            onRowClick={(row: Client) =>
+              navigateToClientDetails(navigate, row.id.toString())
+            }
+          />
+        </div>
       </div>
-    </div>
-    <ClientsModal isOpen={isModalOpen} onClose={closeModal} />
+      <ClientsModal isOpen={isModalOpen} onClose={closeModal} />
     </>
   );
 };

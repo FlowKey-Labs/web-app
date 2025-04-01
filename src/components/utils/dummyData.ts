@@ -31,11 +31,19 @@ interface TeamOption {
   label: string;
 }
 
-interface Client {
+export interface Client {
+  id: number;
   name: string;
   session: string[];
   phone: string;
-  status: 'active' | 'inactive';
+  user: string;
+  status: string;
+  profileImage: string;
+  class: string;
+  classCategory: string;
+  clientLevel: string;
+  assignedTo: string;
+  date: Date;
 }
 
 export type ClassLevel = 'Beginner' | 'Intermediate' | 'Advanced';
@@ -114,76 +122,331 @@ export const staffDashboard: StaffDashboard[] = [
 
 export const clientsData: Client[] = [
   {
+    id: 1,
     name: 'James Muli',
     session: ['Mon', 'Fri'],
     phone: '+1234567890',
+    user: 'Client',
     status: 'active',
+    profileImage: Avatar,
+    class: 'SWT-0015',
+    classCategory: 'STARfish',
+    clientLevel: 'ST-2',
+    date: new Date('2025-01-15'),
+    assignedTo: 'Neil Bahati',
   },
   {
+    id: 2,
     name: 'Alice Johnson',
     session: ['Tue', 'Thu'],
     phone: '+1234567891',
+    user: 'Client',
     status: 'active',
+    profileImage: Avatar,
+    class: 'SWT-0016',
+    classCategory: 'STARfish',
+    clientLevel: 'ST-1',
+    date: new Date('2025-01-20'),
+    assignedTo: 'Alice Johnson',
   },
   {
+    id: 3,
     name: 'Michael Brown',
     session: ['Wed', 'Sat'],
     phone: '+1234567892',
+    user: 'Client',
     status: 'inactive',
+    profileImage: Avatar,
+    class: 'SWT-0017',
+    classCategory: 'DOLPHIN',
+    clientLevel: 'ST-3',
+    date: new Date('2025-02-05'),
+    assignedTo: 'Michael Brown',
   },
   {
+    id: 4,
     name: 'Emily Davis',
     session: ['Mon', 'Wed', 'Fri'],
     phone: '+1234567893',
+    user: 'Client',
     status: 'active',
+    profileImage: Avatar,
+    class: 'SWT-0018',
+    classCategory: 'STARfish',
+    clientLevel: 'ST-2',
+    date: new Date('2025-02-10'),
+    assignedTo: 'Emily Davis',
   },
   {
+    id: 5,
     name: 'Daniel Wilson',
     session: ['Tue', 'Thu', 'Sat'],
     phone: '+1234567894',
+    user: 'Client',
     status: 'inactive',
+    profileImage: Avatar,
+    class: 'SWT-0019',
+    classCategory: 'DOLPHIN',
+    clientLevel: 'ST-1',
+    date: new Date('2025-02-15'),
+    assignedTo: 'Daniel Wilson',
   },
   {
+    id: 6,
     name: 'Sophia Martinez',
     session: ['Mon', 'Tue', 'Wed'],
     phone: '+1234567895',
+    user: 'Client',
     status: 'active',
+    profileImage: Avatar,
+    class: 'SWT-0020',
+    classCategory: 'STARfish',
+    clientLevel: 'ST-3',
+    date: new Date('2025-03-01'),
+    assignedTo: 'Sophia Martinez',
   },
   {
+    id: 7,
     name: 'Matthew Anderson',
     session: ['Thu', 'Fri', 'Sat'],
     phone: '+1234567896',
+    user: 'Client',
     status: 'active',
+    profileImage: Avatar,
+    class: 'SWT-0021',
+    classCategory: 'DOLPHIN',
+    clientLevel: 'ST-2',
+    date: new Date('2025-03-05'),
+    assignedTo: 'Matthew Anderson',
   },
   {
+    id: 8,
     name: 'Olivia Taylor',
     session: ['Mon', 'Wed', 'Fri'],
     phone: '+1234567897',
+    user: 'Client',
     status: 'inactive',
+    profileImage: Avatar,
+    class: 'SWT-0022',
+    classCategory: 'STARfish',
+    clientLevel: 'ST-1',
+    date: new Date('2025-03-10'),
+    assignedTo: 'Olivia Taylor',
   },
   {
+    id: 9,
     name: 'William Thomas',
     session: ['Tue', 'Thu', 'Sat'],
     phone: '+1234567898',
+    user: 'Client',
     status: 'active',
+    profileImage: Avatar,
+    class: 'SWT-0023',
+    classCategory: 'DOLPHIN',
+    clientLevel: 'ST-3',
+    date: new Date('2025-03-15'),
+    assignedTo: 'William Thomas',
   },
   {
+    id: 10,
     name: 'Ava Hernandez',
     session: ['Mon', 'Tue', 'Thu'],
     phone: '+1234567899',
+    user: 'Client',
     status: 'active',
+    profileImage: Avatar,
+    assignedTo: 'Ava Hernandez',
+    class: 'SWT-0024',
+    classCategory: 'STARfish',
+    clientLevel: 'ST-2',
+    date: new Date('2025-04-01'),
   },
   {
+    id: 11,
     name: 'Ethan Moore',
     session: ['Wed', 'Fri', 'Sat'],
     phone: '+1234567800',
+    user: 'Client',
     status: 'inactive',
+    profileImage: Avatar,
+    class: 'SWT-0025',
+    classCategory: 'DOLPHIN',
+    clientLevel: 'ST-1',
+    assignedTo: 'Ethan Moore',
+    date: new Date('2025-04-05'),
   },
   {
+    id: 12,
     name: 'Mia Jackson',
     session: ['Mon', 'Wed', 'Fri'],
     phone: '+1234567801',
+    user: 'Client',
     status: 'active',
+    profileImage: Avatar,
+    assignedTo: 'Mia Jackson',
+    class: 'SWT-0026',
+    classCategory: 'STARfish',
+    clientLevel: 'ST-3',
+    date: new Date('2025-04-10'),
+  },
+];
+
+export interface PaymentHistory {
+  id: number;
+  clientId: number;
+  class: 'STARfish' | 'STAnley' | 'Grade' | 'Advanced' | 'Platinum';
+  package: 'weekly' | 'monthly';
+  amount: number;
+  status: 'overdue' | 'paid';
+  transactionId: string;
+  date: string;
+}
+
+export const paymentHistories: PaymentHistory[] = [
+  {
+    id: 1,
+    clientId: 1,
+    class: 'STARfish',
+    package: 'weekly',
+    amount: 2500,
+    status: 'paid',
+    transactionId: 'TXN101A',
+    date: '2024-01-05',
+  },
+  {
+    id: 2,
+    clientId: 1,
+    class: 'Platinum',
+    package: 'monthly',
+    amount: 5000,
+    status: 'overdue',
+    transactionId: 'TXN102B',
+    date: '2024-02-10',
+  },
+
+  {
+    id: 11,
+    clientId: 2,
+    class: 'Advanced',
+    package: 'weekly',
+    amount: 2200,
+    status: 'paid',
+    transactionId: 'TXN201A',
+    date: '2024-01-08',
+  },
+  {
+    id: 12,
+    clientId: 2,
+    class: 'STARfish',
+    package: 'monthly',
+    amount: 4800,
+    status: 'paid',
+    transactionId: 'TXN202B',
+    date: '2024-02-12',
+  },
+  {
+    id: 13,
+    clientId: 2,
+    class: 'Advanced',
+    package: 'weekly',
+    amount: 2700,
+    status: 'overdue',
+    transactionId: 'TXN203C',
+    date: '2024-03-18',
+  },
+
+  {
+    id: 14,
+    clientId: 3,
+    class: 'Platinum',
+    package: 'monthly',
+    amount: 5200,
+    status: 'paid',
+    transactionId: 'TXN301A',
+    date: '2024-01-15',
+  },
+  {
+    id: 15,
+    clientId: 3,
+    class: 'Grade',
+    package: 'weekly',
+    amount: 2300,
+    status: 'overdue',
+    transactionId: 'TXN302B',
+    date: '2024-02-20',
+  },
+  {
+    id: 16,
+    clientId: 3,
+    class: 'STAnley',
+    package: 'monthly',
+    amount: 4900,
+    status: 'paid',
+    transactionId: 'TXN303C',
+    date: '2024-03-25',
+  },
+
+  {
+    id: 17,
+    clientId: 4,
+    class: 'STARfish',
+    package: 'weekly',
+    amount: 2400,
+    status: 'paid',
+    transactionId: 'TXN401A',
+    date: '2024-01-10',
+  },
+  {
+    id: 18,
+    clientId: 4,
+    class: 'Advanced',
+    package: 'monthly',
+    amount: 4600,
+    status: 'overdue',
+    transactionId: 'TXN402B',
+    date: '2024-02-15',
+  },
+  {
+    id: 19,
+    clientId: 4,
+    class: 'Advanced',
+    package: 'weekly',
+    amount: 2900,
+    status: 'paid',
+    transactionId: 'TXN403C',
+    date: '2024-03-20',
+  },
+
+  // New records for Client ID 5
+  {
+    id: 20,
+    clientId: 5,
+    class: 'Grade',
+    package: 'monthly',
+    amount: 5100,
+    status: 'paid',
+    transactionId: 'TXN501A',
+    date: '2024-01-20',
+  },
+  {
+    id: 21,
+    clientId: 5,
+    class: 'Platinum',
+    package: 'weekly',
+    amount: 3100,
+    status: 'overdue',
+    transactionId: 'TXN502B',
+    date: '2024-02-25',
+  },
+  {
+    id: 22,
+    clientId: 5,
+    class: 'STAnley',
+    package: 'monthly',
+    amount: 4400,
+    status: 'paid',
+    transactionId: 'TXN503C',
+    date: '2024-03-30',
   },
 ];
 
@@ -754,7 +1017,6 @@ export const months = [
   { label: 'December', value: '12' },
 ];
 
-
 export const swimClasses = [
   { label: 'Beginner Swim Lessons', value: 'beginner-swim' },
   { label: 'Intermediate Swim Training', value: 'intermediate-swim' },
@@ -765,5 +1027,5 @@ export const swimClasses = [
   { label: 'Water Safety Classes', value: 'water-safety' },
   { label: 'Synchronized Swimming', value: 'synchronized-swim' },
   { label: 'Open Water Swim Training', value: 'open-water-swim' },
-  { label: 'Aqua Aerobics', value: 'aqua-aerobics' }
+  { label: 'Aqua Aerobics', value: 'aqua-aerobics' },
 ];

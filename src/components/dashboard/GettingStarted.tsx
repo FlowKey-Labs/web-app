@@ -41,7 +41,7 @@ const columns = [
     header: 'Availability',
     cell: (info) => (
       <span
-        className={`inline-block px-2 py-1 rounded-lg text-sm font-[500] text-center min-w-[100px] ${
+        className={`inline-block px-2 py-1 rounded-lg text-sm text-center min-w-[100px] ${
           info.getValue() === 'Available'
             ? 'bg-[#E4FFF2] text-secondary'
             : 'bg-[#FFCFCC] text-[#FF3B30]'

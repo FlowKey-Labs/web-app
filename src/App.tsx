@@ -16,14 +16,15 @@ import Purpose from './components/onboarding/Purpose';
 import MonthlyClients from './components/onboarding/MonthlyClients';
 import GettingStarted from './components/dashboard/GettingStarted';
 import AllStaff from './components/staff/AllStaff';
-import AllClasses from './components/classes/AllClasses';
-import ClassDetails from './components/classes/ClassDetails';
+import AllClasses from './components/sessions/AllClasses';
+import ClassDetails from './components/sessions/ClassDetails';
 import StaffDetails from './components/staff/StaffDetails';
 import CalendarView from './components/calendar';
 import AllClients from './components/clients/AllClients';
 import Profile from './components/profile';
 import LogoutSuccess from './components/authentication/Logout';
 import Settings from './components/accountSettings';
+import ClientDetails from './components/clients/ClientDetails';
 
 function App() {
   return (
@@ -58,6 +59,7 @@ function App() {
             <Route path='sessions/:id' element={<ClassDetails />} />
             <Route path='calendar' element={<CalendarView />} />
             <Route path='clients' element={<AllClients />} />
+            <Route path='clients/:id' element={<ClientDetails />} />
             <Route path='profile' element={<Profile />} />
             <Route path='settings' element={<Settings />} />
             <Route path='*' element={<GettingStarted />} />

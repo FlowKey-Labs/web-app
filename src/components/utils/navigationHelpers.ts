@@ -25,3 +25,11 @@ export const navigateToClients = (
 ) => {
   navigate(`/clients`);
 };
+
+
+export const navigateToClientDetails = (
+  navigate: ReturnType<typeof useNavigate>,
+  clientId: string
+) => {
+  navigate(`/clients/${clientId}`);
+};

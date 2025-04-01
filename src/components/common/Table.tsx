@@ -10,7 +10,7 @@ import {
 import tableLeftIcon from '../../assets/icons/tableLeft.svg';
 import tableRightIcon from '../../assets/icons/tableRight.svg';
 
-interface TableProps<T> {
+export interface TableProps<T> {
   data: T[];
   columns: ColumnDef<T, any>[];
   rowSelection?: RowSelectionState;

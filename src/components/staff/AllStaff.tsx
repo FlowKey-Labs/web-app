@@ -63,12 +63,13 @@ const columns = [
     header: 'Status',
     cell: (info) => (
       <span
-        className={`px-2 py-1 rounded-full text-sm font-[500] ${
+        className={`inline-block px-2 py-1 rounded-lg text-sm text-center min-w-[70px] ${
           info.getValue() === 'Active'
             ? 'bg-active text-primary'
             : 'bg-red-100 text-red-800'
         }`}
       >
+        
         {info.getValue()}
       </span>
     ),
