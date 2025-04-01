@@ -34,7 +34,9 @@ const Notifications = ({
   const [openedReminders, setOpenedReminders] = useState<string | null>(null);
   const [isChecked, setIsChecked] = useState(false);
 
-  const onSubmit = (data: NotificationsFormData) => {};
+  const onSubmit = (data: NotificationsFormData) => {
+    console.log(data);
+  };
 
   return (
     <div className='px-4 mt-4'>

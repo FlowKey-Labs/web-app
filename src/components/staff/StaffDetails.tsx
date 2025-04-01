@@ -61,6 +61,8 @@ const StaffDetails = () => {
   }, [staffDetails, reset]);
 
   const onSubmit = (data: PersonalFormData) => {
+    console.log(data);
+    
     setIsEditing(false);
   };
 

@@ -40,6 +40,8 @@ const Signup = () => {
     setShowConfirmPassword(!showConfirmPassword);
 
   const onSubmit: SubmitHandler<FormData> = (data) => {
+    console.log(data);
+    
     navigate('/welcome');
   };
 

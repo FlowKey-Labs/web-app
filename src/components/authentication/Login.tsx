@@ -22,6 +22,8 @@ const Login = () => {
   const methods = useForm<FormData>();
 
   const onSubmit: SubmitHandler<FormData> = (data) => {
+    console.log(data);
+    
     navigate('/');
   };
 

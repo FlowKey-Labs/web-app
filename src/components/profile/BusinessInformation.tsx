@@ -55,7 +55,10 @@ const BusinessInformation = ({
 }: BusinessInformationProps) => {
   const navigate = useNavigate();
 
-  const onSubmit = (data: ProfileFormData) => {};
+  const onSubmit = (data: ProfileFormData) => {
+    console.log(data);
+    
+  };
 
   return (
     <div className='w-full space-y-6 bg-white rounded-lg p-6'>
@@ -234,7 +237,7 @@ const BusinessInformation = ({
                           <Controller
                             name='region'
                             control={control}
-                            render={({ field: { onChange, value } }) => (
+                            render={({ field: { onChange } }) => (
                               <DropdownSelectInput
                                 label='Region'
                                 options={regionOptions}
@@ -251,7 +254,7 @@ const BusinessInformation = ({
                           <Controller
                             name='city'
                             control={control}
-                            render={({ field: { onChange, value } }) => (
+                            render={({ field: { onChange } }) => (
                               <DropdownSelectInput
                                 label='City'
                                 options={cityOptions}
