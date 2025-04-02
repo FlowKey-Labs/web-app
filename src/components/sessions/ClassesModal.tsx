@@ -132,7 +132,7 @@ const ClassesModal = ({ isOpen, onClose }: ClassModalProps) => {
               onSubmit={methods.handleSubmit(onSubmit)}
               className='flex-1 flex flex-col'
             >
-              <div className='flex-1 overflow-y-auto p-8'>
+              <div className='flex-1 p-8'>
                 {view === 'class' ? (
                   <div className='space-y-4'>
                     <h3 className='text-lg font-bold text-gray-700'>

@@ -108,7 +108,7 @@ const StaffDetails = () => {
           showButton={false}
           showSearch={false}
         />
-        <div className='flex flex-col justify-center items-center mt-10 space-y-4'>
+        <div className='flex flex-col justify-center items-center mt-10 space-y-4 pb-4'>
           <div className='border items-center rounded-xl w-[95%] p-8'>
             <div className='flex justify-between'>
               <div className='flex justify-center items-center gap-4'>
@@ -130,7 +130,6 @@ const StaffDetails = () => {
             </div>
           </div>
 
-          {/* Personal Information Section */}
           <div className='border rounded-xl w-[95%] p-8'>
             <div className='flex justify-between items-start'>
               <h3 className='text-primary text-sm font-semibold mb-4'>
@@ -178,7 +177,6 @@ const StaffDetails = () => {
               )}
             </div>
             <div className='grid grid-cols-2 gap-4'>
-              {/* First Name */}
               {isEditing ? (
                 <Controller
                   name='firstName'
@@ -214,7 +212,6 @@ const StaffDetails = () => {
                 </div>
               )}
 
-              {/* Email Address */}
               {isEditing ? (
                 <Controller
                   name='email'
@@ -243,7 +240,6 @@ const StaffDetails = () => {
                 </div>
               )}
 
-              {/* Phone Number */}
               {isEditing ? (
                 <Controller
                   name='phoneNumber'
@@ -261,7 +257,6 @@ const StaffDetails = () => {
                 </div>
               )}
 
-              {/* Primary Role */}
               {isEditing ? (
                 <Controller
                   name='role'
@@ -279,7 +274,6 @@ const StaffDetails = () => {
             </div>
           </div>
 
-          {/* Assigned Classes Section */}
           {staffDetails.assignedClasses && (
             <div className='border rounded-xl w-[95%] p-8'>
               <div className='flex justify-between items-start'>
@@ -300,7 +294,6 @@ const StaffDetails = () => {
             </div>
           )}
 
-          {/* Permissions Section */}
           <div className='border rounded-xl w-[95%] p-8'>
             <div className='flex justify-between items-start'>
               <h3 className='text-primary text-sm font-semibold mb-4'>

@@ -25,6 +25,7 @@ import Profile from './components/profile';
 import LogoutSuccess from './components/authentication/Logout';
 import Settings from './components/accountSettings';
 import ClientDetails from './components/clients/ClientDetails';
+import ComingSoon from './components/common/ComingSoon';
 
 function App() {
   return (
@@ -62,7 +63,8 @@ function App() {
             <Route path='clients/:id' element={<ClientDetails />} />
             <Route path='profile' element={<Profile />} />
             <Route path='settings' element={<Settings />} />
-            <Route path='*' element={<GettingStarted />} />
+            <Route path='*' element={<ComingSoon />} />
+            <Route path='dashboard' element={<GettingStarted />} />
           </Route>
         </Routes>
       </Router>

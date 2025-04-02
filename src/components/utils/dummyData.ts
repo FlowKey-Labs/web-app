@@ -7,6 +7,29 @@ import calendarIcon from '../../assets/icons/calender.svg';
 import Avatar from '../../assets/images/greyPhoto.png';
 import { DropDownItem } from '../common/Dropdown';
 
+import {
+  DashboardIcon,
+  DashboardIconWhite,
+  StaffIcon,
+  StaffIconWhite,
+  ClientsIcon,
+  ClientsIconWhite,
+  ClassesIcon,
+  ClassesIconWhite,
+  ChatsIcon,
+  ChatsIconWhite,
+  TransactionsIcon,
+  TransactionsIconWhite,
+  CalendarIcon,
+  CalendarIconWhite,
+  SettingsIcon,
+  SettingsIconWhite,
+  LogoutIcon,
+  LogoutIconWhite,
+  ProfileIcon,
+  ProfileIconWhite,
+} from '../../assets/icons';
+
 interface BusinessOption {
   id: string;
   icon: string;
@@ -1028,4 +1051,60 @@ export const swimClasses = [
   { label: 'Synchronized Swimming', value: 'synchronized-swim' },
   { label: 'Open Water Swim Training', value: 'open-water-swim' },
   { label: 'Aqua Aerobics', value: 'aqua-aerobics' },
+];
+
+export const menuItems = [
+  {
+    name: 'Dashboard',
+    icon: DashboardIcon,
+    iconWhite: DashboardIconWhite,
+  },
+  {
+    name: 'Staff',
+    icon: StaffIcon,
+    iconWhite: StaffIconWhite,
+  },
+  {
+    name: 'Clients',
+    icon: ClientsIcon,
+    iconWhite: ClientsIconWhite,
+  },
+  {
+    name: 'Sessions',
+    icon: ClassesIcon,
+    iconWhite: ClassesIconWhite,
+  },
+  {
+    name: 'Transactions',
+    icon: TransactionsIcon,
+    iconWhite: TransactionsIconWhite,
+  },
+  {
+    name: 'Calendar',
+    icon: CalendarIcon,
+    iconWhite: CalendarIconWhite,
+  },
+  {
+    name: 'Chats',
+    icon: ChatsIcon,
+    iconWhite: ChatsIconWhite,
+  },
+];
+
+export const bottomMenuItems = [
+  {
+    name: 'Profile',
+    icon: ProfileIcon,
+    iconWhite: ProfileIconWhite,
+  },
+  {
+    name: 'Settings',
+    icon: SettingsIcon,
+    iconWhite: SettingsIconWhite,
+  },
+  {
+    name: 'Logout',
+    icon: LogoutIcon,
+    iconWhite: LogoutIconWhite,
+  },
 ];

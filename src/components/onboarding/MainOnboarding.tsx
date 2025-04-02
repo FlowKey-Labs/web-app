@@ -1,12 +1,21 @@
 import React from 'react';
-import testImage from '../../assets/images/bg.svg';
 import whiteBackground from '../../assets/images/whiteBg.svg';
+import onboardingImage from '../../assets/images/onboarding.svg';
 
 interface MainOnboardingProps {
   children: React.ReactNode;
+  imageHeight?: string; 
+  imageWidth?: string; 
+  imageClassName?: string; 
 }
 
-const MainOnboarding: React.FC<MainOnboardingProps> = ({ children }) => {
+const MainOnboarding: React.FC<MainOnboardingProps> = ({
+  children,
+  imageHeight,
+  imageWidth,
+  imageClassName,
+}) => {
+
   return (
     <div
       className='flex flex-col min-h-screen'
@@ -25,14 +34,21 @@ const MainOnboarding: React.FC<MainOnboardingProps> = ({ children }) => {
 
       <div className='flex flex-col lg:flex-row flex-1'>
         <div className='flex flex-col w-full lg:w-1/2 px-4 lg:px-8'>
-          <div className='w-full flex justify-center'>{children}</div>
+          <div className='w-full h-full flex justify-center items-center'>
+            {children}
+          </div>
         </div>
 
-        <div className='hidden lg:flex justify-center lg:justify-end items-end w-full lg:w-1/2 mt-8 lg:mt-0 '>
+        <div className='hidden lg:flex justify-center lg:justify-end items-end w-full lg:w-1/2 mt-8 lg:mt-0'>
           <img
-            src={testImage}
-            alt='logo'
-            className='h-[300px] lg:h-[500px] object-contain rounded-tl-[50px]'
+            src={onboardingImage}
+            alt='onboarding illustration'
+            className={`
+              object-cover rounded-tl-[50px] 
+              ${imageClassName || ''}
+              ${imageHeight ? `h-[${imageHeight}]` : `h-[300px] lg:h-[550px]`}
+              ${imageWidth ? `w-[${imageWidth}]` : `w-auto`}
+            `}
           />
         </div>
       </div>

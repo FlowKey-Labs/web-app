@@ -1,26 +1,5 @@
-import {
-  FlowKeyIcon,
-  DashboardIcon,
-  DashboardIconWhite,
-  StaffIcon,
-  StaffIconWhite,
-  ClientsIcon,
-  ClientsIconWhite,
-  ClassesIcon,
-  ClassesIconWhite,
-  ChatsIcon,
-  ChatsIconWhite,
-  TransactionsIcon,
-  TransactionsIconWhite,
-  CalendarIcon,
-  CalendarIconWhite,
-  SettingsIcon,
-  SettingsIconWhite,
-  LogoutIcon,
-  LogoutIconWhite,
-  ProfileIcon,
-  ProfileIconWhite,
-} from '../../assets/icons';
+import { FlowKeyIcon } from '../../assets/icons';
+import { menuItems, bottomMenuItems } from '../utils/dummyData';
 import { useNavigate } from 'react-router-dom';
 
 interface SidebarProps {
@@ -29,64 +8,9 @@ interface SidebarProps {
 
 const Sidebar = ({ activeItem }: SidebarProps) => {
   const navigate = useNavigate();
-  const menuItems = [
-    {
-      name: 'Dashboard',
-      icon: DashboardIcon,
-      iconWhite: DashboardIconWhite,
-    },
-    {
-      name: 'Staff',
-      icon: StaffIcon,
-      iconWhite: StaffIconWhite,
-    },
-    {
-      name: 'Clients',
-      icon: ClientsIcon,
-      iconWhite: ClientsIconWhite,
-    },
-    {
-      name: 'Sessions',
-      icon: ClassesIcon,
-      iconWhite: ClassesIconWhite,
-    },
-    {
-      name: 'Transactions',
-      icon: TransactionsIcon,
-      iconWhite: TransactionsIconWhite,
-    },
-    {
-      name: 'Calendar',
-      icon: CalendarIcon,
-      iconWhite: CalendarIconWhite,
-    },
-    {
-      name: 'Chats',
-      icon: ChatsIcon,
-      iconWhite: ChatsIconWhite,
-    },
-  ];
-
-  const bottomMenuItems = [
-    {
-      name: 'Profile',
-      icon: ProfileIcon,
-      iconWhite: ProfileIconWhite,
-    },
-    {
-      name: 'Settings',
-      icon: SettingsIcon,
-      iconWhite: SettingsIconWhite,
-    },
-    {
-      name: 'Logout',
-      icon: LogoutIcon,
-      iconWhite: LogoutIconWhite,
-    },
-  ];
 
   return (
-    <div className='min-h-screen flex flex-col w-[230px] bg-[#ffffff] py-6 h-screen overflow-y-auto'>
+    <div className='min-h-screen flex flex-col min-w-[230px] bg-[#ffffff] py-6 h-screen overflow-y-auto'>
       <div className='flex justify-center items-center mb-6'>
         <h3
           className='flex items-center gap-2 px-6 cursor-pointer transition-opacity hover:opacity-90'
