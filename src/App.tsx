@@ -1,7 +1,9 @@
 import { MantineProvider } from '@mantine/core';
 import '@mantine/core/styles.css';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import './App.css';
+import { QueryClientProvider } from "@tanstack/react-query";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import { queryClient } from "./lib/react-query";
 import Home from './components/home/Home';
 import Login from './components/authentication/Login';
 import Signup from './components/authentication/Signup';
@@ -26,9 +28,7 @@ import LogoutSuccess from './components/authentication/Logout';
 import Settings from './components/accountSettings';
 import ClientDetails from './components/clients/ClientDetails';
 import ComingSoon from './components/common/ComingSoon';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-
-const queryClient = new QueryClient();
+import './App.css';
 
 function App() {
   return (
@@ -38,6 +38,7 @@ function App() {
       }}
     >
       <QueryClientProvider client={queryClient}>
+        <ReactQueryDevtools initialIsOpen={false} />
         <Router>
           <Routes>
             <Route path='/signup' element={<Signup />} />

@@ -13,7 +13,7 @@ import { useWatch } from 'react-hook-form';
 import NotificationToast from '../common/NotificationToast';
 import checkIcon from '../../assets/icons/check.svg';
 
-import { useRegisterUser } from '../hooks/reactQuery';
+import { useRegisterUser } from '../../hooks/reactQuery';
 
 import { EyeClosedIcon, EyeOpenIcon } from '../../assets/icons';
 

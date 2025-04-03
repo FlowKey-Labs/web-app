@@ -14,7 +14,7 @@ import NotificationToast from '../common/NotificationToast';
 import { EyeClosedIcon, EyeOpenIcon } from '../../assets/icons';
 import checkIcon from '../../assets/icons/check.svg';
 
-import { useLoginUser } from '../hooks/reactQuery';
+import { useLoginUser } from '../../hooks/reactQuery';
 
 interface FormData {
   email: string;
