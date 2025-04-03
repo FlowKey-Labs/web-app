@@ -8,7 +8,9 @@ import Input from '../common/Input';
 import Button from '../common/Button';
 import Main from '../authentication/MainAuth';
 import { useNavigate } from 'react-router-dom';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useLogin } from '../../hooks/useAuth';
+import NotificationToast from '../common/NotificationToast';
 
 interface FormData {
   email: string;
@@ -21,9 +23,23 @@ const Login = () => {
 
   const methods = useForm<FormData>();
 
+  const loginMutation = useLogin();
+
   const onSubmit: SubmitHandler<FormData> = (data) => {
-    navigate('/');
+    console.log('here');
+    
+    loginMutation.mutate({ email: data.email, password: data.password });
   };
+
+  useEffect(() => {
+    if (loginMutation.isSuccess) {
+      navigate('/');
+    }
+  }, [loginMutation])
+  
+  if (loginMutation.isError) {
+    <NotificationToast type='error' title='Invalid credentials' description='Please try again' />
+  }
 
   return (
     <Main
@@ -65,27 +81,6 @@ const Login = () => {
             control={methods.control}
             rules={{
               required: 'Password is required',
-              minLength: {
-                value: 8,
-                message: 'Password must be at least 8 characters',
-              },
-              validate: (value) => {
-                const hasUpperCase = /[A-Z]/.test(value);
-                const hasLowerCase = /[a-z]/.test(value);
-                const hasNumber = /[0-9]/.test(value);
-                const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(value);
-
-                let errorMessage = '';
-                if (!hasUpperCase)
-                  errorMessage += 'At least one uppercase letter. ';
-                if (!hasLowerCase)
-                  errorMessage += 'At least one lowercase letter. ';
-                if (!hasNumber) errorMessage += 'At least one number. ';
-                if (!hasSpecialChar)
-                  errorMessage += 'At least one special character. ';
-
-                return errorMessage === '' || errorMessage.trim();
-              },
             }}
             render={({ field }) => (
               <Input
