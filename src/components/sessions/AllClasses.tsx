@@ -15,8 +15,7 @@ import { navigateToSessionDetails } from '../utils/navigationHelpers';
 import { DatePickerInput } from '@mantine/dates';
 import DropDownMenu from '../common/DropdownMenu';
 
-import actioEyeIcon from '../../assets/icons/actionEye.svg';
-import actionEditIcon from '../../assets/icons/actionEdit.svg';
+
 import actionOptionIcon from '../../assets/icons/actionOption.svg';
 import plusIcon from '../../assets/icons/plusWhite.svg';
 import classesFilterIcon from '../../assets/icons/classesFilter.svg';
@@ -48,20 +47,11 @@ const columns = [
     ),
   }),
   columnHelper.accessor('class', {
-    header: 'Class',
+    header: 'Session',
     cell: (info) => (
-      <div className='flex items-center'>
-        <img
-          src={info.row.original.profileImage}
-          alt='Profile'
-          className='w-8 h-8 rounded-full mr-3'
-        />
-        <div className='text-start'>
-          <p className='font-medium text-gray-900 text-sm'>{info.getValue()}</p>
-          <p className='text-xs text-gray-500'>
-            {info.row.original.classLevel}
-          </p>
-        </div>
+      <div className='text-start'>
+        <p className='font-medium text-gray-900 text-sm'>{info.getValue()}</p>
+        <p className='text-xs text-gray-500'>{info.row.original.classLevel}</p>
       </div>
     ),
   }),
@@ -70,7 +60,7 @@ const columns = [
     cell: (info) => info.getValue(),
   }),
   columnHelper.accessor('classType', {
-    header: 'Class Type',
+    header: 'Session Type',
     cell: (info) => info.getValue(),
   }),
   columnHelper.accessor('slots', {
@@ -96,15 +86,15 @@ const columns = [
   }),
   columnHelper.display({
     id: 'actions',
-    header: 'Actions',
+    header: () => (
+      <img
+        src={actionOptionIcon}
+        alt='Options'
+        className='w-4 h-4 cursor-pointer'
+      />
+    ),
     cell: () => (
       <div className='flex space-x-2'>
-        <img src={actioEyeIcon} alt='View' className='w-4 h-4 cursor-pointer' />
-        <img
-          src={actionEditIcon}
-          alt='Edit'
-          className='w-4 h-4 cursor-pointer'
-        />
         <img
           src={actionOptionIcon}
           alt='Options'
@@ -130,13 +120,13 @@ const AllClasses = () => {
     <>
       <div className='flex flex-col h-screen bg-cardsBg w-full overflow-y-auto'>
         <MembersHeader
-          title='Sessions'
+          title='All Sessions'
           buttonText='New Session'
-          searchPlaceholder='Search by ID, Name or Subject'
+          searchPlaceholder='Search by Session, Staff Name or Session Type'
           leftIcon={plusIcon}
           onButtonClick={openModal}
         />
-        <div className='flex h-[70px] w-[70%]  ml-6 text-sm p-2 border rounded-md bg-white'>
+        <div className='flex h-[70px] w-[80%]  ml-6 text-sm p-2 border rounded-md bg-white'>
           <div className='flex items-center justify-between w-full px-6 font-bold '>
             <div className='flex justify-center items-center'>
               <img
@@ -191,16 +181,16 @@ const AllClasses = () => {
               actionElement={
                 <div
                   id='viewSelect'
-                  className='p-2 w-28 h-10 rounded-md outline-none cursor-pointer flex items-center justify-between'
+                  className='p-2 w-full gap-2 h-10 rounded-md outline-none cursor-pointer flex items-center justify-between'
                 >
-                  <p className='text-primary text-sm font-normal'>Class Type</p>
+                  <p className='text-primary text-sm font-normal'>Session Type</p>
                   <img src={dropdownIcon} alt='dropdown icon' />
                 </div>
               }
             >
               <div className='space-y-4 p-6'>
                 <h3 className='text-lg font-bold text-gray-700'>
-                  Select Class Type
+                  Select Session Type
                 </h3>
 
                 <div>
@@ -240,7 +230,7 @@ const AllClasses = () => {
               actionElement={
                 <div
                   id='viewSelect'
-                  className='p-2 w-28 h-10 rounded-md outline-none cursor-pointer flex items-center justify-between'
+                  className='p-2 w-full gap-2 h-10 rounded-md outline-none cursor-pointer flex items-center justify-between'
                 >
                   <p className='text-primary text-sm font-normal'>Category</p>
                   <img src={dropdownIcon} alt='dropdown icon' />

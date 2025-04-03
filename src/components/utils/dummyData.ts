@@ -1075,14 +1075,14 @@ export const menuItems = [
     iconWhite: ClassesIconWhite,
   },
   {
-    name: 'Transactions',
-    icon: TransactionsIcon,
-    iconWhite: TransactionsIconWhite,
-  },
-  {
     name: 'Calendar',
     icon: CalendarIcon,
     iconWhite: CalendarIconWhite,
+  },
+  {
+    name: 'Transactions',
+    icon: TransactionsIcon,
+    iconWhite: TransactionsIconWhite,
   },
   {
     name: 'Chats',

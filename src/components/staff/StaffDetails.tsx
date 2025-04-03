@@ -219,7 +219,7 @@ const StaffDetails = () => {
                   render={({ field }) => (
                     <Input
                       {...field}
-                      label='Email Address (Read Only)'
+                      label='Email Address'
                       className='w-full bg-gray-100 text-gray-500'
                       readOnly
                       style={{
@@ -228,7 +228,6 @@ const StaffDetails = () => {
                       }}
                       onFocus={(e) => {
                         e.target.blur();
-                        setShowNotification(true);
                       }}
                     />
                   )}

@@ -7,13 +7,11 @@ import plusIcon from '../../assets/icons/plusWhite.svg';
 import { useMemo, useState } from 'react';
 import Table from '../common/Table';
 import { createColumnHelper } from '@tanstack/react-table';
-import actioEyeIcon from '../../assets/icons/actionEye.svg';
 import actionOptionIcon from '../../assets/icons/actionOption.svg';
 import ClientsModal from './ClientsModal';
 
 const ClientDetails = () => {
-  const { id } = useParams();
-  const clientId = id;
+  const { id: clientId } = useParams();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'overview' | 'clients'>(
@@ -31,24 +29,6 @@ const ClientDetails = () => {
   const paymentHistory = useMemo(() => {
     return paymentHistories.filter((c) => c.clientId.toString() === clientId);
   }, [clientId]);
-
-  if (!clientDetails) {
-    return (
-      <div className='p-8'>
-        <h2 className='text-[40px] font-bold text-primary'>Client not found</h2>
-      </div>
-    );
-  }
-
-  if (!paymentHistory) {
-    return (
-      <div className='p-8'>
-        <h2 className='text-[40px] font-bold text-primary'>
-          Payment history not found
-        </h2>
-      </div>
-    );
-  }
 
   const columnHelper = createColumnHelper<(typeof paymentHistories)[0]>();
 
@@ -74,8 +54,8 @@ const ClientDetails = () => {
         <span
           className={`inline-block px-2 py-1 rounded-lg text-sm text-center min-w-[70px] ${
             info.getValue() === 'paid'
-              ? 'bg-green-100 text-green-700'
-              : 'bg-red-100 text-red-700'
+              ? 'bg-active text-secondary'
+              : 'bg-[#FFCFCC] text-[#FF3B30]'
           }`}
         >
           {info.getValue()}
@@ -88,14 +68,15 @@ const ClientDetails = () => {
     }),
     columnHelper.display({
       id: 'actions',
-      header: 'Actions',
+      header: () => (
+        <img
+          src={actionOptionIcon}
+          alt='Options'
+          className='w-4 h-4 cursor-pointer'
+        />
+      ),
       cell: () => (
-        <div className='flex space-x-2'>
-          <img
-            src={actioEyeIcon}
-            alt='View'
-            className='w-4 h-4 cursor-pointer'
-          />
+        <div className='flex space-x-2' onClick={(e) => e.stopPropagation()}>
           <img
             src={actionOptionIcon}
             alt='Options'
@@ -105,6 +86,24 @@ const ClientDetails = () => {
       ),
     }),
   ];
+
+  if (!clientDetails) {
+    return (
+      <div className='p-8'>
+        <h2 className='text-[40px] font-bold text-primary'>Client not found</h2>
+      </div>
+    );
+  }
+
+  if (!paymentHistory) {
+    return (
+      <div className='p-8'>
+        <h2 className='text-[40px] font-bold text-primary'>
+          Payment history not found
+        </h2>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -135,12 +134,12 @@ const ClientDetails = () => {
                 <div className='flex space-x-2 mt-2'>
                   <div className='flex justify-center items-center py-2 px-4 gap-1'>
                     {clientDetails.status.toLowerCase() === 'active' && (
-                      <div className='w-2 h-2 rounded-full bg-green-500'></div>
+                      <div className='w-2 h-2 rounded-full bg-active'></div>
                     )}
                     <p
-                      className={`text-xs ${
+                      className={`text-sm ${
                         clientDetails.status.toLowerCase() === 'active'
-                          ? 'text-green-500'
+                          ? 'text-secondary'
                           : ''
                       }`}
                     >
@@ -228,7 +227,7 @@ const ClientDetails = () => {
                     role='tab'
                     aria-selected={activeTab === 'overview'}
                     aria-controls='overview-panel'
-                    className={`font-bold text-xl pb-3 relative cursor-pointer transition-all duration-200 hover:text-gray-700  ${
+                    className={`font-bold text-xl relative cursor-pointer transition-all duration-200 hover:text-gray-700  ${
                       activeTab === 'overview'
                         ? 'text-primary'
                         : 'text-gray-500'
@@ -236,13 +235,6 @@ const ClientDetails = () => {
                     onClick={() => setActiveTab('overview')}
                   >
                     Overall View
-                    <div
-                      className={`absolute bottom-0 left-1/2 transform -translate-x-1/2 w-4/5 h-[2px] transition-all duration-200 ease-in-out ${
-                        activeTab === 'overview'
-                          ? 'bg-secondary scale-100'
-                          : 'bg-transparent scale-0'
-                      }`}
-                    />
                   </button>
                 </div>
                 <div className='h-[1px] bg-gray-300 w-full opacity-60'></div>

@@ -1,5 +1,11 @@
 import { useNavigate } from 'react-router-dom';
 
+export const navigateToSessions = (
+  navigate: ReturnType<typeof useNavigate>
+) => {
+  navigate(`/sessions`);
+};
+
 export const navigateToSessionDetails = (
   navigate: ReturnType<typeof useNavigate>,
   sessionId: string
@@ -14,22 +20,23 @@ export const navigateToStaffDetails = (
   navigate(`/staff/${staffId}`);
 };
 
-export const navigateToStaff = (
-  navigate: ReturnType<typeof useNavigate>,
-) => {
+export const navigateToStaff = (navigate: ReturnType<typeof useNavigate>) => {
   navigate(`/staff`);
 };
 
-export const navigateToClients = (
-  navigate: ReturnType<typeof useNavigate>,
-) => {
+export const navigateToClients = (navigate: ReturnType<typeof useNavigate>) => {
   navigate(`/clients`);
 };
-
 
 export const navigateToClientDetails = (
   navigate: ReturnType<typeof useNavigate>,
   clientId: string
 ) => {
   navigate(`/clients/${clientId}`);
+};
+
+export const navigateToCalendar = (
+  navigate: ReturnType<typeof useNavigate>
+) => {
+  navigate(`/calendar`);
 };

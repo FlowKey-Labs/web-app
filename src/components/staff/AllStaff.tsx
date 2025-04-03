@@ -1,8 +1,6 @@
 import MembersHeader from '../headers/MembersHeader';
 import { createColumnHelper } from '@tanstack/react-table';
 import { useState } from 'react';
-import actioEyeIcon from '../../assets/icons/actionEye.svg';
-import actionEditIcon from '../../assets/icons/actionEdit.svg';
 import actionOptionIcon from '../../assets/icons/actionOption.svg';
 import Table from '../common/Table';
 import { data, Staff } from '../utils/dummyData';
@@ -36,18 +34,9 @@ const columns = [
   columnHelper.accessor('name', {
     header: 'Name',
     cell: (info) => (
-      <div className='flex items-center'>
-        <img
-          src={info.row.original.profileImage}
-          alt='Profile'
-          className='w-8 h-8 rounded-full mr-3'
-        />
-        <div className='text-start'>
-          <p className='font-medium text-gray-900'>{info.getValue()}</p>
-          <p className='text-xs text-gray-500'>
-            {info.row.original.staffNumber}
-          </p>
-        </div>
+      <div className='text-start'>
+        <p className='font-medium text-gray-900'>{info.getValue()}</p>
+        <p className='text-xs text-gray-500'>{info.row.original.staffNumber}</p>
       </div>
     ),
   }),
@@ -69,22 +58,21 @@ const columns = [
             : 'bg-red-100 text-red-800'
         }`}
       >
-        
         {info.getValue()}
       </span>
     ),
   }),
   columnHelper.display({
     id: 'actions',
-    header: 'Actions',
+    header: () => (
+      <img
+        src={actionOptionIcon}
+        alt='Options'
+        className='w-4 h-4 cursor-pointer'
+      />
+    ),
     cell: () => (
-      <div className='flex space-x-2'>
-        <img src={actioEyeIcon} alt='View' className='w-4 h-4 cursor-pointer' />
-        <img
-          src={actionEditIcon}
-          alt='Edit'
-          className='w-4 h-4 cursor-pointer'
-        />
+      <div className='flex space-x-2' onClick={(e) => e.stopPropagation()}>
         <img
           src={actionOptionIcon}
           alt='Options'
@@ -109,7 +97,7 @@ const AllStaff = () => {
         <MembersHeader
           title='All Staff'
           buttonText='New Staff'
-          searchPlaceholder='Search by ID, Name or Subject'
+          searchPlaceholder='Search by ID, Name or Email'
           leftIcon={plusIcon}
           onButtonClick={openModal}
         />

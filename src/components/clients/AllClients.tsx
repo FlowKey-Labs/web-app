@@ -68,15 +68,15 @@ const columns = [
   }),
   columnHelper.display({
     id: 'actions',
-    header: 'Actions',
+    header: () => (
+      <img
+        src={actionOptionIcon}
+        alt='Options'
+        className='w-4 h-4 cursor-pointer'
+      />
+    ),
     cell: () => (
-      <div className='flex space-x-2'>
-        <img src={actioEyeIcon} alt='View' className='w-4 h-4 cursor-pointer' />
-        <img
-          src={actionEditIcon}
-          alt='Edit'
-          className='w-4 h-4 cursor-pointer'
-        />
+      <div className='flex space-x-2' onClick={(e) => e.stopPropagation()}>
         <img
           src={actionOptionIcon}
           alt='Options'
@@ -102,7 +102,7 @@ const AllClients = () => {
         <MembersHeader
           title='All Clients'
           buttonText='New Client'
-          searchPlaceholder='Search by ID, Name or Subject'
+          searchPlaceholder='Search by Name, Session or Phone'
           leftIcon={plusIcon}
           onButtonClick={openModal}
         />
@@ -115,7 +115,7 @@ const AllClients = () => {
             className='mt-4'
             pageSize={12}
             onRowClick={(row: Client) =>
-              navigateToClientDetails(navigate, row.id.toString())
+              navigateToClientDetails(navigate, row.id.toString())  
             }
           />
         </div>

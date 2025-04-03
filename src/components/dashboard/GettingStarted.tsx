@@ -2,7 +2,10 @@ import DropDownMenu from '../common/DropdownMenu';
 import Header from '../headers/Header';
 import { Calendar } from '@mantine/dates';
 import { rem } from '@mantine/core';
-import { navigateToStaff } from '../utils/navigationHelpers';
+import {
+  navigateToCalendar,
+  navigateToStaff,
+} from '../utils/navigationHelpers';
 import './index.css';
 
 import dropdownIcon from '../../assets/icons/dropIcon.svg';
@@ -43,7 +46,7 @@ const columns = [
       <span
         className={`inline-block px-2 py-1 rounded-lg text-sm text-center min-w-[100px] ${
           info.getValue() === 'Available'
-            ? 'bg-[#E4FFF2] text-secondary'
+            ? 'bg-active text-secondary'
             : 'bg-[#FFCFCC] text-[#FF3B30]'
         }`}
       >
@@ -143,18 +146,6 @@ const GettingStarted = () => {
               </div>
             </div>
           </div>
-          {/* <div className='flex w-[250px] h-[91px] bg-[#D6E9E7] rounded-lg px-6 py-2 gap-1 border-[1px] border-[#ADD4CE]'>
-            <div className='w-[20%]'>
-              <img src={revenueIcon} alt='' className='' />
-            </div>
-            <div>
-              <h4 className='text-base text-[#319385]'>Revenue</h4>
-              <div className='flex gap-3'>
-                <p className='text-[32px] self-start'>850k</p>
-                <p className='text-sm text-secondary self-end -top-8'>+4.5%</p>
-              </div>
-            </div>
-          </div> */}
           <div className='flex w-[250px] h-[91px] bg-[#FEF5E2CC] rounded-lg px-6 py-2 gap-1 border-[1px] border-[#FAD684]'>
             <div className='w-[20%]'>
               <img src={totalClientsIcon} alt='' className='' />
@@ -232,7 +223,10 @@ const GettingStarted = () => {
                 <h3 className='text-[18px] text-primary font-[600]'>
                   Upcoming sessions
                 </h3>
-                <div className='flex gap-2 items-center cursor-pointer'>
+                <div
+                  className='flex gap-2 items-center cursor-pointer'
+                  onClick={() => navigateToCalendar(navigate)}
+                >
                   <p className='text-secondary text-base font-[400]'>
                     View All
                   </p>

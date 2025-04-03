@@ -98,19 +98,15 @@ const ClassDetails = () => {
     }),
     columnHelper.display({
       id: 'actions',
-      header: 'Actions',
+      header: () => (
+        <img
+          src={actionOptionIcon}
+          alt='Options'
+          className='w-4 h-4 cursor-pointer'
+        />
+      ),
       cell: () => (
         <div className='flex space-x-2'>
-          <img
-            src={actioEyeIcon}
-            alt='View'
-            className='w-4 h-4 cursor-pointer'
-          />
-          <img
-            src={actionEditIcon}
-            alt='Edit'
-            className='w-4 h-4 cursor-pointer'
-          />
           <img
             src={actionOptionIcon}
             alt='Options'
@@ -126,15 +122,16 @@ const ClassDetails = () => {
       <div className='flex flex-col h-screen bg-cardsBg w-full overflow-y-auto '>
         <MembersHeader
           title=''
-          buttonText='New Class'
+          buttonText='New Session'
           searchPlaceholder='Search by ID, Name or Subject'
           leftIcon={plusIcon}
           onButtonClick={openModal}
           showFilterIcons={false}
+          showSearch={false}
         />
         <div className='items-center gap-4 p-6'>
           <div className='space-y-2 pl-10'>
-            <p className='text-gray-500 text-sm'>Classes/Class Details</p>
+            <p className='text-gray-500 text-sm'>Session Details</p>
             <p className='text-lg font-semibold'>
               {classDetails.class} <span>({classDetails.classLevel})</span>
             </p>
@@ -142,11 +139,6 @@ const ClassDetails = () => {
           <div className='flex w-full'>
             <div className='flex flex-col w-[30%] items-center mt-6'>
               <div className='flex flex-col px-4 py-8 items-center justify-center border rounded-xl w-[290px]'>
-                <img
-                  src={classDetails.profileImage}
-                  alt='Profile'
-                  className='w-12 h-12 rounded-full'
-                />
                 <div className='mt-2 text-center space-y-1'>
                   <p className='font-medium text-gray-900 text-sm'>
                     {classDetails.class}{' '}
@@ -157,11 +149,8 @@ const ClassDetails = () => {
                   </p>
                 </div>
                 <div className='flex space-x-6 mt-2'>
-                  <div className='rounded-full bg-[#F2F2F2] py-2 px-4'>
-                    <p className='text-xs'>Season 2.1</p>
-                  </div>
-                  <div className='rounded-full bg-[#F2F2F2] py-2 px-4'>
-                    <p className='text-xs'>Active</p>
+                  <div className='rounded-lg bg-active py-2 px-4'>
+                    <p className='text-xs '>Active</p>
                   </div>
                 </div>
                 <div className='h-[1px] bg-gray-300 w-full my-6'></div>
@@ -241,7 +230,7 @@ const ClassDetails = () => {
                     role='tab'
                     aria-selected={activeTab === 'overview'}
                     aria-controls='overview-panel'
-                    className={`font-bold text-xl pb-3 relative cursor-pointer transition-all duration-200 hover:text-gray-700  ${
+                    className={`font-bold text-xl relative cursor-pointer transition-all duration-200 hover:text-gray-700  ${
                       activeTab === 'overview'
                         ? 'text-primary'
                         : 'text-gray-500'
@@ -249,13 +238,6 @@ const ClassDetails = () => {
                     onClick={() => setActiveTab('overview')}
                   >
                     Overall View
-                    <div
-                      className={`absolute bottom-0 left-1/2 transform -translate-x-1/2 w-4/5 h-[2px] transition-all duration-200 ease-in-out ${
-                        activeTab === 'overview'
-                          ? 'bg-secondary scale-100'
-                          : 'bg-transparent scale-0'
-                      }`}
-                    />
                   </button>
                 </div>
                 <div className='h-[1px] bg-gray-300 w-full opacity-60'></div>
@@ -284,21 +266,10 @@ const ClassDetails = () => {
               </div>
               <div className='flex-1 mt-6'>
                 <div className=''>
-                  <div className='flex justify-between'>
+                  <div>
                     <h3 className='text-primary text-xl font-semibold'>
                       Clients
                     </h3>
-                    <div
-                      className='flex item-center justify-center gap-2 cursor-pointer'
-                      onClick={() => navigateToClients(navigate)}
-                    >
-                      <h3 className='text-secondary font-medium'>View All</h3>
-                      <img
-                        src={rightIcon}
-                        alt='right side icon'
-                        className='w-6 h-6'
-                      />
-                    </div>
                   </div>
                   <div className='flex-1 py-2'>
                     <Table

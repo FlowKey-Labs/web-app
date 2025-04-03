@@ -1,9 +1,4 @@
-import {
-  useForm,
-  SubmitHandler,
-  FormProvider,
-  useFieldArray,
-} from 'react-hook-form';
+import { useForm, SubmitHandler, FormProvider } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import Button from '../common/Button';
@@ -20,6 +15,11 @@ interface RoleFormData {
   roles: RoleData[];
 }
 
+interface NewStaffRolesProps {
+  onNext: (data: RoleData) => void;
+  onBack: () => void;
+}
+
 const roleSchema = yup.object({
   role: yup.string().required('Role is required'),
   payType: yup.string().required('Pay type is required'),
@@ -29,29 +29,17 @@ const roleSchema = yup.object({
     .required('Hourly rate is required'),
 });
 
-const schema = yup
-  .object({
-    roles: yup.array().of(roleSchema).min(1).required(),
-  })
-  .required();
-
-interface NewStaffRolesProps {
-  onNext: (data: RoleData) => void;
-  onBack: () => void;
-}
+const formSchema = yup.object({
+  roles: yup.array().of(roleSchema).min(1).required(),
+});
 
 const NewStaffRoles = ({ onNext, onBack }: NewStaffRolesProps) => {
   const methods = useForm<RoleFormData>({
-    resolver: yupResolver(schema),
+    resolver: yupResolver(formSchema),
     mode: 'onChange',
     defaultValues: {
       roles: [{ role: '', payType: '', hourlyRate: '' }],
     },
-  });
-
-  const { fields, append } = useFieldArray({
-    control: methods.control,
-    name: 'roles',
   });
 
   const onSubmit: SubmitHandler<RoleFormData> = (data) => {
@@ -70,79 +58,67 @@ const NewStaffRoles = ({ onNext, onBack }: NewStaffRolesProps) => {
           className='space-y-4 h-full flex flex-col'
         >
           <div className='flex-grow overflow-y-auto max-h-[calc(100vh-300px)] px-4 space-y-8'>
-            {fields.map((field, index) => (
-              <div key={field.id} className='space-y-4 pb-8'>
-                <DropdownSelectInput
-                  label='Role'
-                  options={roleOptions}
-                  placeholder='Select or create new role'
-                  onSelectItem={(selectedItem) =>
-                    methods.setValue(
-                      `roles.${index}.role`,
-                      selectedItem.value as string
-                    )
-                  }
-                  hasError={!!methods.formState.errors.roles?.[index]?.role}
-                  errorMessage={
-                    methods.formState.errors.roles?.[index]?.role?.message
-                  }
-                />
+            <div className='space-y-4 pb-8'>
+              <DropdownSelectInput
+                label='Role'
+                options={roleOptions}
+                placeholder='Select or create new role'
+                onSelectItem={(selectedItem) =>
+                  methods.setValue(`roles.0.role`, selectedItem.value as string)
+                }
+                hasError={!!methods.formState.errors.roles?.[0]?.role}
+                errorMessage={
+                  methods.formState.errors.roles?.[0]?.role?.message
+                }
+              />
 
-                <DropdownSelectInput
-                  label='Pay Type'
-                  options={payTypeOptions}
-                  placeholder='Select pay type'
-                  onSelectItem={(selectedItem) =>
-                    methods.setValue(
-                      `roles.${index}.payType`,
-                      selectedItem.value as string
-                    )
-                  }
-                  hasError={!!methods.formState.errors.roles?.[index]?.payType}
-                  errorMessage={
-                    methods.formState.errors.roles?.[index]?.payType?.message
-                  }
-                />
+              <DropdownSelectInput
+                label='Pay Type'
+                options={payTypeOptions}
+                placeholder='Select pay type'
+                onSelectItem={(selectedItem) =>
+                  methods.setValue(
+                    `roles.0.payType`,
+                    selectedItem.value as string
+                  )
+                }
+                hasError={!!methods.formState.errors.roles?.[0]?.payType}
+                errorMessage={
+                  methods.formState.errors.roles?.[0]?.payType?.message
+                }
+              />
 
-                <div className='relative'>
-                  <input
-                    type='text'
-                    {...methods.register(`roles.${index}.hourlyRate`)}
-                    className={`w-full px-4 pt-8 pb-2 border text-sm text-gray-500 ${
-                      methods.formState.errors.roles?.[index]?.hourlyRate
-                        ? 'border-red-500'
-                        : 'border-gray-300'
-                    } rounded-lg focus:ring-1 ${
-                      methods.formState.errors.roles?.[index]?.hourlyRate
-                        ? 'focus:ring-red-500'
-                        : 'focus:ring-[#1D9B5E]'
-                    } focus:border-transparent outline-none`}
-                    placeholder='Ksh 0.00'
-                  />
-                  <label
-                    htmlFor={`roles.${index}.hourlyRate`}
-                    className='absolute top-2 left-4 text-xs text-primary'
-                  >
-                    Hourly Rate (KES)
-                  </label>
-                  {methods.formState.errors.roles?.[index]?.hourlyRate && (
-                    <p className='text-sm text-red-500 mt-1'>
-                      {
-                        methods.formState.errors.roles?.[index]?.hourlyRate
-                          ?.message as string
-                      }
-                    </p>
-                  )}
-                </div>
+              <div className='relative'>
+                <input
+                  type='text'
+                  {...methods.register(`roles.0.hourlyRate`)}
+                  className={`w-full px-4 pt-8 pb-2 border text-sm text-gray-500 ${
+                    methods.formState.errors.roles?.[0]?.hourlyRate
+                      ? 'border-red-500'
+                      : 'border-gray-300'
+                  } rounded-lg focus:ring-1 ${
+                    methods.formState.errors.roles?.[0]?.hourlyRate
+                      ? 'focus:ring-red-500'
+                      : 'focus:ring-[#1D9B5E]'
+                  } focus:border-transparent outline-none`}
+                  placeholder='Ksh 0.00'
+                />
+                <label
+                  htmlFor={`roles.0.hourlyRate`}
+                  className='absolute top-2 left-4 text-xs text-primary'
+                >
+                  Hourly Rate (KES)
+                </label>
+                {methods.formState.errors.roles?.[0]?.hourlyRate && (
+                  <p className='text-sm text-red-500 mt-1'>
+                    {
+                      methods.formState.errors.roles?.[0]?.hourlyRate
+                        ?.message as string
+                    }
+                  </p>
+                )}
               </div>
-            ))}
-
-            <p
-              className='text-secondary text-xs cursor-pointer'
-              onClick={() => append({ role: '', payType: '', hourlyRate: '' })}
-            >
-              Add another role
-            </p>
+            </div>
           </div>
 
           <div className='flex justify-between w-full mt-8 self-end'>

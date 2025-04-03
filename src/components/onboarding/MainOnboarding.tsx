@@ -46,7 +46,7 @@ const MainOnboarding: React.FC<MainOnboardingProps> = ({
             className={`
               object-cover rounded-tl-[50px] 
               ${imageClassName || ''}
-              ${imageHeight ? `h-[${imageHeight}]` : `h-[300px] lg:h-[550px]`}
+              ${imageHeight ? `h-[${imageHeight}]` : `h-[300px] lg:h-[600px]`}
               ${imageWidth ? `w-[${imageWidth}]` : `w-auto`}
             `}
           />

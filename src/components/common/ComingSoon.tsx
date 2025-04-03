@@ -21,7 +21,7 @@ const ComingSoon = () => {
   });
 
   return (
-    <MainOnboarding imageHeight="400px" imageWidth="280px">
+    <MainOnboarding imageHeight='400px' imageWidth='280px'>
       <div className='flex flex-col w-full lg:w-[60%] min-h-[80vh] px-4 lg:px-0 space-y-12'>
         <div className='mb-8'>
           <FlowkeyOnboardingHeader />
@@ -29,10 +29,12 @@ const ComingSoon = () => {
 
         <div className='flex flex-col text-left'>
           <div className='flex items-center gap-2'>
-            <p>
-              <span className='font-[700] text-primary text-[40px]'>Under</span>
-            </p>
-            <img src={constructionIcon} alt='construction' className='h-[40px] w-[40px]'/>
+            <p className='font-[700] text-primary text-[40px]'>Under</p>
+            <img
+              src={constructionIcon}
+              alt='construction'
+              className='h-[35px] w-[35px] '
+            />
           </div>
           <span className='font-[700] text-primary text-[40px]'>
             Construction!
