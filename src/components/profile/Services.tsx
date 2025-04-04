@@ -1,6 +1,5 @@
 import plus from '../../assets/icons/servicesPlus.svg';
 import { useGetBusinessServices } from '../../hooks/reactQuery';
-import { BusinessServices } from '../../types/business';
 
 const Services = () => {
   const {

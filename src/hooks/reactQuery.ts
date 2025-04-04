@@ -7,9 +7,13 @@ import {
   get_business_profile,
   searchCities,
   get_business_services,
+  get_clients,
+  get_client,
+  add_client
 } from '../api/api';
 import { useAuthStore } from '../store/auth';
 import { BusinessServices } from '../types/business';
+import { Client } from '../types/clientTypes';
 
 export const useRegisterUser = () => {
   const queryClient = useQueryClient();
@@ -19,7 +23,7 @@ export const useRegisterUser = () => {
     mutationFn: registerUser,
     onSuccess: (data) => {
       queryClient.invalidateQueries();
-      setAuth(data.accessToken, data.user);
+      setAuth(data.access, data.user);
     },
     onError: (error) => {
       console.error('Failed to register==>', error);
@@ -108,8 +112,60 @@ export const useGetBusinessServices = () => {
   return useQuery<BusinessServices>({
     queryKey: ['business_services'],
     queryFn: get_business_services,
-    staleTime: 1000 * 60 * 5, // Data considered fresh for 5 minutes
+    staleTime: 1000 * 60 * 5, 
     refetchOnWindowFocus: false,
     retry: 2,
+  });
+};
+
+export const useGetClients = () => {
+  return useQuery({
+    queryKey: ['clients'],
+    queryFn: get_clients,
+    staleTime: 1000 * 60 * 5,
+    refetchOnWindowFocus: false,
+    retry: 2,
+  });
+};
+
+export const useGetClient = (id: string) => {
+  return useQuery({
+    queryKey: ['client', id],
+    queryFn: () => get_client(id),
+    staleTime: 1000 * 60 * 5,
+    refetchOnWindowFocus: false,
+    retry: 2,
+    enabled: !!id,
+  });
+};
+
+interface AddClientInput {
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone_number: string;
+  location: string;
+  assigned_classes: number;
+  id: number;
+  active: boolean;
+  created_at: string;
+  created_by: number;
+  business: number;
+}
+
+export const useAddClient = () => {
+  const queryClient = useQueryClient();
+  return useMutation<Client, Error, AddClientInput>({
+    mutationFn: (data) => add_client({
+      first_name: data.first_name,
+      last_name: data.last_name,
+      email: data.email,
+      phone_number: data.phone_number,
+      location: data.location || '',
+    }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['clients'] });
+    },
+    onError: (error) => console.error('Add client error:', error),
   });
 };

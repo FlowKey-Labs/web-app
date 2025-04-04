@@ -1,5 +1,4 @@
 import { useParams } from 'react-router-dom';
-import { classesData, clientsData } from '../../utils/dummyData';
 import MembersHeader from '../headers/MembersHeader';
 import { Progress } from '@mantine/core';
 import plusIcon from '../../assets/icons/plusWhite.svg';
@@ -8,7 +7,80 @@ import ClassesModal from './ClassesModal';
 import Table from '../common/Table';
 import { createColumnHelper } from '@tanstack/react-table';
 
+import { useGetClients } from '../../hooks/reactQuery';
+
 import actionOptionIcon from '../../assets/icons/actionOption.svg';
+import { Client } from '../../types/clientTypes';
+
+const columnHelper = createColumnHelper<Client>();
+
+const columns = [
+  columnHelper.display({
+    id: 'select',
+    header: ({ table }) => (
+      <input
+        type='checkbox'
+        checked={table.getIsAllRowsSelected()}
+        onChange={table.getToggleAllRowsSelectedHandler()}
+        className='w-4 h-4 rounded cursor-pointer bg-[#F7F8FA] accent-[#DBDEDF]'
+      />
+    ),
+    cell: ({ row }) => (
+      <input
+        type='checkbox'
+        checked={row.getIsSelected()}
+        onChange={row.getToggleSelectedHandler()}
+        className='w-4 h-4 rounded cursor-pointer bg-[#F7F8FA] accent-[#DBDEDF]'
+      />
+    ),
+  }),
+  columnHelper.accessor('first_name', {
+    header: 'Name',
+    cell: (info) => `${info.getValue()} ${info.row.original.last_name}`,
+  }),
+  columnHelper.accessor('phone_number', {
+    header: 'Phone',
+    cell: (info) => info.getValue(),
+  }),
+  columnHelper.accessor('active', {
+    header: 'Status',
+    cell: (info) => (
+      <span
+        className={`inline-block px-1 py-1 rounded-lg text-sm text-center min-w-[60px] ${
+          info.getValue()
+            ? 'bg-green-100 text-green-700'
+            : 'bg-red-100 text-red-700'
+        }`}
+      >
+        {info.getValue()}
+      </span>
+    ),
+  }),
+  columnHelper.display({
+    id: 'progress',
+    header: 'Progress',
+    cell: () => <Progress color='#FFAE0080' size='sm' radius='xl' value={50} />,
+  }),
+  columnHelper.display({
+    id: 'actions',
+    header: () => (
+      <img
+        src={actionOptionIcon}
+        alt='Options'
+        className='w-4 h-4 cursor-pointer'
+      />
+    ),
+    cell: () => (
+      <div className='flex space-x-2'>
+        <img
+          src={actionOptionIcon}
+          alt='Options'
+          className='w-4 h-4 cursor-pointer'
+        />
+      </div>
+    ),
+  }),
+];
 
 const ClassDetails = () => {
   const { id } = useParams();
@@ -20,14 +92,22 @@ const ClassDetails = () => {
   );
   const [rowSelection, setRowSelection] = useState({});
 
+  const {
+    data: clients = [],
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useGetClients();
+
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
 
-  const classDetails = useMemo(() => {
-    return classesData.find((c) => c.id.toString() === classId);
-  }, [classId]);
+  const sessionDetails = useMemo(() => {
+    return clients.find((c: Client) => c.id.toString() === classId);
+  }, [classId, clients]);
 
-  if (!classDetails) {
+  if (!sessionDetails) {
     return (
       <div className='p-8'>
         <h2 className='text-[40px] font-bold text-primary'>Class not found</h2>
@@ -35,81 +115,31 @@ const ClassDetails = () => {
     );
   }
 
-  const columnHelper = createColumnHelper<(typeof clientsData)[0]>();
+  if (isLoading) {
+    return (
+      <div className='w-full space-y-6 bg-white rounded-lg p-6'>
+        <p className='text-primary'>Loading sessions...</p>
+      </div>
+    );
+  }
 
-  const columns = [
-    columnHelper.display({
-      id: 'select',
-      header: ({ table }) => (
-        <input
-          type='checkbox'
-          checked={table.getIsAllRowsSelected()}
-          onChange={table.getToggleAllRowsSelectedHandler()}
-          className='w-4 h-4 rounded cursor-pointer bg-[#F7F8FA] accent-[#DBDEDF]'
-        />
-      ),
-      cell: ({ row }) => (
-        <input
-          type='checkbox'
-          checked={row.getIsSelected()}
-          onChange={row.getToggleSelectedHandler()}
-          className='w-4 h-4 rounded cursor-pointer bg-[#F7F8FA] accent-[#DBDEDF]'
-        />
-      ),
-    }),
-    columnHelper.accessor('name', {
-      header: 'Name',
-      cell: (info) => info.getValue(),
-    }),
-    columnHelper.accessor('session', {
-      header: 'Session',
-      cell: (info) => info.getValue().join(', '),
-    }),
-    columnHelper.accessor('phone', {
-      header: 'Phone',
-      cell: (info) => info.getValue(),
-    }),
-    columnHelper.accessor('status', {
-      header: 'Status',
-      cell: (info) => (
-        <span
-          className={`inline-block px-1 py-1 rounded-lg text-sm text-center min-w-[60px] ${
-            info.getValue() === 'active'
-              ? 'bg-green-100 text-green-700'
-              : 'bg-red-100 text-red-700'
-          }`}
-        >
-          {info.getValue()}
-        </span>
-      ),
-    }),
-    columnHelper.display({
-      id: 'progress',
-      header: 'Progress',
-      cell: () => (
-        <Progress color='#FFAE0080' size='sm' radius='xl' value={50} />
-      ),
-    }),
-    columnHelper.display({
-      id: 'actions',
-      header: () => (
-        <img
-          src={actionOptionIcon}
-          alt='Options'
-          className='w-4 h-4 cursor-pointer'
-        />
-      ),
-      cell: () => (
-        <div className='flex space-x-2'>
-          <img
-            src={actionOptionIcon}
-            alt='Options'
-            className='w-4 h-4 cursor-pointer'
-          />
+  if (isError) {
+    return (
+      <div className='w-full space-y-6 bg-white rounded-lg p-6'>
+        <div className='space-y-4'>
+          <p className='text-red-500'>
+            Error loading sessions: {error?.message}
+          </p>
+          <button
+            onClick={() => refetch()}
+            className='px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90'
+          >
+            Try Again
+          </button>
         </div>
-      ),
-    }),
-  ];
+      </div>
+    );
+  }
 
   return (
     <>
@@ -127,7 +157,7 @@ const ClassDetails = () => {
           <div className='space-y-2 pl-10'>
             <p className='text-gray-500 text-sm'>Session Details</p>
             <p className='text-lg font-semibold'>
-              {classDetails.class} <span>({classDetails.classLevel})</span>
+              {sessionDetails.class} <span>({sessionDetails.classLevel})</span>
             </p>
           </div>
           <div className='flex w-full'>
@@ -135,11 +165,11 @@ const ClassDetails = () => {
               <div className='flex flex-col px-4 py-8 items-center justify-center border rounded-xl w-[290px]'>
                 <div className='mt-2 text-center space-y-1'>
                   <p className='font-medium text-gray-900 text-sm'>
-                    {classDetails.class}{' '}
-                    <span>({classDetails.classLevel})</span>
+                    {sessionDetails.class}{' '}
+                    <span>({sessionDetails.classLevel})</span>
                   </p>
                   <p className='text-sm text-gray-500'>
-                    {classDetails.classType}
+                    {sessionDetails.classType}
                   </p>
                 </div>
                 <div className='flex space-x-6 mt-2'>
@@ -154,7 +184,7 @@ const ClassDetails = () => {
                       CLASS ID
                     </span>
                     <span className='text-gray-400  text-xs'>
-                      {classDetails.class}
+                      {sessionDetails.class}
                     </span>
                   </div>
                   <div className='flex justify-between items-center w-full text-sm'>
@@ -162,7 +192,7 @@ const ClassDetails = () => {
                       SLOTS
                     </span>
                     <span className='text-gray-400  text-xs'>
-                      {classDetails.slots}
+                      {sessionDetails.slots}
                     </span>
                   </div>
                   <div className='flex justify-between items-center w-full text-sm'>
@@ -170,7 +200,7 @@ const ClassDetails = () => {
                       CALENDER
                     </span>
                     <span className='text-gray-400  text-xs'>
-                      {classDetails.repeats.join(', ')}
+                      {sessionDetails.repeats.join(', ')}
                     </span>
                   </div>
                 </div>
@@ -181,7 +211,7 @@ const ClassDetails = () => {
                       DATE CREATED
                     </span>
                     <span className='text-gray-400  text-xs'>
-                      {classDetails.date.toLocaleDateString()}
+                      {sessionDetails.date.toLocaleDateString()}
                     </span>
                   </div>
                   <div className='flex justify-between items-center w-full text-sm'>
@@ -189,7 +219,7 @@ const ClassDetails = () => {
                       END DATE
                     </span>
                     <span className='text-gray-400  text-xs'>
-                      {classDetails.date.toLocaleDateString()}
+                      {sessionDetails.date.toLocaleDateString()}
                     </span>
                   </div>
                   <div className='flex justify-between items-center w-full text-sm'>
@@ -197,7 +227,7 @@ const ClassDetails = () => {
                       ASSIGNED TO
                     </span>
                     <span className='text-gray-500  text-xs'>
-                      {classDetails.AssignedTo}
+                      {sessionDetails.AssignedTo}
                     </span>
                   </div>
                 </div>
@@ -267,7 +297,7 @@ const ClassDetails = () => {
                   </div>
                   <div className='flex-1 py-2'>
                     <Table
-                      data={clientsData}
+                      data={clients}
                       columns={columns}
                       rowSelection={rowSelection}
                       onRowSelectionChange={setRowSelection}

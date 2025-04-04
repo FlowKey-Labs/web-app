@@ -1,5 +1,4 @@
 import { useParams } from 'react-router-dom';
-import { clientsData, paymentHistories } from '../../utils/dummyData';
 import MembersHeader from '../headers/MembersHeader';
 import { Progress } from '@mantine/core';
 import rightIcon from '../../assets/icons/greenRight.svg';
@@ -9,6 +8,9 @@ import Table from '../common/Table';
 import { createColumnHelper } from '@tanstack/react-table';
 import actionOptionIcon from '../../assets/icons/actionOption.svg';
 import ClientsModal from './ClientsModal';
+import { useGetClient } from '../../hooks/reactQuery';
+import { paymentHistories } from '../../utils/dummyData';
+import greyPhoto from '../../assets/images/greyPhoto.png';
 
 const ClientDetails = () => {
   const { id: clientId } = useParams();
@@ -22,9 +24,12 @@ const ClientDetails = () => {
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
 
-  const clientDetails = useMemo(() => {
-    return clientsData.find((c) => c.id.toString() === clientId);
-  }, [clientId]);
+  const {
+    data: clientDetails,
+    isLoading,
+    isError,
+    error,
+  } = useGetClient(clientId || '');
 
   const paymentHistory = useMemo(() => {
     return paymentHistories.filter((c) => c.clientId.toString() === clientId);
@@ -87,10 +92,30 @@ const ClientDetails = () => {
     }),
   ];
 
+  if (isLoading) {
+    return (
+      <div className='w-full space-y-6 bg-white rounded-lg p-6'>
+        <p className='text-primary'>Loading client details...</p>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className='w-full space-y-6 bg-white rounded-lg p-6'>
+        <div className='space-y-4'>
+          <p className='text-red-500'>
+            Error loading client details: {error?.message}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   if (!clientDetails) {
     return (
-      <div className='p-8'>
-        <h2 className='text-[40px] font-bold text-primary'>Client not found</h2>
+      <div className='w-full space-y-6 bg-white rounded-lg p-6'>
+        <p className='text-primary'>Client not found</p>
       </div>
     );
   }
@@ -110,7 +135,7 @@ const ClientDetails = () => {
       <div className='flex flex-col h-screen bg-cardsBg w-full overflow-y-auto '>
         <MembersHeader
           title='Client Details'
-          buttonText='New Class'
+          buttonText='New Client'
           searchPlaceholder='Search by ID, Name or Subject'
           leftIcon={plusIcon}
           onButtonClick={openModal}
@@ -121,33 +146,33 @@ const ClientDetails = () => {
             <div className='flex flex-col w-[30%] items-center mt-6'>
               <div className='flex flex-col px-4 py-8 items-center justify-center border rounded-xl w-[290px]'>
                 <img
-                  src={clientDetails.profileImage}
+                  src={clientDetails.profileImage || greyPhoto}
                   alt='Profile'
                   className='w-12 h-12 rounded-full'
                 />
                 <div className='mt-2 text-center space-y-1'>
                   <p className='font-medium text-gray-900 text-sm'>
-                    {clientDetails.name}
+                    {`${clientDetails.first_name} ${clientDetails.last_name}`}
                   </p>
-                  <p className='text-sm text-gray-500'>{clientDetails.user}</p>
+                  <p className='text-sm text-gray-500'>{clientDetails.email}</p>
                 </div>
                 <div className='flex space-x-2 mt-2'>
                   <div className='flex justify-center items-center py-2 px-4 gap-1'>
-                    {clientDetails.status.toLowerCase() === 'active' && (
+                    {clientDetails.active && (
                       <div className='w-2 h-2 rounded-full bg-active'></div>
                     )}
                     <p
                       className={`text-sm ${
-                        clientDetails.status.toLowerCase() === 'active'
-                          ? 'text-secondary'
-                          : ''
+                        clientDetails.active ? 'text-secondary' : ''
                       }`}
                     >
-                      {clientDetails.status}
+                      {clientDetails.active ? 'Active' : 'Inactive'}
                     </p>
                   </div>
                   <div className='rounded-full bg-[#F2F2F2] py-2 px-4'>
-                    <p className='text-xs'>{clientDetails.classCategory}</p>
+                    <p className='text-xs'>
+                      {clientDetails.classCategory || 'No Category'}
+                    </p>
                   </div>
                 </div>
                 <div className='h-[1px] bg-gray-300 w-full my-6'></div>
@@ -157,7 +182,7 @@ const ClientDetails = () => {
                       CLIENT ID
                     </span>
                     <span className='text-gray-400  text-xs'>
-                      {clientDetails.class}
+                      {clientDetails.id || 'N/A'}
                     </span>
                   </div>
                   <div className='flex justify-between items-center w-full text-sm'>
@@ -165,7 +190,7 @@ const ClientDetails = () => {
                       SESSIONS
                     </span>
                     <span className='text-gray-400  text-xs'>
-                      {clientDetails.session.length}
+                      {clientDetails.assigned_classes || 0}
                     </span>
                   </div>
                   <div className='flex justify-between items-center w-full text-sm'>
@@ -173,7 +198,7 @@ const ClientDetails = () => {
                       CATEGORY
                     </span>
                     <span className='text-gray-400  text-xs'>
-                      {clientDetails.clientLevel}
+                      {clientDetails.classCategory || 'N/A'}
                     </span>
                   </div>
                 </div>
@@ -184,23 +209,16 @@ const ClientDetails = () => {
                       DATE CREATED
                     </span>
                     <span className='text-gray-400  text-xs'>
-                      {clientDetails.date.toLocaleDateString()}
-                    </span>
-                  </div>
-                  <div className='flex justify-between items-center w-full text-sm'>
-                    <span className='text-gray-400 font-bold text-xs'>
-                      END DATE
-                    </span>
-                    <span className='text-gray-400  text-xs'>
-                      {clientDetails.date.toLocaleDateString()}
+                      {new Date(clientDetails.created_at).toLocaleDateString()}
                     </span>
                   </div>
                   <div className='flex justify-between items-center w-full text-sm'>
                     <span className='text-gray-400 font-bold text-xs'>
                       ASSIGNED TO
                     </span>
-                    <span className='text-gray-500  text-xs'>
-                      {clientDetails.assignedTo}
+                    {/* this where i want us to display  */}
+                    <span className='text-gray-400  text-xs'>
+                      {clientDetails.assignedTo || 'Not Assigned'}
                     </span>
                   </div>
                 </div>

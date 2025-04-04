@@ -13,6 +13,9 @@ const END_POINTS = {
     BUSINESS_PROFILE: `${BASE_URL}/api/business/profile/`,
     SERVICES: `${BASE_URL}/api/business/services/`,
   },
+  CLIENTS: {
+    CLIENTS_DATA: `${BASE_URL}/api/client/`,
+  },
   GOOGLE: {
     PLACES_AUTOCOMPLETE: `https://maps.googleapis.com/maps/api/place/autocomplete/json`,
   },
@@ -90,6 +93,27 @@ const get_business_services = async () => {
   return data;
 };
 
+const get_clients = async () => {
+  const { data } = await api.get(END_POINTS.CLIENTS.CLIENTS_DATA);
+  return data;
+};
+
+const get_client = async (id: string) => {
+  const { data } = await api.get(`${END_POINTS.CLIENTS.CLIENTS_DATA}${id}/`);
+  return data;
+};
+
+const add_client = async (clientData: {
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone_number: string;
+  location: string;
+}) => {
+  const { data } = await api.post(END_POINTS.CLIENTS.CLIENTS_DATA, clientData);
+  return data;
+};
+
 export {
   END_POINTS,
   registerUser,
@@ -99,4 +123,7 @@ export {
   get_business_profile,
   searchCities,
   get_business_services,
+  get_clients,
+  get_client,
+  add_client,
 };
