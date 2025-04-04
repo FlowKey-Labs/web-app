@@ -6,8 +6,10 @@ import {
   update_business_profile,
   get_business_profile,
   searchCities,
+  get_business_services,
 } from '../api/api';
 import { useAuthStore } from '../store/auth';
+import { BusinessServices } from '../types/business';
 
 export const useRegisterUser = () => {
   const queryClient = useQueryClient();
@@ -99,5 +101,15 @@ export const useSearchCities = () => {
     onError: (error) => {
       console.error('Failed to search cities:', error);
     },
+  });
+};
+
+export const useGetBusinessServices = () => {
+  return useQuery<BusinessServices>({
+    queryKey: ['business_services'],
+    queryFn: get_business_services,
+    staleTime: 1000 * 60 * 5, // Data considered fresh for 5 minutes
+    refetchOnWindowFocus: false,
+    retry: 2,
   });
 };

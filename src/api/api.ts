@@ -11,6 +11,7 @@ const END_POINTS = {
   },
   PROFILE: {
     BUSINESS_PROFILE: `${BASE_URL}/api/business/profile/`,
+    SERVICES: `${BASE_URL}/api/business/services/`,
   },
   GOOGLE: {
     PLACES_AUTOCOMPLETE: `https://maps.googleapis.com/maps/api/place/autocomplete/json`,
@@ -52,14 +53,17 @@ const get_business_profile = async () => {
   return data;
 };
 
-const update_business_profile = async (id: string, updateData: {
+const update_business_profile = async (
+  id: string,
+  updateData: {
     business_name?: string;
     contact_person?: string;
     contact_email?: string;
     contact_phone?: string;
     address?: string;
     about?: string;
-  }) => {
+  }
+) => {
   const { data } = await api.patch(
     `${END_POINTS.PROFILE.BUSINESS_PROFILE}${id}/`,
     updateData
@@ -81,6 +85,11 @@ const searchCities = async (query: string) => {
   }));
 };
 
+const get_business_services = async () => {
+  const { data } = await api.get(END_POINTS.PROFILE.SERVICES);
+  return data;
+};
+
 export {
   END_POINTS,
   registerUser,
@@ -89,4 +98,5 @@ export {
   update_business_profile,
   get_business_profile,
   searchCities,
+  get_business_services,
 };
