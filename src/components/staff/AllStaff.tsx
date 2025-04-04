@@ -3,10 +3,10 @@ import { createColumnHelper } from '@tanstack/react-table';
 import { useState } from 'react';
 import actionOptionIcon from '../../assets/icons/actionOption.svg';
 import Table from '../common/Table';
-import { data, Staff } from '../utils/dummyData';
+import { data, Staff } from '../../utils/dummyData';
 import plusIcon from '../../assets/icons/plusWhite.svg';
 import StaffModal from './StaffModal';
-import { navigateToStaffDetails } from '../utils/navigationHelpers';
+import { navigateToStaffDetails } from '../../utils/navigationHelpers';
 import { useNavigate } from 'react-router-dom';
 
 const columnHelper = createColumnHelper<Staff>();

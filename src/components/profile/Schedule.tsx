@@ -6,7 +6,7 @@ import { TimeDropdown } from '../common/TimeDropdown';
 import { generateTimeOptions } from '../common/TimeDropdown';
 import { Calendar } from '@mantine/dates';
 import calendarIcon from '../../assets/icons/calendar.svg';
-import { days } from '../utils/dummyData';
+import { days } from '../../utils/dummyData';
 import './index.css';
 
 type DaySchedule = {

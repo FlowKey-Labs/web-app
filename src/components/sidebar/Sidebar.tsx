@@ -1,6 +1,29 @@
 import { FlowKeyIcon } from '../../assets/icons';
-import { menuItems, bottomMenuItems } from '../utils/dummyData';
+import { menuItems, bottomMenuItems } from '../../utils/dummyData';
 import { useNavigate } from 'react-router-dom';
+import {
+  navigateToDashboard,
+  navigateToSessions,
+  navigateToStaff,
+  navigateToClients,
+  navigateToCalendar,
+  navigateToProfile,
+  navigateToSettings,
+} from '../../utils/navigationHelpers';
+
+type NavigationMap = {
+  [key: string]: (navigate: ReturnType<typeof useNavigate>) => void;
+};
+
+const navigationMap: NavigationMap = {
+  dashboard: navigateToDashboard,
+  sessions: navigateToSessions,
+  staff: navigateToStaff,
+  clients: navigateToClients,
+  calendar: navigateToCalendar,
+  profile: navigateToProfile,
+  settings: navigateToSettings,
+};
 
 interface SidebarProps {
   activeItem: string;
@@ -14,7 +37,7 @@ const Sidebar = ({ activeItem }: SidebarProps) => {
       <div className='flex justify-center items-center mb-6'>
         <h3
           className='flex items-center gap-2 px-6 cursor-pointer transition-opacity hover:opacity-90'
-          onClick={() => navigate('/dashboard')}
+          onClick={() => navigateToDashboard(navigate)}
         >
           <FlowKeyIcon className='w-[33px] h-[29px]' />
           <span className='font-[900] text-[24px] text-primary'>FlowKey</span>
@@ -30,7 +53,11 @@ const Sidebar = ({ activeItem }: SidebarProps) => {
               return (
                 <li
                   key={item.name}
-                  onClick={() => navigate(`/${item.name.toLowerCase()}`)}
+                  onClick={() => {
+                    const route = item.name.toLowerCase();
+                    const navigationFn = navigationMap[route];
+                    navigationFn ? navigationFn(navigate) : navigate(`/${route}`);
+                  }}
                   className={`flex items-center cursor-pointer w-[168px] h-[35px] rounded-lg px-4 text-[14px] transition-colors hover:opacity-90 ${
                     isActive ? 'bg-secondary text-white' : 'text-[#6D7172]'
                   }`}

@@ -7,7 +7,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts';
-import { chartData } from '../utils/dummyData';
+import { chartData } from '../../utils/dummyData';
 
 export function BarGraph() {
   return (

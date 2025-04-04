@@ -1,5 +1,9 @@
 import { useNavigate } from 'react-router-dom';
 
+export const navigateToDashboard = (navigate: ReturnType<typeof useNavigate>) => {
+  navigate('/dashboard');
+};
+
 export const navigateToSessions = (
   navigate: ReturnType<typeof useNavigate>
 ) => {
@@ -39,4 +43,16 @@ export const navigateToCalendar = (
   navigate: ReturnType<typeof useNavigate>
 ) => {
   navigate(`/calendar`);
+};
+
+export const navigateToProfile = (
+  navigate: ReturnType<typeof useNavigate>
+) => {
+  navigate('/profile');
+};
+
+export const navigateToSettings = (
+  navigate: ReturnType<typeof useNavigate>
+) => {
+  navigate('/settings');
 };

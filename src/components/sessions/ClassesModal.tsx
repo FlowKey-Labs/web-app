@@ -4,7 +4,7 @@ import DropdownSelectInput, { DropDownItem } from '../common/Dropdown';
 import Input from '../common/Input';
 import { useState } from 'react';
 import cancelIcon from '../../assets/icons/cancel.svg';
-import { categoryOptions } from '../utils/dummyData';
+import { categoryOptions } from '../../utils/dummyData';
 import ChevronUp from '../../assets/icons/up.svg';
 import ChevronDown from '../../assets/icons/down.svg';
 import {
@@ -15,7 +15,7 @@ import {
   selectClass,
   selectDays,
   assignCoach,
-} from '../utils/dummyData';
+} from '../../utils/dummyData';
 import DropDownMenu from '../common/DropdownMenu';
 
 interface ClassModalProps {

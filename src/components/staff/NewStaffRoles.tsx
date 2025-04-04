@@ -3,7 +3,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import Button from '../common/Button';
 import DropdownSelectInput from '../common/Dropdown';
-import { roleOptions, payTypeOptions } from '../utils/dummyData';
+import { roleOptions, payTypeOptions } from '../../utils/dummyData';
 
 interface RoleData {
   role: string;

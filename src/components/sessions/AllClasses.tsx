@@ -10,8 +10,8 @@ import {
   ClassData,
   categoryOptions,
   classTypesOptions,
-} from '../utils/dummyData';
-import { navigateToSessionDetails } from '../utils/navigationHelpers';
+} from '../../utils/dummyData';
+import { navigateToSessionDetails } from '../../utils/navigationHelpers';
 import { DatePickerInput } from '@mantine/dates';
 import DropDownMenu from '../common/DropdownMenu';
 

@@ -1,6 +1,6 @@
 import { useParams } from 'react-router-dom';
 import { useMemo, useState, useEffect } from 'react';
-import { data } from '../utils/dummyData';
+import { data } from '../../utils/dummyData';
 import MembersHeader from '../headers/MembersHeader';
 import Button from '../common/Button';
 import { Switch } from '@mantine/core';

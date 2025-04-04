@@ -5,7 +5,7 @@ import { rem } from '@mantine/core';
 import {
   navigateToCalendar,
   navigateToStaff,
-} from '../utils/navigationHelpers';
+} from '../../utils/navigationHelpers';
 import './index.css';
 
 import dropdownIcon from '../../assets/icons/dropIcon.svg';
@@ -19,7 +19,7 @@ import { BarGraph } from '../common/BarGraph';
 import rescheduleIcon from '../../assets/icons/reschedule.svg';
 import cancelIcon from '../../assets/icons/cancelRed.svg';
 
-import { StaffDashboard, staffDashboard } from '../utils/dummyData';
+import { StaffDashboard, staffDashboard } from '../../utils/dummyData';
 import Table from '../common/Table';
 import { createColumnHelper } from '@tanstack/react-table';
 import { useNavigate } from 'react-router-dom';

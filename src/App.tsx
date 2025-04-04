@@ -1,9 +1,9 @@
 import { MantineProvider } from '@mantine/core';
 import '@mantine/core/styles.css';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import { QueryClientProvider } from "@tanstack/react-query";
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import { queryClient } from "./lib/react-query";
+import { QueryClientProvider } from '@tanstack/react-query';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+import { queryClient } from './lib/react-query';
 import Home from './components/home/Home';
 import Login from './components/authentication/Login';
 import Signup from './components/authentication/Signup';

@@ -1,24 +1,18 @@
-import { useNavigate, useParams } from 'react-router-dom';
-import { classesData, clientsData } from '../utils/dummyData';
+import { useParams } from 'react-router-dom';
+import { classesData, clientsData } from '../../utils/dummyData';
 import MembersHeader from '../headers/MembersHeader';
 import { Progress } from '@mantine/core';
-import rightIcon from '../../assets/icons/greenRight.svg';
 import plusIcon from '../../assets/icons/plusWhite.svg';
 import { useMemo, useState } from 'react';
 import ClassesModal from './ClassesModal';
 import Table from '../common/Table';
 import { createColumnHelper } from '@tanstack/react-table';
 
-import actioEyeIcon from '../../assets/icons/actionEye.svg';
-import actionEditIcon from '../../assets/icons/actionEdit.svg';
 import actionOptionIcon from '../../assets/icons/actionOption.svg';
-import { navigateToClients } from '../utils/navigationHelpers';
 
 const ClassDetails = () => {
   const { id } = useParams();
   const classId = id;
-
-  const navigate = useNavigate();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'overview' | 'clients'>(

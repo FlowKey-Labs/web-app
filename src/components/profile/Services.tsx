@@ -1,5 +1,5 @@
 import plus from '../../assets/icons/servicesPlus.svg';
-import { services } from '../utils/dummyData';
+import { services } from '../../utils/dummyData';
 
 const Services = () => {
   return (

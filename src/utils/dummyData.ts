@@ -1,11 +1,11 @@
-import musicIcon from '../../assets/icons/music.svg';
-import spaIcon from '../../assets/icons/spa.svg';
-import swimIcon from '../../assets/icons/swim.svg';
-import gymIcon from '../../assets/icons/gym.svg';
-import therapyIcon from '../../assets/icons/therapy.svg';
-import calendarIcon from '../../assets/icons/calender.svg';
-import Avatar from '../../assets/images/greyPhoto.png';
-import { DropDownItem } from '../common/Dropdown';
+import musicIcon from '../assets/icons/music.svg';
+import spaIcon from '../assets/icons/spa.svg';
+import swimIcon from '../assets/icons/swim.svg';
+import gymIcon from '../assets/icons/gym.svg';
+import therapyIcon from '../assets/icons/therapy.svg';
+import calendarIcon from '../assets/icons/calender.svg';
+import Avatar from '../assets/images/greyPhoto.png';
+import { DropDownItem } from '../components/common/Dropdown';
 
 import {
   DashboardIcon,
@@ -28,7 +28,7 @@ import {
   LogoutIconWhite,
   ProfileIcon,
   ProfileIconWhite,
-} from '../../assets/icons';
+} from '../assets/icons';
 
 interface BusinessOption {
   id: string;
@@ -525,14 +525,14 @@ export const businessPurpose: BusinessPurpose[] = [
   {
     id: '2',
     icon: calendarIcon,
-    title: 'Scheduling',
+    title: 'Managing',
     description:
       'Just the usual music classes I guess. Just the usual music classes I guess',
   },
   {
     id: '3',
     icon: calendarIcon,
-    title: 'Scheduling',
+    title: 'Store Data',
     description:
       'Just the usual music classes I guess. Just the usual music classes I guess',
   },

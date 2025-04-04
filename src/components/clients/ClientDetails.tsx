@@ -1,5 +1,5 @@
 import { useParams } from 'react-router-dom';
-import { clientsData, paymentHistories } from '../utils/dummyData';
+import { clientsData, paymentHistories } from '../../utils/dummyData';
 import MembersHeader from '../headers/MembersHeader';
 import { Progress } from '@mantine/core';
 import rightIcon from '../../assets/icons/greenRight.svg';

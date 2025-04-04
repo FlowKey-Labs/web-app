@@ -4,7 +4,7 @@ import Input from '../common/Input';
 import DropdownSelectInput from '../common/Dropdown';
 import Button from '../common/Button';
 import clientlocationIcons from '../../assets/icons/clientLocation.svg';
-import { months, swimClasses } from '../utils/dummyData';
+import { months, swimClasses } from '../../utils/dummyData';
 
 interface ClientsModalProps {
   isOpen: boolean;

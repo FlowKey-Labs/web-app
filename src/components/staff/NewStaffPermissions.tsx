@@ -1,6 +1,6 @@
 import { useForm, SubmitHandler, FormProvider } from 'react-hook-form';
 import Button from '../common/Button';
-import { permissionsData } from '../utils/dummyData';
+import { permissionsData } from '../../utils/dummyData';
 
 interface PermissionsFormData {
   createEvents: boolean;

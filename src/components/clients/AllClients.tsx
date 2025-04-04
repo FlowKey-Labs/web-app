@@ -1,17 +1,16 @@
 import MembersHeader from '../headers/MembersHeader';
 import plusIcon from '../../assets/icons/plusWhite.svg';
-import { Client, clientsData } from '../utils/dummyData';
+import { Client, clientsData } from '../../utils/dummyData';
 import Table from '../common/Table';
 import { createColumnHelper } from '@tanstack/react-table';
 import { Progress } from '@mantine/core';
 
-import actioEyeIcon from '../../assets/icons/actionEye.svg';
-import actionEditIcon from '../../assets/icons/actionEdit.svg';
+
 import actionOptionIcon from '../../assets/icons/actionOption.svg';
 import { useState } from 'react';
 import ClientsModal from './ClientsModal';
 import { useNavigate } from 'react-router-dom';
-import { navigateToClientDetails } from '../utils/navigationHelpers';
+import { navigateToClientDetails } from '../../utils/navigationHelpers';
 
 const columnHelper = createColumnHelper<(typeof clientsData)[0]>();
 

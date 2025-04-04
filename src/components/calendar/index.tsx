@@ -9,7 +9,7 @@ import plusIcon from "../../assets/icons/plusWhite.svg";
 import { format, isBefore, parse } from "date-fns";
 import DropDownMenu from "../common/DropdownMenu";
 import dropdownIcon from "../../assets/icons/dropIcon.svg";
-import { cn } from "../utils/mergeClass";
+import { cn } from "../../utils/mergeClass";
 import "./index.css";
 import { EventClickArg } from "@fullcalendar/core/index.js";
 
