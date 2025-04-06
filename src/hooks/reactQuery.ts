@@ -9,7 +9,10 @@ import {
   get_business_services,
   get_clients,
   get_client,
-  add_client
+  add_client,
+  get_staff,
+  get_staff_member,
+  update_staff_member,
 } from '../api/api';
 import { useAuthStore } from '../store/auth';
 import { BusinessServices } from '../types/business';
@@ -72,7 +75,10 @@ export const useBusinessProfile = () => {
 export const useUpdateBusinessProfile = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, updateData }: {
+    mutationFn: ({
+      id,
+      updateData,
+    }: {
       id: string;
       updateData: {
         business_name?: string;
@@ -112,7 +118,7 @@ export const useGetBusinessServices = () => {
   return useQuery<BusinessServices>({
     queryKey: ['business_services'],
     queryFn: get_business_services,
-    staleTime: 1000 * 60 * 5, 
+    staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
     retry: 2,
   });
@@ -156,16 +162,53 @@ interface AddClientInput {
 export const useAddClient = () => {
   const queryClient = useQueryClient();
   return useMutation<Client, Error, AddClientInput>({
-    mutationFn: (data) => add_client({
-      first_name: data.first_name,
-      last_name: data.last_name,
-      email: data.email,
-      phone_number: data.phone_number,
-      location: data.location || '',
-    }),
+    mutationFn: (data) =>
+      add_client({
+        first_name: data.first_name,
+        last_name: data.last_name,
+        email: data.email,
+        phone_number: data.phone_number,
+        location: data.location || '',
+      }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['clients'] });
     },
     onError: (error) => console.error('Add client error:', error),
+  });
+};
+
+
+
+export const useGetStaff = () => {
+  return useQuery({
+    queryKey: ['staff'],
+    queryFn: get_staff,
+    staleTime: 1000 * 60 * 5,
+    refetchOnWindowFocus: false,
+    retry: 2,
+  });
+};
+
+export const useGetStaffMember = (id: string) => {
+  return useQuery({
+    queryKey: ['staff', id],
+    queryFn: () => get_staff_member(id),
+    staleTime: 1000 * 60 * 5,
+    refetchOnWindowFocus: false,
+    retry: 2,
+    enabled: !!id,
+  });
+};
+
+export const useUpdateStaffMember = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, updateStaffData }: { id: string; updateStaffData: any }) =>
+      update_staff_member(id, updateStaffData),
+    onSuccess: (_, { id }) => {
+      queryClient.invalidateQueries({ queryKey: ['staff'] });
+      queryClient.invalidateQueries({ queryKey: ['staff', id] });
+    },
+    onError: (error) => console.error('Update staff member error ====>', error),
   });
 };

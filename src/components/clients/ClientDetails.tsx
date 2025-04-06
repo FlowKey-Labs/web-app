@@ -114,7 +114,7 @@ const ClientDetails = () => {
 
   if (!clientDetails) {
     return (
-      <div className='w-full space-y-6 bg-white rounded-lg p-6'>
+      <div className='w-full min-h-screen space-y-6 bg-white rounded-lg p-6'>
         <p className='text-primary'>Client not found</p>
       </div>
     );
@@ -122,7 +122,7 @@ const ClientDetails = () => {
 
   if (!paymentHistory) {
     return (
-      <div className='p-8'>
+      <div className='p-8 min-h-screen'>
         <h2 className='text-[40px] font-bold text-primary'>
           Payment history not found
         </h2>

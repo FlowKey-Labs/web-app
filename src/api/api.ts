@@ -16,6 +16,9 @@ const END_POINTS = {
   CLIENTS: {
     CLIENTS_DATA: `${BASE_URL}/api/client/`,
   },
+  STAFF: {
+    STAFF_DATA: `${BASE_URL}/api/staff/`,
+  },
   GOOGLE: {
     PLACES_AUTOCOMPLETE: `https://maps.googleapis.com/maps/api/place/autocomplete/json`,
   },
@@ -114,6 +117,37 @@ const add_client = async (clientData: {
   return data;
 };
 
+const get_staff = async () => {
+  const { data } = await api.get(END_POINTS.STAFF.STAFF_DATA);
+  return data;
+};
+
+const get_staff_member = async (id: string) => {
+  const { data } = await api.get(`${END_POINTS.STAFF.STAFF_DATA}${id}/`);
+  return data;
+};
+
+const update_staff_member = async (
+  id: string,
+  updateStaffData: {
+    first_name: string;
+    last_name: string;
+    phone_number: string;
+    role: string;
+    permissions: {
+      create_events: boolean;
+      add_clients: boolean;
+      create_invoices: boolean;
+    };
+  }
+) => {
+  const { data } = await api.patch(
+    `${END_POINTS.STAFF.STAFF_DATA}${id}/`,
+    updateStaffData
+  );
+  return data;
+};
+
 export {
   END_POINTS,
   registerUser,
@@ -126,4 +160,7 @@ export {
   get_clients,
   get_client,
   add_client,
+  get_staff,
+  get_staff_member,
+  update_staff_member,
 };

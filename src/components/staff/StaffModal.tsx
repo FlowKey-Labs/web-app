@@ -3,7 +3,7 @@ import NewStaffProfile from './NewStaffProfile';
 import NewStaffRoles from './NewStaffRoles';
 import NewStaffPermissions from './NewStaffPermissions';
 import NewStaffReview from './NewStaffReview';
-import { FormData } from './types';
+import { FormData } from '../../types/staffTypes';
 import cancelIcon from '../../assets/icons/cancel.svg';
 
 interface StaffModalProps {

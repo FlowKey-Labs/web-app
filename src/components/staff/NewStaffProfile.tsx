@@ -31,8 +31,8 @@ const NewStaffProfile = ({ onNext }: NewStaffProfileProps) => {
         Personal Information
       </h3>
       <p className='text-primary text-sm'>
-        Enter your team member's email to send them an
-        invitation to access FlowKey
+        Enter your team member's email to send them an invitation to access
+        FlowKey
       </p>
       <FormProvider {...methods}>
         <form

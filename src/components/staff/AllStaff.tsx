@@ -3,13 +3,14 @@ import { createColumnHelper } from '@tanstack/react-table';
 import { useState } from 'react';
 import actionOptionIcon from '../../assets/icons/actionOption.svg';
 import Table from '../common/Table';
-import { data, Staff } from '../../utils/dummyData';
 import plusIcon from '../../assets/icons/plusWhite.svg';
 import StaffModal from './StaffModal';
 import { navigateToStaffDetails } from '../../utils/navigationHelpers';
 import { useNavigate } from 'react-router-dom';
+import { useGetStaff } from '../../hooks/reactQuery';
+import { StaffResponse } from '../../types/staffTypes';
 
-const columnHelper = createColumnHelper<Staff>();
+const columnHelper = createColumnHelper<StaffResponse>();
 
 const columns = [
   columnHelper.display({
@@ -31,34 +32,34 @@ const columns = [
       />
     ),
   }),
-  columnHelper.accessor('name', {
+  columnHelper.accessor((row) => `${row.user.first_name} ${row.user.last_name}`, {
     header: 'Name',
     cell: (info) => (
       <div className='text-start'>
-        <p className='font-medium text-gray-900'>{info.getValue()}</p>
-        <p className='text-xs text-gray-500'>{info.row.original.staffNumber}</p>
+        <p className='text-sm text-primary'>{info.getValue()}</p>
+        <p className='text-xs text-[#8A8D8E]'>{info.row.original.member_id}</p>
       </div>
     ),
   }),
-  columnHelper.accessor('phoneNumber', {
+  columnHelper.accessor((row) => row.user.mobile_number, {
     header: 'Phone Number',
     cell: (info) => info.getValue(),
   }),
-  columnHelper.accessor('email', {
+  columnHelper.accessor((row) => row.user.email, {
     header: 'Email',
     cell: (info) => info.getValue(),
   }),
-  columnHelper.accessor('status', {
+  columnHelper.accessor('isActive', {
     header: 'Status',
     cell: (info) => (
       <span
         className={`inline-block px-2 py-1 rounded-lg text-sm text-center min-w-[70px] ${
-          info.getValue() === 'Active'
+          info.getValue() === true
             ? 'bg-active text-primary'
             : 'bg-red-100 text-red-800'
         }`}
       >
-        {info.getValue()}
+        {info.getValue() === true ? 'Active' : 'Inactive'}
       </span>
     ),
   }),
@@ -88,8 +89,40 @@ const AllStaff = () => {
   const [rowSelection, setRowSelection] = useState({});
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  const {
+    data: staff = [],
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useGetStaff();
+
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
+
+  if (isLoading) {
+    return (
+      <div className='w-full min-h-screen space-y-6 bg-white rounded-lg p-6'>
+        <p className='text-primary'>Loading staff...</p>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className='w-full min-h-screen space-y-6 bg-white rounded-lg p-6'>
+        <div className='space-y-4'>
+          <p className='text-red-500'>Error loading staff: {error?.message}</p>
+          <button
+            onClick={() => refetch()}
+            className='px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90'
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -103,13 +136,13 @@ const AllStaff = () => {
         />
         <div className='flex-1 px-6 py-3'>
           <Table
-            data={data}
+            data={staff}
             columns={columns}
             rowSelection={rowSelection}
             onRowSelectionChange={setRowSelection}
             className='mt-4'
             pageSize={8}
-            onRowClick={(row: Staff) =>
+            onRowClick={(row: StaffResponse) =>
               navigateToStaffDetails(navigate, row.id.toString())
             }
           />

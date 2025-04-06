@@ -255,23 +255,13 @@ const ClientsModal = ({ isOpen, onClose }: ClientsModalProps) => {
 
               <div className='mt-auto flex justify-end gap-4'>
                 <Button
-                  type='button'
-                  onClick={onClose}
-                  color='#6B7280'
-                  radius='8px'
-                  className='w-full md:w-auto'
-                  disabled={isPending}
-                >
-                  Cancel
-                </Button>
-                <Button
                   type='submit'
                   color='#1D9B5E'
                   radius='8px'
                   className='w-full md:w-auto'
                   disabled={isPending}
                 >
-                  {isPending ? 'Creating...' : 'Create Client'}
+                  {isPending ? 'Creating...' : 'Continue'}
                 </Button>
               </div>
             </form>
