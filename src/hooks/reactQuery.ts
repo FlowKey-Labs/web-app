@@ -13,10 +13,12 @@ import {
   get_staff,
   get_staff_member,
   update_staff_member,
+  create_staff,
 } from '../api/api';
 import { useAuthStore } from '../store/auth';
 import { BusinessServices } from '../types/business';
-import { Client } from '../types/clientTypes';
+import { AddClient, Client } from '../types/clientTypes';
+import { CreateStaffRequest, StaffResponse } from '../types/staffTypes';
 
 export const useRegisterUser = () => {
   const queryClient = useQueryClient();
@@ -145,23 +147,10 @@ export const useGetClient = (id: string) => {
   });
 };
 
-interface AddClientInput {
-  first_name: string;
-  last_name: string;
-  email: string;
-  phone_number: string;
-  location: string;
-  assigned_classes: number;
-  id: number;
-  active: boolean;
-  created_at: string;
-  created_by: number;
-  business: number;
-}
 
 export const useAddClient = () => {
   const queryClient = useQueryClient();
-  return useMutation<Client, Error, AddClientInput>({
+  return useMutation<Client, Error, AddClient>({
     mutationFn: (data) =>
       add_client({
         first_name: data.first_name,
@@ -197,6 +186,16 @@ export const useGetStaffMember = (id: string) => {
     refetchOnWindowFocus: false,
     retry: 2,
     enabled: !!id,
+  });
+};
+
+export const useCreateStaffMember = () => {
+  const queryClient = useQueryClient();
+  return useMutation<StaffResponse, Error, CreateStaffRequest>({
+    mutationFn: (data: CreateStaffRequest) => create_staff(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['staff'] });
+    },
   });
 };
 

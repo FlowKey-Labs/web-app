@@ -11,11 +11,13 @@ interface PermissionsFormData {
 interface NewStaffPermissionsProps {
   onNext: (data: PermissionsFormData) => void;
   onBack: () => void;
+  initialData?: PermissionsFormData;
 }
 
-const NewStaffPermissions = ({ onNext, onBack }: NewStaffPermissionsProps) => {
+const NewStaffPermissions = ({ onNext, onBack, initialData }: NewStaffPermissionsProps) => {
   const methods = useForm<PermissionsFormData>({
-    defaultValues: {
+    mode: 'onChange',
+    defaultValues: initialData || {
       createEvents: false,
       addClients: false,
       createInvoices: false,
@@ -86,7 +88,7 @@ const NewStaffPermissions = ({ onNext, onBack }: NewStaffPermissionsProps) => {
               w={120}
               h={52}
               type='submit'
-              disabled={!methods.formState.isDirty}
+              disabled={false}
               style={{
                 backgroundColor: '#1D9B5E',
                 color: '#FFF',

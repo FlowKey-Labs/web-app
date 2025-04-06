@@ -859,14 +859,14 @@ export const permissionsData = [
   },
 ];
 
-export const roleOptions = [
+export const roleOptions: DropDownItem[] = [
   { label: 'Manager', value: 'manager' },
   { label: 'Supervisor', value: 'supervisor' },
   { label: 'Staff', value: 'staff' },
   { label: 'Intern', value: 'intern' },
 ];
 
-export const payTypeOptions = [
+export const payTypeOptions: DropDownItem[] = [
   { label: 'Hourly', value: 'hourly' },
   { label: 'Salary', value: 'salary' },
   { label: 'Commission', value: 'commission' },
@@ -936,11 +936,7 @@ export const services: Service[] = [
   },
 ];
 
-export const profileRoleOptions: DropDownItem[] = [
-  { label: 'Owner', value: 'owner' },
-  { label: 'Manager', value: 'manager' },
-  { label: 'Staff', value: 'staff' },
-];
+
 
 export const regionOptions: DropDownItem[] = [
   { label: 'Kiambu', value: 'Kiambu' },

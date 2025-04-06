@@ -6,22 +6,22 @@ import {
 } from 'react-hook-form';
 import Input from '../common/Input';
 import Button from '../common/Button';
+import { FormData } from '../../types/staffTypes';
 
-interface ProfileFormData {
-  email: string;
-  userId: string;
-}
+type ProfileData = Required<NonNullable<FormData['profile']>>;
 
 interface NewStaffProfileProps {
-  onNext: (data: ProfileFormData) => void;
+  onNext: (data: ProfileData) => void;
+  initialData?: ProfileData;
 }
 
-const NewStaffProfile = ({ onNext }: NewStaffProfileProps) => {
-  const methods = useForm<ProfileFormData>({
+const NewStaffProfile = ({ onNext, initialData }: NewStaffProfileProps) => {
+  const methods = useForm<ProfileData>({
     mode: 'onChange',
+    defaultValues: initialData,
   });
 
-  const onSubmit: SubmitHandler<ProfileFormData> = (data) => {
+  const onSubmit: SubmitHandler<ProfileData> = (data) => {
     onNext(data);
   };
 
@@ -41,7 +41,6 @@ const NewStaffProfile = ({ onNext }: NewStaffProfileProps) => {
         >
           <div className='flex flex-col gap-6 flex-grow'>
             <div className='space-y-4'>
-              {/* Email */}
               <Controller
                 name='email'
                 control={methods.control}
@@ -63,14 +62,13 @@ const NewStaffProfile = ({ onNext }: NewStaffProfileProps) => {
                 )}
               />
 
-              {/* User ID */}
               <Controller
                 name='userId'
                 control={methods.control}
                 render={({ field }) => (
                   <Input
                     {...field}
-                    label=' User ID'
+                    label='User ID'
                     placeholder='Team member ID (optional)'
                     type='text'
                   />
@@ -84,7 +82,7 @@ const NewStaffProfile = ({ onNext }: NewStaffProfileProps) => {
               w={120}
               h={52}
               type='submit'
-              disabled={!methods.formState.isDirty}
+              disabled={!methods.formState.isValid}
               style={{
                 backgroundColor: '#1D9B5E',
                 color: '#FFF',

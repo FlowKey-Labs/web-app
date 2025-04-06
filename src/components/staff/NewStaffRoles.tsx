@@ -1,14 +1,16 @@
+import { useState } from 'react';
 import { useForm, SubmitHandler, FormProvider } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import Button from '../common/Button';
 import DropdownSelectInput from '../common/Dropdown';
 import { roleOptions, payTypeOptions } from '../../utils/dummyData';
+import { StaffRole, PayType } from '../../types/staffTypes';
 
 interface RoleData {
-  role: string;
-  payType: string;
-  hourlyRate: string;
+  role: StaffRole;
+  payType: PayType;
+  hourlyRate?: string;
 }
 
 interface RoleFormData {
@@ -18,27 +20,37 @@ interface RoleFormData {
 interface NewStaffRolesProps {
   onNext: (data: RoleData) => void;
   onBack: () => void;
+  initialData?: RoleData;
 }
 
 const roleSchema = yup.object({
-  role: yup.string().required('Role is required'),
-  payType: yup.string().required('Pay type is required'),
-  hourlyRate: yup
-    .string()
-    .matches(/^\d+\.?\d{0,2}$/, 'Invalid amount format')
-    .required('Hourly rate is required'),
+  role: yup.string().oneOf(['intern', 'manager', 'staff', 'supervisor'] as const, 'Invalid role').required('Role is required'),
+  payType: yup.string().oneOf(['hourly', 'salary', 'commission'] as const, 'Invalid pay type').required('Pay type is required'),
+  hourlyRate: yup.string().test('conditional-hourly-rate', 'Hourly rate is required for hourly pay type', function(value, context) {
+    if (context.parent.payType === 'hourly') {
+      if (!value) return false;
+      return /^\d+\.?\d{0,2}$/.test(value);
+    }
+    return true;
+  }),
 });
 
 const formSchema = yup.object({
   roles: yup.array().of(roleSchema).min(1).required(),
 });
 
-const NewStaffRoles = ({ onNext, onBack }: NewStaffRolesProps) => {
+const NewStaffRoles = ({ onNext, onBack, initialData }: NewStaffRolesProps) => {
+  const [showHourlyRate, setShowHourlyRate] = useState(initialData?.payType === 'hourly');
+  
   const methods = useForm<RoleFormData>({
     resolver: yupResolver(formSchema),
     mode: 'onChange',
     defaultValues: {
-      roles: [{ role: '', payType: '', hourlyRate: '' }],
+      roles: [{ 
+        role: initialData?.role || 'staff', 
+        payType: initialData?.payType || 'hourly', 
+        hourlyRate: initialData?.hourlyRate || ''
+      }],
     },
   });
 
@@ -63,8 +75,9 @@ const NewStaffRoles = ({ onNext, onBack }: NewStaffRolesProps) => {
                 label='Role'
                 options={roleOptions}
                 placeholder='Select or create new role'
+                value={methods.watch('roles.0.role')}
                 onSelectItem={(selectedItem) =>
-                  methods.setValue(`roles.0.role`, selectedItem.value as string)
+                  methods.setValue(`roles.0.role`, selectedItem.value as StaffRole)
                 }
                 hasError={!!methods.formState.errors.roles?.[0]?.role}
                 errorMessage={
@@ -76,19 +89,22 @@ const NewStaffRoles = ({ onNext, onBack }: NewStaffRolesProps) => {
                 label='Pay Type'
                 options={payTypeOptions}
                 placeholder='Select pay type'
-                onSelectItem={(selectedItem) =>
-                  methods.setValue(
-                    `roles.0.payType`,
-                    selectedItem.value as string
-                  )
-                }
+                value={methods.watch('roles.0.payType')}
+                onSelectItem={(selectedItem) => {
+                  const payType = selectedItem.value as PayType;
+                  methods.setValue(`roles.0.payType`, payType);
+                  setShowHourlyRate(payType === 'hourly');
+                  if (payType !== 'hourly') {
+                    methods.setValue(`roles.0.hourlyRate`, '');
+                  }
+                }}
                 hasError={!!methods.formState.errors.roles?.[0]?.payType}
                 errorMessage={
                   methods.formState.errors.roles?.[0]?.payType?.message
                 }
               />
 
-              <div className='relative'>
+              {showHourlyRate && <div className='relative'>
                 <input
                   type='text'
                   {...methods.register(`roles.0.hourlyRate`)}
@@ -117,7 +133,7 @@ const NewStaffRoles = ({ onNext, onBack }: NewStaffRolesProps) => {
                     }
                   </p>
                 )}
-              </div>
+              </div>}
             </div>
           </div>
 

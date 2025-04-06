@@ -89,7 +89,9 @@ const NewStaffReview = ({
             isSearchable={false}
             isClearable={false}
           />
-          <DisplayInput label='Hourly Rate' value={formData.role.hourlyRate} />
+          {formData.role.payType === 'hourly' && formData.role.hourlyRate && (
+            <DisplayInput label='Hourly Rate' value={formData.role.hourlyRate} />
+          )}
         </div>
       ),
     },

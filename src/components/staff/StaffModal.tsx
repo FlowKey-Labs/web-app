@@ -1,10 +1,15 @@
 import { useState } from 'react';
+import { FormProvider, useForm } from 'react-hook-form';
 import NewStaffProfile from './NewStaffProfile';
 import NewStaffRoles from './NewStaffRoles';
 import NewStaffPermissions from './NewStaffPermissions';
 import NewStaffReview from './NewStaffReview';
-import { FormData } from '../../types/staffTypes';
+import { useCreateStaffMember } from '../../hooks/reactQuery';
+import NotificationToast from '../common/NotificationToast';
+import { useStaffFormStore } from '../../store/staffForm';
 import cancelIcon from '../../assets/icons/cancel.svg';
+
+import { FormData } from '../../types/staffTypes';
 
 interface StaffModalProps {
   isOpen: boolean;
@@ -26,21 +31,33 @@ const sections: SectionTypes = [
 ];
 
 const StaffModal = ({ isOpen, onClose }: StaffModalProps) => {
-  const [activeSection, setActiveSection] = useState<SectionType>('Profile');
-  const [formData, setFormData] = useState<FormData>({});
+  const [showNotification, setShowNotification] = useState(false);
+  const { mutate: createStaff } = useCreateStaffMember();
+  
+  const {
+    formData,
+    activeSection,
+    setFormData,
+    setActiveSection,
+    resetForm
+  } = useStaffFormStore();
 
-  const handleProfileSubmit = (data: FormData['profile']) => {
-    setFormData((prev) => ({ ...prev, profile: data }));
+  const methods = useForm<FormData>({
+    defaultValues: formData
+  });
+
+  const handleProfileSubmit = (data: Required<NonNullable<FormData['profile']>>) => {
+    setFormData({ profile: data });
     setActiveSection('Roles');
   };
 
   const handleRoleSubmit = (data: FormData['role']) => {
-    setFormData((prev) => ({ ...prev, role: data }));
+    setFormData({ role: data });
     setActiveSection('Permissions');
   };
 
   const handlePermissionsSubmit = (data: FormData['permissions']) => {
-    setFormData((prev) => ({ ...prev, permissions: data }));
+    setFormData({ permissions: data });
     setActiveSection('Review');
   };
 
@@ -48,17 +65,18 @@ const StaffModal = ({ isOpen, onClose }: StaffModalProps) => {
     const sectionTitles = sections.map((sec) => sec.title);
     const currentIndex = sectionTitles.indexOf(activeSection);
     if (currentIndex > 0) {
-      setActiveSection(sectionTitles[currentIndex - 1]);
+      setActiveSection(sectionTitles[currentIndex - 1] as SectionType);
     }
   };
 
   const contentMap: Record<SectionType, React.ReactNode> = {
-    Profile: <NewStaffProfile onNext={handleProfileSubmit} />,
-    Roles: <NewStaffRoles onNext={handleRoleSubmit} onBack={handleBack} />,
+    Profile: <NewStaffProfile onNext={handleProfileSubmit} initialData={formData.profile} />,
+    Roles: <NewStaffRoles onNext={handleRoleSubmit} onBack={handleBack} initialData={formData.role} />,
     Permissions: (
       <NewStaffPermissions
         onNext={handlePermissionsSubmit}
         onBack={handleBack}
+        initialData={formData.permissions}
       />
     ),
     Review: (
@@ -66,7 +84,26 @@ const StaffModal = ({ isOpen, onClose }: StaffModalProps) => {
         formData={formData}
         onBack={handleBack}
         onSubmit={() => {
-          onClose();
+          if (!formData.profile || !formData.role || !formData.permissions) return;
+          
+          createStaff({
+            email: formData.profile.email,
+            member_id: formData.profile.userId || undefined,
+            role: formData.role.role,
+            pay_type: formData.role.payType,
+            rate: formData.role.payType === 'hourly' ? formData.role.hourlyRate || '0' : '0',
+            permissions: {
+              can_create_events: formData.permissions.createEvents,
+              can_add_clients: formData.permissions.addClients,
+              can_create_invoices: formData.permissions.createInvoices
+            }
+          });
+
+          setShowNotification(true);
+          setTimeout(() => {
+            resetForm();
+            onClose();
+          }, 2000);
         }}
       />
     ),
@@ -77,10 +114,11 @@ const StaffModal = ({ isOpen, onClose }: StaffModalProps) => {
   if (!isOpen) return null;
 
   return (
-    <div
-      className='fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-end'
-      onClick={onClose}
-    >
+    <FormProvider {...methods}>
+      <div
+        className='fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-end'
+        onClick={onClose}
+      >
       <div
         className='w-2/3 h-screen bg-white p-6 flex flex-col overflow-y-auto'
         onClick={(e) => e.stopPropagation()}
@@ -147,7 +185,16 @@ const StaffModal = ({ isOpen, onClose }: StaffModalProps) => {
           </div>
         </div>
       </div>
-    </div>
+      {showNotification && (
+        <NotificationToast
+          type='success'
+          title='Success'
+          description="Staff member created successfully!"
+          onClose={() => setShowNotification(false)}
+        />
+      )}
+      </div>
+    </FormProvider>
   );
 };
 

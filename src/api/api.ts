@@ -148,6 +148,22 @@ const update_staff_member = async (
   return data;
 };
 
+const create_staff = async (staffData: {
+  email: string;
+  member_id?: string;
+  role: string;
+  pay_type: string;
+  rate: string;
+  permissions: {
+    can_create_events: boolean;
+    can_add_clients: boolean;
+    can_create_invoices: boolean;
+  };
+}) => {
+  const { data } = await api.post(END_POINTS.STAFF.STAFF_DATA, staffData);
+  return data;
+};
+
 export {
   END_POINTS,
   registerUser,
@@ -163,4 +179,5 @@ export {
   get_staff,
   get_staff_member,
   update_staff_member,
+  create_staff,
 };

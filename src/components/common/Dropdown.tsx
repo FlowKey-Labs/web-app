@@ -33,6 +33,7 @@ type Props = {
   selectedValues?: any;
   className?: string;
   selectClassName?: string;
+  value?: string;
 };
 
 const Option = (props: OptionProps<DropDownItem>) => {
@@ -70,15 +71,21 @@ export default function DropdownSelectInput({
   errorMessage,
   className,
   selectClassName,
+  value,
   ...props
 }: Props & React.HTMLAttributes<HTMLDivElement>) {
-  const [value, setValue] = useState<
+  const [selectedValue, setSelectedValue] = useState<
     MultiValue<DropDownItem> | SingleValue<DropDownItem>
   >();
 
   useEffect(() => {
-    defaultValue && setValue(defaultValue);
-  }, [defaultValue]);
+    if (value) {
+      const selectedOption = options.find(option => option.value === value);
+      selectedOption && setSelectedValue(selectedOption);
+    } else if (defaultValue) {
+      setSelectedValue(defaultValue);
+    }
+  }, [defaultValue, value, options]);
 
   const sortedOptions = useMemo(
     () => options.sort((a, b) => a.label.localeCompare(b.label)),
@@ -140,14 +147,14 @@ export default function DropdownSelectInput({
       <Select
         className={selectClassName || 'w-full text-sm'}
         classNamePrefix={placeholder}
-        value={value}
+        value={selectedValue}
         isDisabled={isDisabled}
         isLoading={isLoading}
         isClearable={isClearable}
         isMulti={!singleSelect}
         onChange={(selectedItem) => {
           onSelectItem?.(selectedItem || { value: '' });
-          setValue(selectedItem);
+          setSelectedValue(selectedItem);
         }}
         isSearchable={isSearchable}
         options={sortedOptions}

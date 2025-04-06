@@ -1,15 +1,16 @@
+// Base types for enums
+export type StaffRole = 'intern' | 'manager' | 'staff' | 'supervisor';
+export type PayType = 'hourly' | 'salary' | 'commission';
+
 export interface FormData {
   profile?: {
-    preferedName: string;
-    lastName: string;
-    phoneNumber: string;
     email: string;
     userId: string;
   };
   role?: {
-    role: string;
-    payType: string;
-    hourlyRate: string;
+    role: StaffRole;
+    payType: PayType;
+    hourlyRate?: string;
   };
   permissions?: {
     createEvents: boolean;
@@ -17,10 +18,6 @@ export interface FormData {
     createInvoices: boolean;
   };
 }
-
-// Base types for enums
-export type StaffRole = 'intern' | 'manager' | 'staff' | 'supervisor';
-export type PayType = 'hourly' | 'salary' | 'commission';
 
 // User type
 
@@ -67,17 +64,16 @@ interface Staff {
 
 // Types for API requests
 export interface CreateStaffRequest {
-  id: number;
   email: string;
-  first_name: string;
-  last_name: string;
-  mobile_number?: string;
+  member_id?: string;
   role: StaffRole;
   pay_type: PayType;
-  rate: number | string;
-  member_id?: string;
-  isActive?: boolean;
-  permissions?: Partial<Permissions>;
+  rate: string;
+  permissions: {
+    can_create_events: boolean;
+    can_add_clients: boolean;
+    can_create_invoices: boolean;
+  };
 }
 
 export interface UpdateStaffRequest {
@@ -102,13 +98,13 @@ export interface StaffResponse {
   email: string;
   member_id: string | null;
   pay_type: PayType;
-  rate: string; 
+  rate: string;
   business: BusinessProfile;
   isActive: boolean;
   created_at: string;
   permissions?: Permissions;
-  token?: string; 
-  uidb64?: string; 
+  token?: string;
+  uidb64?: string;
 }
 
 export interface StaffListResponse extends Array<StaffResponse> {}

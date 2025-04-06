@@ -76,7 +76,6 @@ const StaffDetails = () => {
         staffNumber: staffDetails.member_id || '',
       });
 
-      // Also initialize permissions
       if (staffDetails.permissions) {
         setPermissions({
           can_add_clients: staffDetails.permissions.can_add_clients || false,
@@ -139,7 +138,6 @@ const StaffDetails = () => {
     const updatedPermissions = { ...permissions, [name]: checked };
     setPermissions(updatedPermissions);
 
-    // Update staff permissions immediately
     if (!staffId) return;
 
     updateStaff(
