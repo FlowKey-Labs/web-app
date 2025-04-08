@@ -47,17 +47,8 @@ const StaffDetails = () => {
   const methods = useForm<PersonalFormData>();
   const { control, handleSubmit, reset } = methods;
 
-  // const { notifications, addNotification } = useNotification();
-
-  // addNotification({
-  //   type: 'success',
-  //   title: 'Success!',
-  //   description: 'Operation completed',
-  // });
-
   const staffDetails = staffMember;
 
-  // Handle success notification
   useEffect(() => {
     if (showNotification) {
       const timer = setTimeout(() => setShowNotification(false), 3000);
@@ -495,16 +486,6 @@ const StaffDetails = () => {
           autoClose={5000}
         />
       )}
-      {/* {notifications.map((notification) => (
-        <NotificationToast
-          key={notification.id}
-          type={notification.type}
-          title={notification.title}
-          description={notification.description}
-          onClose={() => removeNotification(notification.id)}
-          autoClose={notification.autoClose}
-        />
-      ))} */}
     </FormProvider>
   );
 };

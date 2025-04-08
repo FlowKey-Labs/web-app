@@ -216,7 +216,6 @@ const ClientDetails = () => {
                     <span className='text-gray-400 font-bold text-xs'>
                       ASSIGNED TO
                     </span>
-                    {/* this where i want us to display  */}
                     <span className='text-gray-400  text-xs'>
                       {clientDetails.assignedTo || 'Not Assigned'}
                     </span>

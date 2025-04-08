@@ -189,53 +189,6 @@ const ClientsModal = ({ isOpen, onClose }: ClientsModalProps) => {
                 />
               </div>
 
-              {/* <div className='mb-8'>
-                <div className='grid grid-cols-3 gap-4'>
-                  <Controller
-                    name='month'
-                    control={control}
-                    render={({ field }) => (
-                      <DropdownSelectInput
-                        label='Month'
-                        placeholder='Jan'
-                        options={months}
-                        onSelectItem={(selected) =>
-                          field.onChange(selected.value)
-                        }
-                      />
-                    )}
-                  />
-                  <Controller
-                    name='day'
-                    control={control}
-                    render={({ field }) => (
-                      <DropdownSelectInput
-                        label='Day'
-                        placeholder='09'
-                        options={days}
-                        onSelectItem={(selected) =>
-                          field.onChange(selected.value)
-                        }
-                      />
-                    )}
-                  />
-                  <Controller
-                    name='year'
-                    control={control}
-                    render={({ field }) => (
-                      <DropdownSelectInput
-                        label='Year'
-                        placeholder='1975'
-                        options={years}
-                        onSelectItem={(selected) =>
-                          field.onChange(selected.value)
-                        }
-                      />
-                    )}
-                  />
-                </div>
-              </div> */}
-
               <div className='mb-8'>
                 <Controller
                   name='assigned_classes'

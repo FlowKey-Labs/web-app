@@ -2,7 +2,7 @@ import { api } from '../lib/axios';
 import axios from 'axios';
 const BASE_URL = import.meta.env.VITE_APP_BASEURL;
 
-const GOOGLE_API_KEY = 'AIzaSyBqwYZJ0UXWi7CmzgKoXLiJ87y7vYe6Xw8';
+const GOOGLE_API_KEY = import.meta.env.VITE_APP_GOOGLE_API_KEY;
 
 const END_POINTS = {
   AUTH: {

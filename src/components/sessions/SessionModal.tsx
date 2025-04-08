@@ -105,7 +105,6 @@ const ClassesModal = ({ isOpen, onClose }: ClassModalProps) => {
 
       console.log('Class session created:', classSession);
 
-      // Close modal and reset form
       onClose();
       methods.reset();
       setSelectedWeekdays([]);
@@ -175,313 +174,21 @@ const ClassesModal = ({ isOpen, onClose }: ClassModalProps) => {
               className='flex-1 flex flex-col'
             >
               <div className='flex-1 p-8'>
-                {view === 'class' ? (
-                  <div className='space-y-4'>
-                    <h3 className='text-lg font-bold text-gray-700'>
-                      Class Details
-                    </h3>
-                    <div className='space-y-6'>
-                      <div className='flex flex-col'>
-                        <Controller
-                          name='classType'
-                          control={methods.control}
-                          render={({ field }) => (
-                            <DropdownSelectInput
-                              {...field}
-                              label='Class Type'
-                              placeholder='Select Class Type'
-                              options={classTypes.map((item) => ({
-                                label: item.label,
-                                value: item.value,
-                              }))}
-                              onSelectItem={(selectedItem) =>
-                                field.onChange(selectedItem)
-                              }
-                            />
-                          )}
-                        />
-                        <Controller
-                          name='className'
-                          control={methods.control}
-                          render={({ field }) => (
-                            <Input
-                              {...field}
-                              label='Class Name'
-                              placeholder='Enter Class Name'
-                            />
-                          )}
-                        />
-                        <div className='flex justify-between mt-4 text-sm text-primary'>
-                          {categoryOptions.map((category) => (
-                            <button
-                              key={category}
-                              className={`flex justify-center items-center cursor-pointer w-[133px] h-[43px] bg-cardsBg text-center rounded-lg ${
-                                selectedCategory === category
-                                  ? 'ring-1 ring-secondary'
-                                  : ''
-                              }`}
-                              onClick={() => handleCategoryClick(category)}
-                            >
-                              <p className='font-bold'>{category}</p>
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                      <div className='space-y-4'>
-                        <h3 className='text-lg font-bold text-gray-700'>
-                          Class Schedule
-                        </h3>
-                        <div className='w-full'>
-                          <Controller
-                            name='date'
-                            control={methods.control}
-                            render={({ field }) => (
-                              <Input
-                                {...field}
-                                type='date'
-                                label='Date'
-                                placeholder='2020/12/12'
-                                containerClassName='mb-4'
-                              />
-                            )}
-                          />
-                          <div className='grid grid-cols-2 gap-4'>
-                            <Controller
-                              name='startTime'
-                              control={methods.control}
-                              render={({ field }) => (
-                                <Input
-                                  {...field}
-                                  type='time'
-                                  label='Start Time'
-                                  placeholder='12:00 PM'
-                                />
-                              )}
-                            />
-                            <Controller
-                              name='endTime'
-                              control={methods.control}
-                              render={({ field }) => (
-                                <Input
-                                  {...field}
-                                  type='time'
-                                  label='End Time'
-                                  placeholder='12:00 PM'
-                                />
-                              )}
-                            />
-                          </div>
-                        </div>
-                        <Controller
-                          name='repetition'
-                          control={methods.control}
-                          render={({ field }) => (
-                            <div>
-                              <DropdownSelectInput
-                                {...field}
-                                label='Set Repetition'
-                                placeholder='Does not repeat'
-                                options={repetition.map((item) => ({
-                                  label: item.label,
-                                  value: item.value,
-                                }))}
-                                onSelectItem={(selectedItem) => {
-                                  field.onChange(selectedItem);
-                                  if (selectedItem.value === 'custom') {
-                                    setIsCustomRepetitionModalOpen(true);
-                                  }
-                                }}
-                              />
-                              <DropDownMenu
-                                dropDownPosition='center-screen'
-                                show={isCustomRepetitionModalOpen}
-                                setShow={setIsCustomRepetitionModalOpen}
-                              >
-                                <div className='space-y-8 min-w-[300px] p-6'>
-                                  <h3 className='text-lg font-bold text-gray-700'>
-                                    Set Repetition
-                                  </h3>
-
-                                  <div className='space-y-2'>
-                                    <p className='text-[16px] font-[400]'>
-                                      Repeat On
-                                    </p>
-                                    <div className='flex gap-2'>
-                                      {repeatDays.map((day) => (
-                                        <button
-                                          key={day}
-                                          className={`h-10 w-10 rounded-full flex items-center justify-center p-4 text-xs ${
-                                            selectedWeekdays.includes(day)
-                                              ? 'bg-[#1D9B5E33]'
-                                              : 'bg-cardsBg text-gray-700'
-                                          }`}
-                                          onClick={() =>
-                                            handleWeekdayClick(day)
-                                          }
-                                        >
-                                          {day}
-                                        </button>
-                                      ))}
-                                    </div>
-                                  </div>
-
-                                  <div className='space-y-2'>
-                                    <p className='text-[16px] font-[400]'>
-                                      Ends
-                                    </p>
-                                    <div className='flex gap-8'>
-                                      {['never', 'on', 'after'].map(
-                                        (option) => (
-                                          <label
-                                            key={option}
-                                            className='flex items-center gap-2'
-                                          >
-                                            <div className='relative flex items-center'>
-                                              <input
-                                                type='checkbox'
-                                                checked={endsOption === option}
-                                                onChange={() =>
-                                                  handleEndsOptionChange(
-                                                    option as
-                                                      | 'never'
-                                                      | 'on'
-                                                      | 'after'
-                                                  )
-                                                }
-                                                className='w-4 h-4 border-2 p-2 border-secondary focus:ring-2 focus:border-none focus:ring-secondary appearance-none rounded-full cursor-pointer bg-white'
-                                              />
-                                              <div className='absolute inset-0 flex items-center justify-center pointer-events-none'>
-                                                <div
-                                                  className={`w-3 h-3 rounded-full transition-colors ${
-                                                    endsOption === option
-                                                      ? 'bg-secondary'
-                                                      : 'bg-transparent'
-                                                  }`}
-                                                ></div>
-                                              </div>
-                                            </div>
-                                            <span>
-                                              {option.charAt(0).toUpperCase() +
-                                                option.slice(1)}
-                                            </span>
-                                          </label>
-                                        )
-                                      )}
-                                    </div>
-                                  </div>
-
-                                  {endsOption === 'on' && (
-                                    <div className='flex justify-between gap-4'>
-                                      <div className='flex justify-center items-center cursor-pointer w-[133px] h-[43px] bg-cardsBg text-center rounded-lg text-sm'>
-                                        April 20, 2025
-                                      </div>
-                                    </div>
-                                  )}
-                                  {endsOption === 'after' && (
-                                    <div className='flex justify-between gap-4'>
-                                      <div className='flex items-center gap-2'>
-                                        <span className='flex justify-center items-center cursor-pointer w-[133px] h-[43px] bg-cardsBg text-center rounded-lg text-sm'>
-                                          {occurrences} occurrences
-                                        </span>
-                                        <div className='flex flex-col'>
-                                          <button
-                                            onClick={() =>
-                                              handleOccurrencesChange(1)
-                                            }
-                                            className='p-1 rounded-full hover:bg-gray-100'
-                                          >
-                                            <img
-                                              src={ChevronUp}
-                                              alt='increase'
-                                              className='w-4 h-4'
-                                            />
-                                          </button>
-                                          <button
-                                            onClick={() =>
-                                              handleOccurrencesChange(-1)
-                                            }
-                                            className='p-1 rounded-full hover:bg-gray-100'
-                                          >
-                                            <img
-                                              src={ChevronDown}
-                                              alt='decrease'
-                                              className='w-4 h-4'
-                                            />
-                                          </button>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  )}
-
-                                  <div className='flex justify-end gap-2 mt-6'>
-                                    <Button
-                                      variant='subtle'
-                                      color='#0F2028'
-                                      onClick={() =>
-                                        setIsCustomRepetitionModalOpen(false)
-                                      }
-                                    >
-                                      Close
-                                    </Button>
-                                    <Button
-                                      color='#1D9B5E'
-                                      radius='md'
-                                      onClick={() =>
-                                        setIsCustomRepetitionModalOpen(false)
-                                      }
-                                    >
-                                      Save
-                                    </Button>
-                                  </div>
-                                </div>
-                              </DropDownMenu>
-                            </div>
-                          )}
-                        />
-                        <div className='flex justify-between items-center gap-4'>
-                          <Controller
-                            name='spots'
-                            control={methods.control}
-                            render={({ field }) => (
-                              <Input
-                                {...field}
-                                label='Spots Available'
-                                placeholder='Enter '
-                              />
-                            )}
-                          />
-                          <div className='w-full mt-4'>
-                            <Controller
-                              name='assignedStaff'
-                              control={methods.control}
-                              render={({ field }) => (
-                                <DropdownSelectInput
-                                  {...field}
-                                  label='Assign Staff'
-                                  placeholder='Select'
-                                  options={assignStaff.map((item) => ({
-                                    label: item.label,
-                                    value: item.value,
-                                  }))}
-                                  onSelectItem={(selectedItem) =>
-                                    field.onChange(selectedItem)
-                                  }
-                                />
-                              )}
-                            />
-                          </div>
-                        </div>
-                      </div>
+                <div className='space-y-4'>
+                  <h3 className='text-lg font-bold text-gray-700'>
+                    Class Details
+                  </h3>
+                  <div className='space-y-6'>
+                    <div className='flex flex-col'>
                       <Controller
-                        name='clients'
+                        name='classType'
                         control={methods.control}
                         render={({ field }) => (
                           <DropdownSelectInput
                             {...field}
-                            label='Clients'
-                            placeholder='Select Clients'
-                            singleSelect={false}
-                            options={selectClient.map((item) => ({
+                            label='Class Type'
+                            placeholder='Select Class Type'
+                            options={classTypes.map((item) => ({
                               label: item.label,
                               value: item.value,
                             }))}
@@ -491,11 +198,295 @@ const ClassesModal = ({ isOpen, onClose }: ClassModalProps) => {
                           />
                         )}
                       />
+                      <Controller
+                        name='className'
+                        control={methods.control}
+                        render={({ field }) => (
+                          <Input
+                            {...field}
+                            label='Class Name'
+                            placeholder='Enter Class Name'
+                          />
+                        )}
+                      />
+                      <div className='flex justify-between mt-4 text-sm text-primary'>
+                        {categoryOptions.map((category) => (
+                          <button
+                            key={category}
+                            className={`flex justify-center items-center cursor-pointer w-[133px] h-[43px] bg-cardsBg text-center rounded-lg ${
+                              selectedCategory === category
+                                ? 'ring-1 ring-secondary'
+                                : ''
+                            }`}
+                            onClick={() => handleCategoryClick(category)}
+                          >
+                            <p className='font-bold'>{category}</p>
+                          </button>
+                        ))}
+                      </div>
                     </div>
+                    <div className='space-y-4'>
+                      <h3 className='text-lg font-bold text-gray-700'>
+                        Class Schedule
+                      </h3>
+                      <div className='w-full'>
+                        <Controller
+                          name='date'
+                          control={methods.control}
+                          render={({ field }) => (
+                            <Input
+                              {...field}
+                              type='date'
+                              label='Date'
+                              placeholder='2020/12/12'
+                              containerClassName='mb-4'
+                            />
+                          )}
+                        />
+                        <div className='grid grid-cols-2 gap-4'>
+                          <Controller
+                            name='startTime'
+                            control={methods.control}
+                            render={({ field }) => (
+                              <Input
+                                {...field}
+                                type='time'
+                                label='Start Time'
+                                placeholder='12:00 PM'
+                              />
+                            )}
+                          />
+                          <Controller
+                            name='endTime'
+                            control={methods.control}
+                            render={({ field }) => (
+                              <Input
+                                {...field}
+                                type='time'
+                                label='End Time'
+                                placeholder='12:00 PM'
+                              />
+                            )}
+                          />
+                        </div>
+                      </div>
+                      <Controller
+                        name='repetition'
+                        control={methods.control}
+                        render={({ field }) => (
+                          <div>
+                            <DropdownSelectInput
+                              {...field}
+                              label='Set Repetition'
+                              placeholder='Does not repeat'
+                              options={repetition.map((item) => ({
+                                label: item.label,
+                                value: item.value,
+                              }))}
+                              onSelectItem={(selectedItem) => {
+                                field.onChange(selectedItem);
+                                if (selectedItem.value === 'custom') {
+                                  setIsCustomRepetitionModalOpen(true);
+                                }
+                              }}
+                            />
+                            <DropDownMenu
+                              dropDownPosition='center-screen'
+                              show={isCustomRepetitionModalOpen}
+                              setShow={setIsCustomRepetitionModalOpen}
+                            >
+                              <div className='space-y-8 min-w-[300px] p-6'>
+                                <h3 className='text-lg font-bold text-gray-700'>
+                                  Set Repetition
+                                </h3>
+
+                                <div className='space-y-2'>
+                                  <p className='text-[16px] font-[400]'>
+                                    Repeat On
+                                  </p>
+                                  <div className='flex gap-2'>
+                                    {repeatDays.map((day) => (
+                                      <button
+                                        key={day}
+                                        className={`h-10 w-10 rounded-full flex items-center justify-center p-4 text-xs ${
+                                          selectedWeekdays.includes(day)
+                                            ? 'bg-[#1D9B5E33]'
+                                            : 'bg-cardsBg text-gray-700'
+                                        }`}
+                                        onClick={() => handleWeekdayClick(day)}
+                                      >
+                                        {day}
+                                      </button>
+                                    ))}
+                                  </div>
+                                </div>
+
+                                <div className='space-y-2'>
+                                  <p className='text-[16px] font-[400]'>Ends</p>
+                                  <div className='flex gap-8'>
+                                    {['never', 'on', 'after'].map((option) => (
+                                      <label
+                                        key={option}
+                                        className='flex items-center gap-2'
+                                      >
+                                        <div className='relative flex items-center'>
+                                          <input
+                                            type='checkbox'
+                                            checked={endsOption === option}
+                                            onChange={() =>
+                                              handleEndsOptionChange(
+                                                option as
+                                                  | 'never'
+                                                  | 'on'
+                                                  | 'after'
+                                              )
+                                            }
+                                            className='w-4 h-4 border-2 p-2 border-secondary focus:ring-2 focus:border-none focus:ring-secondary appearance-none rounded-full cursor-pointer bg-white'
+                                          />
+                                          <div className='absolute inset-0 flex items-center justify-center pointer-events-none'>
+                                            <div
+                                              className={`w-3 h-3 rounded-full transition-colors ${
+                                                endsOption === option
+                                                  ? 'bg-secondary'
+                                                  : 'bg-transparent'
+                                              }`}
+                                            ></div>
+                                          </div>
+                                        </div>
+                                        <span>
+                                          {option.charAt(0).toUpperCase() +
+                                            option.slice(1)}
+                                        </span>
+                                      </label>
+                                    ))}
+                                  </div>
+                                </div>
+
+                                {endsOption === 'on' && (
+                                  <div className='flex justify-between gap-4'>
+                                    <div className='flex justify-center items-center cursor-pointer w-[133px] h-[43px] bg-cardsBg text-center rounded-lg text-sm'>
+                                      April 20, 2025
+                                    </div>
+                                  </div>
+                                )}
+                                {endsOption === 'after' && (
+                                  <div className='flex justify-between gap-4'>
+                                    <div className='flex items-center gap-2'>
+                                      <span className='flex justify-center items-center cursor-pointer w-[133px] h-[43px] bg-cardsBg text-center rounded-lg text-sm'>
+                                        {occurrences} occurrences
+                                      </span>
+                                      <div className='flex flex-col'>
+                                        <button
+                                          onClick={() =>
+                                            handleOccurrencesChange(1)
+                                          }
+                                          className='p-1 rounded-full hover:bg-gray-100'
+                                        >
+                                          <img
+                                            src={ChevronUp}
+                                            alt='increase'
+                                            className='w-4 h-4'
+                                          />
+                                        </button>
+                                        <button
+                                          onClick={() =>
+                                            handleOccurrencesChange(-1)
+                                          }
+                                          className='p-1 rounded-full hover:bg-gray-100'
+                                        >
+                                          <img
+                                            src={ChevronDown}
+                                            alt='decrease'
+                                            className='w-4 h-4'
+                                          />
+                                        </button>
+                                      </div>
+                                    </div>
+                                  </div>
+                                )}
+
+                                <div className='flex justify-end gap-2 mt-6'>
+                                  <Button
+                                    variant='subtle'
+                                    color='#0F2028'
+                                    onClick={() =>
+                                      setIsCustomRepetitionModalOpen(false)
+                                    }
+                                  >
+                                    Close
+                                  </Button>
+                                  <Button
+                                    color='#1D9B5E'
+                                    radius='md'
+                                    onClick={() =>
+                                      setIsCustomRepetitionModalOpen(false)
+                                    }
+                                  >
+                                    Save
+                                  </Button>
+                                </div>
+                              </div>
+                            </DropDownMenu>
+                          </div>
+                        )}
+                      />
+                      <div className='flex justify-between items-center gap-4'>
+                        <Controller
+                          name='spots'
+                          control={methods.control}
+                          render={({ field }) => (
+                            <Input
+                              {...field}
+                              label='Spots Available'
+                              placeholder='Enter '
+                            />
+                          )}
+                        />
+                        <div className='w-full mt-4'>
+                          <Controller
+                            name='assignedStaff'
+                            control={methods.control}
+                            render={({ field }) => (
+                              <DropdownSelectInput
+                                {...field}
+                                label='Assign Staff'
+                                placeholder='Select'
+                                options={assignStaff.map((item) => ({
+                                  label: item.label,
+                                  value: item.value,
+                                }))}
+                                onSelectItem={(selectedItem) =>
+                                  field.onChange(selectedItem)
+                                }
+                              />
+                            )}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    <Controller
+                      name='clients'
+                      control={methods.control}
+                      render={({ field }) => (
+                        <DropdownSelectInput
+                          {...field}
+                          label='Clients'
+                          placeholder='Select Clients'
+                          singleSelect={false}
+                          options={selectClient.map((item) => ({
+                            label: item.label,
+                            value: item.value,
+                          }))}
+                          onSelectItem={(selectedItem) =>
+                            field.onChange(selectedItem)
+                          }
+                        />
+                      )}
+                    />
                   </div>
-                ) : (
-                  <div className='space-y-4'>
-                    {/* <div className='space-y-6'>
+                </div>
+                <div className='space-y-4'>
+                  {/* <div className='space-y-6'>
                       <div className='space-y-4'>
                         <h3 className='text-lg font-bold text-gray-700'>
                           Client Information
@@ -644,8 +635,7 @@ const ClassesModal = ({ isOpen, onClose }: ClassModalProps) => {
                         />
                       </div>
                     </div> */}
-                  </div>
-                )}
+                </div>
               </div>
 
               <div className=' bottom-0 py-4'>
