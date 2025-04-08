@@ -1,10 +1,10 @@
 import { useForm, Controller, FormProvider } from 'react-hook-form';
 import Button from '../common/Button';
-import DropdownSelectInput, { DropDownItem } from '../common/Dropdown';
+import DropdownSelectInput from '../common/Dropdown';
 import Input from '../common/Input';
 import { useState } from 'react';
 import cancelIcon from '../../assets/icons/cancel.svg';
-import { categoryOptions } from '../../utils/dummyData';
+import { categoryOptions, repeatDays } from '../../utils/dummyData';
 import ChevronUp from '../../assets/icons/up.svg';
 import ChevronDown from '../../assets/icons/down.svg';
 import {
@@ -13,10 +13,10 @@ import {
   assignStaff,
   selectClient,
   selectClass,
-  selectDays,
   assignCoach,
 } from '../../utils/dummyData';
 import DropDownMenu from '../common/DropdownMenu';
+import { Tooltip } from '@mantine/core';
 
 interface ClassModalProps {
   isOpen: boolean;
@@ -41,13 +41,26 @@ interface FormData {
 }
 
 const ClassesModal = ({ isOpen, onClose }: ClassModalProps) => {
-  const methods = useForm<FormData>();
+  const methods = useForm<FormData>({
+    mode: 'onSubmit',
+    defaultValues: {
+      classType: '',
+      className: '',
+      date: '',
+      startTime: '',
+      endTime: '',
+      repetition: '',
+      spots: '',
+      assignedStaff: '',
+      selectedClass: '',
+      assignedCoach: '',
+    },
+  });
 
   const [isCustomRepetitionModalOpen, setIsCustomRepetitionModalOpen] =
     useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [view, setView] = useState<'class' | 'appointment'>('class');
-  const [repetitionFrequency, setRepetitionFrequency] = useState(1);
   const [selectedWeekdays, setSelectedWeekdays] = useState<string[]>([]);
   const [endsOption, setEndsOption] = useState<'never' | 'on' | 'after'>(
     'never'
@@ -56,13 +69,6 @@ const ClassesModal = ({ isOpen, onClose }: ClassModalProps) => {
 
   const handleCategoryClick = (category: string) => {
     setSelectedCategory((prev) => (prev === category ? null : category));
-  };
-
-  const handleRepetitionChange = (selectedItem: DropDownItem) => {
-    methods.setValue('repetition', selectedItem.value as string);
-    if (selectedItem.value === 'custom') {
-      setIsCustomRepetitionModalOpen(true);
-    }
   };
 
   const handleWeekdayClick = (weekday: string) => {
@@ -81,7 +87,35 @@ const ClassesModal = ({ isOpen, onClose }: ClassModalProps) => {
     setOccurrences((prev) => Math.max(1, prev + delta));
   };
 
-  const onSubmit = (data: FormData) => {};
+  const onSubmit = async (data: FormData) => {
+    try {
+      // Create class session data with repetition details if custom repetition is selected
+      const classSession = {
+        ...data,
+        repetitionDetails:
+          data.repetition === 'custom'
+            ? {
+                weekdays: selectedWeekdays,
+                endsOption,
+                occurrences: endsOption === 'after' ? occurrences : undefined,
+                endDate: endsOption === 'on' ? data.date : undefined,
+              }
+            : undefined,
+      };
+
+      console.log('Class session created:', classSession);
+
+      // Close modal and reset form
+      onClose();
+      methods.reset();
+      setSelectedWeekdays([]);
+      setEndsOption('never');
+      setOccurrences(4);
+      setView('class');
+    } catch (error) {
+      console.error('Error creating class session:', error);
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -117,15 +151,23 @@ const ClassesModal = ({ isOpen, onClose }: ClassModalProps) => {
             >
               Class
             </button>
-            <button
-              type='button'
-              className={`px-6 py-2 ${
-                view === 'appointment' ? 'bg-[#1D9B5E33]' : 'bg-gray-100'
-              } text-primary font-medium rounded-lg hover:opacity-90 transition-opacity w-[120px] text-sm`}
-              onClick={() => setView('appointment')}
+            <Tooltip
+              label='Coming Soon'
+              position='bottom'
+              withArrow
+              arrowSize={10}
+              color='#1D9B5E'
             >
-              Appointment
-            </button>
+              <button
+                type='button'
+                className={`px-6 py-2 ${
+                  view === 'appointment' ? 'bg-[#1D9B5E33]' : 'bg-gray-100'
+                } text-primary font-medium rounded-lg hover:opacity-90 transition-opacity w-[120px] text-sm`}
+                // onClick={() => setView('appointment')}
+              >
+                Appointment
+              </button>
+            </Tooltip>
           </div>
           <FormProvider {...methods}>
             <form
@@ -234,215 +276,166 @@ const ClassesModal = ({ isOpen, onClose }: ClassModalProps) => {
                           name='repetition'
                           control={methods.control}
                           render={({ field }) => (
-                            <DropDownMenu
-                              dropDownPosition='top'
-                              show={isCustomRepetitionModalOpen}
-                              setShow={setIsCustomRepetitionModalOpen}
-                              actionElement={
-                                <DropdownSelectInput
-                                  selectClassName='w-96'
-                                  {...field}
-                                  label='Set Repetition'
-                                  placeholder='Does not repeat'
-                                  options={repetition.map((item) => ({
-                                    label: item.label,
-                                    value: item.value,
-                                  }))}
-                                  onSelectItem={(selectedItem) => {
-                                    field.onChange(selectedItem);
-                                    if (selectedItem.value === 'custom') {
-                                      setIsCustomRepetitionModalOpen(true);
-                                    }
-                                  }}
-                                />
-                              }
-                            >
-                              <div className='space-y-8 min-w-[300px] p-6 z-50'>
-                                <h3 className='text-lg font-bold text-gray-700'>
-                                  Set Repetition
-                                </h3>
+                            <div>
+                              <DropdownSelectInput
+                                {...field}
+                                label='Set Repetition'
+                                placeholder='Does not repeat'
+                                options={repetition.map((item) => ({
+                                  label: item.label,
+                                  value: item.value,
+                                }))}
+                                onSelectItem={(selectedItem) => {
+                                  field.onChange(selectedItem);
+                                  if (selectedItem.value === 'custom') {
+                                    setIsCustomRepetitionModalOpen(true);
+                                  }
+                                }}
+                              />
+                              <DropDownMenu
+                                dropDownPosition='center-screen'
+                                show={isCustomRepetitionModalOpen}
+                                setShow={setIsCustomRepetitionModalOpen}
+                              >
+                                <div className='space-y-8 min-w-[300px] p-6'>
+                                  <h3 className='text-lg font-bold text-gray-700'>
+                                    Set Repetition
+                                  </h3>
 
-                                <div className='flex items-center gap-2 justify-between'>
-                                  <p>Repeat every</p>
-                                  <div className='flex items-center gap-1'>
-                                    <span className='px-2 py-1 bg-gray-100 rounded'>
-                                      {repetitionFrequency}
-                                    </span>
-                                    <div className='flex flex-col'>
-                                      <button
-                                        onClick={() =>
-                                          setRepetitionFrequency(
-                                            (prev) => prev + 1
-                                          )
-                                        }
-                                        className='p-1 rounded-full hover:bg-gray-100'
-                                      >
-                                        <img
-                                          src={ChevronUp}
-                                          alt='increase'
-                                          className='w-4 h-4'
-                                        />
-                                      </button>
-                                      <button
-                                        onClick={() =>
-                                          setRepetitionFrequency((prev) =>
-                                            Math.max(1, prev - 1)
-                                          )
-                                        }
-                                        className='p-1 rounded-full hover:bg-gray-100'
-                                      >
-                                        <img
-                                          src={ChevronDown}
-                                          alt='decrease'
-                                          className='w-4 h-4'
-                                        />
-                                      </button>
+                                  <div className='space-y-2'>
+                                    <p className='text-[16px] font-[400]'>
+                                      Repeat On
+                                    </p>
+                                    <div className='flex gap-2'>
+                                      {repeatDays.map((day) => (
+                                        <button
+                                          key={day}
+                                          className={`h-10 w-10 rounded-full flex items-center justify-center p-4 text-xs ${
+                                            selectedWeekdays.includes(day)
+                                              ? 'bg-[#1D9B5E33]'
+                                              : 'bg-cardsBg text-gray-700'
+                                          }`}
+                                          onClick={() =>
+                                            handleWeekdayClick(day)
+                                          }
+                                        >
+                                          {day}
+                                        </button>
+                                      ))}
                                     </div>
                                   </div>
-                                  <div className='w-[150px]'>
-                                    <DropdownSelectInput
-                                      options={selectDays.map((item) => ({
-                                        label: item.label,
-                                        value: item.value,
-                                      }))}
-                                      onSelectItem={(selectedItem) =>
-                                        console.log(selectedItem)
-                                      }
-                                      className='w-full'
-                                      selectClassName='text-sm'
-                                    />
-                                  </div>
-                                </div>
 
-                                <div className='space-y-2'>
-                                  <p className='text-[16px] font-[400]'>
-                                    Repeat On
-                                  </p>
-                                  <div className='flex gap-2'>
-                                    {[
-                                      'Sun',
-                                      'Mon',
-                                      'Tue',
-                                      'Wed',
-                                      'Thu',
-                                      'Fri',
-                                      'Sat',
-                                    ].map((day) => (
-                                      <button
-                                        key={day}
-                                        className={`h-10 w-10 rounded-full flex items-center justify-center p-4 text-xs ${
-                                          selectedWeekdays.includes(day)
-                                            ? 'bg-[#1D9B5E33]'
-                                            : 'bg-cardsBg text-gray-700'
-                                        }`}
-                                        onClick={() => handleWeekdayClick(day)}
-                                      >
-                                        {day}
-                                      </button>
-                                    ))}
+                                  <div className='space-y-2'>
+                                    <p className='text-[16px] font-[400]'>
+                                      Ends
+                                    </p>
+                                    <div className='flex gap-8'>
+                                      {['never', 'on', 'after'].map(
+                                        (option) => (
+                                          <label
+                                            key={option}
+                                            className='flex items-center gap-2'
+                                          >
+                                            <div className='relative flex items-center'>
+                                              <input
+                                                type='checkbox'
+                                                checked={endsOption === option}
+                                                onChange={() =>
+                                                  handleEndsOptionChange(
+                                                    option as
+                                                      | 'never'
+                                                      | 'on'
+                                                      | 'after'
+                                                  )
+                                                }
+                                                className='w-4 h-4 border-2 p-2 border-secondary focus:ring-2 focus:border-none focus:ring-secondary appearance-none rounded-full cursor-pointer bg-white'
+                                              />
+                                              <div className='absolute inset-0 flex items-center justify-center pointer-events-none'>
+                                                <div
+                                                  className={`w-3 h-3 rounded-full transition-colors ${
+                                                    endsOption === option
+                                                      ? 'bg-secondary'
+                                                      : 'bg-transparent'
+                                                  }`}
+                                                ></div>
+                                              </div>
+                                            </div>
+                                            <span>
+                                              {option.charAt(0).toUpperCase() +
+                                                option.slice(1)}
+                                            </span>
+                                          </label>
+                                        )
+                                      )}
+                                    </div>
                                   </div>
-                                </div>
 
-                                <div className='space-y-2'>
-                                  <p className='text-[16px] font-[400]'>Ends</p>
-                                  <div className='flex gap-8'>
-                                    {['never', 'on', 'after'].map((option) => (
-                                      <label
-                                        key={option}
-                                        className='flex items-center gap-2'
-                                      >
-                                        <div className='relative flex items-center'>
-                                          <input
-                                            type='checkbox'
-                                            checked={endsOption === option}
-                                            onChange={() =>
-                                              handleEndsOptionChange(
-                                                option as
-                                                  | 'never'
-                                                  | 'on'
-                                                  | 'after'
-                                              )
-                                            }
-                                            className='w-4 h-4 border-2 border-gray-700 focus:ring-2 focus:border-none focus:ring-secondary focus:ring-offset-2 appearance-none rounded-full cursor-pointer bg-white'
-                                          />
-                                          <div className='absolute inset-0 flex items-center justify-center pointer-events-none'>
-                                            <div
-                                              className={`w-3 h-3 rounded-full transition-colors ${
-                                                endsOption === option
-                                                  ? 'bg-secondary'
-                                                  : 'bg-transparent'
-                                              }`}
-                                            ></div>
-                                          </div>
-                                        </div>
-                                        <span>
-                                          {option.charAt(0).toUpperCase() +
-                                            option.slice(1)}
+                                  {endsOption === 'on' && (
+                                    <div className='flex justify-between gap-4'>
+                                      <div className='flex justify-center items-center cursor-pointer w-[133px] h-[43px] bg-cardsBg text-center rounded-lg text-sm'>
+                                        April 20, 2025
+                                      </div>
+                                    </div>
+                                  )}
+                                  {endsOption === 'after' && (
+                                    <div className='flex justify-between gap-4'>
+                                      <div className='flex items-center gap-2'>
+                                        <span className='flex justify-center items-center cursor-pointer w-[133px] h-[43px] bg-cardsBg text-center rounded-lg text-sm'>
+                                          {occurrences} occurrences
                                         </span>
-                                      </label>
-                                    ))}
-                                  </div>
-                                </div>
-
-                                <div className='flex justify-between gap-4'>
-                                  <div className='flex justify-center items-center cursor-pointer w-[133px] h-[43px] bg-cardsBg text-center rounded-lg text-sm'>
-                                    April 20, 2025
-                                  </div>
-                                  <div className='flex items-center gap-2'>
-                                    <span className='flex justify-center items-center cursor-pointer w-[133px] h-[43px] bg-cardsBg text-center rounded-lg text-sm'>
-                                      {occurrences} occurrences
-                                    </span>
-                                    <div className='flex flex-col'>
-                                      <button
-                                        onClick={() =>
-                                          handleOccurrencesChange(1)
-                                        }
-                                        className='p-1 rounded-full hover:bg-gray-100'
-                                      >
-                                        <img
-                                          src={ChevronUp}
-                                          alt='increase'
-                                          className='w-4 h-4'
-                                        />
-                                      </button>
-                                      <button
-                                        onClick={() =>
-                                          handleOccurrencesChange(-1)
-                                        }
-                                        className='p-1 rounded-full hover:bg-gray-100'
-                                      >
-                                        <img
-                                          src={ChevronDown}
-                                          alt='decrease'
-                                          className='w-4 h-4'
-                                        />
-                                      </button>
+                                        <div className='flex flex-col'>
+                                          <button
+                                            onClick={() =>
+                                              handleOccurrencesChange(1)
+                                            }
+                                            className='p-1 rounded-full hover:bg-gray-100'
+                                          >
+                                            <img
+                                              src={ChevronUp}
+                                              alt='increase'
+                                              className='w-4 h-4'
+                                            />
+                                          </button>
+                                          <button
+                                            onClick={() =>
+                                              handleOccurrencesChange(-1)
+                                            }
+                                            className='p-1 rounded-full hover:bg-gray-100'
+                                          >
+                                            <img
+                                              src={ChevronDown}
+                                              alt='decrease'
+                                              className='w-4 h-4'
+                                            />
+                                          </button>
+                                        </div>
+                                      </div>
                                     </div>
+                                  )}
+
+                                  <div className='flex justify-end gap-2 mt-6'>
+                                    <Button
+                                      variant='subtle'
+                                      color='#0F2028'
+                                      onClick={() =>
+                                        setIsCustomRepetitionModalOpen(false)
+                                      }
+                                    >
+                                      Close
+                                    </Button>
+                                    <Button
+                                      color='#1D9B5E'
+                                      radius='md'
+                                      onClick={() =>
+                                        setIsCustomRepetitionModalOpen(false)
+                                      }
+                                    >
+                                      Save
+                                    </Button>
                                   </div>
                                 </div>
-
-                                <div className='flex justify-end gap-2 mt-6'>
-                                  <Button
-                                    variant='subtle'
-                                    color='#0F2028'
-                                    onClick={() =>
-                                      setIsCustomRepetitionModalOpen(false)
-                                    }
-                                  >
-                                    Close
-                                  </Button>
-                                  <Button
-                                    color='#1D9B5E'
-                                    radius='md'
-                                    onClick={() =>
-                                      setIsCustomRepetitionModalOpen(false)
-                                    }
-                                  >
-                                    Save
-                                  </Button>
-                                </div>
-                              </div>
-                            </DropDownMenu>
+                              </DropDownMenu>
+                            </div>
                           )}
                         />
                         <div className='flex justify-between items-center gap-4'>
@@ -487,7 +480,7 @@ const ClassesModal = ({ isOpen, onClose }: ClassModalProps) => {
                             {...field}
                             label='Clients'
                             placeholder='Select Clients'
-                            isMulti
+                            singleSelect={false}
                             options={selectClient.map((item) => ({
                               label: item.label,
                               value: item.value,
@@ -502,7 +495,7 @@ const ClassesModal = ({ isOpen, onClose }: ClassModalProps) => {
                   </div>
                 ) : (
                   <div className='space-y-4'>
-                    <div className='space-y-6'>
+                    {/* <div className='space-y-6'>
                       <div className='space-y-4'>
                         <h3 className='text-lg font-bold text-gray-700'>
                           Client Information
@@ -573,7 +566,8 @@ const ClassesModal = ({ isOpen, onClose }: ClassModalProps) => {
                         <Controller
                           name='date'
                           control={methods.control}
-                          render={({ field }) => (
+                          rules={{ required: true }}
+                          render={({ field, fieldState: { error } }) => (
                             <Input
                               {...field}
                               type='date'
@@ -586,7 +580,8 @@ const ClassesModal = ({ isOpen, onClose }: ClassModalProps) => {
                           <Controller
                             name='startTime'
                             control={methods.control}
-                            render={({ field }) => (
+                            rules={{ required: true }}
+                            render={({ field, fieldState: { error } }) => (
                               <Input
                                 {...field}
                                 type='time'
@@ -598,7 +593,8 @@ const ClassesModal = ({ isOpen, onClose }: ClassModalProps) => {
                           <Controller
                             name='endTime'
                             control={methods.control}
-                            render={({ field }) => (
+                            rules={{ required: true }}
+                            render={({ field, fieldState: { error } }) => (
                               <Input
                                 {...field}
                                 type='time'
@@ -611,7 +607,8 @@ const ClassesModal = ({ isOpen, onClose }: ClassModalProps) => {
                         <Controller
                           name='selectedClass'
                           control={methods.control}
-                          render={({ field }) => (
+                          rules={{ required: true }}
+                          render={({ field, fieldState: { error } }) => (
                             <DropdownSelectInput
                               {...field}
                               label='Select a Class'
@@ -629,7 +626,8 @@ const ClassesModal = ({ isOpen, onClose }: ClassModalProps) => {
                         <Controller
                           name='assignedCoach'
                           control={methods.control}
-                          render={({ field }) => (
+                          rules={{ required: true }}
+                          render={({ field, fieldState: { error } }) => (
                             <DropdownSelectInput
                               {...field}
                               label='Assign Coach'
@@ -645,14 +643,20 @@ const ClassesModal = ({ isOpen, onClose }: ClassModalProps) => {
                           )}
                         />
                       </div>
-                    </div>
+                    </div> */}
                   </div>
                 )}
               </div>
 
               <div className=' bottom-0 py-4'>
                 <div className='flex justify-end gap-4 pr-8'>
-                  <Button type='submit' color='#1D9B5E' radius='8px'>
+                  <Button
+                    type='submit'
+                    color='#1D9B5E'
+                    radius='8px'
+                    disabled={methods.formState.isSubmitting}
+                    onClick={methods.handleSubmit(onSubmit)}
+                  >
                     Continue
                   </Button>
                 </div>

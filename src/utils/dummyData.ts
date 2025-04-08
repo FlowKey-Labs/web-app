@@ -936,8 +936,6 @@ export const services: Service[] = [
   },
 ];
 
-
-
 export const regionOptions: DropDownItem[] = [
   { label: 'Kiambu', value: 'Kiambu' },
   { label: 'Nairobi', value: 'Nairobi' },
@@ -1089,3 +1087,5 @@ export const bottomMenuItems = [
     iconWhite: LogoutIconWhite,
   },
 ];
+
+export const repeatDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];

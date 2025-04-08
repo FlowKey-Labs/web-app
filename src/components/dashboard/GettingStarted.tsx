@@ -7,6 +7,12 @@ import {
   navigateToStaff,
 } from '../../utils/navigationHelpers';
 import './index.css';
+import {
+  useGetUserProfile,
+  useGetAnalytics,
+  useGetUpcomingSessions,
+} from '../../hooks/reactQuery';
+import { DateFilterOption, UpcomingSession } from '../../types/dashboard';
 
 import dropdownIcon from '../../assets/icons/dropIcon.svg';
 import calenderIcon from '../../assets/icons/calendar.svg';
@@ -14,7 +20,7 @@ import sessionsIcon from '../../assets/icons/sessions.svg';
 import totalClientsIcon from '../../assets/icons/totalClients.svg';
 import totalStaffIcon from '../../assets/icons/totalStaff.svg';
 import rightIcon from '../../assets/icons/greenRight.svg';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { BarGraph } from '../common/BarGraph';
 import rescheduleIcon from '../../assets/icons/reschedule.svg';
 import cancelIcon from '../../assets/icons/cancelRed.svg';
@@ -58,18 +64,37 @@ const columns = [
 
 const GettingStarted = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [dropdownCancelOpen, setDropdownCancelOpen] = useState(false);
-  const [dropdownRescheduleOpen, setDropdownRescheduleOpen] = useState(false);
+  const [dropdownCancelOpen, setDropdownCancelOpen] = useState<string | null>(
+    null
+  );
+  const [dropdownRescheduleOpen, setDropdownRescheduleOpen] = useState<
+    string | null
+  >(null);
   const [rowSelection, setRowSelection] = useState({});
   const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
-  const [selectedTimeRange, setSelectedTimeRange] = useState('Last 7 days');
+  const [selectedTimeRange, setSelectedTimeRange] = useState('to_date');
 
   const navigate = useNavigate();
+  const { data: userProfile } = useGetUserProfile();
+  const { data: analytics, refetch: refetchAnalytics } = useGetAnalytics(
+    selectedTimeRange as DateFilterOption
+  );
+  const { data: upcomingSessions } = useGetUpcomingSessions();
+
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      refetchAnalytics();
+      console.log('Refreshing analytics data...');
+    }, 10000);
+    return () => clearInterval(intervalId);
+  }, [refetchAnalytics, selectedTimeRange]);
 
   const handleTimeRangeSelect = (range: string) => {
     setSelectedTimeRange(range);
     setDropdownOpen(false);
   };
+
+  const limitedUpcomingSessions = upcomingSessions?.slice(0, 3) || [];
 
   return (
     <div className='flex flex-col h-screen bg-cardsBg w-full overflow-y-auto'>
@@ -80,7 +105,7 @@ const GettingStarted = () => {
         <div className='flex justify-between items-center px-4'>
           <div>
             <h3 className='text-[32px] font-[900] text-[#050F0D]'>
-              Welcome Doris
+              Welcome {userProfile?.first_name}
             </h3>
             <p className='text-[#194A43] text-md'>
               This is what we have for you today.
@@ -101,7 +126,21 @@ const GettingStarted = () => {
                     alt='calender icon'
                     className='w-5 h-5'
                   />
-                  <p className='text-sm'>{selectedTimeRange}</p>
+                  <p className='text-sm'>
+                    {selectedTimeRange === 'to_date'
+                      ? 'To Date'
+                      : selectedTimeRange === 'today'
+                      ? 'Today'
+                      : selectedTimeRange === 'last_7_days'
+                      ? 'Last 7 Days'
+                      : selectedTimeRange === 'last_30_days'
+                      ? 'Last 30 Days'
+                      : selectedTimeRange === 'last_3_months'
+                      ? 'Last 3 Months'
+                      : selectedTimeRange === 'last_year'
+                      ? 'Last Year'
+                      : selectedTimeRange}
+                  </p>
                   <img src={dropdownIcon} />
                 </div>
               }
@@ -109,12 +148,12 @@ const GettingStarted = () => {
               <div className='border-[1px] border-secondary rounded-lg'>
                 <ul className='w-[180px] p-6 space-y-2'>
                   {[
-                    'To date',
-                    'Today',
-                    'Last 7 days',
-                    'Last 30 days',
-                    'Last 3 months',
-                    'Last Year',
+                    'to_date',
+                    'today',
+                    'last_7_days',
+                    'last_30_days',
+                    'last_3_months',
+                    'last_year',
                   ].map((range) => (
                     <li
                       key={range}
@@ -125,7 +164,19 @@ const GettingStarted = () => {
                       }`}
                       onClick={() => handleTimeRangeSelect(range)}
                     >
-                      {range}
+                      {range === 'to_date'
+                        ? 'To Date'
+                        : range === 'today'
+                        ? 'Today'
+                        : range === 'last_7_days'
+                        ? 'Last 7 Days'
+                        : range === 'last_30_days'
+                        ? 'Last 30 Days'
+                        : range === 'last_3_months'
+                        ? 'Last 3 Months'
+                        : range === 'last_year'
+                        ? 'Last Year'
+                        : range}
                     </li>
                   ))}
                 </ul>
@@ -139,9 +190,11 @@ const GettingStarted = () => {
               <img src={sessionsIcon} alt='' className='' />
             </div>
             <div>
-              <h4 className='text-base text-[#53237C]'>Sessions</h4>
+              <h4 className='text-base text-[#53237C]'>Total Sessions</h4>
               <div className='flex gap-3'>
-                <p className='text-[32px] self-start'>32</p>
+                <p className='text-[32px] self-start'>
+                  {analytics?.total_sessions}
+                </p>
                 <p className='text-sm text-secondary self-end -top-8'>+4.5%</p>
               </div>
             </div>
@@ -153,7 +206,9 @@ const GettingStarted = () => {
             <div>
               <h4 className='text-base text-[#E19E09]'>Total Clients</h4>
               <div className='flex gap-3'>
-                <p className='text-[32px] self-start'>283</p>
+                <p className='text-[32px] self-start'>
+                  {analytics?.total_clients}
+                </p>
                 <p className='text-sm text-[#FF3B30] self-end -top-8'>-2.3%</p>
               </div>
             </div>
@@ -165,7 +220,9 @@ const GettingStarted = () => {
             <div>
               <h4 className='text-base text-[#007AFF]'>Total Staff</h4>
               <div className='flex gap-3'>
-                <p className='text-[32px] self-start'>28</p>
+                <p className='text-[32px] self-start'>
+                  {analytics?.total_staff}
+                </p>
                 <p className='text-sm text-secondary self-end -top-8'>+1.6%</p>
               </div>
             </div>
@@ -210,7 +267,7 @@ const GettingStarted = () => {
             </div>
             <div className='bg-white rounded-lg py-4'>
               <h4 className='px-4 mb-4 text-[#08040C] text-[20px] font-[600]'>
-                Clients
+                Total Clients
               </h4>
               <div className='w-full'>
                 <BarGraph />
@@ -234,151 +291,93 @@ const GettingStarted = () => {
                 </div>
               </div>
               <div className='flex-1 mt-4 space-y-4'>
-                <div className='flex justify-center items-center bg-white rounded-lg h-[70px]'>
-                  <div>
-                    <p className='items-center py-4 px-4 text-xs font-[600] w-24'>
-                      08:00 am
-                    </p>
-                  </div>
-                  <div className='h-[80%] w-[3px] bg-gray-300'></div>
-                  <div className='flex justify-between items-center py-4 px-4 w-full'>
-                    <div className='space-y-1'>
-                      <p className='text-xs font-[400]'>
-                        Advanced swimming-SWM404
+                {limitedUpcomingSessions.map((session, index) => (
+                  <div
+                    key={index}
+                    className='flex justify-center items-center bg-white rounded-lg h-[70px]'
+                  >
+                    <div>
+                      <p className='items-center py-4 px-4 text-xs font-[600] w-24'>
+                        {session?.date}
                       </p>
-                      <p className='text-sm font-[600]'>Neil Bahati</p>
                     </div>
-                    <div className='flex gap-1'>
-                      <DropDownMenu
-                        show={dropdownRescheduleOpen}
-                        setShow={setDropdownRescheduleOpen}
-                        dropDownPosition='right'
-                        actionElement={
-                          <div
-                            id='viewSelect'
-                            className='p-2 text-primary rounded-full w-10 h-10 outline-none cursor-pointer flex items-center justify-between'
-                          >
-                            <img src={rescheduleIcon} />
-                          </div>
-                        }
-                      >
-                        <div className='flex flex-col rounded-lg  border-[1px] border-secondary w-[500px]'>
-                          <div className='flex flex-col space-y-10 p-6 justify-center items-center'>
-                            <p className='text-gray-500 text-base text-center'>
-                              Are you sure you want to reschedule this
-                              appointment?
-                            </p>
-                            <div className='flex gap-12'>
-                              <button className='text-red-500 text-base cursor-pointer font-bold'>
-                                Reschedule
-                              </button>
-                              <button className='text-gray-500 text-base cursor-pointer font-bold'>
-                                No
-                              </button>
+                    <div className='h-[80%] w-[3px] bg-gray-300'></div>
+                    <div className='flex justify-between items-center py-4 px-4 w-full'>
+                      <div className='space-y-1'>
+                        <p className='text-xs font-[400]'>{session?.title}</p>
+                        <p className='text-sm font-[600]'>
+                          {session?.staff_name}
+                        </p>
+                      </div>
+                      <div className='flex gap-1'>
+                        <DropDownMenu
+                          show={dropdownRescheduleOpen === session?.id}
+                          setShow={(show) =>
+                            setDropdownRescheduleOpen(show ? session?.id : null)
+                          }
+                          dropDownPosition='right'
+                          actionElement={
+                            <div
+                              id='viewSelect'
+                              className='p-2 text-primary rounded-full w-10 h-10 outline-none cursor-pointer flex items-center justify-between'
+                            >
+                              <img src={rescheduleIcon} />
+                            </div>
+                          }
+                        >
+                          <div className='flex flex-col rounded-lg  border-[1px] border-secondary w-[500px]'>
+                            <div className='flex flex-col space-y-10 p-6 justify-center items-center'>
+                              <p className='text-gray-500 text-base text-center'>
+                                Are you sure you want to reschedule this
+                                appointment?
+                              </p>
+                              <div className='flex gap-12'>
+                                <button className='text-red-500 text-base cursor-pointer font-bold'>
+                                  Reschedule
+                                </button>
+                                <button className='text-gray-500 text-base cursor-pointer font-bold'>
+                                  No
+                                </button>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      </DropDownMenu>
-                      <DropDownMenu
-                        show={dropdownCancelOpen}
-                        setShow={setDropdownCancelOpen}
-                        dropDownPosition='right'
-                        actionElement={
-                          <div
-                            id='viewSelect'
-                            className='p-2 text-primary rounded-full w-10 h-10 outline-none cursor-pointer flex items-center justify-between'
-                          >
-                            <img src={cancelIcon} />
-                          </div>
-                        }
-                      >
-                        <div className='flex flex-col rounded-lg  border-[1px] border-secondary w-[500px]'>
-                          <div className='flex flex-col space-y-10 p-6 justify-center items-center'>
-                            <p className='text-gray-500 text-base text-center'>
-                              Are you sure you want to cancel this appointment?
-                            </p>
-                            <div className='flex gap-12'>
-                              <button className='text-red-500 text-base cursor-pointer font-bold'>
-                                Cancel
-                              </button>
-                              <button className='text-gray-500 text-base cursor-pointer font-bold'>
-                                No
-                              </button>
+                        </DropDownMenu>
+                        <DropDownMenu
+                          show={dropdownCancelOpen === session?.id}
+                          setShow={(show) =>
+                            setDropdownCancelOpen(show ? session?.id : null)
+                          }
+                          dropDownPosition='right'
+                          actionElement={
+                            <div
+                              id='viewSelect'
+                              className='p-2 text-primary rounded-full w-10 h-10 outline-none cursor-pointer flex items-center justify-between'
+                            >
+                              <img src={cancelIcon} />
+                            </div>
+                          }
+                        >
+                          <div className='flex flex-col rounded-lg  border-[1px] border-secondary w-[500px]'>
+                            <div className='flex flex-col space-y-10 p-6 justify-center items-center'>
+                              <p className='text-gray-500 text-base text-center'>
+                                Are you sure you want to cancel this
+                                appointment?
+                              </p>
+                              <div className='flex gap-12'>
+                                <button className='text-red-500 text-base cursor-pointer font-bold'>
+                                  Cancel
+                                </button>
+                                <button className='text-gray-500 text-base cursor-pointer font-bold'>
+                                  No
+                                </button>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      </DropDownMenu>
+                        </DropDownMenu>
+                      </div>
                     </div>
                   </div>
-                </div>
-                <div className='flex justify-center items-center bg-[#8790944D] rounded-lg h-[70px]'>
-                  <div>
-                    <p className='items-center py-4 px-4 text-xs font-[600] w-24'>
-                      10:00 am
-                    </p>
-                  </div>
-                  <div className='h-[80%] w-[3px] bg-white'></div>
-                  <div className='flex justify-between items-center py-4 px-4 w-full'>
-                    <div className='space-y-1'>
-                      <p className='text-xs font-[400]'>
-                        Advanced swimming-SWM404
-                      </p>
-                      <p className='text-sm font-[600]'>Neil Bahati</p>
-                    </div>
-                    <div className='flex gap-1'>
-                      <DropDownMenu
-                        show={dropdownOpen}
-                        setShow={setDropdownOpen}
-                        dropDownPosition='center'
-                        actionElement={
-                          <div
-                            id='viewSelect'
-                            className='p-2 text-primary rounded-full w-10 h-10 outline-none cursor-pointer flex items-center justify-between'
-                          >
-                            <img src={rescheduleIcon} />
-                          </div>
-                        }
-                      ></DropDownMenu>
-                      <button className='text-[#FF3B30] text-sm font-[400] bg-white rounded-xl py-2 px-4'>
-                        Cancelled
-                      </button>
-                    </div>
-                  </div>
-                </div>
-                <div className='flex justify-center items-center bg-[#8ECDAF4D] rounded-lg h-[70px]'>
-                  <div>
-                    <p className='items-center py-4 px-4 text-xs font-[600] w-24'>
-                      10:30 am
-                    </p>
-                  </div>
-                  <div className='h-[80%] w-[3px] bg-white'></div>
-                  <div className='flex justify-between items-center py-4 px-4 w-full'>
-                    <div className='space-y-1'>
-                      <p className='text-xs font-[400]'>
-                        Advanced swimming-SWM404
-                      </p>
-                      <p className='text-sm font-[600]'>Neil Bahati</p>
-                    </div>
-                    <div className='flex gap-1'>
-                      <button className='text-secondary text-sm font-[400] bg-white rounded-xl py-2 px-4'>
-                        Rescheduled
-                      </button>
-                      <DropDownMenu
-                        show={dropdownCancelOpen}
-                        setShow={setDropdownCancelOpen}
-                        dropDownPosition='center'
-                        actionElement={
-                          <div
-                            id='viewSelect'
-                            className='p-2 text-primary rounded-full w-10 h-10 outline-none cursor-pointer flex items-center justify-between'
-                          >
-                            <img src={cancelIcon} />
-                          </div>
-                        }
-                      ></DropDownMenu>
-                    </div>
-                  </div>
-                </div>
+                ))}
               </div>
             </div>
             <div className='flex flex-col mt-10 bg-white rounded-lg'>

@@ -3,7 +3,7 @@ import MembersHeader from '../headers/MembersHeader';
 import { Progress } from '@mantine/core';
 import plusIcon from '../../assets/icons/plusWhite.svg';
 import { useMemo, useState } from 'react';
-import ClassesModal from './ClassesModal';
+import ClassesModal from './SessionModal';
 import Table from '../common/Table';
 import { createColumnHelper } from '@tanstack/react-table';
 

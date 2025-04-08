@@ -5,10 +5,12 @@ import Button from '../common/Button';
 import MainOnboarding from './MainOnboarding';
 import { useNavigate } from 'react-router-dom';
 import { FlowkeyOnboardingHeader } from '../common/FlowkeyHeader';
+import { useGetUserProfile } from '../../hooks/reactQuery';
 
 const WelcomePage = () => {
   const [isHovered, setIsHovered] = useState(false);
   const navigate = useNavigate();
+  const { data: userProfile } = useGetUserProfile();
 
   return (
     <MainOnboarding>
@@ -20,7 +22,7 @@ const WelcomePage = () => {
         <div className='flex flex-col space-y-1 text-left'>
           <div className='flex gap-2'>
             <p className='text-primary text-[40px]'>
-              Hello <span className='text-secondary font-bold'>Doris</span>
+              Hello <span className='text-secondary font-bold'>{userProfile?.first_name}</span>
             </p>
             <div className='flex items-center justify-center'>
               <img src={waveIcon} alt='Wave' className='w-8 h-8 mt-1' />{' '}

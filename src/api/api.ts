@@ -9,6 +9,9 @@ const END_POINTS = {
     REGISTER: `${BASE_URL}/api/auth/register/`,
     LOGIN: `${BASE_URL}/api/auth/login/`,
   },
+  USER: {
+    PROFILE: `${BASE_URL}/api/auth/profile/`,
+  },
   PROFILE: {
     BUSINESS_PROFILE: `${BASE_URL}/api/business/profile/`,
     SERVICES: `${BASE_URL}/api/business/services/`,
@@ -18,6 +21,19 @@ const END_POINTS = {
   },
   STAFF: {
     STAFF_DATA: `${BASE_URL}/api/staff/`,
+  },
+  SESSION: {
+    SESSIONS_DATA: `${BASE_URL}/api/session/`,
+    SESSION_DETAIL: (id: string) => `${BASE_URL}/api/session/${id}/`,
+    CATEGORIES: `${BASE_URL}/api/session/categories/`,
+  },
+  ANALYTICS: {
+    SESSIONS: `${BASE_URL}/api/dashboard/analytics/`,
+    UPCOMING_SESSIONS: `${BASE_URL}/api/dashboard/upcoming-sessions/`,
+    CANCEL_SESSION: (id: string) =>
+      `${BASE_URL}/api/dashboard/upcoming-sessions/${id}/`,
+    RESCHEDULE_SESSION: (id: string) =>
+      `${BASE_URL}/api/dashboard/upcoming-sessions/${id}/`,
   },
   GOOGLE: {
     PLACES_AUTOCOMPLETE: `https://maps.googleapis.com/maps/api/place/autocomplete/json`,
@@ -38,6 +54,11 @@ const registerUser = async (credentials: {
 
 const loginUser = async (credentials: { email: string; password: string }) => {
   const { data } = await axios.post(END_POINTS.AUTH.LOGIN, credentials);
+  return data;
+};
+
+const get_user_profile = async () => {
+  const { data } = await api.get(END_POINTS.USER.PROFILE);
   return data;
 };
 
@@ -164,6 +185,50 @@ const create_staff = async (staffData: {
   return data;
 };
 
+const get_analytics = async (filterOption?: string) => {
+  const params = filterOption ? { filter: filterOption } : {};
+  const { data } = await api.get(END_POINTS.ANALYTICS.SESSIONS, { params });
+  return data;
+};
+
+const get_upcoming_sessions = async () => {
+  const { data } = await api.get(END_POINTS.ANALYTICS.UPCOMING_SESSIONS);
+  return data;
+};
+
+const cancel_session = async (sessionId: string) => {
+  const { data } = await api.post(
+    END_POINTS.ANALYTICS.CANCEL_SESSION(sessionId)
+  );
+  return data;
+};
+
+const reschedule_session = async (
+  sessionId: string,
+  newDateTime: { date: string; startTime: string; endTime: string }
+) => {
+  const { data } = await api.put(
+    END_POINTS.ANALYTICS.RESCHEDULE_SESSION(sessionId),
+    newDateTime
+  );
+  return data;
+};
+
+const get_sessions = async () => {
+  const { data } = await api.get(END_POINTS.SESSION.SESSIONS_DATA);
+  return data;
+};
+
+const get_session_detail = async (id: string) => {
+  const { data } = await api.get(END_POINTS.SESSION.SESSION_DETAIL(id));
+  return data;
+};
+
+const get_session_categories = async () => {
+  const { data } = await api.get(END_POINTS.SESSION.CATEGORIES);
+  return data;
+};
+
 export {
   END_POINTS,
   registerUser,
@@ -180,4 +245,12 @@ export {
   get_staff_member,
   update_staff_member,
   create_staff,
+  get_user_profile,
+  get_analytics,
+  get_upcoming_sessions,
+  cancel_session,
+  reschedule_session,
+  get_sessions,
+  get_session_detail,
+  get_session_categories,
 };

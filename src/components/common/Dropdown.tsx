@@ -33,7 +33,7 @@ type Props = {
   selectedValues?: any;
   className?: string;
   selectClassName?: string;
-  value?: string;
+  value?: string | string[];
 };
 
 const Option = (props: OptionProps<DropDownItem>) => {
@@ -80,8 +80,13 @@ export default function DropdownSelectInput({
 
   useEffect(() => {
     if (value) {
-      const selectedOption = options.find(option => option.value === value);
-      selectedOption && setSelectedValue(selectedOption);
+      if (Array.isArray(value)) {
+        const selectedOptions = options.filter(option => value.includes(option.value.toString()));
+        selectedOptions.length > 0 && setSelectedValue(selectedOptions);
+      } else {
+        const selectedOption = options.find(option => option.value.toString() === value);
+        selectedOption && setSelectedValue(selectedOption);
+      }
     } else if (defaultValue) {
       setSelectedValue(defaultValue);
     }
