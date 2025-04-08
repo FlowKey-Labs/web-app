@@ -32,9 +32,14 @@ const GeneralSettings = () => {
     },
   });
 
-  const onSubmit = (data: SettingsFormData) => {};
+  const onSubmit = (data: SettingsFormData) => {
+    console.log(data);
+    
+  };
 
-  const handleFileUpload = (files: File[]) => {};
+  const handleFileUpload = (files: File[]) => {
+    console.log(files);
+  };
 
   return (
     <>
