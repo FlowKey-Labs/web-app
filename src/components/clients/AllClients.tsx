@@ -1,17 +1,18 @@
 import MembersHeader from '../headers/MembersHeader';
 import plusIcon from '../../assets/icons/plusWhite.svg';
-import { clientsData } from '../utils/dummyData';
+import { Client } from '../../types/clientTypes';
 import Table from '../common/Table';
+import { useGetClients } from '../../hooks/reactQuery';
 import { createColumnHelper } from '@tanstack/react-table';
 import { Progress } from '@mantine/core';
 
-import actioEyeIcon from '../../assets/icons/actionEye.svg';
-import actionEditIcon from '../../assets/icons/actionEdit.svg';
 import actionOptionIcon from '../../assets/icons/actionOption.svg';
 import { useState } from 'react';
 import ClientsModal from './ClientsModal';
+import { useNavigate } from 'react-router-dom';
+import { navigateToClientDetails } from '../../utils/navigationHelpers';
 
-const columnHelper = createColumnHelper<(typeof clientsData)[0]>();
+const columnHelper = createColumnHelper<Client>();
 
 const columns = [
   columnHelper.display({
@@ -33,48 +34,53 @@ const columns = [
       />
     ),
   }),
-  columnHelper.accessor('name', {
+  columnHelper.accessor((row) => `${row.first_name} ${row.last_name}`, {
+    id: 'name',
     header: 'Name',
-    cell: (info) => info.getValue(),
+    cell: (info) => (
+      <div className='flex flex-col'>
+        <span className='text-sm text-primary'>{info.getValue()}</span>
+        <span className='text-xs text-[#8A8D8E]'>{info.row.original.id}</span>
+      </div>
+    ),
   }),
-  columnHelper.accessor('session', {
-    header: 'Session',
-    cell: (info) => info.getValue().join(', '),
-  }),
-  columnHelper.accessor('phone', {
+  columnHelper.accessor('phone_number', {
     header: 'Phone',
+  }),
+  columnHelper.accessor('email', {
+    header: 'Email',
     cell: (info) => info.getValue(),
   }),
-  columnHelper.accessor('status', {
+  columnHelper.accessor('active', {
     header: 'Status',
     cell: (info) => (
       <span
-        className={`px-2 py-1 rounded-full text-sm ${
-          info.getValue() === 'active'
+        className={`inline-block px-2 py-1 rounded-lg text-sm text-center min-w-[70px] ${
+          info.getValue()
             ? 'bg-green-100 text-green-700'
             : 'bg-red-100 text-red-700'
         }`}
       >
-        {info.getValue()}
+        {info.getValue() ? 'Active' : 'Inactive'}
       </span>
     ),
   }),
   columnHelper.display({
     id: 'progress',
     header: 'Progress',
-    cell: () => <Progress color='#FFAE0080' size='sm' radius='xl' value={50} />,
+    cell: () => <Progress color='#A6EECB' size='sm' radius='xl' value={50} />,
   }),
   columnHelper.display({
     id: 'actions',
-    header: 'Actions',
+    header: () => (
+      <img
+        src={actionOptionIcon}
+        alt='Options'
+        className='w-4 h-4 cursor-pointer'
+      />
+    ),
     cell: () => (
-      <div className='flex space-x-2'>
-        <img src={actioEyeIcon} alt='View' className='w-4 h-4 cursor-pointer' />
-        <img
-          src={actionEditIcon}
-          alt='Edit'
-          className='w-4 h-4 cursor-pointer'
-        />
+      <div className='flex space-x-2' onClick={(e) => e.stopPropagation()}>
         <img
           src={actionOptionIcon}
           alt='Options'
@@ -89,31 +95,70 @@ const AllClients = () => {
   const [rowSelection, setRowSelection] = useState({});
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  const navigate = useNavigate();
+
+  const {
+    data: clients = [],
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useGetClients();
+
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
 
+  if (isLoading) {
+    return (
+      <div className='w-full space-y-6 bg-white rounded-lg p-6'>
+        <p className='text-primary'>Loading clients...</p>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className='w-full space-y-6 bg-white rounded-lg p-6'>
+        <div className='space-y-4'>
+          <p className='text-red-500'>
+            Error loading clients: {error?.message}
+          </p>
+          <button
+            onClick={() => refetch()}
+            className='px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90'
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <>
-    <div className='flex flex-col h-screen bg-cardsBg w-full overflow-y-auto'>
-      <MembersHeader
-        title='All Clients'
-        buttonText='New Client'
-        searchPlaceholder='Search by ID, Name or Subject'
-        leftIcon={plusIcon}
-        onButtonClick={openModal}
-      />
-      <div className='flex-1 px-6 py-3'>
-        <Table
-          data={clientsData}
-          columns={columns}
-          rowSelection={rowSelection}
-          onRowSelectionChange={setRowSelection}
-          className='mt-4'
-          pageSize={12}
+      <div className='flex flex-col h-screen bg-cardsBg w-full overflow-y-auto'>
+        <MembersHeader
+          title='All Clients'
+          buttonText='New Client'
+          searchPlaceholder='Search by Name, Session or Phone'
+          leftIcon={plusIcon}
+          onButtonClick={openModal}
         />
+        <div className='flex-1 px-6 py-3'>
+          <Table
+            data={clients}
+            columns={columns}
+            rowSelection={rowSelection}
+            onRowSelectionChange={setRowSelection}
+            className='mt-4'
+            pageSize={12}
+            onRowClick={(row: Client) =>
+              navigateToClientDetails(navigate, row.id.toString())
+            }
+          />
+        </div>
       </div>
-    </div>
-    <ClientsModal isOpen={isModalOpen} onClose={closeModal} />
+      <ClientsModal isOpen={isModalOpen} onClose={closeModal} />
     </>
   );
 };

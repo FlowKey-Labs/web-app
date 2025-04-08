@@ -1,16 +1,19 @@
-import { Badge } from '@mantine/core';
+import { Badge, Tooltip } from '@mantine/core';
+import SearchInput from '../common/SearchInput';
+import { useGetUserProfile } from '../../hooks/reactQuery';
+
 import {
   MessageNotificationIcon,
   NotificationBingIcon,
   SearchIcon,
 } from '../../assets/icons';
-import SearchInput from '../common/SearchInput';
 
 interface HeaderProps {
   showSearch?: boolean;
 }
 
 const Header = ({ showSearch = true }: HeaderProps) => {
+  const { data: userProfile } = useGetUserProfile();
   return (
     <div className='h-[80px] flex items-center justify-between px-11'>
       {showSearch && (
@@ -29,25 +32,41 @@ const Header = ({ showSearch = true }: HeaderProps) => {
       )}
 
       <div className='flex items-center justify-end gap-12 ml-auto'>
-        <div className='relative'>
-          <NotificationBingIcon className='w-6 h-6 cursor-pointer' />
-          <Badge
-            className='absolute -top-3 -right-5 flex items-center justify-center text-primary'
-            radius='xl'
-            variant='filled'
-            color='red'
-            h={25}
-            w={25}
-            style={{ padding: 6 }}
-          >
-            12
-          </Badge>
-        </div>
-        <div className='relative'>
-          <MessageNotificationIcon className='w-6 h-6 cursor-pointer' />
-        </div>
+        <Tooltip
+          label='Coming Soon'
+          position='bottom'
+          withArrow
+          arrowSize={10}
+          color='#1D9B5E'
+        >
+          <div className='relative'>
+            <NotificationBingIcon className='w-6 h-6 cursor-pointer' />
+            <Badge
+              className='absolute -top-3 -right-5 flex items-center justify-center text-primary'
+              radius='xl'
+              variant='filled'
+              color='red'
+              h={25}
+              w={25}
+              style={{ padding: 6 }}
+            >
+              12
+            </Badge>
+          </div>
+        </Tooltip>
+        <Tooltip
+          label='Coming Soon'
+          position='bottom'
+          withArrow
+          arrowSize={10}
+          color='#1D9B5E'
+        >
+          <div className='relative'>
+            <MessageNotificationIcon className='w-6 h-6 cursor-pointer' />
+          </div>
+        </Tooltip>
         <span className='text-primary cursor-pointer'>
-          Doris Waithira
+          {userProfile?.first_name} {userProfile?.last_name}
         </span>
       </div>
     </div>

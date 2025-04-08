@@ -1,11 +1,34 @@
-import musicIcon from '../../assets/icons/music.svg';
-import spaIcon from '../../assets/icons/spa.svg';
-import swimIcon from '../../assets/icons/swim.svg';
-import gymIcon from '../../assets/icons/gym.svg';
-import therapyIcon from '../../assets/icons/therapy.svg';
-import calendarIcon from '../../assets/icons/calender.svg';
-import Avatar from '../../assets/images/greyPhoto.png';
-import { DropDownItem } from '../common/Dropdown';
+import musicIcon from '../assets/icons/music.svg';
+import spaIcon from '../assets/icons/spa.svg';
+import swimIcon from '../assets/icons/swim.svg';
+import gymIcon from '../assets/icons/gym.svg';
+import therapyIcon from '../assets/icons/therapy.svg';
+import calendarIcon from '../assets/icons/calender.svg';
+import Avatar from '../assets/images/greyPhoto.png';
+import { DropDownItem } from '../components/common/Dropdown';
+
+import {
+  DashboardIcon,
+  DashboardIconWhite,
+  StaffIcon,
+  StaffIconWhite,
+  ClientsIcon,
+  ClientsIconWhite,
+  ClassesIcon,
+  ClassesIconWhite,
+  ChatsIcon,
+  ChatsIconWhite,
+  TransactionsIcon,
+  TransactionsIconWhite,
+  CalendarIcon,
+  CalendarIconWhite,
+  SettingsIcon,
+  SettingsIconWhite,
+  LogoutIcon,
+  LogoutIconWhite,
+  ProfileIcon,
+  ProfileIconWhite,
+} from '../assets/icons';
 
 interface BusinessOption {
   id: string;
@@ -29,13 +52,6 @@ interface BusinessPurpose {
 interface TeamOption {
   id: string;
   label: string;
-}
-
-interface Client {
-  name: string;
-  session: string[];
-  phone: string;
-  status: 'active' | 'inactive';
 }
 
 export type ClassLevel = 'Beginner' | 'Intermediate' | 'Advanced';
@@ -112,78 +128,333 @@ export const staffDashboard: StaffDashboard[] = [
   },
 ];
 
-export const clientsData: Client[] = [
+// export const clientsData: Client[] = [
+//   {
+//     id: 1,
+//     name: 'James Muli',
+//     session: ['Mon', 'Fri'],
+//     phone: '+1234567890',
+//     user: 'Client',
+//     status: 'active',
+//     profileImage: Avatar,
+//     class: 'SWT-0015',
+//     classCategory: 'STARfish',
+//     clientLevel: 'ST-2',
+//     date: new Date('2025-01-15'),
+//     assignedTo: 'Neil Bahati',
+//   },
+//   {
+//     id: 2,
+//     name: 'Alice Johnson',
+//     session: ['Tue', 'Thu'],
+//     phone: '+1234567891',
+//     user: 'Client',
+//     status: 'active',
+//     profileImage: Avatar,
+//     class: 'SWT-0016',
+//     classCategory: 'STARfish',
+//     clientLevel: 'ST-1',
+//     date: new Date('2025-01-20'),
+//     assignedTo: 'Alice Johnson',
+//   },
+//   {
+//     id: 3,
+//     name: 'Michael Brown',
+//     session: ['Wed', 'Sat'],
+//     phone: '+1234567892',
+//     user: 'Client',
+//     status: 'inactive',
+//     profileImage: Avatar,
+//     class: 'SWT-0017',
+//     classCategory: 'DOLPHIN',
+//     clientLevel: 'ST-3',
+//     date: new Date('2025-02-05'),
+//     assignedTo: 'Michael Brown',
+//   },
+//   {
+//     id: 4,
+//     name: 'Emily Davis',
+//     session: ['Mon', 'Wed', 'Fri'],
+//     phone: '+1234567893',
+//     user: 'Client',
+//     status: 'active',
+//     profileImage: Avatar,
+//     class: 'SWT-0018',
+//     classCategory: 'STARfish',
+//     clientLevel: 'ST-2',
+//     date: new Date('2025-02-10'),
+//     assignedTo: 'Emily Davis',
+//   },
+//   {
+//     id: 5,
+//     name: 'Daniel Wilson',
+//     session: ['Tue', 'Thu', 'Sat'],
+//     phone: '+1234567894',
+//     user: 'Client',
+//     status: 'inactive',
+//     profileImage: Avatar,
+//     class: 'SWT-0019',
+//     classCategory: 'DOLPHIN',
+//     clientLevel: 'ST-1',
+//     date: new Date('2025-02-15'),
+//     assignedTo: 'Daniel Wilson',
+//   },
+//   {
+//     id: 6,
+//     name: 'Sophia Martinez',
+//     session: ['Mon', 'Tue', 'Wed'],
+//     phone: '+1234567895',
+//     user: 'Client',
+//     status: 'active',
+//     profileImage: Avatar,
+//     class: 'SWT-0020',
+//     classCategory: 'STARfish',
+//     clientLevel: 'ST-3',
+//     date: new Date('2025-03-01'),
+//     assignedTo: 'Sophia Martinez',
+//   },
+//   {
+//     id: 7,
+//     name: 'Matthew Anderson',
+//     session: ['Thu', 'Fri', 'Sat'],
+//     phone: '+1234567896',
+//     user: 'Client',
+//     status: 'active',
+//     profileImage: Avatar,
+//     class: 'SWT-0021',
+//     classCategory: 'DOLPHIN',
+//     clientLevel: 'ST-2',
+//     date: new Date('2025-03-05'),
+//     assignedTo: 'Matthew Anderson',
+//   },
+//   {
+//     id: 8,
+//     name: 'Olivia Taylor',
+//     session: ['Mon', 'Wed', 'Fri'],
+//     phone: '+1234567897',
+//     user: 'Client',
+//     status: 'inactive',
+//     profileImage: Avatar,
+//     class: 'SWT-0022',
+//     classCategory: 'STARfish',
+//     clientLevel: 'ST-1',
+//     date: new Date('2025-03-10'),
+//     assignedTo: 'Olivia Taylor',
+//   },
+//   {
+//     id: 9,
+//     name: 'William Thomas',
+//     session: ['Tue', 'Thu', 'Sat'],
+//     phone: '+1234567898',
+//     user: 'Client',
+//     status: 'active',
+//     profileImage: Avatar,
+//     class: 'SWT-0023',
+//     classCategory: 'DOLPHIN',
+//     clientLevel: 'ST-3',
+//     date: new Date('2025-03-15'),
+//     assignedTo: 'William Thomas',
+//   },
+//   {
+//     id: 10,
+//     name: 'Ava Hernandez',
+//     session: ['Mon', 'Tue', 'Thu'],
+//     phone: '+1234567899',
+//     user: 'Client',
+//     status: 'active',
+//     profileImage: Avatar,
+//     assignedTo: 'Ava Hernandez',
+//     class: 'SWT-0024',
+//     classCategory: 'STARfish',
+//     clientLevel: 'ST-2',
+//     date: new Date('2025-04-01'),
+//   },
+//   {
+//     id: 11,
+//     name: 'Ethan Moore',
+//     session: ['Wed', 'Fri', 'Sat'],
+//     phone: '+1234567800',
+//     user: 'Client',
+//     status: 'inactive',
+//     profileImage: Avatar,
+//     class: 'SWT-0025',
+//     classCategory: 'DOLPHIN',
+//     clientLevel: 'ST-1',
+//     assignedTo: 'Ethan Moore',
+//     date: new Date('2025-04-05'),
+//   },
+//   {
+//     id: 12,
+//     name: 'Mia Jackson',
+//     session: ['Mon', 'Wed', 'Fri'],
+//     phone: '+1234567801',
+//     user: 'Client',
+//     status: 'active',
+//     profileImage: Avatar,
+//     assignedTo: 'Mia Jackson',
+//     class: 'SWT-0026',
+//     classCategory: 'STARfish',
+//     clientLevel: 'ST-3',
+//     date: new Date('2025-04-10'),
+//   },
+// ];
+
+export interface PaymentHistory {
+  id: number;
+  clientId: number;
+  class: 'STARfish' | 'STAnley' | 'Grade' | 'Advanced' | 'Platinum';
+  package: 'weekly' | 'monthly';
+  amount: number;
+  status: 'overdue' | 'paid';
+  transactionId: string;
+  date: string;
+}
+
+export const paymentHistories: PaymentHistory[] = [
   {
-    name: 'James Muli',
-    session: ['Mon', 'Fri'],
-    phone: '+1234567890',
-    status: 'active',
+    id: 1,
+    clientId: 1,
+    class: 'STARfish',
+    package: 'weekly',
+    amount: 2500,
+    status: 'paid',
+    transactionId: 'TXN101A',
+    date: '2024-01-05',
   },
   {
-    name: 'Alice Johnson',
-    session: ['Tue', 'Thu'],
-    phone: '+1234567891',
-    status: 'active',
+    id: 2,
+    clientId: 1,
+    class: 'Platinum',
+    package: 'monthly',
+    amount: 5000,
+    status: 'overdue',
+    transactionId: 'TXN102B',
+    date: '2024-02-10',
+  },
+
+  {
+    id: 11,
+    clientId: 2,
+    class: 'Advanced',
+    package: 'weekly',
+    amount: 2200,
+    status: 'paid',
+    transactionId: 'TXN201A',
+    date: '2024-01-08',
   },
   {
-    name: 'Michael Brown',
-    session: ['Wed', 'Sat'],
-    phone: '+1234567892',
-    status: 'inactive',
+    id: 12,
+    clientId: 2,
+    class: 'STARfish',
+    package: 'monthly',
+    amount: 4800,
+    status: 'paid',
+    transactionId: 'TXN202B',
+    date: '2024-02-12',
   },
   {
-    name: 'Emily Davis',
-    session: ['Mon', 'Wed', 'Fri'],
-    phone: '+1234567893',
-    status: 'active',
+    id: 13,
+    clientId: 2,
+    class: 'Advanced',
+    package: 'weekly',
+    amount: 2700,
+    status: 'overdue',
+    transactionId: 'TXN203C',
+    date: '2024-03-18',
+  },
+
+  {
+    id: 14,
+    clientId: 3,
+    class: 'Platinum',
+    package: 'monthly',
+    amount: 5200,
+    status: 'paid',
+    transactionId: 'TXN301A',
+    date: '2024-01-15',
   },
   {
-    name: 'Daniel Wilson',
-    session: ['Tue', 'Thu', 'Sat'],
-    phone: '+1234567894',
-    status: 'inactive',
+    id: 15,
+    clientId: 3,
+    class: 'Grade',
+    package: 'weekly',
+    amount: 2300,
+    status: 'overdue',
+    transactionId: 'TXN302B',
+    date: '2024-02-20',
   },
   {
-    name: 'Sophia Martinez',
-    session: ['Mon', 'Tue', 'Wed'],
-    phone: '+1234567895',
-    status: 'active',
+    id: 16,
+    clientId: 3,
+    class: 'STAnley',
+    package: 'monthly',
+    amount: 4900,
+    status: 'paid',
+    transactionId: 'TXN303C',
+    date: '2024-03-25',
+  },
+
+  {
+    id: 17,
+    clientId: 4,
+    class: 'STARfish',
+    package: 'weekly',
+    amount: 2400,
+    status: 'paid',
+    transactionId: 'TXN401A',
+    date: '2024-01-10',
   },
   {
-    name: 'Matthew Anderson',
-    session: ['Thu', 'Fri', 'Sat'],
-    phone: '+1234567896',
-    status: 'active',
+    id: 18,
+    clientId: 4,
+    class: 'Advanced',
+    package: 'monthly',
+    amount: 4600,
+    status: 'overdue',
+    transactionId: 'TXN402B',
+    date: '2024-02-15',
   },
   {
-    name: 'Olivia Taylor',
-    session: ['Mon', 'Wed', 'Fri'],
-    phone: '+1234567897',
-    status: 'inactive',
+    id: 19,
+    clientId: 4,
+    class: 'Advanced',
+    package: 'weekly',
+    amount: 2900,
+    status: 'paid',
+    transactionId: 'TXN403C',
+    date: '2024-03-20',
+  },
+
+  // New records for Client ID 5
+  {
+    id: 20,
+    clientId: 5,
+    class: 'Grade',
+    package: 'monthly',
+    amount: 5100,
+    status: 'paid',
+    transactionId: 'TXN501A',
+    date: '2024-01-20',
   },
   {
-    name: 'William Thomas',
-    session: ['Tue', 'Thu', 'Sat'],
-    phone: '+1234567898',
-    status: 'active',
+    id: 21,
+    clientId: 5,
+    class: 'Platinum',
+    package: 'weekly',
+    amount: 3100,
+    status: 'overdue',
+    transactionId: 'TXN502B',
+    date: '2024-02-25',
   },
   {
-    name: 'Ava Hernandez',
-    session: ['Mon', 'Tue', 'Thu'],
-    phone: '+1234567899',
-    status: 'active',
-  },
-  {
-    name: 'Ethan Moore',
-    session: ['Wed', 'Fri', 'Sat'],
-    phone: '+1234567800',
-    status: 'inactive',
-  },
-  {
-    name: 'Mia Jackson',
-    session: ['Mon', 'Wed', 'Fri'],
-    phone: '+1234567801',
-    status: 'active',
+    id: 22,
+    clientId: 5,
+    class: 'STAnley',
+    package: 'monthly',
+    amount: 4400,
+    status: 'paid',
+    transactionId: 'TXN503C',
+    date: '2024-03-30',
   },
 ];
 
@@ -239,14 +510,14 @@ export const businessPurpose: BusinessPurpose[] = [
   {
     id: '2',
     icon: calendarIcon,
-    title: 'Scheduling',
+    title: 'Managing',
     description:
       'Just the usual music classes I guess. Just the usual music classes I guess',
   },
   {
     id: '3',
     icon: calendarIcon,
-    title: 'Scheduling',
+    title: 'Store Data',
     description:
       'Just the usual music classes I guess. Just the usual music classes I guess',
   },
@@ -588,14 +859,14 @@ export const permissionsData = [
   },
 ];
 
-export const roleOptions = [
+export const roleOptions: DropDownItem[] = [
   { label: 'Manager', value: 'manager' },
   { label: 'Supervisor', value: 'supervisor' },
   { label: 'Staff', value: 'staff' },
   { label: 'Intern', value: 'intern' },
 ];
 
-export const payTypeOptions = [
+export const payTypeOptions: DropDownItem[] = [
   { label: 'Hourly', value: 'hourly' },
   { label: 'Salary', value: 'salary' },
   { label: 'Commission', value: 'commission' },
@@ -663,12 +934,6 @@ export const services: Service[] = [
     time: '4:30 PM - 5:15 PM',
     schedule: 'Fri, Sun',
   },
-];
-
-export const profileRoleOptions: DropDownItem[] = [
-  { label: 'Owner', value: 'owner' },
-  { label: 'Manager', value: 'manager' },
-  { label: 'Staff', value: 'staff' },
 ];
 
 export const regionOptions: DropDownItem[] = [
@@ -754,7 +1019,6 @@ export const months = [
   { label: 'December', value: '12' },
 ];
 
-
 export const swimClasses = [
   { label: 'Beginner Swim Lessons', value: 'beginner-swim' },
   { label: 'Intermediate Swim Training', value: 'intermediate-swim' },
@@ -765,5 +1029,63 @@ export const swimClasses = [
   { label: 'Water Safety Classes', value: 'water-safety' },
   { label: 'Synchronized Swimming', value: 'synchronized-swim' },
   { label: 'Open Water Swim Training', value: 'open-water-swim' },
-  { label: 'Aqua Aerobics', value: 'aqua-aerobics' }
+  { label: 'Aqua Aerobics', value: 'aqua-aerobics' },
 ];
+
+export const menuItems = [
+  {
+    name: 'Dashboard',
+    icon: DashboardIcon,
+    iconWhite: DashboardIconWhite,
+  },
+  {
+    name: 'Staff',
+    icon: StaffIcon,
+    iconWhite: StaffIconWhite,
+  },
+  {
+    name: 'Clients',
+    icon: ClientsIcon,
+    iconWhite: ClientsIconWhite,
+  },
+  {
+    name: 'Sessions',
+    icon: ClassesIcon,
+    iconWhite: ClassesIconWhite,
+  },
+  {
+    name: 'Calendar',
+    icon: CalendarIcon,
+    iconWhite: CalendarIconWhite,
+  },
+  {
+    name: 'Transactions',
+    icon: TransactionsIcon,
+    iconWhite: TransactionsIconWhite,
+  },
+  {
+    name: 'Chats',
+    icon: ChatsIcon,
+    iconWhite: ChatsIconWhite,
+  },
+];
+
+export const bottomMenuItems = [
+  {
+    name: 'Profile',
+    icon: ProfileIcon,
+    iconWhite: ProfileIconWhite,
+  },
+  {
+    name: 'Settings',
+    icon: SettingsIcon,
+    iconWhite: SettingsIconWhite,
+  },
+  {
+    name: 'Logout',
+    icon: LogoutIcon,
+    iconWhite: LogoutIconWhite,
+  },
+];
+
+export const repeatDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];

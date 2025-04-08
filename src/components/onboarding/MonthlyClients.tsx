@@ -5,13 +5,13 @@ import Button from '../common/Button';
 import { useNavigate } from 'react-router-dom';
 import { OnboardingProgress } from '../common/OnboardingProgress';
 import { useState } from 'react';
-import { monthlyClientOptions } from '../utils/dummyData';
+import { useOnboardingStore } from '../../store/onboardingStore';
+import { monthlyClientOptions } from '../../utils/dummyData';
 
 const MonthlyClients = () => {
   const navigate = useNavigate();
-  const [selectedMonthlyClients, setSelectedMonthlyClients] = useState<
-    string | null
-  >(null);
+  const { monthlyClients, setMonthlyClients } = useOnboardingStore();
+  const [selectedMonthlyClients, setSelectedMonthlyClients] = useState<string | null>(monthlyClients);
   const [hoveredOption, setHoveredOption] = useState<string | null>(null);
   const [buttonHovered, setButtonHovered] = useState(false);
 
@@ -43,7 +43,10 @@ const MonthlyClients = () => {
                   }`}
                   onMouseEnter={() => setHoveredOption(option.id)}
                   onMouseLeave={() => setHoveredOption(null)}
-                  onClick={() => setSelectedMonthlyClients(option.id)}
+                  onClick={() => {
+                    setSelectedMonthlyClients(option.id);
+                    setMonthlyClients(option.label);
+                  }}
                 >
                   {option.label}
                 </div>

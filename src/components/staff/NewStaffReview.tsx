@@ -1,7 +1,7 @@
 import { Checkbox, Accordion } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import Button from '../common/Button';
-import { FormData } from './types';
+import { FormData } from '../../types/staffTypes';
 import DropdownSelectInput, { DropDownItem } from '../common/Dropdown';
 import { SingleValue } from 'react-select';
 
@@ -48,15 +48,6 @@ const NewStaffReview = ({
       completed: formData.profile !== undefined,
       content: formData.profile && (
         <div className='space-y-4 px-2 py-2'>
-          <DisplayInput
-            label='Preferred Name'
-            value={formData.profile.preferedName}
-          />
-          <DisplayInput label='Last Name' value={formData.profile.lastName} />
-          <DisplayInput
-            label='Phone Number'
-            value={formData.profile.phoneNumber}
-          />
           <DisplayInput label='Email' value={formData.profile.email} />
           <DisplayInput label='User ID' value={formData.profile.userId} />
         </div>
@@ -98,7 +89,9 @@ const NewStaffReview = ({
             isSearchable={false}
             isClearable={false}
           />
-          <DisplayInput label='Hourly Rate' value={formData.role.hourlyRate} />
+          {formData.role.payType === 'hourly' && formData.role.hourlyRate && (
+            <DisplayInput label='Hourly Rate' value={formData.role.hourlyRate} />
+          )}
         </div>
       ),
     },

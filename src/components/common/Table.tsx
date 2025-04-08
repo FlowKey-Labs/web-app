@@ -10,7 +10,7 @@ import {
 import tableLeftIcon from '../../assets/icons/tableLeft.svg';
 import tableRightIcon from '../../assets/icons/tableRight.svg';
 
-interface TableProps<T> {
+export interface TableProps<T> {
   data: T[];
   columns: ColumnDef<T, any>[];
   rowSelection?: RowSelectionState;
@@ -80,12 +80,12 @@ const Table = <T extends object>({
               ))}
             </tr>
           ))}
+          {showHeaderDivider && (
+            <tr>
+              <td colSpan={columns.length} className={`${headerDividerColor} h-[1px] p-0`}></td>
+            </tr>
+          )}
         </thead>
-        {showHeaderDivider && (
-          <tr>
-            <td colSpan={columns.length} className={`${headerDividerColor} h-[1px] p-0`}></td>
-          </tr>
-        )}
         <tbody className={`${bodyBg} divide-y divide-gray-200`}>
           {table.getRowModel().rows.map((row) => (
             <tr

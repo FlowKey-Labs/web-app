@@ -10,6 +10,11 @@ import Main from '../authentication/MainAuth';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useWatch } from 'react-hook-form';
+import NotificationToast from '../common/NotificationToast';
+import checkIcon from '../../assets/icons/check.svg';
+
+import { useRegisterUser } from '../../hooks/reactQuery';
+
 import { EyeClosedIcon, EyeOpenIcon } from '../../assets/icons';
 
 interface FormData {
@@ -24,7 +29,12 @@ interface FormData {
 const Signup = () => {
   const methods = useForm<FormData>({
     defaultValues: {
+      firstName: '',
+      lastName: '',
       mobileNumber: '',
+      email: '',
+      password: '',
+      confirmPassword: '',
     },
   });
 
@@ -34,15 +44,36 @@ const Signup = () => {
   const [isHovered, setIsHovered] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showNotification, setShowNotification] = useState(false);
 
   const togglePasswordVisibility = () => setShowPassword(!showPassword);
   const toggleConfirmPasswordVisibility = () =>
     setShowConfirmPassword(!showConfirmPassword);
 
+  const { mutate: registerUser, isPending } = useRegisterUser();
+
   const onSubmit: SubmitHandler<FormData> = (data) => {
-    console.log(data);
-    
-    navigate('/welcome');
+    registerUser(
+      {
+        first_name: data.firstName,
+        last_name: data.lastName,
+        email: data.email,
+        mobile_number: data.mobileNumber,
+        password: data.password,
+        confirm_password: data.confirmPassword,
+      },
+      {
+        onSuccess: () => {
+          setShowNotification(true);
+          setTimeout(() => {
+            navigate('/welcome');
+          }, 1500);
+        },
+        onError: (error) => {
+          console.error('Registration error:', error);
+        },
+      }
+    );
   };
 
   return (
@@ -240,11 +271,26 @@ const Signup = () => {
             }}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
+            disabled={isPending}
           >
-            Sign Up
+            {isPending ? 'Registering...' : 'Sign Up'}
           </Button>
         </form>
       </FormProvider>
+      {showNotification && (
+        <NotificationToast
+          type='success'
+          title='Success!'
+          description='Registration successful'
+          onClose={() => setShowNotification(false)}
+          icon={
+            <div className='rounded-full p-2 bg-secondary'>
+              <img src={checkIcon} alt='' className='w-5 h-5' />
+            </div>
+          }
+          autoClose={5000}
+        />
+      )}
     </Main>
   );
 };

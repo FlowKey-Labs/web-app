@@ -1,6 +1,6 @@
 import { useRef, useEffect, PropsWithChildren, JSX } from 'react';
 
-type Positions = 'left' | 'right' | 'center' | 'top';
+type Positions = 'left' | 'right' | 'center' | 'top' | 'center-screen';
 
 type Props = {
   actionElement?: JSX.Element;
@@ -28,7 +28,8 @@ const DropDownMenu = ({
       left: 'left-0',
       right: 'right-0',
       center: 'left-1/2 transform -translate-x-1/2',
-      top: '-top-0'
+      top: '-top-0',
+      'center-screen': 'fixed left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2'
     }[type];
   };
 
@@ -59,21 +60,26 @@ const DropDownMenu = ({
   };
 
   return (
-    <div className='relative w-fit'>
+    <div className='relative w-full'>
       <div ref={btnRef} onClick={handleBtnClick}>
         {actionElement}
       </div>
       {show && (
-        <div
-          ref={menuRef}
-          id='dropdown'
-          className={`absolute top-11 mt-1 ${getPostion(dropDownPosition)} z-10
-          divide-y divide-gray-100 rounded-md bg-white shadow-[0px_0px_10px_rgba(0,0,0,0.25)] transition-all duration-500 ease-in-out ${
-            className || ''
-          }`}
-        >
-          {children}
-        </div>
+        <>
+          {dropDownPosition === 'center-screen' && (
+            <div className='fixed inset-0 bg-black bg-opacity-50 z-50' onClick={() => setShow?.(false)} />
+          )}
+          <div
+            ref={menuRef}
+            id='dropdown'
+            className={`${dropDownPosition === 'center-screen' ? '' : 'absolute top-11 mt-1'} ${getPostion(dropDownPosition)} ${dropDownPosition === 'center-screen' ? 'z-50' : 'z-10'}
+            divide-y divide-gray-100 rounded-md bg-white shadow-[0px_0px_10px_rgba(0,0,0,0.25)] transition-all duration-500 ease-in-out ${
+              className || ''
+            }`}
+          >
+            {children}
+          </div>
+        </>
       )}
     </div>
   );

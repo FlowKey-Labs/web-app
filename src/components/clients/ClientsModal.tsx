@@ -4,29 +4,30 @@ import Input from '../common/Input';
 import DropdownSelectInput from '../common/Dropdown';
 import Button from '../common/Button';
 import clientlocationIcons from '../../assets/icons/clientLocation.svg';
-import { months, swimClasses } from '../utils/dummyData';
+import { months, swimClasses } from '../../utils/dummyData';
+import { useAddClient } from '../../hooks/reactQuery';
+import React from 'react';
+import { AddClient } from '../../types/clientTypes';
 
 interface ClientsModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-interface ClientsFormData {
-  firstName: string;
-  lastName: string;
-  phoneNumber: string;
-  email: string;
-  userId: string;
-  location: string;
-  month: string;
-  day: string;
-  year: string;
-  assignedClass: string;
-}
-
 const ClientsModal = ({ isOpen, onClose }: ClientsModalProps) => {
-  const methods = useForm<ClientsFormData>();
-  const { control, handleSubmit } = methods;
+  const methods = useForm<AddClient>({
+    defaultValues: {
+      first_name: '',
+      last_name: '',
+      phone_number: '',
+      email: '',
+      location: '',
+      assigned_classes: 0,
+    },
+  });
+  const { control, handleSubmit, reset } = methods;
+
+  const { mutate: addClient, isPending, isSuccess } = useAddClient();
 
   const days = Array.from({ length: 31 }, (_, i) => ({
     label: (i + 1).toString(),
@@ -39,8 +40,28 @@ const ClientsModal = ({ isOpen, onClose }: ClientsModalProps) => {
     value: (currentYear - i).toString(),
   }));
 
-  const onSubmit = (data: ClientsFormData) => {
-    console.log(data);
+  // Reset form and close modal on successful submission
+  React.useEffect(() => {
+    if (isSuccess) {
+      reset();
+      onClose();
+    }
+  }, [isSuccess, reset, onClose]);
+
+  const onSubmit = (data: AddClient) => {
+    addClient({
+      first_name: data.first_name,
+      last_name: data.last_name,
+      email: data.email,
+      phone_number: data.phone_number,
+      location: data.location,
+      assigned_classes: data.assigned_classes,
+      id: 0,
+      active: false,
+      created_at: '',
+      created_by: 0,
+      business: 0,
+    });
   };
 
   if (!isOpen) return null;
@@ -64,14 +85,14 @@ const ClientsModal = ({ isOpen, onClose }: ClientsModalProps) => {
         </div>
 
         <div className='w-[90%] h-full flex flex-col'>
-          <h3 className='px-8 mt-4 text-primary font-bold text-[24px]'>
+          <h3 className='px-2 mt-4 text-primary font-bold text-[24px]'>
             Create New Client
           </h3>
 
           <FormProvider {...methods}>
             <form
               onSubmit={handleSubmit(onSubmit)}
-              className='flex-1 flex flex-col p-8'
+              className='flex-1 flex flex-col p-2'
             >
               <div className='space-y-4 mb-8'>
                 <h4 className='text-lg font-semibold text-gray-700'>
@@ -80,8 +101,9 @@ const ClientsModal = ({ isOpen, onClose }: ClientsModalProps) => {
 
                 <div className='grid grid-cols-2 gap-4'>
                   <Controller
-                    name='firstName'
+                    name='first_name'
                     control={control}
+                    rules={{ required: 'First name is required' }}
                     render={({ field }) => (
                       <Input
                         {...field}
@@ -91,8 +113,9 @@ const ClientsModal = ({ isOpen, onClose }: ClientsModalProps) => {
                     )}
                   />
                   <Controller
-                    name='lastName'
+                    name='last_name'
                     control={control}
+                    rules={{ required: 'Last name is required' }}
                     render={({ field }) => (
                       <Input
                         {...field}
@@ -104,7 +127,7 @@ const ClientsModal = ({ isOpen, onClose }: ClientsModalProps) => {
                 </div>
 
                 <Controller
-                  name='phoneNumber'
+                  name='phone_number'
                   control={control}
                   rules={{
                     pattern: {
@@ -144,18 +167,6 @@ const ClientsModal = ({ isOpen, onClose }: ClientsModalProps) => {
                 />
 
                 <Controller
-                  name='userId'
-                  control={control}
-                  render={({ field }) => (
-                    <Input
-                      {...field}
-                      label='User ID'
-                      placeholder='Enter user ID'
-                    />
-                  )}
-                />
-
-                <Controller
                   name='location'
                   control={control}
                   render={({ field }) => (
@@ -179,55 +190,8 @@ const ClientsModal = ({ isOpen, onClose }: ClientsModalProps) => {
               </div>
 
               <div className='mb-8'>
-                <div className='grid grid-cols-3 gap-4'>
-                  <Controller
-                    name='month'
-                    control={control}
-                    render={({ field }) => (
-                      <DropdownSelectInput
-                        label='Month'
-                        placeholder='Jan'
-                        options={months}
-                        onSelectItem={(selected) =>
-                          field.onChange(selected.value)
-                        }
-                      />
-                    )}
-                  />
-                  <Controller
-                    name='day'
-                    control={control}
-                    render={({ field }) => (
-                      <DropdownSelectInput
-                        label='Day'
-                        placeholder='09'
-                        options={days}
-                        onSelectItem={(selected) =>
-                          field.onChange(selected.value)
-                        }
-                      />
-                    )}
-                  />
-                  <Controller
-                    name='year'
-                    control={control}
-                    render={({ field }) => (
-                      <DropdownSelectInput
-                        label='Year'
-                        placeholder='1975'
-                        options={years}
-                        onSelectItem={(selected) =>
-                          field.onChange(selected.value)
-                        }
-                      />
-                    )}
-                  />
-                </div>
-              </div>
-
-              <div className='mb-8'>
                 <Controller
-                  name='assignedClass'
+                  name='assigned_classes'
                   control={control}
                   render={({ field }) => (
                     <DropdownSelectInput
@@ -242,14 +206,15 @@ const ClientsModal = ({ isOpen, onClose }: ClientsModalProps) => {
                 />
               </div>
 
-              <div className='mt-auto flex justify-end'>
+              <div className='mt-auto flex justify-end gap-4'>
                 <Button
                   type='submit'
                   color='#1D9B5E'
                   radius='8px'
                   className='w-full md:w-auto'
+                  disabled={isPending}
                 >
-                  Continue
+                  {isPending ? 'Creating...' : 'Continue'}
                 </Button>
               </div>
             </form>

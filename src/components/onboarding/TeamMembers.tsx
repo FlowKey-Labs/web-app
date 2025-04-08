@@ -5,12 +5,14 @@ import Button from '../common/Button';
 import { useNavigate } from 'react-router-dom';
 import { OnboardingProgress } from '../common/OnboardingProgress';
 import { useState } from 'react';
+import { useOnboardingStore } from '../../store/onboardingStore';
 
-import { teamOptions } from '../utils/dummyData';
+import { teamOptions } from '../../utils/dummyData';
 
 const TeamMembers = () => {
   const navigate = useNavigate();
-  const [selectedTeamSize, setSelectedTeamSize] = useState<string | null>(null);
+  const { teamSize, setTeamSize } = useOnboardingStore();
+  const [selectedTeamSize, setSelectedTeamSize] = useState<string | null>(teamSize);
   const [hoveredOption, setHoveredOption] = useState<string | null>(null);
   const [buttonHovered, setButtonHovered] = useState(false);
 
@@ -24,7 +26,7 @@ const TeamMembers = () => {
         </div>
         <div className='flex flex-col text-left mb-8'>
           <h3 className='text-2xl lg:text-3xl font-bold mb-2 text-primary'>
-            How many members are you in your team?
+            How many members are in your team?
           </h3>
           <OnboardingProgress currentStep='team-members' />
         </div>
@@ -44,7 +46,10 @@ const TeamMembers = () => {
                   }`}
                   onMouseEnter={() => setHoveredOption(option.id)}
                   onMouseLeave={() => setHoveredOption(null)}
-                  onClick={() => setSelectedTeamSize(option.id)}
+                  onClick={() => {
+                    setSelectedTeamSize(option.id);
+                    setTeamSize(option.label);
+                  }}
                 >
                   {option.label}
                 </div>
