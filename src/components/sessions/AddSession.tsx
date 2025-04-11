@@ -327,6 +327,10 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
           header: {
             padding: '1rem 1.5rem',
           },
+          title: {
+            fontSize: '24px',
+            fontWeight: 'bold',
+          },
           body: {
             padding: 0,
           },

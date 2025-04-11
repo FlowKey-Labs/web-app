@@ -8,9 +8,9 @@ import { Progress } from '@mantine/core';
 
 import actionOptionIcon from '../../assets/icons/actionOption.svg';
 import { useState } from 'react';
-import ClientsModal from './ClientsModal';
 import { useNavigate } from 'react-router-dom';
 import { navigateToClientDetails } from '../../utils/navigationHelpers';
+import AddClients from './AddClient';
 
 const columnHelper = createColumnHelper<Client>();
 
@@ -93,7 +93,7 @@ const columns = [
 
 const AllClients = () => {
   const [rowSelection, setRowSelection] = useState({});
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   const navigate = useNavigate();
 
@@ -105,8 +105,8 @@ const AllClients = () => {
     refetch,
   } = useGetClients();
 
-  const openModal = () => setIsModalOpen(true);
-  const closeModal = () => setIsModalOpen(false);
+  const openDrawer = () => setIsDrawerOpen(true);
+  const closeDrawer = () => setIsDrawerOpen(false);
 
   if (isLoading) {
     return (
@@ -142,7 +142,7 @@ const AllClients = () => {
           buttonText='New Client'
           searchPlaceholder='Search by Name, Session or Phone'
           leftIcon={plusIcon}
-          onButtonClick={openModal}
+          onButtonClick={openDrawer}
         />
         <div className='flex-1 px-6 py-3'>
           <Table
@@ -158,7 +158,7 @@ const AllClients = () => {
           />
         </div>
       </div>
-      <ClientsModal isOpen={isModalOpen} onClose={closeModal} />
+      <AddClients isOpen={isDrawerOpen} onClose={closeDrawer} />
     </>
   );
 };

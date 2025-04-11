@@ -7,7 +7,7 @@ import { useMemo, useState } from 'react';
 import Table from '../common/Table';
 import { createColumnHelper } from '@tanstack/react-table';
 import actionOptionIcon from '../../assets/icons/actionOption.svg';
-import ClientsModal from './ClientsModal';
+import ClientsModal from './AddClient';
 import { useGetClient } from '../../hooks/reactQuery';
 import { paymentHistories } from '../../utils/dummyData';
 import greyPhoto from '../../assets/images/greyPhoto.png';

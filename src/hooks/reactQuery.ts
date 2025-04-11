@@ -181,6 +181,8 @@ export const useAddClient = () => {
         email: data.email,
         phone_number: data.phone_number,
         location: data.location || '',
+        gender: data.gender,
+        dob: data.dob,
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['clients'] });
