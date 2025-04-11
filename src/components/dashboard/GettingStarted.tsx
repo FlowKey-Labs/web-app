@@ -1,7 +1,6 @@
 import DropDownMenu from '../common/DropdownMenu';
 import Header from '../headers/Header';
-import { Calendar } from '@mantine/dates';
-import { rem } from '@mantine/core';
+
 import {
   navigateToCalendar,
   navigateToStaff,
@@ -11,8 +10,9 @@ import {
   useGetUserProfile,
   useGetAnalytics,
   useGetUpcomingSessions,
+  useCancelSession,
 } from '../../hooks/reactQuery';
-import { DateFilterOption, UpcomingSession } from '../../types/dashboard';
+import { DateFilterOption } from '../../types/dashboard';
 
 import dropdownIcon from '../../assets/icons/dropIcon.svg';
 import calenderIcon from '../../assets/icons/calendar.svg';
@@ -20,15 +20,17 @@ import sessionsIcon from '../../assets/icons/sessions.svg';
 import totalClientsIcon from '../../assets/icons/totalClients.svg';
 import totalStaffIcon from '../../assets/icons/totalStaff.svg';
 import rightIcon from '../../assets/icons/greenRight.svg';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { BarGraph } from '../common/BarGraph';
 import rescheduleIcon from '../../assets/icons/reschedule.svg';
 import cancelIcon from '../../assets/icons/cancelRed.svg';
+import donutIcon from '../../assets/icons/donutIcon.svg';
 
 import { StaffDashboard, staffDashboard } from '../../utils/dummyData';
 import Table from '../common/Table';
 import { createColumnHelper } from '@tanstack/react-table';
 import { useNavigate } from 'react-router-dom';
+import { DonutChart } from '@mantine/charts';
 
 const columnHelper = createColumnHelper<StaffDashboard>();
 
@@ -71,27 +73,51 @@ const GettingStarted = () => {
     string | null
   >(null);
   const [rowSelection, setRowSelection] = useState({});
-  const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
+
   const [selectedTimeRange, setSelectedTimeRange] = useState('to_date');
 
   const navigate = useNavigate();
   const { data: userProfile } = useGetUserProfile();
-  const { data: analytics, refetch: refetchAnalytics } = useGetAnalytics(
+  const { data: analytics } = useGetAnalytics(
     selectedTimeRange as DateFilterOption
   );
   const { data: upcomingSessions } = useGetUpcomingSessions();
-
-  useEffect(() => {
-    const intervalId = setInterval(() => {
-      refetchAnalytics();
-      console.log('Refreshing analytics data...');
-    }, 10000);
-    return () => clearInterval(intervalId);
-  }, [refetchAnalytics, selectedTimeRange]);
+  const cancelSession = useCancelSession();
 
   const handleTimeRangeSelect = (range: string) => {
     setSelectedTimeRange(range);
     setDropdownOpen(false);
+  };
+
+  const formatTo12Hour = (isoDateTimeStr: string | null) => {
+    if (!isoDateTimeStr || typeof isoDateTimeStr !== 'string')
+      return isoDateTimeStr === null ? '-' : isoDateTimeStr;
+
+    try {
+      let formattedTimeStr = isoDateTimeStr;
+      if (!isoDateTimeStr.includes('T')) {
+        formattedTimeStr = `2025-01-01T${isoDateTimeStr}`;
+      }
+
+      const timePart = formattedTimeStr.split('T')[1];
+      if (!timePart) {
+        return isoDateTimeStr;
+      }
+
+      const timeComponents = timePart.split(':');
+      let hours = parseInt(timeComponents[0], 10);
+      const minutes = timeComponents[1].padStart(2, '0');
+
+      const ampm = hours >= 12 ? 'PM' : 'AM';
+
+      hours = hours % 12;
+      hours = hours ? hours : 12;
+
+      return `${hours}:${minutes} ${ampm}`;
+    } catch (e) {
+      console.error('Error formatting time:', isoDateTimeStr, e);
+      return isoDateTimeStr;
+    }
   };
 
   const limitedUpcomingSessions = upcomingSessions?.slice(0, 3) || [];
@@ -146,7 +172,7 @@ const GettingStarted = () => {
               }
             >
               <div className='border-[1px] border-secondary rounded-lg'>
-                <ul className='w-[180px] p-6 space-y-2'>
+                <ul className='w-[180px] py-4 space-y-1'>
                   {[
                     'to_date',
                     'today',
@@ -157,10 +183,10 @@ const GettingStarted = () => {
                   ].map((range) => (
                     <li
                       key={range}
-                      className={`cursor-pointer ${
+                      className={`cursor-pointer  text-center p-2 ${
                         selectedTimeRange === range
-                          ? 'text-green-500 font-bold'
-                          : ''
+                          ? 'text-green-500 font-bold bg-flowkeySecondary'
+                          : 'hover:bg-flowkeySecondary'
                       }`}
                       onClick={() => handleTimeRangeSelect(range)}
                     >
@@ -230,47 +256,58 @@ const GettingStarted = () => {
         </div>
         <div className='flex p-4 mt-8 gap-8 '>
           <div className='flex flex-col w-[30%] space-y-6'>
-            <div className='flex justify-center items-center max-w-[350px] bg-white rounded-lg p-4'>
-              <Calendar
-                highlightToday
-                getDayProps={(date) => ({
-                  selected: selectedDate
-                    ? date.getTime() === selectedDate.getTime()
-                    : false,
-                  onClick: () => setSelectedDate(date),
-                })}
-                size='md'
-                styles={(theme) => ({
-                  cell: {
-                    border: `${rem(1)} solid ${theme.colors.gray[2]}`,
-                  },
-                  day: {
-                    borderRadius: '50%',
-                    height: rem(40),
-                    width: rem(40),
-                    fontSize: theme.fontSizes.sm,
-                  },
-                  weekday: {
-                    fontSize: theme.fontSizes.sm,
-                    color: theme.colors.gray[6],
-                  },
-                  month: {
-                    fontSize: theme.fontSizes.md,
-                    fontWeight: 600,
-                  },
-                })}
-                classNames={{
-                  calendarHeader: 'mb-4',
-                  day: 'my-day-dashboard-class',
-                }}
-              />
+            <div className='flex justify-center items-center max-w-[350px] bg-white rounded-lg p-2'>
+              <div className='flex flex-col items-center w-full'>
+                <h4 className='text-[#08040C] text-[20px] font-[600] self-start mb-6'>
+                  Clients Overview
+                </h4>
+                <DonutChart
+                  data={(() => {
+                    const chartData = (
+                      analytics?.gender_distribution || []
+                    ).map((item, index) => ({
+                      ...item,
+                      color: index === 0 ? '#00A76F' : '#EEEAF2',
+                    }));
+                    console.log('Chart data:', chartData);
+                    return chartData;
+                  })()}
+                  startAngle={180}
+                  endAngle={0}
+                  size={200}
+                  thickness={30}
+                  w={300}
+                  h={260}
+                  withLabels
+                  withLabelsLine
+                  labelsType='percent'
+                  tooltipDataSource='segment'
+                  tooltipProps={{
+                    content: ({ payload }) => {
+                      if (!payload?.[0]?.payload) return null;
+                      const data = payload[0].payload;
+                      return (
+                        <div className='bg-white p-2 border border-gray-200 rounded-md shadow-sm'>
+                          <div>{data.name}</div>
+                          <div>{data.value}%</div>
+                        </div>
+                      );
+                    },
+                  }}
+                  withTooltip
+                >
+                  <div className='w-full flex items-center justify-center'>
+                    <img src={donutIcon} alt='' />
+                  </div>
+                </DonutChart>
+              </div>
             </div>
             <div className='bg-white rounded-lg py-4'>
               <h4 className='px-4 mb-4 text-[#08040C] text-[20px] font-[600]'>
-                Total Clients
+                Total Daily Clients
               </h4>
               <div className='w-full'>
-                <BarGraph />
+                <BarGraph analytics={analytics} />
               </div>
             </div>
           </div>
@@ -298,7 +335,8 @@ const GettingStarted = () => {
                   >
                     <div>
                       <p className='items-center py-4 px-4 text-xs font-[600] w-24'>
-                        {session?.date}
+                        {formatTo12Hour(session?.start_time)} -{' '}
+                        {formatTo12Hour(session?.end_time)}
                       </p>
                     </div>
                     <div className='h-[80%] w-[3px] bg-gray-300'></div>
@@ -306,7 +344,7 @@ const GettingStarted = () => {
                       <div className='space-y-1'>
                         <p className='text-xs font-[400]'>{session?.title}</p>
                         <p className='text-sm font-[600]'>
-                          {session?.staff_name}
+                          {session?.staff?.name}
                         </p>
                       </div>
                       <div className='flex gap-1'>
@@ -364,10 +402,24 @@ const GettingStarted = () => {
                                 appointment?
                               </p>
                               <div className='flex gap-12'>
-                                <button className='text-red-500 text-base cursor-pointer font-bold'>
+                                <button
+                                  className='text-red-500 text-base cursor-pointer font-bold'
+                                  onClick={() => {
+                                    if (session?.id) {
+                                      cancelSession.mutate(session.id, {
+                                        onSuccess: () => {
+                                          setDropdownCancelOpen(null);
+                                        },
+                                      });
+                                    }
+                                  }}
+                                >
                                   Cancel
                                 </button>
-                                <button className='text-gray-500 text-base cursor-pointer font-bold'>
+                                <button
+                                  className='text-gray-500 text-base cursor-pointer font-bold'
+                                  onClick={() => setDropdownCancelOpen(null)}
+                                >
                                   No
                                 </button>
                               </div>

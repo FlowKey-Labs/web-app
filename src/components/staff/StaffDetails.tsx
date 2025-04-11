@@ -12,7 +12,7 @@ import {
   useUpdateStaffMember,
 } from '../../hooks/reactQuery';
 
-import defaultAvatar from '../../assets/images/staffImage.jpg';
+import avatar from '../../assets/icons/newAvatar.svg';
 import editIcon from '../../assets/icons/edit.svg';
 import checkIcon from '../../assets/icons/check.svg';
 
@@ -219,7 +219,7 @@ const StaffDetails = () => {
             <div className='flex justify-between'>
               <div className='flex justify-center items-center gap-4'>
                 <img
-                  src={staffDetails.profileImage || defaultAvatar}
+                  src={staffDetails.profileImage || avatar}
                   alt='avatar'
                   className='rounded-full w-12 h-12 object-cover'
                 />

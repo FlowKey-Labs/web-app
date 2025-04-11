@@ -7,14 +7,27 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts';
-import { chartData } from '../../utils/dummyData';
+import { AnalyticsData } from '../../types/dashboard';
 
-export function BarGraph() {
+interface BarGraphProps {
+  analytics?: AnalyticsData;
+}
+
+export function BarGraph({ analytics }: BarGraphProps) {
+  const data = [
+    { day: 'Mon', clients: analytics?.total_clients || 0 },
+    { day: 'Tue', clients: analytics?.total_clients || 0 },
+    { day: 'Wed', clients: analytics?.total_clients || 0 },
+    { day: 'Thu', clients: analytics?.total_clients || 0 },
+    { day: 'Fri', clients: analytics?.total_clients || 0 },
+    { day: 'Sat', clients: analytics?.total_clients || 0 },
+    { day: 'Sun', clients: analytics?.total_clients || 0 },
+  ];
   return (
     <div className='w-full h-[300px]'>
       <ResponsiveContainer width='100%' height='100%'>
         <BarChart
-          data={chartData}
+          data={data}
           margin={{ top: 20, right: 20, left: 10, bottom: 5 }}
         >
           <CartesianGrid strokeDasharray='3 3' vertical={false} />

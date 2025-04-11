@@ -4,7 +4,7 @@ import Input from '../common/Input';
 import DropdownSelectInput from '../common/Dropdown';
 import Button from '../common/Button';
 import clientlocationIcons from '../../assets/icons/clientLocation.svg';
-import { months, swimClasses } from '../../utils/dummyData';
+import { swimClasses } from '../../utils/dummyData';
 import { useAddClient } from '../../hooks/reactQuery';
 import React from 'react';
 import { AddClient } from '../../types/clientTypes';
@@ -22,23 +22,14 @@ const ClientsModal = ({ isOpen, onClose }: ClientsModalProps) => {
       phone_number: '',
       email: '',
       location: '',
+      dob: '',
+      gender: 'M',
       assigned_classes: 0,
     },
   });
   const { control, handleSubmit, reset } = methods;
 
   const { mutate: addClient, isPending, isSuccess } = useAddClient();
-
-  const days = Array.from({ length: 31 }, (_, i) => ({
-    label: (i + 1).toString(),
-    value: (i + 1).toString().padStart(2, '0'),
-  }));
-
-  const currentYear = new Date().getFullYear();
-  const years = Array.from({ length: 100 }, (_, i) => ({
-    label: (currentYear - i).toString(),
-    value: (currentYear - i).toString(),
-  }));
 
   // Reset form and close modal on successful submission
   React.useEffect(() => {
@@ -55,8 +46,9 @@ const ClientsModal = ({ isOpen, onClose }: ClientsModalProps) => {
       email: data.email,
       phone_number: data.phone_number,
       location: data.location,
+      dob: data.dob,
+      gender: data.gender,
       assigned_classes: data.assigned_classes,
-      id: 0,
       active: false,
       created_at: '',
       created_by: 0,
@@ -187,6 +179,37 @@ const ClientsModal = ({ isOpen, onClose }: ClientsModalProps) => {
                     </div>
                   )}
                 />
+
+                <div className='grid grid-cols-2 gap-4'>
+                  <Controller
+                    name='dob'
+                    control={control}
+                    render={({ field }) => (
+                      <Input
+                        {...field}
+                        type='date'
+                        label='Date of Birth'
+                        placeholder='Select date'
+                      />
+                    )}
+                  />
+                  <Controller
+                    name='gender'
+                    control={control}
+                    render={({ field }) => (
+                      <DropdownSelectInput
+                        label='Gender'
+                        placeholder='Select gender'
+                        options={[
+                          { label: 'Male', value: 'M' },
+                          { label: 'Female', value: 'F' },
+                        ]}
+                        value={field.value}
+                        onSelectItem={(selected) => field.onChange(selected.value)}
+                      />
+                    )}
+                  />
+                </div>
               </div>
 
               <div className='mb-8'>

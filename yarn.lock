@@ -600,6 +600,11 @@
     "@jridgewell/resolve-uri" "^3.1.0"
     "@jridgewell/sourcemap-codec" "^1.4.14"
 
+"@mantine/charts@^7.17.4":
+  version "7.17.4"
+  resolved "https://registry.yarnpkg.com/@mantine/charts/-/charts-7.17.4.tgz#b4dfb5cd64187a96366498f5d1f1278317a1c71e"
+  integrity sha512-datvi9GkMRrL9SY2R5Pd7MpP6d7QxRFYMY7DcdE/V3JnwMmg+gCg+QfzvrT947R8sEiBZECirTI0yNLWDSwkGw==
+
 "@mantine/core@^7.17.2":
   version "7.17.2"
   resolved "https://registry.yarnpkg.com/@mantine/core/-/core-7.17.2.tgz#027fe3c8d43abefc318b7b9229a8e5146635c7b8"
@@ -638,6 +643,11 @@
   version "7.17.2"
   resolved "https://registry.yarnpkg.com/@mantine/hooks/-/hooks-7.17.2.tgz#bfd10e65cb5a83326ecfdd339e56558ea6045c44"
   integrity sha512-tbErVcGZu0E4dSmE6N0k6Tv1y9R3SQmmQgwqorcc+guEgKMdamc36lucZGlJnSGUmGj+WLUgELkEQ0asdfYBDA==
+
+"@mantine/modals@^7.17.4":
+  version "7.17.4"
+  resolved "https://registry.yarnpkg.com/@mantine/modals/-/modals-7.17.4.tgz#28354fe51e1eb94d5da25ddb069bd0f2ee82c04e"
+  integrity sha512-KQYzLCQRBs9bq0svdpSda8fgxmqrwEy4tgvoXpmlr02srsyySvpOxhXmAUZsjPZapG+D97sYi7BscVZKZoIqgA==
 
 "@mantine/notifications@^7.17.2":
   version "7.17.2"
@@ -2273,6 +2283,11 @@ minimatch@^9.0.4:
   resolved "https://registry.npmjs.org/minipass/-/minipass-7.1.2.tgz"
   integrity sha512-qOOzS1cBTWYF4BH8fVePDBOO9iptMnGUEZwNc/cMWnTV2nVLZ7VoNWEPHkYczZA0pdoA7dl6e7FL659nX9S2aw==
 
+moment@^2.30.1:
+  version "2.30.1"
+  resolved "https://registry.yarnpkg.com/moment/-/moment-2.30.1.tgz#f8c91c07b7a786e30c59926df530b4eac96974ae"
+  integrity sha512-uEmtNhbDOrWPFS+hdjFCBfy9f2YoyzRpwcl+DqpC6taX21FzsTLQVbMV/W7PzNSX6x/bhC1zA3c2UQ5NzH6how==
+
 ms@^2.1.3:
   version "2.1.3"
   resolved "https://registry.npmjs.org/ms/-/ms-2.1.3.tgz"
@@ -2643,6 +2658,13 @@ react-textarea-autosize@8.5.6:
     "@babel/runtime" "^7.20.13"
     use-composed-ref "^1.3.0"
     use-latest "^1.2.1"
+
+react-toastify@^11.0.5:
+  version "11.0.5"
+  resolved "https://registry.yarnpkg.com/react-toastify/-/react-toastify-11.0.5.tgz#ce4c42d10eeb433988ab2264d3e445c4e9d13313"
+  integrity sha512-EpqHBGvnSTtHYhCPLxML05NLY2ZX0JURbAdNYa6BUkk+amz4wbKBQvoKQAB0ardvSarUBuY4Q4s1sluAzZwkmA==
+  dependencies:
+    clsx "^2.1.1"
 
 react-transition-group@4.4.5, react-transition-group@^4.3.0, react-transition-group@^4.4.5:
   version "4.4.5"

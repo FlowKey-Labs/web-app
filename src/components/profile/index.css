@@ -7,8 +7,8 @@
 }
 
 .my-day-class[data-selected] {
-  background-color: white;
-  color: black !important;
+  background-color: var(--mantine-color-green-6);
+  color: white !important;
 }
 
 .my-day-class:hover {

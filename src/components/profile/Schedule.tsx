@@ -371,7 +371,7 @@ const Schedule = () => {
           </div>
 
           <div className=' flex-1 justify-center space-y-6 items-center w-full mt-6'>
-            <div className=' flex object-cover max-w-[340px] items-center justify-center rounded-lg bg-secondary p-2'>
+            <div className=' flex object-cover max-w-[340px] items-center justify-center rounded-lg bg-cardsBg p-2'>
               <Calendar
                 highlightToday
                 getDayProps={(date) => ({
@@ -386,7 +386,6 @@ const Schedule = () => {
                     border: `${rem(1)} solid ${theme.colors.gray[2]}`,
                   },
                   day: {
-                    color: theme.colors.gray[2],
                     borderRadius: '50%',
                     height: rem(40),
                     width: rem(40),
