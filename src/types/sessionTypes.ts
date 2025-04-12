@@ -24,27 +24,60 @@ export interface Attendance {
   timestamp: string;
 }
 
-export interface Session {
+export interface SessionUser {
   id: number;
+  first_name: string;
+  last_name: string;
+  email: string;
+  mobile_number: string;
+  role: string;
+}
+
+export interface AssignedStaff {
+  id: number;
+  user: SessionUser;
+  role: string;
+  isActive: boolean;
+}
+
+export type SessionType = 'class' | 'appointment';
+export type ClassType = 'private' | 'regular' | 'workshop';
+export type RepeatUnit = 'days' | 'weeks' | 'months';
+export type EndType = 'never' | 'on' | 'after';
+
+// For creating a new session
+export interface CreateSessionData {
   title: string;
-  session_type: 'class' | 'appointment';
-  class_type: 'private' | 'regular' | 'workshop';
-  staff: number;
-  assigned_staff?: Staff;
-  date: string;
-  start_time: string;
-  end_time: string;
+  session_type: SessionType;
+  class_type: ClassType;
+  staff: number; // staff ID
+  date: string; // YYYY-MM-DD
+  start_time: string; // ISO datetime
+  end_time: string; // ISO datetime
   spots: number;
+  category: number; // category ID
+  is_active?: boolean;
+  client_ids?: number[]; // optional list of client IDs
+  // Appointment specific fields
+  email?: string; // optional, for appointments
+  phone_number?: string; // optional, for appointments
+  selected_class?: number; // optional, for appointments - references a class ID
+  // Repetition fields (all optional)
+  repeat_every?: number;
+  repeat_unit?: RepeatUnit;
+  repeat_on?: number[]; // for weekly repeat, array of weekday numbers (0-6)
+  repeat_end_type?: EndType;
+  repeat_end_date?: string; // YYYY-MM-DD, required if repeat_end_type is 'on'
+  repeat_occurrences?: number; // required if repeat_end_type is 'after'
+}
+
+// Session data as returned by the API
+export interface Session
+  extends Omit<CreateSessionData, 'category' | 'client_ids'> {
+  id: number;
+  assigned_staff: AssignedStaff | null;
   category: Category;
   attendances?: Attendance[];
-  
-  // Repetition fields
-  repeat_every?: number;
-  repeat_unit?: 'days' | 'weeks' | 'months';
-  repeat_on?: string[];
-  repeat_end_type: 'never' | 'on' | 'after';
-  repeat_end_date?: string;
-  repeat_occurrences?: number;
 }
 
 // For the frontend table display
@@ -58,4 +91,23 @@ export interface SessionTableData {
   date: Date;
   duration: string;
   repeats: string[];
+}
+
+
+// Class session specific fields
+export interface ClassFields {
+  title: string;
+  class_type: 'private' | 'regular' | 'workshop';
+  spots: number;
+  client_ids?: number[];
+}
+
+// Appointment session specific fields
+export interface AppointmentFields {
+  client_ids: number[];
+  email?: string;
+  phone_number?: string;
+  selected_class?: number;
+  category?: number;
+  title?: string;
 }

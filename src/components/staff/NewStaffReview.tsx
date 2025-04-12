@@ -4,6 +4,8 @@ import Button from '../common/Button';
 import { FormData } from '../../types/staffTypes';
 import DropdownSelectInput, { DropDownItem } from '../common/Dropdown';
 import { SingleValue } from 'react-select';
+import successIcon from '../../assets/icons/success.svg';
+import errorIcon from '../../assets/icons/error.svg';
 
 interface DisplayInputProps
   extends React.InputHTMLAttributes<HTMLInputElement> {
@@ -90,7 +92,10 @@ const NewStaffReview = ({
             isClearable={false}
           />
           {formData.role.payType === 'hourly' && formData.role.hourlyRate && (
-            <DisplayInput label='Hourly Rate' value={formData.role.hourlyRate} />
+            <DisplayInput
+              label='Hourly Rate'
+              value={formData.role.hourlyRate}
+            />
           )}
         </div>
       ),
@@ -139,17 +144,43 @@ const NewStaffReview = ({
   ];
 
   const handleSubmit = () => {
-    onSubmit();
-    notifications.show({
-      title: 'Success',
-      message: 'Staff member added successfully',
-      color: 'green',
-      position: 'top-right',
-    });
+    try {
+      onSubmit();
+      notifications.show({
+        title: 'Success',
+        message: 'Staff member created successfully!',
+        color: 'green',
+        radius: 'md',
+        icon: (
+          <span className='flex items-center justify-center w-6 h-6 rounded-full bg-green-200'>
+            <img src={successIcon} alt='Success' className='w-4 h-4' />
+          </span>
+        ),
+        withBorder: true,
+        autoClose: 3000,
+        position: 'top-right',
+      });
+    } catch (error) {
+      notifications.show({
+        title: 'Error',
+        message: 'Failed to create staff member. Please try again.',
+        color: 'red',
+        radius: 'md',
+        icon: (
+          <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+            <img src={errorIcon} alt='Error' className='w-4 h-4' />
+          </span>
+        ),
+        withBorder: true,
+        autoClose: 3000,
+        position: 'top-right',
+      });
+      console.error('Error creating staff member:', error);
+    }
   };
 
   return (
-    <div className='flex flex-col space-y-6 w-[90%] h-full'>
+    <div className='flex flex-col space-y-6'>
       <h3 className='text-[32px] font-semibold text-primary'>Review</h3>
       <div className='flex bg-[#F0F9F6] py-4 px-6 rounded-md gap-4'>
         <Checkbox

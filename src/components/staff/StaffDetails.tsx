@@ -5,16 +5,15 @@ import Button from '../common/Button';
 import { Switch } from '@mantine/core';
 import Input from '../common/Input';
 import { useForm, Controller, FormProvider } from 'react-hook-form';
-import NotificationToast from '../common/NotificationToast';
+import { notifications } from '@mantine/notifications';
 
 import {
   useGetStaffMember,
   useUpdateStaffMember,
 } from '../../hooks/reactQuery';
 
-import defaultAvatar from '../../assets/images/staffImage.jpg';
+import avatar from '../../assets/icons/newAvatar.svg';
 import editIcon from '../../assets/icons/edit.svg';
-import checkIcon from '../../assets/icons/check.svg';
 
 interface PersonalFormData {
   firstName: string;
@@ -42,19 +41,11 @@ const StaffDetails = () => {
   });
 
   const [isEditing, setIsEditing] = useState(false);
-  const [showNotification, setShowNotification] = useState(false);
 
   const methods = useForm<PersonalFormData>();
   const { control, handleSubmit, reset } = methods;
 
   const staffDetails = staffMember;
-
-  useEffect(() => {
-    if (showNotification) {
-      const timer = setTimeout(() => setShowNotification(false), 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [showNotification]);
 
   useEffect(() => {
     if (staffDetails?.user) {
@@ -102,7 +93,14 @@ const StaffDetails = () => {
       {
         onSuccess: () => {
           setIsEditing(false);
-          setShowNotification(true);
+          notifications.show({
+            title: 'Success',
+            message: 'Staff member updated successfully!',
+            color: 'teal',
+            icon: <span>✅</span>,
+            withBorder: true,
+            autoClose: 3000,
+          });
         },
       }
     );
@@ -131,36 +129,29 @@ const StaffDetails = () => {
 
     if (!staffId) return;
 
-    updateStaff(
-      {
-        id: staffId,
-        updateStaffData: {
-          first_name: staffDetails?.user?.first_name || '',
-          last_name: staffDetails?.user?.last_name || '',
-          mobile_number: staffDetails?.user?.mobile_number || '',
-          role: staffDetails?.role || '',
-          permissions: {
-            can_create_events:
-              name === 'can_create_events'
-                ? checked
-                : updatedPermissions.can_create_events,
-            can_add_clients:
-              name === 'can_add_clients'
-                ? checked
-                : updatedPermissions.can_add_clients,
-            can_create_invoices:
-              name === 'can_create_invoices'
-                ? checked
-                : updatedPermissions.can_create_invoices,
-          },
+    updateStaff({
+      id: staffId,
+      updateStaffData: {
+        first_name: staffDetails?.user?.first_name || '',
+        last_name: staffDetails?.user?.last_name || '',
+        mobile_number: staffDetails?.user?.mobile_number || '',
+        role: staffDetails?.role || '',
+        permissions: {
+          can_create_events:
+            name === 'can_create_events'
+              ? checked
+              : updatedPermissions.can_create_events,
+          can_add_clients:
+            name === 'can_add_clients'
+              ? checked
+              : updatedPermissions.can_add_clients,
+          can_create_invoices:
+            name === 'can_create_invoices'
+              ? checked
+              : updatedPermissions.can_create_invoices,
         },
       },
-      {
-        onSuccess: () => {
-          setShowNotification(true);
-        },
-      }
-    );
+    });
   };
 
   if (!staffDetails) {
@@ -199,14 +190,6 @@ const StaffDetails = () => {
 
   return (
     <FormProvider {...methods}>
-      {showNotification && (
-        <NotificationToast
-          type='success'
-          title='Success'
-          description='Staff details updated successfully!'
-          onClose={() => setShowNotification(false)}
-        />
-      )}
       <div className='flex flex-col h-screen bg-cardsBg w-full pl-16 overflow-y-auto'>
         <MembersHeader
           title='Staff Details'
@@ -215,11 +198,11 @@ const StaffDetails = () => {
           showSearch={false}
         />
         <div className='flex flex-col justify-center items-center mt-10 space-y-4 pb-4'>
-          <div className='border items-center rounded-xl w-[95%] p-8'>
+          <div className='border items-center rounded-xl w-[95%] p-8 bg-white'>
             <div className='flex justify-between'>
               <div className='flex justify-center items-center gap-4'>
                 <img
-                  src={staffDetails.profileImage || defaultAvatar}
+                  src={staffDetails.profileImage || avatar}
                   alt='avatar'
                   className='rounded-full w-12 h-12 object-cover'
                 />
@@ -239,7 +222,7 @@ const StaffDetails = () => {
             </div>
           </div>
 
-          <div className='border rounded-xl w-[95%] p-8'>
+          <div className='border rounded-xl w-[95%] p-8 bg-white'>
             <div className='flex justify-between items-start'>
               <h3 className='text-primary text-sm font-semibold mb-4'>
                 Personal Information
@@ -384,7 +367,7 @@ const StaffDetails = () => {
           </div>
 
           {staffDetails.assignedClasses && (
-            <div className='border rounded-xl w-[95%] p-8'>
+            <div className='border rounded-xl w-[95%] p-8 bg-white'>
               <div className='flex justify-between items-start'>
                 <h3 className='text-primary text-sm font-semibold mb-4'>
                   Assigned Classes
@@ -403,7 +386,7 @@ const StaffDetails = () => {
             </div>
           )}
 
-          <div className='border rounded-xl w-[95%] p-8'>
+          <div className='border rounded-xl w-[95%] p-8 bg-white'>
             <div className='flex justify-between items-start'>
               <h3 className='text-primary text-sm font-semibold mb-4'>
                 Permissions
@@ -472,20 +455,6 @@ const StaffDetails = () => {
           </div>
         </div>
       </div>
-      {showNotification && (
-        <NotificationToast
-          type='success'
-          title='Success!'
-          description='Your action was completed successfully.'
-          onClose={() => setShowNotification(false)}
-          icon={
-            <div className='rounded-full p-2 bg-secondary'>
-              <img src={checkIcon} alt='' className='w-5 h-5' />
-            </div>
-          }
-          autoClose={5000}
-        />
-      )}
     </FormProvider>
   );
 };

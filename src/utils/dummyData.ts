@@ -56,7 +56,17 @@ interface TeamOption {
 
 export type ClassLevel = 'Beginner' | 'Intermediate' | 'Advanced';
 export type ClassType = 'Trial' | 'Nomal' | 'MakeUp';
-export type RepeatDays = 'Mon' | 'Tue' | 'Wed' | 'Thu' | 'Fri' | 'Sat' | 'Sun';
+export const weekdayNames = {
+  0: 'Sun',
+  1: 'Mon',
+  2: 'Tue',
+  3: 'Wed',
+  4: 'Thu',
+  5: 'Fri',
+  6: 'Sat'
+} as const;
+
+export type WeekdayNumber = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 
 export interface ClassData {
   id: number;
@@ -67,7 +77,7 @@ export interface ClassData {
   slots: number;
   date: Date;
   duration: string;
-  repeats: RepeatDays[];
+  repeats: WeekdayNumber[];
   profileImage: string;
 }
 
@@ -128,176 +138,6 @@ export const staffDashboard: StaffDashboard[] = [
   },
 ];
 
-// export const clientsData: Client[] = [
-//   {
-//     id: 1,
-//     name: 'James Muli',
-//     session: ['Mon', 'Fri'],
-//     phone: '+1234567890',
-//     user: 'Client',
-//     status: 'active',
-//     profileImage: Avatar,
-//     class: 'SWT-0015',
-//     classCategory: 'STARfish',
-//     clientLevel: 'ST-2',
-//     date: new Date('2025-01-15'),
-//     assignedTo: 'Neil Bahati',
-//   },
-//   {
-//     id: 2,
-//     name: 'Alice Johnson',
-//     session: ['Tue', 'Thu'],
-//     phone: '+1234567891',
-//     user: 'Client',
-//     status: 'active',
-//     profileImage: Avatar,
-//     class: 'SWT-0016',
-//     classCategory: 'STARfish',
-//     clientLevel: 'ST-1',
-//     date: new Date('2025-01-20'),
-//     assignedTo: 'Alice Johnson',
-//   },
-//   {
-//     id: 3,
-//     name: 'Michael Brown',
-//     session: ['Wed', 'Sat'],
-//     phone: '+1234567892',
-//     user: 'Client',
-//     status: 'inactive',
-//     profileImage: Avatar,
-//     class: 'SWT-0017',
-//     classCategory: 'DOLPHIN',
-//     clientLevel: 'ST-3',
-//     date: new Date('2025-02-05'),
-//     assignedTo: 'Michael Brown',
-//   },
-//   {
-//     id: 4,
-//     name: 'Emily Davis',
-//     session: ['Mon', 'Wed', 'Fri'],
-//     phone: '+1234567893',
-//     user: 'Client',
-//     status: 'active',
-//     profileImage: Avatar,
-//     class: 'SWT-0018',
-//     classCategory: 'STARfish',
-//     clientLevel: 'ST-2',
-//     date: new Date('2025-02-10'),
-//     assignedTo: 'Emily Davis',
-//   },
-//   {
-//     id: 5,
-//     name: 'Daniel Wilson',
-//     session: ['Tue', 'Thu', 'Sat'],
-//     phone: '+1234567894',
-//     user: 'Client',
-//     status: 'inactive',
-//     profileImage: Avatar,
-//     class: 'SWT-0019',
-//     classCategory: 'DOLPHIN',
-//     clientLevel: 'ST-1',
-//     date: new Date('2025-02-15'),
-//     assignedTo: 'Daniel Wilson',
-//   },
-//   {
-//     id: 6,
-//     name: 'Sophia Martinez',
-//     session: ['Mon', 'Tue', 'Wed'],
-//     phone: '+1234567895',
-//     user: 'Client',
-//     status: 'active',
-//     profileImage: Avatar,
-//     class: 'SWT-0020',
-//     classCategory: 'STARfish',
-//     clientLevel: 'ST-3',
-//     date: new Date('2025-03-01'),
-//     assignedTo: 'Sophia Martinez',
-//   },
-//   {
-//     id: 7,
-//     name: 'Matthew Anderson',
-//     session: ['Thu', 'Fri', 'Sat'],
-//     phone: '+1234567896',
-//     user: 'Client',
-//     status: 'active',
-//     profileImage: Avatar,
-//     class: 'SWT-0021',
-//     classCategory: 'DOLPHIN',
-//     clientLevel: 'ST-2',
-//     date: new Date('2025-03-05'),
-//     assignedTo: 'Matthew Anderson',
-//   },
-//   {
-//     id: 8,
-//     name: 'Olivia Taylor',
-//     session: ['Mon', 'Wed', 'Fri'],
-//     phone: '+1234567897',
-//     user: 'Client',
-//     status: 'inactive',
-//     profileImage: Avatar,
-//     class: 'SWT-0022',
-//     classCategory: 'STARfish',
-//     clientLevel: 'ST-1',
-//     date: new Date('2025-03-10'),
-//     assignedTo: 'Olivia Taylor',
-//   },
-//   {
-//     id: 9,
-//     name: 'William Thomas',
-//     session: ['Tue', 'Thu', 'Sat'],
-//     phone: '+1234567898',
-//     user: 'Client',
-//     status: 'active',
-//     profileImage: Avatar,
-//     class: 'SWT-0023',
-//     classCategory: 'DOLPHIN',
-//     clientLevel: 'ST-3',
-//     date: new Date('2025-03-15'),
-//     assignedTo: 'William Thomas',
-//   },
-//   {
-//     id: 10,
-//     name: 'Ava Hernandez',
-//     session: ['Mon', 'Tue', 'Thu'],
-//     phone: '+1234567899',
-//     user: 'Client',
-//     status: 'active',
-//     profileImage: Avatar,
-//     assignedTo: 'Ava Hernandez',
-//     class: 'SWT-0024',
-//     classCategory: 'STARfish',
-//     clientLevel: 'ST-2',
-//     date: new Date('2025-04-01'),
-//   },
-//   {
-//     id: 11,
-//     name: 'Ethan Moore',
-//     session: ['Wed', 'Fri', 'Sat'],
-//     phone: '+1234567800',
-//     user: 'Client',
-//     status: 'inactive',
-//     profileImage: Avatar,
-//     class: 'SWT-0025',
-//     classCategory: 'DOLPHIN',
-//     clientLevel: 'ST-1',
-//     assignedTo: 'Ethan Moore',
-//     date: new Date('2025-04-05'),
-//   },
-//   {
-//     id: 12,
-//     name: 'Mia Jackson',
-//     session: ['Mon', 'Wed', 'Fri'],
-//     phone: '+1234567801',
-//     user: 'Client',
-//     status: 'active',
-//     profileImage: Avatar,
-//     assignedTo: 'Mia Jackson',
-//     class: 'SWT-0026',
-//     classCategory: 'STARfish',
-//     clientLevel: 'ST-3',
-//     date: new Date('2025-04-10'),
-//   },
-// ];
 
 export interface PaymentHistory {
   id: number;
@@ -677,7 +517,7 @@ export const classesData: ClassData[] = [
     slots: 24,
     date: new Date('2025-01-12'),
     duration: '10.00am-12.00pm',
-    repeats: ['Mon', 'Wed', 'Fri'],
+    repeats: [1, 3, 5],
     profileImage: Avatar,
   },
   {
@@ -689,7 +529,7 @@ export const classesData: ClassData[] = [
     slots: 20,
     date: new Date('2025-01-15'),
     duration: '2.00pm-4.00pm',
-    repeats: ['Tue', 'Thu'],
+    repeats: [2, 4],
     profileImage: Avatar,
   },
   {
@@ -701,7 +541,7 @@ export const classesData: ClassData[] = [
     slots: 18,
     date: new Date('2025-01-18'),
     duration: '9.00am-11.00am',
-    repeats: ['Mon', 'Wed', 'Fri'],
+    repeats: [1, 3, 5],
     profileImage: Avatar,
   },
   {
@@ -713,7 +553,7 @@ export const classesData: ClassData[] = [
     slots: 22,
     date: new Date('2025-01-20'),
     duration: '3.00pm-5.00pm',
-    repeats: ['Tue', 'Thu', 'Sat'],
+    repeats: [2, 4, 6],
     profileImage: Avatar,
   },
   {
@@ -725,7 +565,7 @@ export const classesData: ClassData[] = [
     slots: 16,
     date: new Date('2025-01-22'),
     duration: '1.00pm-3.00pm',
-    repeats: ['Mon', 'Wed', 'Fri'],
+    repeats: [1, 3, 5],
     profileImage: Avatar,
   },
   {
@@ -737,7 +577,7 @@ export const classesData: ClassData[] = [
     slots: 20,
     date: new Date('2025-01-25'),
     duration: '10.00am-12.00pm',
-    repeats: ['Tue', 'Thu'],
+    repeats: [2, 4],
     profileImage: Avatar,
   },
   {
@@ -749,7 +589,7 @@ export const classesData: ClassData[] = [
     slots: 18,
     date: new Date('2025-01-28'),
     duration: '2.00pm-4.00pm',
-    repeats: ['Mon', 'Wed', 'Fri'],
+    repeats: [1, 3, 5],
     profileImage: Avatar,
   },
   {
@@ -761,7 +601,7 @@ export const classesData: ClassData[] = [
     slots: 24,
     date: new Date('2025-01-30'),
     duration: '9.00am-11.00am',
-    repeats: ['Tue', 'Thu', 'Sat'],
+    repeats: [2, 4, 6],
     profileImage: Avatar,
   },
   {
@@ -773,7 +613,7 @@ export const classesData: ClassData[] = [
     slots: 20,
     date: new Date('2025-02-02'),
     duration: '3.00pm-5.00pm',
-    repeats: ['Mon', 'Wed', 'Fri'],
+    repeats: [1, 3, 5],
     profileImage: Avatar,
   },
   {
@@ -785,7 +625,7 @@ export const classesData: ClassData[] = [
     slots: 22,
     date: new Date('2025-02-05'),
     duration: '1.00pm-3.00pm',
-    repeats: ['Tue', 'Thu'],
+    repeats: [2, 4],
     profileImage: Avatar,
   },
   {
@@ -797,7 +637,7 @@ export const classesData: ClassData[] = [
     slots: 18,
     date: new Date('2025-02-08'),
     duration: '10.00am-12.00pm',
-    repeats: ['Mon', 'Wed', 'Fri'],
+    repeats: [1, 3, 5],
     profileImage: Avatar,
   },
   {
@@ -809,7 +649,7 @@ export const classesData: ClassData[] = [
     slots: 20,
     date: new Date('2025-02-10'),
     duration: '2.00pm-4.00pm',
-    repeats: ['Tue', 'Thu', 'Sat'],
+    repeats: [2, 4, 6],
     profileImage: Avatar,
   },
   {
@@ -821,7 +661,7 @@ export const classesData: ClassData[] = [
     slots: 24,
     date: new Date('2025-02-12'),
     duration: '9.00am-11.00am',
-    repeats: ['Mon', 'Wed', 'Fri'],
+    repeats: [1, 3, 5],
     profileImage: Avatar,
   },
 ];
@@ -880,7 +720,7 @@ export const categoryOptions = [
   'Platinum',
 ];
 
-export const classTypesOptions = ['Trial', 'Makeup', 'Nomal'];
+export const classTypesOptions = ['private', 'regular', 'workshop'];
 
 export const chartData = [
   { day: 'Mon', clients: 25 },
@@ -1088,4 +928,4 @@ export const bottomMenuItems = [
   },
 ];
 
-export const repeatDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+export const repeatDays = [0, 1, 2, 3, 4, 5, 6] as const;  // 0 = Sunday, 1 = Monday, etc.

@@ -7,10 +7,10 @@ import { useMemo, useState } from 'react';
 import Table from '../common/Table';
 import { createColumnHelper } from '@tanstack/react-table';
 import actionOptionIcon from '../../assets/icons/actionOption.svg';
-import ClientsModal from './ClientsModal';
+import ClientsModal from './AddClient';
 import { useGetClient } from '../../hooks/reactQuery';
 import { paymentHistories } from '../../utils/dummyData';
-import greyPhoto from '../../assets/images/greyPhoto.png';
+import avatar from '../../assets/icons/newAvatar.svg';
 
 const ClientDetails = () => {
   const { id: clientId } = useParams();
@@ -144,9 +144,9 @@ const ClientDetails = () => {
         <div className='items-center gap-4 p-6'>
           <div className='flex w-full'>
             <div className='flex flex-col w-[30%] items-center mt-6'>
-              <div className='flex flex-col px-4 py-8 items-center justify-center border rounded-xl w-[290px]'>
+              <div className='flex flex-col px-4 py-8 items-center justify-center border bg-white rounded-xl w-[290px]'>
                 <img
-                  src={clientDetails.profileImage || greyPhoto}
+                  src={clientDetails.profileImage || avatar}
                   alt='Profile'
                   className='w-12 h-12 rounded-full'
                 />
@@ -257,13 +257,7 @@ const ClientDetails = () => {
                 <div className='h-[1px] bg-gray-300 w-full opacity-60'></div>
               </div>
               <div className='flex space-x-16 mt-6'>
-                <div className='flex flex-col items-center border rounded-xl p-6  space-y-4'>
-                  <p className='text-4xl'>
-                    3<span className='text-lg text-gray-500'>/12</span>
-                  </p>
-                  <p className='text-sm'>Total Clients</p>
-                </div>
-                <div className='flex items-center border py-6 px-10 rounded-xl'>
+                <div className='flex items-center border py-6 px-10 bg-white rounded-xl'>
                   <div className='flex flex-col items-center rounded-xl  space-y-4'>
                     <p className='text-4xl'>
                       14<span className='text-lg text-gray-500'>/44</span>
@@ -271,7 +265,7 @@ const ClientDetails = () => {
                     <p className='text-sm'>Sessions</p>
                   </div>
                 </div>
-                <div className='flex items-center border py-6 px-10 rounded-xl'>
+                <div className='flex items-center border py-6 px-10 bg-white rounded-xl'>
                   <div className='flex flex-col items-center rounded-xl  space-y-4'>
                     <p className='text-2xl font-semibold  test-primary'>93%</p>
                     <p className='text-sm'>Average Attendance</p>

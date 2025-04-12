@@ -11,8 +11,6 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useWatch } from 'react-hook-form';
 import NotificationToast from '../common/NotificationToast';
-import checkIcon from '../../assets/icons/check.svg';
-
 import { useRegisterUser } from '../../hooks/reactQuery';
 
 import { EyeClosedIcon, EyeOpenIcon } from '../../assets/icons';
@@ -44,7 +42,12 @@ const Signup = () => {
   const [isHovered, setIsHovered] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [showNotification, setShowNotification] = useState(false);
+  const [notification, setNotification] = useState<{
+    show: boolean;
+    type: 'success' | 'error';
+    title: string;
+    description: string;
+  }>({ show: false, type: 'success', title: '', description: '' });
 
   const togglePasswordVisibility = () => setShowPassword(!showPassword);
   const toggleConfirmPasswordVisibility = () =>
@@ -64,13 +67,28 @@ const Signup = () => {
       },
       {
         onSuccess: () => {
-          setShowNotification(true);
+          setNotification({
+            show: true,
+            type: 'success',
+            title: 'Success!',
+            description: 'Registration successful'
+          });
           setTimeout(() => {
             navigate('/welcome');
           }, 1500);
         },
-        onError: (error) => {
+        onError: (error: any) => {
           console.error('Registration error:', error);
+          const errorMessage = error?.response?.data?.detail || 
+            error?.response?.data?.email?.[0] || 
+            error?.response?.data?.mobile_number?.[0] ||
+            'Registration failed. Please try again.';
+          setNotification({
+            show: true,
+            type: 'error',
+            title: 'Error',
+            description: errorMessage
+          });
         },
       }
     );
@@ -277,17 +295,13 @@ const Signup = () => {
           </Button>
         </form>
       </FormProvider>
-      {showNotification && (
+      {notification.show && (
         <NotificationToast
-          type='success'
-          title='Success!'
-          description='Registration successful'
-          onClose={() => setShowNotification(false)}
-          icon={
-            <div className='rounded-full p-2 bg-secondary'>
-              <img src={checkIcon} alt='' className='w-5 h-5' />
-            </div>
-          }
+          type={notification.type}
+          title={notification.title}
+          description={notification.description}
+          onClose={() => setNotification(prev => ({ ...prev, show: false }))}
+
           autoClose={5000}
         />
       )}

@@ -135,7 +135,7 @@ const Input: React.FC<InputProps> = ({
                   borderColor: errors[name] ? '#FF0000' : '#E5E7EB',
                   borderRadius: rem(8),
                   '&:focus': {
-                    borderColor: 'transparent',
+                    borderColor: '#1D9B5E',
                     boxShadow: `0 0 0 1px ${getFocusColor()}`,
                   },
                 },

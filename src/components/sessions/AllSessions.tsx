@@ -4,10 +4,12 @@ import { createColumnHelper } from '@tanstack/react-table';
 
 import MembersHeader from '../headers/MembersHeader';
 import Table from '../common/Table';
-import ClassesModal from './SessionModal';
-import { categoryOptions, classTypesOptions } from '../../utils/dummyData';
-import { useGetSessions, useGetStaff } from '../../hooks/reactQuery';
-import { Session, Staff } from '../../types/sessionTypes';
+import { classTypesOptions } from '../../utils/dummyData';
+import {
+  useGetSessions,
+  useGetSessionCategories,
+} from '../../hooks/reactQuery';
+import { Session } from '../../types/sessionTypes';
 import { navigateToSessionDetails } from '../../utils/navigationHelpers';
 import { DatePickerInput } from '@mantine/dates';
 import DropDownMenu from '../common/DropdownMenu';
@@ -18,10 +20,11 @@ import classesFilterIcon from '../../assets/icons/classesFilter.svg';
 import resetIcon from '../../assets/icons/resetIcon.svg';
 import dropdownIcon from '../../assets/icons/dropIcon.svg';
 import Button from '../common/Button';
+import AddSession from './AddSession';
 
 const columnHelper = createColumnHelper<Session>();
 
-const AllClasses = () => {
+const AllSessions = () => {
   const navigate = useNavigate();
   const [rowSelection, setRowSelection] = useState({});
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -35,11 +38,12 @@ const AllClasses = () => {
     null,
   ]);
 
-  const openModal = () => setIsModalOpen(true);
-  const closeModal = () => setIsModalOpen(false);
+  const openDrawer = () => setIsModalOpen(true);
+  const closeDrawer = () => setIsModalOpen(false);
 
   const { data: sessionsData, isLoading: isLoadingSessions } = useGetSessions();
-  const { data: staffData, isLoading: isLoadingStaff } = useGetStaff();
+  const { data: categoriesData, isLoading: isLoadingCategories } =
+    useGetSessionCategories();
 
   const columns = [
     columnHelper.display({
@@ -72,17 +76,23 @@ const AllClasses = () => {
         </div>
       ),
     }),
-    columnHelper.accessor('staff', {
+    columnHelper.accessor('assigned_staff', {
       header: 'Assigned to',
       cell: (info) => {
-        const staffId = info.getValue();
-        const staff = staffData?.find((s: Staff) => s.id === staffId);
-        return staff ? `${staff.first_name} ${staff.last_name}` : 'Unassigned';
+        const assignedStaff = info.getValue();
+        return assignedStaff
+          ? `${assignedStaff.user.first_name} ${assignedStaff.user.last_name}`
+          : 'Unassigned';
       },
     }),
     columnHelper.accessor('class_type', {
       header: 'Session Type',
-      cell: (info) => info.getValue(),
+      cell: (info) => {
+        const SessionType = info.getValue();
+        return SessionType
+          ? SessionType.charAt(0).toUpperCase() + SessionType.slice(1)
+          : '';
+      },
     }),
     columnHelper.accessor('spots', {
       header: 'Slots',
@@ -108,31 +118,29 @@ const AllClasses = () => {
         cell: (info) => {
           const { start, end } = info.getValue();
 
-          // Simplest approach - just display the raw values with a separator
-          // If start/end are already in the format we want, we can just display them
-          console.log('Time values:', { start, end });
-
-          // Simple function to convert 24h time to 12h time with AM/PM
-          const formatTo12Hour = (timeStr: string) => {
-            if (!timeStr || typeof timeStr !== 'string') return timeStr;
+          const formatTo12Hour = (isoDateTimeStr: string) => {
+            if (!isoDateTimeStr || typeof isoDateTimeStr !== 'string')
+              return isoDateTimeStr;
 
             try {
-              // Assuming format is HH:MM:SS or HH:MM
-              const parts = timeStr.split(':');
-              if (parts.length < 2) return timeStr;
+              const timePart = isoDateTimeStr.split('T')[1];
+              if (!timePart) {
+                return isoDateTimeStr;
+              }
 
-              let hours = parseInt(parts[0], 10);
-              const minutes = parts[1].padStart(2, '0');
+              const timeComponents = timePart.split(':');
+              let hours = parseInt(timeComponents[0], 10);
+              const minutes = timeComponents[1].padStart(2, '0');
+
               const ampm = hours >= 12 ? 'PM' : 'AM';
 
-              // Convert hours from 24-hour to 12-hour format
               hours = hours % 12;
-              hours = hours ? hours : 12; // the hour '0' should be '12'
+              hours = hours ? hours : 12;
 
               return `${hours}:${minutes} ${ampm}`;
             } catch (e) {
-              console.error('Error formatting time:', timeStr, e);
-              return timeStr;
+              console.error('Error formatting time:', isoDateTimeStr, e);
+              return isoDateTimeStr;
             }
           };
 
@@ -140,28 +148,48 @@ const AllClasses = () => {
         },
       }
     ),
-    columnHelper.accessor('repeat_on', {
-      header: 'Repeats',
-      cell: (info) => {
-        const repeatDays = info.getValue();
+    columnHelper.accessor(
+      (row) => ({
+        repeat_on: row.repeat_on,
+        repeat_unit: row.repeat_unit,
+        repeat_every: row.repeat_every,
+      }),
+      {
+        id: 'repeats',
+        header: 'Repeats',
+        cell: (info) => {
+          const { repeat_on, repeat_unit, repeat_every } = info.getValue();
 
-        // Convert day names to short form
-        const dayMap: Record<string, string> = {
-          Monday: 'Mon',
-          Tuesday: 'Tue',
-          Wednesday: 'Wed',
-          Thursday: 'Thu',
-          Friday: 'Fri',
-          Saturday: 'Sat',
-          Sunday: 'Sun',
-        };
+          const dayMap: Record<number, string> = {
+            1: 'Mon',
+            2: 'Tue',
+            3: 'Wed',
+            4: 'Thu',
+            5: 'Fri',
+            6: 'Sat',
+            0: 'Sun',
+          };
 
-        if (!repeatDays || repeatDays.length === 0) return '';
+          if (repeat_unit === 'days' && repeat_every) {
+            return `Daily`;
+          }
 
-        // Map each day to its short form and join with commas
-        return repeatDays.map((day: string) => dayMap[day] || day).join(', ');
-      },
-    }),
+          if (repeat_unit === 'weeks') {
+            return `Weekly`;
+          }
+
+          if (repeat_unit === 'months' && repeat_every) {
+            return `Monthly`;
+          }
+
+          if (repeat_on && repeat_on.length > 0) {
+            return repeat_on.map((day: number) => dayMap[day] || '').join(', ');
+          }
+
+          return '';
+        },
+      }
+    ),
     columnHelper.display({
       id: 'actions',
       header: () => (
@@ -172,7 +200,7 @@ const AllClasses = () => {
         />
       ),
       cell: () => (
-        <div className='flex space-x-2'>
+        <div className='flex space-x-2' onClick={(e) => e.stopPropagation()}>
           <img
             src={actionOptionIcon}
             alt='Options'
@@ -202,7 +230,6 @@ const AllClasses = () => {
   };
 
   const applyCategoryFilter = () => {
-    // Apply filter logic here using selectedCategories
     setCategoryTypeDropdownOpen(false);
   };
 
@@ -220,7 +247,7 @@ const AllClasses = () => {
           buttonText='New Session'
           searchPlaceholder='Search by Session, Staff Name or Session Type'
           leftIcon={plusIcon}
-          onButtonClick={openModal}
+          onButtonClick={openDrawer}
         />
         <div className='flex h-[70px] w-[80%] ml-6 text-sm p-2 border rounded-md bg-white'>
           <div className='flex items-center justify-between w-full px-6 font-bold '>
@@ -306,7 +333,7 @@ const AllClasses = () => {
                             }
                             font-normal text-xs transition-colors duration-200`}
                         >
-                          {label}
+                          {label.charAt(0).toUpperCase() + label.slice(1)}
                         </button>
                       ))}
                     </div>
@@ -340,7 +367,9 @@ const AllClasses = () => {
                     id='viewSelect'
                     className='p-2 w-full gap-2 h-10 rounded-md outline-none cursor-pointer flex items-center justify-between'
                   >
-                    <p className='text-primary text-sm font-normal'>Category</p>
+                    <p className='text-primary text-sm font-normal'>
+                      Categories
+                    </p>
                     <img src={dropdownIcon} alt='dropdown icon' />
                   </div>
                 }
@@ -352,21 +381,29 @@ const AllClasses = () => {
 
                   <div>
                     <div className='flex flex-wrap gap-4 mt-4 min-w-[300px]'>
-                      {categoryOptions.map((label, index) => (
-                        <button
-                          key={index}
-                          onClick={() => toggleCategory(label)}
-                          className={`w-[calc(33.33%-12px)] px-2 py-2 border rounded-full
-                            ${
-                              selectedCategories.includes(label)
-                                ? 'border-secondary bg-secondary text-white'
-                                : 'border-gray-400 text-primary'
-                            }
-                            font-normal text-xs transition-colors duration-200`}
-                        >
-                          {label}
-                        </button>
-                      ))}
+                      {isLoadingCategories ? (
+                        <p>Loading categories...</p>
+                      ) : categoriesData && categoriesData.length > 0 ? (
+                        categoriesData.map(
+                          (category: { id: number; name: string }) => (
+                            <button
+                              key={category.id}
+                              onClick={() => toggleCategory(category.name)}
+                              className={`w-[calc(33.33%-12px)] px-2 py-2 border rounded-full
+                              ${
+                                selectedCategories.includes(category.name)
+                                  ? 'border-secondary bg-secondary text-white'
+                                  : 'border-gray-400 text-primary'
+                              }
+                              font-normal text-xs transition-colors duration-200`}
+                            >
+                              {category.name}
+                            </button>
+                          )
+                        )
+                      ) : (
+                        <p>No categories available</p>
+                      )}
                     </div>
                     <div className='pt-16'>
                       <p className='text-gray-400 text-sm'>
@@ -402,7 +439,7 @@ const AllClasses = () => {
           </div>
         </div>
         <div className='flex-1 px-6 py-2'>
-          {isLoadingSessions || isLoadingStaff ? (
+          {isLoadingSessions || isLoadingCategories ? (
             <div className='flex justify-center items-center py-10'>
               <p>Loading sessions data...</p>
             </div>
@@ -425,9 +462,9 @@ const AllClasses = () => {
           )}
         </div>
       </div>
-      <ClassesModal isOpen={isModalOpen} onClose={closeModal} />
+      <AddSession isOpen={isModalOpen} onClose={closeDrawer} />
     </>
   );
 };
 
-export default AllClasses;
+export default AllSessions;

@@ -12,8 +12,6 @@ import { useState } from 'react';
 import NotificationToast from '../common/NotificationToast';
 
 import { EyeClosedIcon, EyeOpenIcon } from '../../assets/icons';
-import checkIcon from '../../assets/icons/check.svg';
-
 import { useLoginUser } from '../../hooks/reactQuery';
 
 interface FormData {
@@ -26,7 +24,12 @@ const Login = () => {
   const [isHovered, setIsHovered] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const togglePasswordVisibility = () => setShowPassword(!showPassword);
-  const [showNotification, setShowNotification] = useState(false);
+  const [notification, setNotification] = useState<{
+    show: boolean;
+    type: 'success' | 'error';
+    title: string;
+    description: string;
+  }>({ show: false, type: 'success', title: '', description: '' });
 
   const methods = useForm<FormData>({
     defaultValues: {
@@ -45,13 +48,24 @@ const Login = () => {
       },
       {
         onSuccess: () => {
-          setShowNotification(true);
+          setNotification({
+            show: true,
+            type: 'success',
+            title: 'Success!',
+            description: 'Login successful'
+          });
           setTimeout(() => {
             navigate('/dashboard');
           }, 1500);
         },
-        onError: (error) => {
+        onError: (error: any) => {
           console.error('Login error:', error);
+          setNotification({
+            show: true,
+            type: 'error',
+            title: 'Error',
+            description: error?.response?.data?.detail || 'Invalid credentials, please try again.'
+          });
         },
       }
     );
@@ -148,17 +162,13 @@ const Login = () => {
           </Button>
         </form>
       </FormProvider>
-      {showNotification && (
+      {notification.show && (
         <NotificationToast
-          type='success'
-          title='Success!'
-          description='Login successful'
-          onClose={() => setShowNotification(false)}
-          icon={
-            <div className='rounded-full p-2 bg-secondary'>
-              <img src={checkIcon} alt='' className='w-5 h-5' />
-            </div>
-          }
+          type={notification.type}
+          title={notification.title}
+          description={notification.description}
+          onClose={() => setNotification(prev => ({ ...prev, show: false }))}
+
           autoClose={5000}
         />
       )}
