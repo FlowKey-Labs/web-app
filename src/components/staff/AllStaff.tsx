@@ -4,11 +4,11 @@ import { useState } from 'react';
 import actionOptionIcon from '../../assets/icons/actionOption.svg';
 import Table from '../common/Table';
 import plusIcon from '../../assets/icons/plusWhite.svg';
-import StaffModal from './StaffModal';
 import { navigateToStaffDetails } from '../../utils/navigationHelpers';
 import { useNavigate } from 'react-router-dom';
 import { useGetStaff } from '../../hooks/reactQuery';
 import { StaffResponse } from '../../types/staffTypes';
+import AddStaff from './AddStaff';
 
 const columnHelper = createColumnHelper<StaffResponse>();
 
@@ -32,15 +32,20 @@ const columns = [
       />
     ),
   }),
-  columnHelper.accessor((row) => `${row.user.first_name} ${row.user.last_name}`, {
-    header: 'Name',
-    cell: (info) => (
-      <div className='text-start'>
-        <p className='text-sm text-primary'>{info.getValue()}</p>
-        <p className='text-xs text-[#8A8D8E]'>{info.row.original.member_id}</p>
-      </div>
-    ),
-  }),
+  columnHelper.accessor(
+    (row) => `${row.user.first_name} ${row.user.last_name}`,
+    {
+      header: 'Name',
+      cell: (info) => (
+        <div className='text-start'>
+          <p className='text-sm text-primary'>{info.getValue()}</p>
+          <p className='text-xs text-[#8A8D8E]'>
+            {info.row.original.member_id}
+          </p>
+        </div>
+      ),
+    }
+  ),
   columnHelper.accessor((row) => row.user.mobile_number, {
     header: 'Phone Number',
     cell: (info) => info.getValue(),
@@ -87,7 +92,7 @@ const columns = [
 const AllStaff = () => {
   const navigate = useNavigate();
   const [rowSelection, setRowSelection] = useState({});
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   const {
     data: staff = [],
@@ -97,8 +102,8 @@ const AllStaff = () => {
     refetch,
   } = useGetStaff();
 
-  const openModal = () => setIsModalOpen(true);
-  const closeModal = () => setIsModalOpen(false);
+  const openDrawer = () => setIsDrawerOpen(true);
+  const closeDrawer = () => setIsDrawerOpen(false);
 
   if (isLoading) {
     return (
@@ -132,7 +137,7 @@ const AllStaff = () => {
           buttonText='New Staff'
           searchPlaceholder='Search by ID, Name or Email'
           leftIcon={plusIcon}
-          onButtonClick={openModal}
+          onButtonClick={openDrawer}
         />
         <div className='flex-1 px-6 py-3'>
           <Table
@@ -148,7 +153,7 @@ const AllStaff = () => {
           />
         </div>
       </div>
-      <StaffModal isOpen={isModalOpen} onClose={closeModal} />
+      <AddStaff isOpen={isDrawerOpen} onClose={closeDrawer} />
     </>
   );
 };

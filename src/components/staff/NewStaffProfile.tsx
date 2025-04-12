@@ -26,7 +26,7 @@ const NewStaffProfile = ({ onNext, initialData }: NewStaffProfileProps) => {
   };
 
   return (
-    <div className='flex flex-col space-y-6 w-[90%] h-full'>
+    <div className='flex flex-col space-y-6'>
       <h3 className='text-[32px] font-semibold text-primary'>
         Personal Information
       </h3>

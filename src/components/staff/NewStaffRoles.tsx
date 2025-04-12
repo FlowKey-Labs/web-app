@@ -60,7 +60,7 @@ const NewStaffRoles = ({ onNext, onBack, initialData }: NewStaffRolesProps) => {
 
   return (
     <FormProvider {...methods}>
-      <div className='flex flex-col space-y-6 w-[90%] h-full'>
+      <div className='flex flex-col space-y-6 w-[100%] h-full'>
         <h3 className='text-[32px] font-semibold text-primary px-4'>Role</h3>
         <p className='text-primary text-sm px-4'>
           Manage staff’s role and compensation
@@ -69,7 +69,7 @@ const NewStaffRoles = ({ onNext, onBack, initialData }: NewStaffRolesProps) => {
           onSubmit={methods.handleSubmit(onSubmit)}
           className='space-y-4 h-full flex flex-col'
         >
-          <div className='flex-grow overflow-y-auto max-h-[calc(100vh-300px)] px-4 space-y-8'>
+          <div className='flex-grow overflow-y-auto px-2 space-y-8'>
             <div className='space-y-4 pb-8'>
               <DropdownSelectInput
                 label='Role'

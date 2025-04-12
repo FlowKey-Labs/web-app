@@ -4,6 +4,7 @@ import Button from '../common/Button';
 import { FormData } from '../../types/staffTypes';
 import DropdownSelectInput, { DropDownItem } from '../common/Dropdown';
 import { SingleValue } from 'react-select';
+import { Notifications } from '@mantine/notifications';
 
 interface DisplayInputProps
   extends React.InputHTMLAttributes<HTMLInputElement> {
@@ -149,7 +150,7 @@ const NewStaffReview = ({
   };
 
   return (
-    <div className='flex flex-col space-y-6 w-[90%] h-full'>
+    <div className='flex flex-col space-y-6'>
       <h3 className='text-[32px] font-semibold text-primary'>Review</h3>
       <div className='flex bg-[#F0F9F6] py-4 px-6 rounded-md gap-4'>
         <Checkbox

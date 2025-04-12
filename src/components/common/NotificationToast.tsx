@@ -113,7 +113,7 @@ const NotificationToast = ({
 
   return (
     <div
-      className={`fixed top-4 right-4 z-50 w-100 p-4 rounded-md shadow-lg border-l-4 ${currentVariant.bg} ${currentVariant.border} ${currentVariant.text} transition-all duration-300`}
+      className={`fixed top-4 right-4 z-auto w-100 p-4 rounded-md shadow-lg border-l-4 ${currentVariant.bg} ${currentVariant.border} ${currentVariant.text} transition-all duration-300`}
     >
       <div className='flex items-start'>
         <div className='flex-shrink-0'>
