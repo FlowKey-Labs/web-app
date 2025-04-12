@@ -1,5 +1,4 @@
 import axios, { AxiosError, AxiosRequestConfig } from "axios";
-import { useAuthStore } from "../store/auth";
 import { END_POINTS } from "../api/api";
 
 type ErrorResponse = {
@@ -16,7 +15,7 @@ let isRefreshing = false;
 let failedRequests: Array<() => void> = [];
 
 api.interceptors.request.use((config) => {
-  const token = useAuthStore.getState().accessToken;
+  const token = localStorage.getItem("accessToken");
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
