@@ -3,12 +3,14 @@ import Input from '../common/Input';
 import DropdownSelectInput from '../common/Dropdown';
 import Button from '../common/Button';
 import clientlocationIcons from '../../assets/icons/clientLocation.svg';
-import { swimClasses } from '../../utils/dummyData';
-import { useAddClient } from '../../hooks/reactQuery';
+import { useAddClient, useGetClassSessions } from '../../hooks/reactQuery';
 import React from 'react';
 import moment from 'moment';
 import { AddClient } from '../../types/clientTypes';
 import { Drawer } from '@mantine/core';
+import { notifications } from '@mantine/notifications';
+import successIcon from '../../assets/icons/success.svg';
+import errorIcon from '../../assets/icons/error.svg';
 
 interface ClientsModalProps {
   isOpen: boolean;
@@ -26,11 +28,14 @@ const AddClients = ({ isOpen, onClose }: ClientsModalProps) => {
       dob: '',
       gender: 'M',
       assigned_classes: 0,
+      session: undefined,
     },
   });
   const { control, handleSubmit, reset } = methods;
 
   const { mutate: addClient, isPending, isSuccess } = useAddClient();
+  const { data: classSessionsData, isLoading: isClassSessionsLoading } =
+    useGetClassSessions();
 
   React.useEffect(() => {
     if (isSuccess) {
@@ -40,28 +45,88 @@ const AddClients = ({ isOpen, onClose }: ClientsModalProps) => {
   }, [isSuccess, reset, onClose]);
 
   const onSubmit = (data: AddClient) => {
-    console.log('Form data:', data); 
+    try {
+      console.log('Form data:', data);
+      // Format date using moment
+      const formattedDob = data.dob
+        ? moment(data.dob).format('YYYY-MM-DD')
+        : undefined;
 
-    // Format date using moment 
-    const formattedDob = data.dob
-      ? moment(data.dob).format('YYYY-MM-DD')
-      : undefined;
-    console.log('Formatted DOB:', formattedDob);
+      interface ClientData {
+        first_name: string;
+        last_name: string;
+        email: string;
+        phone_number: string;
+        location: string;
+        assigned_classes: number;
+        active: boolean;
+        created_at: string;
+        created_by: number;
+        business: number;
+        dob?: string;
+        gender: string;
+        session_id?: number;
+      }
 
-    addClient({
-      first_name: data.first_name,
-      last_name: data.last_name,
-      email: data.email,
-      phone_number: data.phone_number,
-      location: data.location,
-      assigned_classes: data.assigned_classes,
-      active: false,
-      created_at: '',
-      created_by: 0,
-      business: 0,
-      dob: formattedDob,
-      gender: data.gender ? data.gender : 'M',
-    });
+      const clientData: ClientData = {
+        first_name: data.first_name,
+        last_name: data.last_name,
+        email: data.email,
+        phone_number: data.phone_number,
+        location: data.location,
+        assigned_classes: data.assigned_classes,
+        active: false,
+        created_at: '',
+        created_by: 0,
+        business: 0,
+        dob: formattedDob,
+        gender: data.gender ? data.gender : 'M',
+      };
+
+      // Only add session_id if a session was selected
+      if (data.session?.value) {
+        console.log('Session selected:', data.session);
+        const sessionId = parseInt(data.session.value);
+        if (!isNaN(sessionId)) {
+          console.log('Adding session_id:', sessionId);
+          clientData.session_id = sessionId;
+        }
+      }
+
+      console.log('Sending client data:', clientData);
+      addClient(clientData);
+
+      notifications.show({
+        title: 'Success',
+        message: 'Client created successfully!',
+        color: 'green',
+        radius: 'md',
+        icon: (
+          <span className='flex items-center justify-center w-6 h-6 rounded-full bg-green-200'>
+            <img src={successIcon} alt='Success' className='w-4 h-4' />
+          </span>
+        ),
+        withBorder: true,
+        autoClose: 3000,
+        position: 'top-right',
+      });
+    } catch (error) {
+      notifications.show({
+        title: 'Error',
+        message: 'Failed to create client. Please try again.',
+        color: 'red',
+        radius: 'md',
+        icon: (
+          <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+            <img src={errorIcon} alt='Error' className='w-4 h-4' />
+          </span>
+        ),
+        withBorder: true,
+        autoClose: 3000,
+        position: 'top-right',
+      });
+      console.error('Error creating client:', error);
+    }
   };
 
   if (!isOpen) return null;
@@ -223,14 +288,29 @@ const AddClients = ({ isOpen, onClose }: ClientsModalProps) => {
 
             <div className='mb-8'>
               <Controller
-                name='assigned_classes'
-                control={control}
+                name='session'
+                control={methods.control}
                 render={({ field }) => (
                   <DropdownSelectInput
-                    label='Assign Class'
-                    placeholder='Select class'
-                    options={swimClasses}
-                    onSelectItem={(selected) => field.onChange(selected.value)}
+                    label='Session'
+                    placeholder='Select a session'
+                    options={
+                      isClassSessionsLoading
+                        ? [{ label: 'Loading...', value: '' }]
+                        : classSessionsData
+                            ?.filter(
+                              (session) => session.session_type === 'class'
+                            )
+                            .map((session) => ({
+                              label: session.title,
+                              value: session.id.toString(),
+                            })) || []
+                    }
+                    value={field.value?.value || ''}
+                    onSelectItem={(selectedItem) => {
+                      console.log('Selected session:', selectedItem);
+                      field.onChange(selectedItem);
+                    }}
                   />
                 )}
               />

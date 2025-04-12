@@ -1,10 +1,5 @@
 import { useForm, Controller, FormProvider } from 'react-hook-form';
-import {
-  Session,
-  Category,
-  ClassFields,
-  AppointmentFields,
-} from '../../types/sessionTypes';
+import { Session, Category, ClassFields } from '../../types/sessionTypes';
 import { toast } from 'react-toastify';
 import Button from '../common/Button';
 import DropdownSelectInput from '../common/Dropdown';
@@ -18,7 +13,6 @@ import {
   useGetStaff,
   useGetClients,
   useGetSessionCategories,
-  useGetClassSessions,
 } from '../../hooks/reactQuery';
 import { useCreateSession } from '../../hooks/reactQuery';
 import moment from 'moment';
@@ -52,11 +46,6 @@ type FormData = Omit<
   title: string;
   class_type: DropDownItem | ClassFields['class_type'];
   spots: number;
-
-  // Appointment fields with dropdown support
-  email?: AppointmentFields['email'];
-  phone_number?: AppointmentFields['phone_number'];
-  selected_class?: DropDownItem | AppointmentFields['selected_class'];
 
   // Dropdown fields that can be objects or primitives
   staff?: DropDownItem | number;
@@ -104,8 +93,6 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
   const { data: clientsData, isLoading: isClientsLoading } = useGetClients();
   const { data: categoriesData, isLoading: isCategoriesLoading } =
     useGetSessionCategories();
-  const { data: classSessionsData, isLoading: isClassSessionsLoading } =
-    useGetClassSessions();
 
   const createSession = useCreateSession();
 
@@ -746,41 +733,6 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
                                 )}
                               />
                             </div>
-                          </div>
-                          <div className='w-full'>
-                            <Controller
-                              name='selected_class'
-                              control={methods.control}
-                              render={({ field }) => (
-                                <DropdownSelectInput
-                                  label='Class'
-                                  placeholder='Select a class'
-                                  options={
-                                    isClassSessionsLoading
-                                      ? [{ label: 'Loading...', value: '' }]
-                                      : classSessionsData
-                                          ?.filter(
-                                            (session) =>
-                                              session.session_type === 'class'
-                                          )
-                                          .map((session) => ({
-                                            label: session.title,
-                                            value: session.id.toString(),
-                                          })) || []
-                                  }
-                                  value={
-                                    field.value?.toString
-                                      ? field.value?.toString()
-                                      : field.value?.toString
-                                      ? field.value.toString()
-                                      : ''
-                                  }
-                                  onSelectItem={(selectedItem) => {
-                                    field.onChange(selectedItem);
-                                  }}
-                                />
-                              )}
-                            />
                           </div>
                           <div className='w-full'>
                             <Controller

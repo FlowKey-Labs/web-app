@@ -39,4 +39,9 @@ export interface AddClient {
   location: string;
   dob?: string; // YYYY-MM-DD format
   gender: string; // 'M' or 'F'
+  session_id?: number; // Optional session ID for initial session assignment
+  session?: { // For dropdown selection
+    label: string;
+    value: string;
+  };
 }

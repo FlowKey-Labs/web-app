@@ -183,6 +183,7 @@ export const useAddClient = () => {
         location: data.location || '',
         gender: data.gender,
         dob: data.dob,
+        session_id: data.session_id,
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['clients'] });

@@ -1,13 +1,10 @@
-import { useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import NewStaffProfile from './NewStaffProfile';
 import NewStaffRoles from './NewStaffRoles';
 import NewStaffPermissions from './NewStaffPermissions';
 import NewStaffReview from './NewStaffReview';
 import { useCreateStaffMember } from '../../hooks/reactQuery';
-import NotificationToast from '../common/NotificationToast';
 import { useStaffFormStore } from '../../store/staffForm';
-import cancelIcon from '../../assets/icons/cancel.svg';
 
 import { FormData } from '../../types/staffTypes';
 import { Drawer } from '@mantine/core';
@@ -32,7 +29,6 @@ const sections: SectionTypes = [
 ];
 
 const AddStaff = ({ isOpen, onClose }: StaffModalProps) => {
-  const [showNotification, setShowNotification] = useState(false);
   const { mutate: createStaff } = useCreateStaffMember();
 
   const { formData, activeSection, setFormData, setActiveSection, resetForm } =
@@ -111,12 +107,8 @@ const AddStaff = ({ isOpen, onClose }: StaffModalProps) => {
               can_create_invoices: formData.permissions.createInvoices,
             },
           });
-
-          setShowNotification(true);
-          setTimeout(() => {
-            resetForm();
-            onClose();
-          }, 2000);
+          resetForm();
+          onClose();
         }}
       />
     ),
@@ -147,9 +139,7 @@ const AddStaff = ({ isOpen, onClose }: StaffModalProps) => {
       }}
     >
       <FormProvider {...methods}>
-        <div
-          className='bg-white p-6 flex flex-col min-h-[80vh]'
-        >
+        <div className='bg-white p-6 flex flex-col min-h-[80vh]'>
           <div className='flex-1 flex'>
             <div className='w-[40%] p-8 border-r border-gray-200'>
               <div
@@ -201,14 +191,6 @@ const AddStaff = ({ isOpen, onClose }: StaffModalProps) => {
             </div>
           </div>
         </div>
-        {showNotification && (
-          <NotificationToast
-            type='success'
-            title='Success'
-            description='Staff member created successfully!'
-            onClose={() => setShowNotification(false)}
-          />
-        )}
       </FormProvider>
     </Drawer>
   );

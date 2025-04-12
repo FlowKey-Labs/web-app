@@ -221,7 +221,7 @@ const SessionDetails = () => {
         <div className='items-center gap-4 p-6'>
           <div className='flex w-full'>
             <div className='flex flex-col w-[30%] items-center mt-6'>
-              <div className='flex flex-col px-4 py-8 items-center justify-center border rounded-xl w-[290px]'>
+              <div className='flex flex-col px-4 py-8 items-center justify-center border bg-white rounded-xl w-[290px]'>
                 <div className='flex flex-col text-center space-y-1 items-center'>
                   <div className='mb-2'>
                     <img
@@ -388,7 +388,7 @@ const SessionDetails = () => {
                   <p>Loading analytics data...</p>
                 ) : (
                   <>
-                    <div className='flex flex-col items-center border rounded-xl p-6 space-y-4'>
+                    <div className='flex flex-col items-center border bg-white rounded-xl p-6 space-y-4'>
                       <p className='text-4xl'>
                         {sessionAnalytics?.total_clients || 0}
                         <span className='text-lg text-gray-500'>
@@ -397,16 +397,8 @@ const SessionDetails = () => {
                       </p>
                       <p className='text-sm'>Total Clients</p>
                     </div>
-                    <div className='flex items-center border py-6 px-10 rounded-xl'>
-                      <div className='flex flex-col items-center rounded-xl space-y-4'>
-                        <p className='text-4xl'>
-                          {sessionAnalytics?.total_sessions || 0}
-                          <span className='text-lg text-gray-500'>/1</span>
-                        </p>
-                        <p className='text-sm'>Sessions</p>
-                      </div>
-                    </div>
-                    <div className='flex items-center border py-6 px-10 rounded-xl'>
+
+                    <div className='flex items-center border bg-white py-6 px-10 rounded-xl'>
                       <div className='flex flex-col items-center rounded-xl space-y-4'>
                         <p className='text-2xl font-semibold test-primary'>
                           {sessionAnalytics?.average_attendance || 0}%

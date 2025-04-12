@@ -139,6 +139,7 @@ const add_client = async (clientData: {
   location: string;
   dob?: string;
   gender: string;
+  session_id?: number;
 }) => {
   const { data } = await api.post(END_POINTS.CLIENTS.CLIENTS_DATA, clientData);
   return data;
