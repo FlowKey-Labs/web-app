@@ -1,11 +1,10 @@
 import { JSX, useState } from 'react';
-import { useForm, UseFormReturn } from 'react-hook-form';
 
 import Button from '../common/Button';
 import Header from '../headers/Header';
 import Services from './Services';
 import Schedule from './Schedule';
-import BusinessInformation, { ProfileFormData } from './BusinessInformation';
+import BusinessInformation from './BusinessInformation';
 
 type TabType = 'business' | 'services' | 'schedule';
 
@@ -13,29 +12,11 @@ const Profile = () => {
   const [openedAccordion, setOpenedAccordion] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<TabType>('business');
 
-  const defaultRole = {
-    label: 'Owner',
-    value: 'owner',
-  };
-
-  const methods: UseFormReturn<ProfileFormData> = useForm<ProfileFormData>({
-    defaultValues: {
-      businessName: 'RayFish School',
-      contactPerson: 'Doris Waithera',
-      address: '123 Nairobi Estate',
-      role: defaultRole,
-    },
-  });
-
   const contentMap: Record<TabType, JSX.Element> = {
     business: (
       <BusinessInformation
         openedAccordion={openedAccordion}
         setOpenedAccordion={setOpenedAccordion}
-        methods={methods}
-        control={methods.control}
-        handleSubmit={methods.handleSubmit}
-        defaultRole={defaultRole}
       />
     ),
     services: <Services />,
@@ -55,7 +36,7 @@ const Profile = () => {
       </div>
       <div className='flex-1 p-6'>
         <div className='flex justify-between items-center px-4'>
-          <h2 className='text-primary text-[24px] font-[600]'>User Profile</h2>
+          <h2 className='text-primary text-[24px] font-[600]'>Profile</h2>
           <div className='flex gap-6'>
             <Button variant='outline' color='red' radius='md'>
               Cancel

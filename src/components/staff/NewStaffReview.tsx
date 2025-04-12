@@ -1,9 +1,11 @@
 import { Checkbox, Accordion } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import Button from '../common/Button';
-import { FormData } from './types';
+import { FormData } from '../../types/staffTypes';
 import DropdownSelectInput, { DropDownItem } from '../common/Dropdown';
 import { SingleValue } from 'react-select';
+import successIcon from '../../assets/icons/success.svg';
+import errorIcon from '../../assets/icons/error.svg';
 
 interface DisplayInputProps
   extends React.InputHTMLAttributes<HTMLInputElement> {
@@ -48,15 +50,6 @@ const NewStaffReview = ({
       completed: formData.profile !== undefined,
       content: formData.profile && (
         <div className='space-y-4 px-2 py-2'>
-          <DisplayInput
-            label='Preferred Name'
-            value={formData.profile.preferedName}
-          />
-          <DisplayInput label='Last Name' value={formData.profile.lastName} />
-          <DisplayInput
-            label='Phone Number'
-            value={formData.profile.phoneNumber}
-          />
           <DisplayInput label='Email' value={formData.profile.email} />
           <DisplayInput label='User ID' value={formData.profile.userId} />
         </div>
@@ -98,7 +91,12 @@ const NewStaffReview = ({
             isSearchable={false}
             isClearable={false}
           />
-          <DisplayInput label='Hourly Rate' value={formData.role.hourlyRate} />
+          {formData.role.payType === 'hourly' && formData.role.hourlyRate && (
+            <DisplayInput
+              label='Hourly Rate'
+              value={formData.role.hourlyRate}
+            />
+          )}
         </div>
       ),
     },
@@ -146,17 +144,43 @@ const NewStaffReview = ({
   ];
 
   const handleSubmit = () => {
-    onSubmit();
-    notifications.show({
-      title: 'Success',
-      message: 'Staff member added successfully',
-      color: 'green',
-      position: 'top-right',
-    });
+    try {
+      onSubmit();
+      notifications.show({
+        title: 'Success',
+        message: 'Staff member created successfully!',
+        color: 'green',
+        radius: 'md',
+        icon: (
+          <span className='flex items-center justify-center w-6 h-6 rounded-full bg-green-200'>
+            <img src={successIcon} alt='Success' className='w-4 h-4' />
+          </span>
+        ),
+        withBorder: true,
+        autoClose: 3000,
+        position: 'top-right',
+      });
+    } catch (error) {
+      notifications.show({
+        title: 'Error',
+        message: 'Failed to create staff member. Please try again.',
+        color: 'red',
+        radius: 'md',
+        icon: (
+          <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+            <img src={errorIcon} alt='Error' className='w-4 h-4' />
+          </span>
+        ),
+        withBorder: true,
+        autoClose: 3000,
+        position: 'top-right',
+      });
+      console.error('Error creating staff member:', error);
+    }
   };
 
   return (
-    <div className='flex flex-col space-y-6 w-[90%] h-full'>
+    <div className='flex flex-col space-y-6'>
       <h3 className='text-[32px] font-semibold text-primary'>Review</h3>
       <div className='flex bg-[#F0F9F6] py-4 px-6 rounded-md gap-4'>
         <Checkbox

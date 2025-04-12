@@ -4,13 +4,15 @@ import { useState } from 'react';
 import Button from '../common/Button';
 import { useNavigate } from 'react-router-dom';
 import { OnboardingProgress } from '../common/OnboardingProgress';
+import { useOnboardingStore } from '../../store/onboardingStore';
 
-import { businessOptions } from '../utils/dummyData';
+import { businessOptions } from '../../utils/dummyData';
 
 const BusinessType = () => {
   const navigate = useNavigate();
   const [isHovered, setIsHovered] = useState(false);
-  const [selectedBusiness, setSelectedBusiness] = useState<string | null>(null);
+  const { businessType, setBusinessType } = useOnboardingStore();
+  const [selectedBusiness, setSelectedBusiness] = useState<string | null>(businessType);
 
   return (
     <MainOnboarding>
@@ -36,7 +38,10 @@ const BusinessType = () => {
                 className={`flex p-4 cursor-pointer rounded-xl transition-all hover:shadow-sm bg-white hover:bg-transparent ${
                   isSelected ? 'border border-[#1D9B5E]' : 'border'
                 }`}
-                onClick={() => setSelectedBusiness(business.id)}
+                onClick={() => {
+                  setSelectedBusiness(business.id);
+                  setBusinessType(business.id.toLowerCase());
+                }}
               >
                 <div className='relative w-full'>
                   <div className='flex flex-col items-start gap-1.5'>
@@ -82,7 +87,7 @@ const BusinessType = () => {
                       <h4 className='text-primary font-semibold text-[14px] mb-0.5 truncate'>
                         {business.title}
                       </h4>
-                      <p className='text-primary text-[14px] text-gray-600 line-clamp-2 leading-snug'>
+                      <p className='text-[14px] text-gray-600 line-clamp-2 leading-snug'>
                         {business.description}
                       </p>
                     </div>

@@ -19,9 +19,12 @@ import {
   get_upcoming_sessions,
   cancel_session,
   reschedule_session,
+  create_session,
   get_sessions,
   get_session_detail,
   get_session_categories,
+  get_session_analytics,
+  get_class_sessions,
 } from "../api/api";
 import { useAuthStore } from "../store/auth";
 import { BusinessServices } from "../types/business";
@@ -178,6 +181,9 @@ export const useAddClient = () => {
         email: data.email,
         phone_number: data.phone_number,
         location: data.location || "",
+        gender: data.gender,
+        dob: data.dob,
+        session_id: data.session_id,
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["clients"] });
@@ -285,10 +291,30 @@ export const useRescheduleSession = () => {
   });
 };
 
+export const useGetSessionAnalytics = (sessionId: string) => {
+  return useQuery({
+    queryKey: ["session_analytics", sessionId],
+    queryFn: () => get_session_analytics(sessionId),
+    staleTime: 1000 * 60 * 5,
+    refetchOnWindowFocus: false,
+    enabled: !!sessionId,
+  });
+};
+
 export const useGetSessions = () => {
   return useQuery<Session[]>({
     queryKey: ["sessions"],
     queryFn: get_sessions,
+    staleTime: 1000 * 60 * 5,
+    refetchOnWindowFocus: false,
+    retry: 2,
+  });
+};
+
+export const useGetClassSessions = () => {
+  return useQuery<Session[]>({
+    queryKey: ["class_sessions"],
+    queryFn: get_class_sessions,
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
     retry: 2,
@@ -312,5 +338,16 @@ export const useGetSessionCategories = () => {
     queryFn: get_session_categories,
     staleTime: 1000 * 60 * 10,
     refetchOnWindowFocus: false,
+  });
+};
+
+export const useCreateSession = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (sessionData: any) => create_session(sessionData),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["sessions"] });
+      queryClient.invalidateQueries({ queryKey: ["upcoming_sessions"] });
+    },
   });
 };

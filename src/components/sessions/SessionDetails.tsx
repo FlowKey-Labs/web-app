@@ -1,0 +1,440 @@
+import { useParams } from 'react-router-dom';
+import MembersHeader from '../headers/MembersHeader';
+import { Progress } from '@mantine/core';
+import plusIcon from '../../assets/icons/plusWhite.svg';
+import { useState } from 'react';
+import ClassesModal from './AddSession';
+import Table from '../common/Table';
+import { createColumnHelper } from '@tanstack/react-table';
+
+import {
+  useGetClients,
+  useGetSessionDetail,
+  useGetSessionAnalytics,
+} from '../../hooks/reactQuery';
+
+import actionOptionIcon from '../../assets/icons/actionOption.svg';
+import { Client } from '../../types/clientTypes';
+import avatar from '../../assets/icons/newAvatar.svg';
+
+const columnHelper = createColumnHelper<Client>();
+
+const columns = [
+  columnHelper.display({
+    id: 'select',
+    header: ({ table }) => (
+      <input
+        type='checkbox'
+        checked={table.getIsAllRowsSelected()}
+        onChange={table.getToggleAllRowsSelectedHandler()}
+        className='w-4 h-4 rounded cursor-pointer bg-[#F7F8FA] accent-[#DBDEDF]'
+      />
+    ),
+    cell: ({ row }) => (
+      <input
+        type='checkbox'
+        checked={row.getIsSelected()}
+        onChange={row.getToggleSelectedHandler()}
+        className='w-4 h-4 rounded cursor-pointer bg-[#F7F8FA] accent-[#DBDEDF]'
+      />
+    ),
+  }),
+  columnHelper.accessor('first_name', {
+    header: 'Name',
+    cell: (info) => `${info.getValue()} ${info.row.original.last_name}`,
+  }),
+  columnHelper.accessor('phone_number', {
+    header: 'Phone',
+    cell: (info) => info.getValue(),
+  }),
+  columnHelper.accessor('active', {
+    header: 'Status',
+    cell: (info) => (
+      <span
+        className={`inline-block px-1 py-1 rounded-lg text-sm text-center min-w-[60px] ${
+          info.getValue()
+            ? 'bg-active text-green-700'
+            : 'bg-red-100 text-red-700'
+        }`}
+      >
+        {info.getValue() ? 'Active' : 'Inactive'}
+      </span>
+    ),
+  }),
+  columnHelper.display({
+    id: 'progress',
+    header: 'Progress',
+    cell: () => <Progress color='#FFAE0080' size='sm' radius='xl' value={50} />,
+  }),
+  columnHelper.display({
+    id: 'actions',
+    header: () => (
+      <img
+        src={actionOptionIcon}
+        alt='Options'
+        className='w-4 h-4 cursor-pointer'
+      />
+    ),
+    cell: () => (
+      <div className='flex space-x-2'>
+        <img
+          src={actionOptionIcon}
+          alt='Options'
+          className='w-4 h-4 cursor-pointer'
+        />
+      </div>
+    ),
+  }),
+];
+
+const SessionDetails = () => {
+  const { id: sessionId } = useParams();
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<'overview' | 'clients'>(
+    'overview'
+  );
+  const [rowSelection, setRowSelection] = useState({});
+
+  // Fetch session details by ID
+  const {
+    data: session,
+    isLoading: sessionLoading,
+    isError: sessionError,
+    error: sessionErrorDetails,
+    refetch: refetchSession,
+  } = useGetSessionDetail(sessionId || '');
+
+  // Fetch session analytics
+  const { data: sessionAnalytics, isLoading: analyticsLoading } =
+    useGetSessionAnalytics(sessionId || '');
+
+  // Fetch clients for the table
+  const {
+    data: clients = [],
+    isLoading: clientsLoading,
+    isError: clientsError,
+    error: clientsErrorDetails,
+  } = useGetClients();
+
+  const openModal = () => setIsModalOpen(true);
+  const closeModal = () => setIsModalOpen(false);
+
+  const formatDate = (dateString: string) => {
+    if (!dateString) return '';
+
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+  };
+
+  // Format day names for calendar display (Mon, Tue, etc.)
+  const formatDayNames = (days: (string | number)[] | undefined) => {
+    if (!days || !days.length) return '';
+
+    const dayNames = [
+      'sunday', // 0
+      'monday', // 1
+      'tuesday', // 2
+      'wednesday', // 3
+      'thursday', // 4
+      'friday', // 5
+      'saturday', // 6
+    ];
+
+    const dayAbbreviations: Record<string, string> = {
+      monday: 'Mon',
+      tuesday: 'Tue',
+      wednesday: 'Wed',
+      thursday: 'Thu',
+      friday: 'Fri',
+      saturday: 'Sat',
+      sunday: 'Sun',
+    };
+
+    return days
+      .map((day) => {
+        // Convert number to day name (1 -> 'monday', 2 -> 'tuesday', etc.)
+        const dayName =
+          typeof day === 'number' ? dayNames[day % 7] : day.toLowerCase();
+        return dayAbbreviations[dayName] || dayName;
+      })
+      .join(', ');
+  };
+
+  const isLoading = sessionLoading || clientsLoading || analyticsLoading;
+  const isError = sessionError || clientsError;
+  const error = sessionErrorDetails || clientsErrorDetails;
+  const refetch = refetchSession;
+
+  if (isLoading) {
+    return (
+      <div className='w-full space-y-6 bg-white rounded-lg p-6'>
+        <p className='text-primary'>Loading session details...</p>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className='w-full space-y-6 bg-white rounded-lg p-6'>
+        <div className='space-y-4'>
+          <p className='text-red-500'>
+            Error loading session details: {error?.message}
+          </p>
+          <button
+            onClick={() => refetch()}
+            className='px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90'
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!session) {
+    return (
+      <div className='p-8'>
+        <h2 className='text-[40px] font-bold text-primary'>
+          Session not found
+        </h2>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <div className='flex flex-col h-screen bg-cardsBg w-full overflow-y-auto '>
+        <MembersHeader
+          title='Session Details'
+          buttonText='New Session'
+          searchPlaceholder='Search by ID, Name or Subject'
+          leftIcon={plusIcon}
+          onButtonClick={openModal}
+          showFilterIcons={false}
+          showSearch={false}
+        />
+        <div className='items-center gap-4 p-6'>
+          <div className='flex w-full'>
+            <div className='flex flex-col w-[30%] items-center mt-6'>
+              <div className='flex flex-col px-4 py-8 items-center justify-center border bg-white rounded-xl w-[290px]'>
+                <div className='flex flex-col text-center space-y-1 items-center'>
+                  <div className='mb-2'>
+                    <img
+                      src={avatar}
+                      alt=''
+                      className='w-14 h-14 rounded-full'
+                    />
+                  </div>
+                  <p className='font-medium text-gray-900 text-sm'>
+                    {session.id}{' '}
+                    <span>({session.category?.name || 'No Category'})</span>
+                  </p>
+                  <p className='text-sm text-gray-500'>
+                    {session.class_type || 'Class'}
+                  </p>
+                </div>
+                <div className='flex space-x-6 mt-2'>
+                  <div className='rounded-lg bg-active py-2 px-4'>
+                    <p className='text-xs '>
+                      {session.is_active ? 'Active' : 'Inactive'}
+                    </p>
+                  </div>
+                </div>
+                <div className='h-[1px] bg-gray-300 w-full my-6'></div>
+                <div className='w-full px-4 space-y-4'>
+                  <div className='flex justify-between items-center w-full text-sm'>
+                    <span className='text-gray-400 font-bold text-xs'>
+                      SESSION ID
+                    </span>
+                    <span className='text-gray-400  text-xs'>{session.id}</span>
+                  </div>
+                  <div className='flex justify-between items-center w-full text-sm'>
+                    <span className='text-gray-400 font-bold text-xs'>
+                      SLOTS
+                    </span>
+                    <span className='text-gray-400  text-xs'>
+                      {session.spots}
+                    </span>
+                  </div>
+                  {/* repeats  */}
+                  <div className='flex justify-between items-center w-full text-sm'>
+                    <span className='text-gray-400 font-bold text-xs'>
+                      Calendar
+                    </span>
+                    <span className='text-gray-400  text-xs'>
+                      {(() => {
+                        if (session.repeat_on?.length) {
+                          const days = formatDayNames(session.repeat_on);
+                          const occurrences = session.repeat_occurrences
+                            ? ` for ${session.repeat_occurrences} occurrences`
+                            : '';
+                          const endDate = session.repeat_end_date
+                            ? ` until ${formatDate(session.repeat_end_date)}`
+                            : '';
+
+                          return `${days}${occurrences}${endDate}`;
+                        }
+
+                        if (session.repeat_unit && session.repeat_every) {
+                          const frequency =
+                            session.repeat_every > 1
+                              ? `Every ${session.repeat_every} ${session.repeat_unit}`
+                              : session.repeat_unit === 'days'
+                              ? 'Daily'
+                              : session.repeat_unit === 'weeks'
+                              ? 'Weekly'
+                              : 'Monthly';
+
+                          return frequency;
+                        }
+
+                        return 'No repeats';
+                      })()}
+                    </span>
+                  </div>
+                </div>
+                <div className='h-[1px] bg-gray-300 w-[80%] mx-auto my-6'></div>
+                <div className='w-full px-4 space-y-4'>
+                  <div className='flex justify-between items-center w-full text-sm'>
+                    <span className='text-gray-400 font-bold text-xs'>
+                      DATE CREATED
+                    </span>
+                    <span className='text-gray-400  text-xs'>
+                      {formatDate(session.date)}
+                    </span>
+                  </div>
+                  <div className='flex justify-between items-center w-full text-sm'>
+                    <span className='text-gray-400 font-bold text-xs'>
+                      END DATE
+                    </span>
+                    <span className='text-gray-400  text-xs'>
+                      {session.repeat_end_date
+                        ? formatDate(session.repeat_end_date)
+                        : 'Never'}
+                    </span>
+                  </div>
+                  <div className='flex justify-between items-center w-full text-sm'>
+                    <span className='text-gray-400 font-bold text-xs'>
+                      ASSIGNED TO
+                    </span>
+                    <span className='text-gray-400  text-xs'>
+                      {session.assigned_staff
+                        ? `${session.assigned_staff.user.first_name} ${session.assigned_staff.user.last_name}`
+                        : 'Unassigned'}
+                    </span>
+                  </div>
+                </div>
+                <div className='h-[1px] bg-gray-300 w-full my-6'></div>
+                <div className='w-full pb-6'>
+                  <div className='flex justify-between text-xs pb-2'>
+                    <p className=''>Enrollment Progress</p>
+                    <p className=''>
+                      {Math.round(
+                        ((session.attendances?.length || 0) /
+                          (session.spots || 1)) *
+                          100
+                      )}
+                      %
+                    </p>
+                  </div>
+
+                  <Progress
+                    color='#FFAE0080'
+                    size='md'
+                    radius='xl'
+                    value={
+                      session.spots
+                        ? ((sessionAnalytics?.total_clients || 0) /
+                            session.spots) *
+                          100
+                        : 0
+                    }
+                  />
+                </div>
+              </div>
+            </div>
+            <div className=' w-[70%] p-4'>
+              <div className='space-y-4'>
+                <div className='flex space-x-12 ml-8 relative' role='tablist'>
+                  <button
+                    role='tab'
+                    aria-selected={activeTab === 'overview'}
+                    aria-controls='overview-panel'
+                    className={`font-semibold text-xl relative cursor-pointer transition-all duration-200 hover:text-secondary  ${
+                      activeTab === 'overview'
+                        ? 'text-secondary'
+                        : 'text-gray-500'
+                    }`}
+                    onClick={() => setActiveTab('overview')}
+                  >
+                    Overview
+                  </button>
+                  <h3 className='font-semibold text-xl relative cursor-pointer transition-all duration-200 hover:text-secondary '>
+                    Attendance
+                  </h3>
+                  <h3 className='font-semibold text-xl relative cursor-pointer transition-all duration-200 hover:text-secondary '>
+                    Progress Tracker
+                  </h3>
+                </div>
+                <div className='h-[1px] bg-gray-300 w-full opacity-60'></div>
+              </div>
+              <div className='flex space-x-16 mt-6'>
+                {analyticsLoading ? (
+                  <p>Loading analytics data...</p>
+                ) : (
+                  <>
+                    <div className='flex flex-col items-center border bg-white rounded-xl p-6 space-y-4'>
+                      <p className='text-4xl'>
+                        {sessionAnalytics?.total_clients || 0}
+                        <span className='text-lg text-gray-500'>
+                          /{session.spots || '∞'}
+                        </span>
+                      </p>
+                      <p className='text-sm'>Total Clients</p>
+                    </div>
+
+                    <div className='flex items-center border bg-white py-6 px-10 rounded-xl'>
+                      <div className='flex flex-col items-center rounded-xl space-y-4'>
+                        <p className='text-2xl font-semibold test-primary'>
+                          {sessionAnalytics?.average_attendance || 0}%
+                        </p>
+                        <p className='text-sm'>Average Attendance</p>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+              <div className='flex-1 mt-6'>
+                <div className=''>
+                  <div>
+                    <h3 className='text-primary text-xl font-semibold'>
+                      Clients
+                    </h3>
+                  </div>
+                  <div className='flex-1 py-2'>
+                    <Table
+                      data={clients}
+                      columns={columns}
+                      rowSelection={rowSelection}
+                      onRowSelectionChange={setRowSelection}
+                      className='mt-4'
+                      pageSize={5}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <ClassesModal isOpen={isModalOpen} onClose={closeModal} />
+    </>
+  );
+};
+
+export default SessionDetails;

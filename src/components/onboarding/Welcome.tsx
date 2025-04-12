@@ -5,22 +5,24 @@ import Button from '../common/Button';
 import MainOnboarding from './MainOnboarding';
 import { useNavigate } from 'react-router-dom';
 import { FlowkeyOnboardingHeader } from '../common/FlowkeyHeader';
+import { useGetUserProfile } from '../../hooks/reactQuery';
 
 const WelcomePage = () => {
   const [isHovered, setIsHovered] = useState(false);
   const navigate = useNavigate();
+  const { data: userProfile } = useGetUserProfile();
 
   return (
     <MainOnboarding>
-      <div className='flex flex-col w-full lg:w-[60%] min-h-[90vh] justify-around lg:justify-center px-4 lg:px-0'>
-        <div className='mb-12 lg:mb-28 self-start'>
+      <div className='flex flex-col w-full lg:w-[80%] min-h-[80vh] px-4 lg:px-0 space-y-12'>
+        <div className='mb-8'>
           <FlowkeyOnboardingHeader />
         </div>
 
         <div className='flex flex-col space-y-1 text-left'>
           <div className='flex gap-2'>
-            <p className='text-primary text-3xl'>
-              Hello <span className='text-secondary font-bold'>Doris</span>{' '}
+            <p className='text-primary text-[40px]'>
+              Hello <span className='text-secondary font-bold'>{userProfile?.first_name}</span>
             </p>
             <div className='flex items-center justify-center'>
               <img src={waveIcon} alt='Wave' className='w-8 h-8 mt-1' />{' '}
@@ -28,18 +30,18 @@ const WelcomePage = () => {
             </div>
           </div>
           <p>
-            <span className='font-bold text-primary text-3xl'>
+            <span className='font-bold text-primary text-[40px]'>
               Welcome to FlowKey...
             </span>
           </p>
-          <p className='text-primary text-lg'>Let's get you started</p>
+          <p className='text-primary text-[24px]'>Let's get you started</p>
         </div>
 
-        <div className='flex flex-col mt-8 w-full'>
+        <div className='flex flex-col w-[80%]'>
           <GreenArrowIcon className='w-[90px] h-[72px] self-end' />
           <Button
             w='80%'
-            h='45px'
+            h='50px'
             className='text-primary mt-2 self-center lg:self-start'
             style={{
               fontFamily: 'Urbanist',

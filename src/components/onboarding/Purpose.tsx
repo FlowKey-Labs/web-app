@@ -5,15 +5,28 @@ import Button from '../common/Button';
 import { useNavigate } from 'react-router-dom';
 import { OnboardingProgress } from '../common/OnboardingProgress';
 import { useState } from 'react';
+import { useOnboardingStore } from '../../store/onboardingStore';
+import { useBusinessProfile } from '../../hooks/reactQuery';
 
 import arrowRightIcon from '../../assets/icons/arrowRight.svg';
+import checkIcon from '../../assets/icons/check.svg';
 
-import { businessPurpose } from '../utils/dummyData';
+import { businessPurpose } from '../../utils/dummyData';
+import NotificationToast from '../common/NotificationToast';
+import { navigateToProfile } from '../../utils/navigationHelpers';
 
 const Purpose = () => {
   const navigate = useNavigate();
-  const [selectedBusiness, setSelectedBusiness] = useState<string | null>(null);
+  const { businessType, teamSize, monthlyClients, purpose, setPurpose } =
+    useOnboardingStore();
+  const [selectedBusiness, setSelectedBusiness] = useState<string | null>(
+    purpose
+  );
+  const { mutate: updateBusinessProfile, status } = useBusinessProfile();
+  const isLoading = status === 'pending';
   const [buttonHovered, setButtonHovered] = useState(false);
+
+  const [showNotification, setShowNotification] = useState(false);
 
   return (
     <MainOnboarding>
@@ -30,7 +43,9 @@ const Purpose = () => {
         <div className='flex flex-col flex-grow'>
           <div className='grid gap-3 mb-auto'>
             {businessPurpose.map((business) => {
-              const isSelected = selectedBusiness === business.id;
+              const isSelected =
+                selectedBusiness ===
+                business.title.toLowerCase().replace(/ /g, '_');
               const IconComponent = business.icon;
 
               return (
@@ -41,7 +56,12 @@ const Purpose = () => {
                       ? 'border border-[#1D9B5E] bg-[#F8FBF9]'
                       : 'hover:bg-[#F8FBF9] border'
                   }`}
-                  onClick={() => setSelectedBusiness(business.id)}
+                  onClick={() => {
+                    setSelectedBusiness(
+                      business.title.toLowerCase().replace(/ /g, '_')
+                    );
+                    setPurpose(business.title.toLowerCase().replace(/ /g, '_'));
+                  }}
                 >
                   <div className='flex items-center w-full'>
                     <div className='flex items-center justify-center rounded-full bg-[#F8F7F7] w-12 h-12 flex-shrink-0'>
@@ -110,13 +130,51 @@ const Purpose = () => {
             }}
             onMouseEnter={() => setButtonHovered(true)}
             onMouseLeave={() => setButtonHovered(false)}
-            onClick={() => navigate('/')}
-            disabled={!selectedBusiness}
+            onClick={() => {
+              if (
+                businessType &&
+                teamSize &&
+                monthlyClients &&
+                selectedBusiness
+              ) {
+                updateBusinessProfile(
+                  {
+                    business_type: businessType,
+                    team_size: parseInt(teamSize),
+                    monthly_clients: monthlyClients,
+                    reason_for_using: selectedBusiness,
+                  },
+                  {
+                    onSuccess: () => {
+                      setShowNotification(true);
+                      setTimeout(() => {
+                        navigateToProfile(navigate);
+                      }, 1500);
+                    },
+                  }
+                );
+              }
+            }}
+            disabled={!selectedBusiness || isLoading}
           >
             Continue
           </Button>
         </div>
       </div>
+      {showNotification && (
+        <NotificationToast
+          type='success'
+          title='Success!'
+          description='Onboarding completed successfully'
+          onClose={() => setShowNotification(false)}
+          icon={
+            <div className='rounded-full p-2 bg-secondary'>
+              <img src={checkIcon} alt='' className='w-5 h-5' />
+            </div>
+          }
+          autoClose={5000}
+        />
+      )}
     </MainOnboarding>
   );
 };

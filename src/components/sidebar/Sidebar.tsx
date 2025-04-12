@@ -1,27 +1,29 @@
-import {
-  FlowKeyIcon,
-  DashboardIcon,
-  DashboardIconWhite,
-  StaffIcon,
-  StaffIconWhite,
-  ClientsIcon,
-  ClientsIconWhite,
-  ClassesIcon,
-  ClassesIconWhite,
-  ChatsIcon,
-  ChatsIconWhite,
-  TransactionsIcon,
-  TransactionsIconWhite,
-  CalendarIcon,
-  CalendarIconWhite,
-  SettingsIcon,
-  SettingsIconWhite,
-  LogoutIcon,
-  LogoutIconWhite,
-  ProfileIcon,
-  ProfileIconWhite,
-} from '../../assets/icons';
+import { FlowKeyIcon } from '../../assets/icons';
+import { menuItems, bottomMenuItems } from '../../utils/dummyData';
 import { useNavigate } from 'react-router-dom';
+import {
+  navigateToDashboard,
+  navigateToSessions,
+  navigateToStaff,
+  navigateToClients,
+  navigateToCalendar,
+  navigateToProfile,
+  navigateToSettings,
+} from '../../utils/navigationHelpers';
+
+type NavigationMap = {
+  [key: string]: (navigate: ReturnType<typeof useNavigate>) => void;
+};
+
+const navigationMap: NavigationMap = {
+  dashboard: navigateToDashboard,
+  sessions: navigateToSessions,
+  staff: navigateToStaff,
+  clients: navigateToClients,
+  calendar: navigateToCalendar,
+  profile: navigateToProfile,
+  settings: navigateToSettings,
+};
 
 interface SidebarProps {
   activeItem: string;
@@ -29,68 +31,13 @@ interface SidebarProps {
 
 const Sidebar = ({ activeItem }: SidebarProps) => {
   const navigate = useNavigate();
-  const menuItems = [
-    {
-      name: 'Dashboard',
-      icon: DashboardIcon,
-      iconWhite: DashboardIconWhite,
-    },
-    {
-      name: 'Staff',
-      icon: StaffIcon,
-      iconWhite: StaffIconWhite,
-    },
-    {
-      name: 'Clients',
-      icon: ClientsIcon,
-      iconWhite: ClientsIconWhite,
-    },
-    {
-      name: 'Sessions',
-      icon: ClassesIcon,
-      iconWhite: ClassesIconWhite,
-    },
-    {
-      name: 'Transactions',
-      icon: TransactionsIcon,
-      iconWhite: TransactionsIconWhite,
-    },
-    {
-      name: 'Calendar',
-      icon: CalendarIcon,
-      iconWhite: CalendarIconWhite,
-    },
-    {
-      name: 'Chats',
-      icon: ChatsIcon,
-      iconWhite: ChatsIconWhite,
-    },
-  ];
-
-  const bottomMenuItems = [
-    {
-      name: 'Profile',
-      icon: ProfileIcon,
-      iconWhite: ProfileIconWhite,
-    },
-    {
-      name: 'Settings',
-      icon: SettingsIcon,
-      iconWhite: SettingsIconWhite,
-    },
-    {
-      name: 'Logout',
-      icon: LogoutIcon,
-      iconWhite: LogoutIconWhite,
-    },
-  ];
 
   return (
-    <div className='min-h-screen flex flex-col w-[230px] bg-[#ffffff] py-6 h-screen overflow-y-auto'>
+    <div className='min-h-screen flex flex-col min-w-[230px] bg-[#ffffff] py-6 h-screen overflow-y-auto'>
       <div className='flex justify-center items-center mb-6'>
         <h3
           className='flex items-center gap-2 px-6 cursor-pointer transition-opacity hover:opacity-90'
-          onClick={() => navigate('/dashboard')}
+          onClick={() => navigateToDashboard(navigate)}
         >
           <FlowKeyIcon className='w-[33px] h-[29px]' />
           <span className='font-[900] text-[24px] text-primary'>FlowKey</span>
@@ -106,7 +53,11 @@ const Sidebar = ({ activeItem }: SidebarProps) => {
               return (
                 <li
                   key={item.name}
-                  onClick={() => navigate(`/${item.name.toLowerCase()}`)}
+                  onClick={() => {
+                    const route = item.name.toLowerCase();
+                    const navigationFn = navigationMap[route];
+                    navigationFn ? navigationFn(navigate) : navigate(`/${route}`);
+                  }}
                   className={`flex items-center cursor-pointer w-[168px] h-[35px] rounded-lg px-4 text-[14px] transition-colors hover:opacity-90 ${
                     isActive ? 'bg-secondary text-white' : 'text-[#6D7172]'
                   }`}

@@ -9,6 +9,10 @@ import Button from '../common/Button';
 import Main from '../authentication/MainAuth';
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
+import NotificationToast from '../common/NotificationToast';
+
+import { EyeClosedIcon, EyeOpenIcon } from '../../assets/icons';
+import { useLoginUser } from '../../hooks/reactQuery';
 
 interface FormData {
   email: string;
@@ -18,13 +22,53 @@ interface FormData {
 const Login = () => {
   const navigate = useNavigate();
   const [isHovered, setIsHovered] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const togglePasswordVisibility = () => setShowPassword(!showPassword);
+  const [notification, setNotification] = useState<{
+    show: boolean;
+    type: 'success' | 'error';
+    title: string;
+    description: string;
+  }>({ show: false, type: 'success', title: '', description: '' });
 
-  const methods = useForm<FormData>();
+  const methods = useForm<FormData>({
+    defaultValues: {
+      email: '',
+      password: '',
+    },
+  });
+
+  const { mutate: loginUser, isPending } = useLoginUser();
 
   const onSubmit: SubmitHandler<FormData> = (data) => {
-    console.log(data);
-    
-    navigate('/');
+    loginUser(
+      {
+        email: data.email,
+        password: data.password,
+      },
+      {
+        onSuccess: () => {
+          setNotification({
+            show: true,
+            type: 'success',
+            title: 'Success!',
+            description: 'Login successful'
+          });
+          setTimeout(() => {
+            navigate('/dashboard');
+          }, 1500);
+        },
+        onError: (error: any) => {
+          console.error('Login error:', error);
+          setNotification({
+            show: true,
+            type: 'error',
+            title: 'Error',
+            description: error?.response?.data?.detail || 'Invalid credentials, please try again.'
+          });
+        },
+      }
+    );
   };
 
   return (
@@ -67,36 +111,29 @@ const Login = () => {
             control={methods.control}
             rules={{
               required: 'Password is required',
-              minLength: {
-                value: 8,
-                message: 'Password must be at least 8 characters',
-              },
-              validate: (value) => {
-                const hasUpperCase = /[A-Z]/.test(value);
-                const hasLowerCase = /[a-z]/.test(value);
-                const hasNumber = /[0-9]/.test(value);
-                const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(value);
-
-                let errorMessage = '';
-                if (!hasUpperCase)
-                  errorMessage += 'At least one uppercase letter. ';
-                if (!hasLowerCase)
-                  errorMessage += 'At least one lowercase letter. ';
-                if (!hasNumber) errorMessage += 'At least one number. ';
-                if (!hasSpecialChar)
-                  errorMessage += 'At least one special character. ';
-
-                return errorMessage === '' || errorMessage.trim();
-              },
             }}
             render={({ field }) => (
-              <Input
-                {...field}
-                name='password'
-                label='Password'
-                type='password'
-                placeholder='Enter your password'
-              />
+              <div className='relative pb-6'>
+                <Input
+                  {...field}
+                  name='password'
+                  label='Password'
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder='Enter your password'
+                />
+                <button
+                  type='button'
+                  className='absolute right-3 top-[20px]'
+                  onClick={togglePasswordVisibility}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? (
+                    <EyeClosedIcon className='w-5 h-5 text-gray-500' />
+                  ) : (
+                    <EyeOpenIcon className='w-5 h-5 text-gray-500' />
+                  )}
+                </button>
+              </div>
             )}
           />
 
@@ -119,11 +156,22 @@ const Login = () => {
             }}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
+            disabled={isPending}
           >
-            Log In
+            {isPending ? 'Logging in...' : 'Log In'}
           </Button>
         </form>
       </FormProvider>
+      {notification.show && (
+        <NotificationToast
+          type={notification.type}
+          title={notification.title}
+          description={notification.description}
+          onClose={() => setNotification(prev => ({ ...prev, show: false }))}
+
+          autoClose={5000}
+        />
+      )}
     </Main>
   );
 };

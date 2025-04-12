@@ -1,5 +1,8 @@
 import { api } from "../lib/axios";
 import axios from "axios";
+
+import { CreateSessionData } from "../types/sessionTypes";
+
 const BASE_URL = import.meta.env.VITE_APP_BASEURL;
 
 const GOOGLE_API_KEY = import.meta.env.VITE_APP_GOOGLE_API_KEY;
@@ -27,13 +30,14 @@ const END_POINTS = {
     SESSIONS_DATA: `${BASE_URL}/api/session/`,
     SESSION_DETAIL: (id: string) => `${BASE_URL}/api/session/${id}/`,
     CATEGORIES: `${BASE_URL}/api/session/categories/`,
+    CLASS_SESSIONS: `${BASE_URL}/api/session/?session_type=class`,
   },
   ANALYTICS: {
-    SESSIONS: `${BASE_URL}/api/dashboard/analytics/`,
+    ANALYTICS_DATA: `${BASE_URL}/api/dashboard/analytics/`,
     UPCOMING_SESSIONS: `${BASE_URL}/api/dashboard/upcoming-sessions/`,
+    SESSION_ANALYTICS: (id: string) =>
+      `${BASE_URL}/api/dashboard/sessions/analytics/${id}/`,
     CANCEL_SESSION: (id: string) =>
-      `${BASE_URL}/api/dashboard/upcoming-sessions/${id}/`,
-    RESCHEDULE_SESSION: (id: string) =>
       `${BASE_URL}/api/dashboard/upcoming-sessions/${id}/`,
   },
   GOOGLE: {
@@ -134,6 +138,9 @@ const add_client = async (clientData: {
   email: string;
   phone_number: string;
   location: string;
+  dob?: string;
+  gender: string;
+  session_id?: number;
 }) => {
   const { data } = await api.post(END_POINTS.CLIENTS.CLIENTS_DATA, clientData);
   return data;
@@ -188,7 +195,17 @@ const create_staff = async (staffData: {
 
 const get_analytics = async (filterOption?: string) => {
   const params = filterOption ? { filter: filterOption } : {};
-  const { data } = await api.get(END_POINTS.ANALYTICS.SESSIONS, { params });
+  const { data } = await api.get(END_POINTS.ANALYTICS.ANALYTICS_DATA, {
+    params,
+  });
+  console.log("API Response:", data);
+  return data;
+};
+
+const get_session_analytics = async (sessionId: string) => {
+  const { data } = await api.get(
+    END_POINTS.ANALYTICS.SESSION_ANALYTICS(sessionId)
+  );
   return data;
 };
 
@@ -198,7 +215,7 @@ const get_upcoming_sessions = async () => {
 };
 
 const cancel_session = async (sessionId: string) => {
-  const { data } = await api.post(
+  const { data } = await api.delete(
     END_POINTS.ANALYTICS.CANCEL_SESSION(sessionId)
   );
   return data;
@@ -209,7 +226,7 @@ const reschedule_session = async (
   newDateTime: { date: string; startTime: string; endTime: string }
 ) => {
   const { data } = await api.put(
-    END_POINTS.ANALYTICS.RESCHEDULE_SESSION(sessionId),
+    END_POINTS.ANALYTICS.SESSION_ANALYTICS(sessionId),
     newDateTime
   );
   return data;
@@ -220,6 +237,11 @@ const get_sessions = async () => {
   return data;
 };
 
+const get_class_sessions = async () => {
+  const { data } = await api.get(END_POINTS.SESSION.CLASS_SESSIONS);
+  return data;
+};
+
 const get_session_detail = async (id: string) => {
   const { data } = await api.get(END_POINTS.SESSION.SESSION_DETAIL(id));
   return data;
@@ -227,6 +249,15 @@ const get_session_detail = async (id: string) => {
 
 const get_session_categories = async () => {
   const { data } = await api.get(END_POINTS.SESSION.CATEGORIES);
+  return data;
+};
+
+// Create a new session
+const create_session = async (sessionData: CreateSessionData) => {
+  const { data } = await api.post(
+    END_POINTS.SESSION.SESSIONS_DATA,
+    sessionData
+  );
   return data;
 };
 
@@ -246,6 +277,7 @@ export {
   get_staff_member,
   update_staff_member,
   create_staff,
+  create_session,
   get_user_profile,
   get_analytics,
   get_upcoming_sessions,
@@ -254,4 +286,6 @@ export {
   get_sessions,
   get_session_detail,
   get_session_categories,
+  get_session_analytics,
+  get_class_sessions,
 };

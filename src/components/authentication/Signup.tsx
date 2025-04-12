@@ -10,6 +10,9 @@ import Main from '../authentication/MainAuth';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useWatch } from 'react-hook-form';
+import NotificationToast from '../common/NotificationToast';
+import { useRegisterUser } from '../../hooks/reactQuery';
+
 import { EyeClosedIcon, EyeOpenIcon } from '../../assets/icons';
 
 interface FormData {
@@ -24,7 +27,12 @@ interface FormData {
 const Signup = () => {
   const methods = useForm<FormData>({
     defaultValues: {
+      firstName: '',
+      lastName: '',
       mobileNumber: '',
+      email: '',
+      password: '',
+      confirmPassword: '',
     },
   });
 
@@ -34,15 +42,56 @@ const Signup = () => {
   const [isHovered, setIsHovered] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [notification, setNotification] = useState<{
+    show: boolean;
+    type: 'success' | 'error';
+    title: string;
+    description: string;
+  }>({ show: false, type: 'success', title: '', description: '' });
 
   const togglePasswordVisibility = () => setShowPassword(!showPassword);
   const toggleConfirmPasswordVisibility = () =>
     setShowConfirmPassword(!showConfirmPassword);
 
+  const { mutate: registerUser, isPending } = useRegisterUser();
+
   const onSubmit: SubmitHandler<FormData> = (data) => {
-    console.log(data);
-    
-    navigate('/welcome');
+    registerUser(
+      {
+        first_name: data.firstName,
+        last_name: data.lastName,
+        email: data.email,
+        mobile_number: data.mobileNumber,
+        password: data.password,
+        confirm_password: data.confirmPassword,
+      },
+      {
+        onSuccess: () => {
+          setNotification({
+            show: true,
+            type: 'success',
+            title: 'Success!',
+            description: 'Registration successful'
+          });
+          setTimeout(() => {
+            navigate('/welcome');
+          }, 1500);
+        },
+        onError: (error: any) => {
+          console.error('Registration error:', error);
+          const errorMessage = error?.response?.data?.detail || 
+            error?.response?.data?.email?.[0] || 
+            error?.response?.data?.mobile_number?.[0] ||
+            'Registration failed. Please try again.';
+          setNotification({
+            show: true,
+            type: 'error',
+            title: 'Error',
+            description: errorMessage
+          });
+        },
+      }
+    );
   };
 
   return (
@@ -240,11 +289,22 @@ const Signup = () => {
             }}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
+            disabled={isPending}
           >
-            Sign Up
+            {isPending ? 'Registering...' : 'Sign Up'}
           </Button>
         </form>
       </FormProvider>
+      {notification.show && (
+        <NotificationToast
+          type={notification.type}
+          title={notification.title}
+          description={notification.description}
+          onClose={() => setNotification(prev => ({ ...prev, show: false }))}
+
+          autoClose={5000}
+        />
+      )}
     </Main>
   );
 };

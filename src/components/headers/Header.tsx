@@ -1,16 +1,21 @@
-import { Badge } from '@mantine/core';
+import { Badge, Tooltip } from '@mantine/core';
+import SearchInput from '../common/SearchInput';
+import { useGetUserProfile } from '../../hooks/reactQuery';
+
 import {
   MessageNotificationIcon,
   NotificationBingIcon,
   SearchIcon,
 } from '../../assets/icons';
-import SearchInput from '../common/SearchInput';
+import DropdownComingSoon from '../common/DropdownComingSoon';
+import { HoverCard, Group } from '@mantine/core';
 
 interface HeaderProps {
   showSearch?: boolean;
 }
 
 const Header = ({ showSearch = true }: HeaderProps) => {
+  const { data: userProfile } = useGetUserProfile();
   return (
     <div className='h-[80px] flex items-center justify-between px-11'>
       {showSearch && (
@@ -29,25 +34,46 @@ const Header = ({ showSearch = true }: HeaderProps) => {
       )}
 
       <div className='flex items-center justify-end gap-12 ml-auto'>
-        <div className='relative'>
-          <NotificationBingIcon className='w-6 h-6 cursor-pointer' />
-          <Badge
-            className='absolute -top-3 -right-5 flex items-center justify-center text-primary'
-            radius='xl'
-            variant='filled'
-            color='red'
-            h={25}
-            w={25}
-            style={{ padding: 6 }}
-          >
-            12
-          </Badge>
-        </div>
-        <div className='relative'>
-          <MessageNotificationIcon className='w-6 h-6 cursor-pointer' />
-        </div>
+        <Group justify='center'>
+          <HoverCard width={280} shadow='md' position='bottom' withArrow>
+            <HoverCard.Target>
+              <div className='relative'>
+                <div className='relative'>
+                  <NotificationBingIcon className='w-6 h-6 cursor-pointer' />
+                  <Badge
+                    className='absolute -top-3 -right-5 flex items-center justify-center text-primary'
+                    radius='xl'
+                    variant='filled'
+                    color='red'
+                    h={25}
+                    w={25}
+                    style={{ padding: 6 }}
+                  >
+                    12
+                  </Badge>
+                </div>
+              </div>
+            </HoverCard.Target>
+            <HoverCard.Dropdown>
+              <DropdownComingSoon />
+            </HoverCard.Dropdown>
+          </HoverCard>
+        </Group>
+
+        <Group justify='center'>
+          <HoverCard width={280} shadow='md' position='bottom' withArrow>
+            <HoverCard.Target>
+              <div className='relative'>
+                <MessageNotificationIcon className='w-6 h-6 cursor-pointer' />
+              </div>
+            </HoverCard.Target>
+            <HoverCard.Dropdown>
+              <DropdownComingSoon />
+            </HoverCard.Dropdown>
+          </HoverCard>
+        </Group>
         <span className='text-primary cursor-pointer'>
-          Doris Waithira
+          {userProfile?.first_name} {userProfile?.last_name}
         </span>
       </div>
     </div>

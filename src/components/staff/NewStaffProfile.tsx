@@ -6,36 +6,33 @@ import {
 } from 'react-hook-form';
 import Input from '../common/Input';
 import Button from '../common/Button';
+import { FormData } from '../../types/staffTypes';
 
-interface ProfileFormData {
-  preferedName: string;
-  lastName: string;
-  phoneNumber: string;
-  email: string;
-  userId: string;
-}
+type ProfileData = Required<NonNullable<FormData['profile']>>;
 
 interface NewStaffProfileProps {
-  onNext: (data: ProfileFormData) => void;
+  onNext: (data: ProfileData) => void;
+  initialData?: ProfileData;
 }
 
-const NewStaffProfile = ({ onNext }: NewStaffProfileProps) => {
-  const methods = useForm<ProfileFormData>({
+const NewStaffProfile = ({ onNext, initialData }: NewStaffProfileProps) => {
+  const methods = useForm<ProfileData>({
     mode: 'onChange',
+    defaultValues: initialData,
   });
 
-  const onSubmit: SubmitHandler<ProfileFormData> = (data) => {
+  const onSubmit: SubmitHandler<ProfileData> = (data) => {
     onNext(data);
   };
 
   return (
-    <div className='flex flex-col space-y-6 w-[90%] h-full'>
+    <div className='flex flex-col space-y-6'>
       <h3 className='text-[32px] font-semibold text-primary'>
         Personal Information
       </h3>
       <p className='text-primary text-sm'>
-        Enter your team member's phone number or email to send them an
-        invitation to access FlowKey
+        Enter your team member's email to send them an invitation to access
+        FlowKey
       </p>
       <FormProvider {...methods}>
         <form
@@ -44,68 +41,6 @@ const NewStaffProfile = ({ onNext }: NewStaffProfileProps) => {
         >
           <div className='flex flex-col gap-6 flex-grow'>
             <div className='space-y-4'>
-              {/* Preferred Name */}
-              <Controller
-                name='preferedName'
-                control={methods.control}
-                rules={{ required: 'Name is required' }}
-                render={({ field }) => (
-                  <Input
-                    {...field}
-                    label='Preferred Name'
-                    placeholder='Enter preferred name'
-                    type='text'
-                    focusColor='secondary'
-                  />
-                )}
-              />
-
-              {/* Last Name */}
-              <Controller
-                name='lastName'
-                control={methods.control}
-                rules={{ required: 'Last name is required' }}
-                render={({ field }) => (
-                  <Input
-                    {...field}
-                    label='Last Name'
-                    placeholder='Enter last name'
-                    type='text'
-                  />
-                )}
-              />
-
-              {/* Phone Number */}
-              <Controller
-                name='phoneNumber'
-                control={methods.control}
-                rules={{
-                  required: 'Phone number is required',
-                  pattern: {
-                    value:
-                      /^[+]?[(]?[0-9]{3}[)]?[-\s.]?[0-9]{3}[-\s.]?[0-9]{4,6}$/im,
-                    message: 'Invalid phone number',
-                  },
-                  minLength: {
-                    value: 10,
-                    message: 'phone number must be at least 10 digits',
-                  },
-                  maxLength: {
-                    value: 15,
-                    message: 'phone number must not exceed 15 digits',
-                  },
-                }}
-                render={({ field }) => (
-                  <Input
-                    {...field}
-                    label='Phone Number'
-                    placeholder='(000) 000 000'
-                    type='tel'
-                  />
-                )}
-              />
-
-              {/* Email */}
               <Controller
                 name='email'
                 control={methods.control}
@@ -127,7 +62,6 @@ const NewStaffProfile = ({ onNext }: NewStaffProfileProps) => {
                 )}
               />
 
-              {/* User ID */}
               <Controller
                 name='userId'
                 control={methods.control}
@@ -148,7 +82,7 @@ const NewStaffProfile = ({ onNext }: NewStaffProfileProps) => {
               w={120}
               h={52}
               type='submit'
-              disabled={!methods.formState.isDirty}
+              disabled={!methods.formState.isValid}
               style={{
                 backgroundColor: '#1D9B5E',
                 color: '#FFF',
