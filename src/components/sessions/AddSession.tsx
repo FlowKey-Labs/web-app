@@ -91,7 +91,7 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
   // Fetch data from API
   const { data: staffData, isLoading: isStaffLoading } = useGetStaff();
   const { data: clientsData, isLoading: isClientsLoading } = useGetClients();
-  const { data: categoriesData, isLoading: isCategoriesLoading } =
+  const { data: categoriesData } =
     useGetSessionCategories();
 
   const createSession = useCreateSession();

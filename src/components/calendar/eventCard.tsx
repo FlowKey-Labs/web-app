@@ -1,4 +1,3 @@
-import React from "react";
 import editIcon from "../../assets/icons/edit.svg";
 import deleteIcon from "../../assets/icons/delete.svg";
 import closeIcon from "../../assets/icons/close.svg";

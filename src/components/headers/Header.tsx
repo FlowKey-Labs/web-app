@@ -1,4 +1,4 @@
-import { Badge, Tooltip } from '@mantine/core';
+import { Badge } from '@mantine/core';
 import SearchInput from '../common/SearchInput';
 import { useGetUserProfile } from '../../hooks/reactQuery';
 
