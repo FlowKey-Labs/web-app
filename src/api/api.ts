@@ -1,7 +1,7 @@
-import { api } from '../lib/axios';
-import axios from 'axios';
+import { api } from "../lib/axios";
+import axios from "axios";
 
-import { CreateSessionData } from '../types/sessionTypes';
+import { CreateSessionData } from "../types/sessionTypes";
 
 const BASE_URL = import.meta.env.VITE_APP_BASEURL;
 
@@ -11,6 +11,7 @@ const END_POINTS = {
   AUTH: {
     REGISTER: `${BASE_URL}/api/auth/register/`,
     LOGIN: `${BASE_URL}/api/auth/login/`,
+    REFRESH: `${BASE_URL}/api/auth/refresh/`,
   },
   USER: {
     PROFILE: `${BASE_URL}/api/auth/profile/`,
@@ -106,7 +107,7 @@ const searchCities = async (query: string) => {
   const { data } = await axios.get(END_POINTS.GOOGLE.PLACES_AUTOCOMPLETE, {
     params: {
       input: query,
-      types: '(cities)',
+      types: "(cities)",
       key: GOOGLE_API_KEY,
     },
   });
@@ -197,7 +198,7 @@ const get_analytics = async (filterOption?: string) => {
   const { data } = await api.get(END_POINTS.ANALYTICS.ANALYTICS_DATA, {
     params,
   });
-  console.log('API Response:', data);
+  console.log("API Response:", data);
   return data;
 };
 

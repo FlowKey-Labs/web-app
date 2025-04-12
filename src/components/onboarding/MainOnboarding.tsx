@@ -1,6 +1,6 @@
 import React from 'react';
 import whiteBackground from '../../assets/images/whiteBg.svg';
-import onboardingImage from '../../assets/images/onboarding.svg';
+import onboardingImage from '../../assets/images/onBoarding.svg';
 
 interface MainOnboardingProps {
   children: React.ReactNode;

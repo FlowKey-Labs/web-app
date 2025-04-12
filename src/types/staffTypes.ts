@@ -1,6 +1,6 @@
 // Base types for enums
-export type StaffRole = 'intern' | 'manager' | 'staff' | 'supervisor';
-export type PayType = 'hourly' | 'salary' | 'commission';
+export type StaffRole = "intern" | "manager" | "staff" | "supervisor";
+export type PayType = "hourly" | "salary" | "commission";
 
 export interface FormData {
   profile?: {
@@ -47,7 +47,7 @@ interface Permissions {
 }
 
 // Staff type (main interface)
-interface Staff {
+export interface Staff {
   id: number;
   user: User;
   created_by: User | null;

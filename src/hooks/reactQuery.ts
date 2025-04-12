@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   registerUser,
   loginUser,
@@ -25,17 +25,17 @@ import {
   get_session_categories,
   get_session_analytics,
   get_class_sessions,
-} from '../api/api';
-import { useAuthStore } from '../store/auth';
-import { BusinessServices } from '../types/business';
-import { AddClient, Client } from '../types/clientTypes';
-import { CreateStaffRequest, StaffResponse } from '../types/staffTypes';
+} from "../api/api";
+import { useAuthStore } from "../store/auth";
+import { BusinessServices } from "../types/business";
+import { AddClient, Client } from "../types/clientTypes";
+import { CreateStaffRequest, StaffResponse } from "../types/staffTypes";
 import {
   AnalyticsData,
   DateFilterOption,
   UpcomingSession,
-} from '../types/dashboard';
-import { Session } from '../types/sessionTypes';
+} from "../types/dashboard";
+import { Session } from "../types/sessionTypes";
 
 export const useRegisterUser = () => {
   const queryClient = useQueryClient();
@@ -45,10 +45,10 @@ export const useRegisterUser = () => {
     mutationFn: registerUser,
     onSuccess: (data) => {
       queryClient.invalidateQueries();
-      setAuth(data.access, data.user);
+      setAuth(data.access, data.refresh, data.user);
     },
     onError: (error) => {
-      console.error('Failed to register==>', error);
+      console.error("Failed to register==>", error);
     },
   });
 };
@@ -61,17 +61,17 @@ export const useLoginUser = () => {
     mutationFn: loginUser,
     onSuccess: (data) => {
       queryClient.invalidateQueries();
-      setAuth(data.access, data.user);
+      setAuth(data.access, data.refresh, data.user);
     },
     onError: (error) => {
-      console.error('Failed to log in==>', error);
+      console.error("Failed to log in==>", error);
     },
   });
 };
 
 export const useGetUserProfile = () => {
   return useQuery({
-    queryKey: ['user_profile'],
+    queryKey: ["user_profile"],
     queryFn: get_user_profile,
   });
 };
@@ -81,7 +81,7 @@ export const useLogout = () => {
 
   return () => {
     logout();
-    window.location.href = '/login';
+    window.location.href = "/login";
   };
 };
 
@@ -93,7 +93,7 @@ export const useBusinessProfile = () => {
       queryClient.invalidateQueries();
     },
     onError: (error) => {
-      console.error('Failed to update business profile==>', error);
+      console.error("Failed to update business profile==>", error);
     },
   });
 };
@@ -120,13 +120,13 @@ export const useUpdateBusinessProfile = () => {
     onSuccess: () => {
       queryClient.invalidateQueries();
     },
-    onError: (error) => console.error('Update error:', error),
+    onError: (error) => console.error("Update error:", error),
   });
 };
 
 export const useGetBusinessProfile = () => {
   return useQuery({
-    queryKey: ['business_profile'],
+    queryKey: ["business_profile"],
     queryFn: get_business_profile,
   });
 };
@@ -135,14 +135,14 @@ export const useSearchCities = () => {
   return useMutation({
     mutationFn: searchCities,
     onError: (error) => {
-      console.error('Failed to search cities:', error);
+      console.error("Failed to search cities:", error);
     },
   });
 };
 
 export const useGetBusinessServices = () => {
   return useQuery<BusinessServices>({
-    queryKey: ['business_services'],
+    queryKey: ["business_services"],
     queryFn: get_business_services,
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
@@ -152,7 +152,7 @@ export const useGetBusinessServices = () => {
 
 export const useGetClients = () => {
   return useQuery({
-    queryKey: ['clients'],
+    queryKey: ["clients"],
     queryFn: get_clients,
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
@@ -162,7 +162,7 @@ export const useGetClients = () => {
 
 export const useGetClient = (id: string) => {
   return useQuery({
-    queryKey: ['client', id],
+    queryKey: ["client", id],
     queryFn: () => get_client(id),
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
@@ -180,21 +180,21 @@ export const useAddClient = () => {
         last_name: data.last_name,
         email: data.email,
         phone_number: data.phone_number,
-        location: data.location || '',
+        location: data.location || "",
         gender: data.gender,
         dob: data.dob,
         session_id: data.session_id,
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['clients'] });
+      queryClient.invalidateQueries({ queryKey: ["clients"] });
     },
-    onError: (error) => console.error('Add client error:', error),
+    onError: (error) => console.error("Add client error:", error),
   });
 };
 
 export const useGetStaff = () => {
   return useQuery({
-    queryKey: ['staff'],
+    queryKey: ["staff"],
     queryFn: get_staff,
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
@@ -204,7 +204,7 @@ export const useGetStaff = () => {
 
 export const useGetStaffMember = (id: string) => {
   return useQuery({
-    queryKey: ['staff', id],
+    queryKey: ["staff", id],
     queryFn: () => get_staff_member(id),
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
@@ -218,9 +218,9 @@ export const useCreateStaffMember = () => {
   return useMutation<StaffResponse, Error, CreateStaffRequest>({
     mutationFn: (data: CreateStaffRequest) => create_staff(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['staff'] });
+      queryClient.invalidateQueries({ queryKey: ["staff"] });
     },
-    onError: (error) => console.error('Create staff member error ====>', error),
+    onError: (error) => console.error("Create staff member error ====>", error),
   });
 };
 
@@ -235,16 +235,16 @@ export const useUpdateStaffMember = () => {
       updateStaffData: any;
     }) => update_staff_member(id, updateStaffData),
     onSuccess: (_, { id }) => {
-      queryClient.invalidateQueries({ queryKey: ['staff'] });
-      queryClient.invalidateQueries({ queryKey: ['staff', id] });
+      queryClient.invalidateQueries({ queryKey: ["staff"] });
+      queryClient.invalidateQueries({ queryKey: ["staff", id] });
     },
-    onError: (error) => console.error('Update staff member error ====>', error),
+    onError: (error) => console.error("Update staff member error ====>", error),
   });
 };
 
 export const useGetAnalytics = (filterOption?: DateFilterOption) => {
   return useQuery<AnalyticsData>({
-    queryKey: ['analytics', filterOption],
+    queryKey: ["analytics", filterOption],
     queryFn: () => get_analytics(filterOption),
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
@@ -254,7 +254,7 @@ export const useGetAnalytics = (filterOption?: DateFilterOption) => {
 
 export const useGetUpcomingSessions = () => {
   return useQuery<UpcomingSession[]>({
-    queryKey: ['upcoming_sessions'],
+    queryKey: ["upcoming_sessions"],
     queryFn: get_upcoming_sessions,
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
@@ -267,8 +267,8 @@ export const useCancelSession = () => {
   return useMutation({
     mutationFn: (sessionId: string) => cancel_session(sessionId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['upcoming_sessions'] });
-      queryClient.invalidateQueries({ queryKey: ['analytics'] });
+      queryClient.invalidateQueries({ queryKey: ["upcoming_sessions"] });
+      queryClient.invalidateQueries({ queryKey: ["analytics"] });
     },
   });
 };
@@ -284,16 +284,16 @@ export const useRescheduleSession = () => {
       newDateTime: { date: string; startTime: string; endTime: string };
     }) => reschedule_session(sessionId, newDateTime),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['upcoming_sessions'] });
-      queryClient.invalidateQueries({ queryKey: ['analytics'] });
-      queryClient.invalidateQueries({ queryKey: ['sessions'] });
+      queryClient.invalidateQueries({ queryKey: ["upcoming_sessions"] });
+      queryClient.invalidateQueries({ queryKey: ["analytics"] });
+      queryClient.invalidateQueries({ queryKey: ["sessions"] });
     },
   });
 };
 
 export const useGetSessionAnalytics = (sessionId: string) => {
   return useQuery({
-    queryKey: ['session_analytics', sessionId],
+    queryKey: ["session_analytics", sessionId],
     queryFn: () => get_session_analytics(sessionId),
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
@@ -303,7 +303,7 @@ export const useGetSessionAnalytics = (sessionId: string) => {
 
 export const useGetSessions = () => {
   return useQuery<Session[]>({
-    queryKey: ['sessions'],
+    queryKey: ["sessions"],
     queryFn: get_sessions,
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
@@ -313,7 +313,7 @@ export const useGetSessions = () => {
 
 export const useGetClassSessions = () => {
   return useQuery<Session[]>({
-    queryKey: ['class_sessions'],
+    queryKey: ["class_sessions"],
     queryFn: get_class_sessions,
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
@@ -323,7 +323,7 @@ export const useGetClassSessions = () => {
 
 export const useGetSessionDetail = (id: string) => {
   return useQuery<Session>({
-    queryKey: ['session', id],
+    queryKey: ["session", id],
     queryFn: () => get_session_detail(id),
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
@@ -334,7 +334,7 @@ export const useGetSessionDetail = (id: string) => {
 
 export const useGetSessionCategories = () => {
   return useQuery({
-    queryKey: ['session_categories'],
+    queryKey: ["session_categories"],
     queryFn: get_session_categories,
     staleTime: 1000 * 60 * 10,
     refetchOnWindowFocus: false,
@@ -346,8 +346,8 @@ export const useCreateSession = () => {
   return useMutation({
     mutationFn: (sessionData: any) => create_session(sessionData),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['sessions'] });
-      queryClient.invalidateQueries({ queryKey: ['upcoming_sessions'] });
+      queryClient.invalidateQueries({ queryKey: ["sessions"] });
+      queryClient.invalidateQueries({ queryKey: ["upcoming_sessions"] });
     },
   });
 };

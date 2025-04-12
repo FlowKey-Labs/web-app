@@ -1,16 +1,87 @@
-import axios from 'axios';
-import { useAuthStore } from '../store/auth';
+import axios, { AxiosError, AxiosRequestConfig } from "axios";
+import { END_POINTS } from "../api/api";
+
+type ErrorResponse = {
+  code: string;
+  detail: string;
+  messages?: { token_class: "access" | "refresh" }[];
+};
 
 export const api = axios.create({
   baseURL: import.meta.env.VITE_APP_BASEURL,
 });
 
-api.interceptors.request.use((config) => {
-  const token = useAuthStore.getState().accessToken;
-  console.log('token==>', token);
+let isRefreshing = false;
+let failedRequests: Array<() => void> = [];
 
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem("accessToken");
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
 });
+
+api.interceptors.response.use(
+  (response) => response,
+  async (error: AxiosError) => {
+    const originalRequest = error.config as AxiosRequestConfig & {
+      _retry?: boolean;
+    };
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      if (
+        (error.response.data as ErrorResponse)?.code === "token_not_valid" &&
+        error?.config?.url?.includes("refresh")
+      ) {
+        localStorage.removeItem("accessToken");
+        localStorage.removeItem("refresh");
+        window.location.href = "/login";
+        return Promise.reject(error);
+      }
+
+      if (isRefreshing) {
+        return new Promise((resolve) => {
+          failedRequests.push(() => {
+            originalRequest._retry = true;
+            resolve(api(originalRequest));
+          });
+        });
+      }
+
+      originalRequest._retry = true;
+      isRefreshing = true;
+
+      try {
+        const refresh = localStorage.getItem("refresh");
+        const response = await axios.post(END_POINTS.AUTH.REFRESH, { refresh });
+
+        const newToken = response.data.access;
+
+        localStorage.setItem("accessToken", newToken);
+        localStorage.setItem("refresh", response.data.refresh);
+
+        originalRequest.headers = {
+          ...originalRequest.headers,
+          Authorization: `Bearer ${newToken}`,
+        };
+
+        failedRequests.forEach((cb) => cb());
+        failedRequests = [];
+        isRefreshing = false;
+
+        return api(originalRequest);
+      } catch (refreshError) {
+        failedRequests.forEach((cb) => cb());
+        failedRequests = [];
+        isRefreshing = false;
+
+        localStorage.removeItem("accessToken");
+        localStorage.removeItem("refresh");
+        window.location.href = "/login";
+        return Promise.reject(refreshError);
+      }
+    }
+
+    return Promise.reject(error);
+  }
+);
