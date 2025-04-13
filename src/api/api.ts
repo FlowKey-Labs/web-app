@@ -1,7 +1,7 @@
-import { api } from "../lib/axios";
-import axios from "axios";
+import { api } from '../lib/axios';
+import axios from 'axios';
 
-import { CreateSessionData } from "../types/sessionTypes";
+import { CreateSessionData } from '../types/sessionTypes';
 
 const BASE_URL = import.meta.env.VITE_APP_BASEURL;
 
@@ -107,7 +107,7 @@ const searchCities = async (query: string) => {
   const { data } = await axios.get(END_POINTS.GOOGLE.PLACES_AUTOCOMPLETE, {
     params: {
       input: query,
-      types: "(cities)",
+      types: '(cities)',
       key: GOOGLE_API_KEY,
     },
   });
@@ -140,7 +140,7 @@ const add_client = async (clientData: {
   location: string;
   dob?: string;
   gender: string;
-  session_id?: number;
+  session_ids?: number[];
 }) => {
   const { data } = await api.post(END_POINTS.CLIENTS.CLIENTS_DATA, clientData);
   return data;
@@ -198,7 +198,7 @@ const get_analytics = async (filterOption?: string) => {
   const { data } = await api.get(END_POINTS.ANALYTICS.ANALYTICS_DATA, {
     params,
   });
-  console.log("API Response:", data);
+  console.log('API Response:', data);
   return data;
 };
 
@@ -252,12 +252,28 @@ const get_session_categories = async () => {
   return data;
 };
 
-// Create a new session
 const create_session = async (sessionData: CreateSessionData) => {
   const { data } = await api.post(
     END_POINTS.SESSION.SESSIONS_DATA,
     sessionData
   );
+  return data;
+};
+
+const update_client = async (
+  id: string,
+  updateData: {
+    first_name?: string;
+    last_name?: string;
+    email?: string;
+    phone_number?: string;
+    location?: string;
+    dob?: string;
+    gender?: string;
+    session_ids?: number[];
+  }
+) => {
+  const { data } = await api.patch(`${END_POINTS.CLIENTS.CLIENTS_DATA}${id}/`, updateData);
   return data;
 };
 
@@ -288,4 +304,5 @@ export {
   get_session_categories,
   get_session_analytics,
   get_class_sessions,
+  update_client,
 };

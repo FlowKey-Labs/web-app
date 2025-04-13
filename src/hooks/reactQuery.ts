@@ -25,6 +25,7 @@ import {
   get_session_categories,
   get_session_analytics,
   get_class_sessions,
+  update_client,
 } from "../api/api";
 import { useAuthStore } from "../store/auth";
 import { BusinessServices } from "../types/business";
@@ -183,7 +184,7 @@ export const useAddClient = () => {
         location: data.location || "",
         gender: data.gender,
         dob: data.dob,
-        session_id: data.session_id,
+        session_ids: data.session_ids,
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["clients"] });
@@ -349,5 +350,18 @@ export const useCreateSession = () => {
       queryClient.invalidateQueries({ queryKey: ["sessions"] });
       queryClient.invalidateQueries({ queryKey: ["upcoming_sessions"] });
     },
+  });
+};
+
+export const useUpdateClient = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, updateData }: { id: string; updateData: Partial<Client> }) =>
+      update_client(id, updateData),
+    onSuccess: (_, { id }) => {
+      queryClient.invalidateQueries({ queryKey: ["clients"] });
+      queryClient.invalidateQueries({ queryKey: ["client", id] });
+    },
+    onError: (error) => console.error("Update client error:", error),
   });
 };

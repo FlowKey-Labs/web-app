@@ -7,22 +7,22 @@ import { useMemo, useState } from 'react';
 import Table from '../common/Table';
 import { createColumnHelper } from '@tanstack/react-table';
 import actionOptionIcon from '../../assets/icons/actionOption.svg';
-import ClientsModal from './AddClient';
 import { useGetClient } from '../../hooks/reactQuery';
 import { paymentHistories } from '../../utils/dummyData';
 import avatar from '../../assets/icons/newAvatar.svg';
+import UpdateClient from './UpdateClient';
 
 const ClientDetails = () => {
   const { id: clientId } = useParams();
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'overview' | 'clients'>(
     'overview'
   );
   const [rowSelection, setRowSelection] = useState({});
 
-  const openModal = () => setIsModalOpen(true);
-  const closeModal = () => setIsModalOpen(false);
+  const openDrawer = () => setIsDrawerOpen(true);
+  const closeDrawer = () => setIsDrawerOpen(false);
 
   const {
     data: clientDetails,
@@ -135,10 +135,10 @@ const ClientDetails = () => {
       <div className='flex flex-col h-screen bg-cardsBg w-full overflow-y-auto '>
         <MembersHeader
           title='Client Details'
-          buttonText='New Client'
+          buttonText='Update Client'
           searchPlaceholder='Search by ID, Name or Subject'
           leftIcon={plusIcon}
-          onButtonClick={openModal}
+          onButtonClick={openDrawer}
           showFilterIcons={false}
         />
         <div className='items-center gap-4 p-6'>
@@ -303,7 +303,7 @@ const ClientDetails = () => {
           </div>
         </div>
       </div>
-      <ClientsModal isOpen={isModalOpen} onClose={closeModal} />
+      <UpdateClient isOpen={isDrawerOpen} onClose={closeDrawer} clientId={clientId} />
     </>
   );
 };
