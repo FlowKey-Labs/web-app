@@ -261,45 +261,51 @@ const GettingStarted = () => {
                 <h4 className='text-[#08040C] text-[20px] font-[600] self-start mb-6'>
                   Clients Overview
                 </h4>
-                <DonutChart
-                  data={(() => {
-                    const chartData = (
-                      analytics?.gender_distribution || []
-                    ).map((item, index) => ({
-                      ...item,
-                      color: index === 0 ? '#00A76F' : '#EEEAF2',
-                    }));
-                    console.log('Chart data:', chartData);
-                    return chartData;
-                  })()}
-                  startAngle={180}
-                  endAngle={0}
-                  size={200}
-                  thickness={30}
-                  w={300}
-                  h={260}
-                  withLabels
-                  withLabelsLine
-                  labelsType='percent'
-                  tooltipDataSource='segment'
-                  tooltipProps={{
-                    content: ({ payload }) => {
-                      if (!payload?.[0]?.payload) return null;
-                      const data = payload[0].payload;
-                      return (
-                        <div className='bg-white p-2 border border-gray-200 rounded-md shadow-sm'>
-                          <div>{data.name}</div>
-                          <div>{data.value}%</div>
-                        </div>
-                      );
-                    },
-                  }}
-                  withTooltip
-                >
-                  <div className='w-full flex items-center justify-center'>
-                    <img src={donutIcon} alt='' />
+                <div className='flex flex-col max-h-[300px]'>
+                  <DonutChart
+                    data={(() => {
+                      const chartData = (
+                        analytics?.gender_distribution || []
+                      ).map((item, index) => ({
+                        ...item,
+                        color: index === 0 ? '#00A76F' : '#EEEAF2',
+                      }));
+                      return chartData;
+                    })()}
+                    startAngle={180}
+                    endAngle={0}
+                    size={200}
+                    thickness={30}
+                    w={300}
+                    h={250}
+                    withLabels
+                    withLabelsLine
+                    labelsType='percent'
+                    tooltipDataSource='segment'
+                    tooltipProps={{
+                      content: ({ payload }) => {
+                        if (!payload?.[0]?.payload) return null;
+                        const data = payload[0].payload;
+                        return (
+                          <div className='bg-white p-2 border border-gray-200 rounded-md shadow-sm'>
+                            <div>{data.name}</div>
+                            <div>{data.value}%</div>
+                          </div>
+                        );
+                      },
+                    }}
+                    withTooltip
+                    style={{ objectFit: 'cover' }}
+                  >
+                    <div className='w-full flex items-center justify-center'>
+                      <img src={donutIcon} alt='' />
+                    </div>
+                  </DonutChart>
+                  <div className='flex justify-around w-full items-center'>
+                    <p className='text-[#08040C] text-xs font-[600]'>Male</p>
+                    <p className='text-[#08040C] text-xs font-[600]'>Female</p>
                   </div>
-                </DonutChart>
+                </div>
               </div>
             </div>
             <div className='bg-white rounded-lg py-4'>

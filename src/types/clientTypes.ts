@@ -14,7 +14,7 @@ export interface Client {
   classCategory?: string;
   clientLevel?: string;
   assignedTo?: string;
-  sessions?: any[];
+  attendances?: any[];
   location?: string;
   dob?: string; // YYYY-MM-DD format
   gender: string; // 'M' or 'F'
@@ -35,13 +35,29 @@ export interface AddClient {
   classCategory?: string;
   clientLevel?: string;
   assignedTo?: string;
-  sessions?: any[];
+  attendances?: any[];
   location: string;
   dob?: string; // YYYY-MM-DD format
   gender: string; // 'M' or 'F'
-  session_id?: number; // Optional session ID for initial session assignment
-  session?: { // For dropdown selection
+  session_ids?: number[]; // Optional session IDs for initial session assignments
+  sessions?: Array<{ // For dropdown selection
     label: string;
     value: string;
-  };
+  }>;
+}
+
+export interface ClientData {
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone_number: string;
+  location: string;
+  assigned_classes: number;
+  active: boolean;
+  created_at: string;
+  created_by: number;
+  business: number;
+  dob?: string;
+  gender: string;
+  session_ids?: number[];
 }

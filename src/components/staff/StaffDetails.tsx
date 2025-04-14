@@ -14,6 +14,8 @@ import {
 
 import avatar from '../../assets/icons/newAvatar.svg';
 import editIcon from '../../assets/icons/edit.svg';
+import successIcon from '../../assets/icons/success.svg';
+import errorIcon from '../../assets/icons/error.svg';
 
 interface PersonalFormData {
   firstName: string;
@@ -96,10 +98,32 @@ const StaffDetails = () => {
           notifications.show({
             title: 'Success',
             message: 'Staff member updated successfully!',
-            color: 'teal',
-            icon: <span>✅</span>,
+            color: 'green',
+            radius: 'md',
+            icon: (
+              <span className='flex items-center justify-center w-6 h-6 rounded-full bg-green-200'>
+                <img src={successIcon} alt='Success' className='w-4 h-4' />
+              </span>
+            ),
             withBorder: true,
             autoClose: 3000,
+            position: 'top-right',
+          });
+        },
+        onError: (_error) => {
+          notifications.show({
+            title: 'Error',
+            message: 'Failed to update staff member. Please try again.',
+            color: 'red',
+            radius: 'md',
+            icon: (
+              <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+                <img src={errorIcon} alt='Error' className='w-4 h-4' />
+              </span>
+            ),
+            withBorder: true,
+            autoClose: 3000,
+            position: 'top-right',
           });
         },
       }
@@ -129,29 +153,77 @@ const StaffDetails = () => {
 
     if (!staffId) return;
 
-    updateStaff({
-      id: staffId,
-      updateStaffData: {
-        first_name: staffDetails?.user?.first_name || '',
-        last_name: staffDetails?.user?.last_name || '',
-        mobile_number: staffDetails?.user?.mobile_number || '',
-        role: staffDetails?.role || '',
-        permissions: {
-          can_create_events:
-            name === 'can_create_events'
-              ? checked
-              : updatedPermissions.can_create_events,
-          can_add_clients:
-            name === 'can_add_clients'
-              ? checked
-              : updatedPermissions.can_add_clients,
-          can_create_invoices:
-            name === 'can_create_invoices'
-              ? checked
-              : updatedPermissions.can_create_invoices,
+    // Format permission name for display
+    const permissionDisplayName = {
+      can_add_clients: 'Add Clients',
+      can_create_invoices: 'Create Invoices',
+      can_create_events: 'Create Events'
+    }[name];
+
+    updateStaff(
+      {
+        id: staffId,
+        updateStaffData: {
+          first_name: staffDetails?.user?.first_name || '',
+          last_name: staffDetails?.user?.last_name || '',
+          mobile_number: staffDetails?.user?.mobile_number || '',
+          role: staffDetails?.role || '',
+          permissions: {
+            can_create_events:
+              name === 'can_create_events'
+                ? checked
+                : updatedPermissions.can_create_events,
+            can_add_clients:
+              name === 'can_add_clients'
+                ? checked
+                : updatedPermissions.can_add_clients,
+            can_create_invoices:
+              name === 'can_create_invoices'
+                ? checked
+                : updatedPermissions.can_create_invoices,
+          },
         },
       },
-    });
+      {
+        onSuccess: () => {
+          notifications.show({
+            title: 'Permission Updated',
+            message: `${permissionDisplayName} permission ${checked ? 'granted' : 'revoked'} successfully!`,
+            color: 'green',
+            radius: 'md',
+            icon: (
+              <span className='flex items-center justify-center w-6 h-6 rounded-full bg-green-200'>
+                <img src={successIcon} alt='Success' className='w-4 h-4' />
+              </span>
+            ),
+            withBorder: true,
+            autoClose: 3000,
+            position: 'top-right',
+          });
+        },
+        onError: (_error) => {
+          notifications.show({
+            title: 'Error',
+            message: `Failed to update ${permissionDisplayName} permission. Please try again.`,
+            color: 'red',
+            radius: 'md',
+            icon: (
+              <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+                <img src={errorIcon} alt='Error' className='w-4 h-4' />
+              </span>
+            ),
+            withBorder: true,
+            autoClose: 3000,
+            position: 'top-right',
+          });
+          // Revert the UI state since the update failed
+          setPermissions({
+            ...updatedPermissions,
+            [name]: !checked
+          });
+        },
+      }
+    );
   };
 
   if (!staffDetails) {

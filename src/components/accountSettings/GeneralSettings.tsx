@@ -32,14 +32,9 @@ const GeneralSettings = () => {
     },
   });
 
-  const onSubmit = (data: SettingsFormData) => {
-    console.log(data);
-    
-  };
+  const onSubmit = (data: SettingsFormData) => {};
 
-  const handleFileUpload = (files: File[]) => {
-    console.log(files);
-  };
+  const handleFileUpload = (files: File[]) => {};
 
   return (
     <>
@@ -59,7 +54,6 @@ const GeneralSettings = () => {
             <Dropzone
               radius='8px'
               onDrop={handleFileUpload}
-              onReject={(files) => console.log('Rejected files:', files)}
               maxSize={20 * 1024 ** 2}
               accept={IMAGE_MIME_TYPE}
               styles={{

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createColumnHelper } from '@tanstack/react-table';
 
@@ -23,7 +23,58 @@ import Button from '../common/Button';
 import AddSession from './AddSession';
 import { formatTo12Hour } from '../../utils/formatTo12Hour';
 
+import EmptyDataPage from '../common/EmptyDataPage';
+import { Group, Menu, Modal, Text, Button as MantineButton } from '@mantine/core';
+import { useDisclosure } from '@mantine/hooks';
+import { notifications } from '@mantine/notifications';
+import successIcon from '../../assets/icons/success.svg';
+import errorIcon from '../../assets/icons/error.svg';
+
 const columnHelper = createColumnHelper<Session>();
+
+const useExportSessions = () => {
+  const [exportModalOpened, { open: openExportModal, close: closeExportModal }] = useDisclosure(false);
+  
+  const handleExport = (selectedIds: string[]) => {
+    if (selectedIds.length === 0) {
+      notifications.show({
+        title: 'No sessions selected',
+        message: 'Please select at least one session to export',
+        color: 'red',
+        radius: 'md',
+        icon: (
+          <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+            <img src={errorIcon} alt='Error' className='w-4 h-4' />
+          </span>
+        ),
+        withBorder: true,
+        autoClose: 3000,
+        position: 'top-right',
+      });
+      closeExportModal();
+      return;
+    }
+    
+    notifications.show({
+      title: 'Export successful',
+      message: `${selectedIds.length} session(s) exported successfully`,
+      color: 'green',
+      radius: 'md',
+      icon: (
+        <span className='flex items-center justify-center w-6 h-6 rounded-full bg-green-200'>
+          <img src={successIcon} alt='Success' className='w-4 h-4' />
+        </span>
+      ),
+      withBorder: true,
+      autoClose: 3000,
+      position: 'top-right',
+    });
+    
+    closeExportModal();
+  };
+  
+  return { exportModalOpened, openExportModal, closeExportModal, handleExport };
+};
 
 const AllSessions = () => {
   const navigate = useNavigate();
@@ -34,6 +85,11 @@ const AllSessions = () => {
     useState(false);
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+
+  const [tempSelectedTypes, setTempSelectedTypes] = useState<string[]>([]);
+  const [tempSelectedCategories, setTempSelectedCategories] = useState<
+    string[]
+  >([]);
   const [dateRange, setDateRange] = useState<[Date | null, Date | null]>([
     null,
     null,
@@ -41,12 +97,58 @@ const AllSessions = () => {
 
   const openDrawer = () => setIsModalOpen(true);
   const closeDrawer = () => setIsModalOpen(false);
+  
+  const { exportModalOpened, openExportModal, closeExportModal, handleExport } = useExportSessions();
 
-  const { data: sessionsData, isLoading: isLoadingSessions } = useGetSessions();
+  const { data: allSessionsData, isLoading: isLoadingSessions } =
+    useGetSessions();
+
+  const filteredSessions = useMemo(() => {
+    if (!allSessionsData) return [];
+
+    return allSessionsData.filter((session) => {
+      if (selectedTypes.length > 0) {
+        const classType = session.class_type || '';
+        const matchesType = selectedTypes.includes(classType);
+
+        if (!matchesType) {
+          return false;
+        }
+      }
+
+      if (selectedCategories.length > 0) {
+        const sessionCategory = session.category?.name || '';
+
+        const matchesCategory = selectedCategories.includes(sessionCategory);
+
+        if (!matchesCategory) {
+          return false;
+        }
+      }
+
+      if (dateRange[0] && dateRange[1]) {
+        const sessionDate = new Date(session.date);
+        const startDate = new Date(dateRange[0]);
+        const endDate = new Date(dateRange[1]);
+
+        sessionDate.setHours(0, 0, 0, 0);
+        startDate.setHours(0, 0, 0, 0);
+        endDate.setHours(0, 0, 0, 0);
+
+        if (sessionDate < startDate || sessionDate > endDate) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+  }, [allSessionsData, selectedTypes, selectedCategories, dateRange]);
+
+  const sessionsData = filteredSessions;
   const { data: categoriesData, isLoading: isLoadingCategories } =
     useGetSessionCategories();
 
-  const columns = [
+  const columns = useMemo(() => [
     columnHelper.display({
       id: 'select',
       header: ({ table }) => (
@@ -168,32 +270,80 @@ const AllSessions = () => {
     columnHelper.display({
       id: 'actions',
       header: () => (
-        <img
-          src={actionOptionIcon}
-          alt='Options'
-          className='w-4 h-4 cursor-pointer'
-        />
+        <div className='flex space-x-2' onClick={(e) => e.stopPropagation()}>
+          <Group justify='center'>
+            <Menu
+              width={150}
+              shadow='md'
+              position='bottom'
+              radius='md'
+              withArrow
+              offset={4}
+            >
+              <Menu.Target>
+                <img
+                  src={actionOptionIcon}
+                  alt='Options'
+                  className='w-4 h-4 cursor-pointer'
+                />
+              </Menu.Target>
+              <Menu.Dropdown>
+                <Menu.Item
+                  color='#162F3B'
+                  className='text-sm'
+                  style={{ textAlign: 'center' }}
+                  onClick={openExportModal}
+                >
+                  Export Session
+                </Menu.Item>
+              </Menu.Dropdown>
+            </Menu>
+          </Group>
+        </div>
       ),
       cell: () => (
         <div className='flex space-x-2' onClick={(e) => e.stopPropagation()}>
-          <img
-            src={actionOptionIcon}
-            alt='Options'
-            className='w-4 h-4 cursor-pointer'
-          />
+          <Group justify='center'>
+            <Menu
+              width={150}
+              shadow='md'
+              position='bottom'
+              radius='md'
+              withArrow
+              offset={4}
+            >
+              <Menu.Target>
+                <img
+                  src={actionOptionIcon}
+                  alt='Options'
+                  className='w-4 h-4 cursor-pointer'
+                />
+              </Menu.Target>
+              <Menu.Dropdown>
+                <Menu.Item
+                  color='#162F3B'
+                  className='text-sm'
+                  style={{ textAlign: 'center' }}
+                  onClick={openExportModal}
+                >
+                  Export Session
+                </Menu.Item>
+              </Menu.Dropdown>
+            </Menu>
+          </Group>
         </div>
       ),
     }),
-  ];
+  ], [openExportModal]);
 
   const toggleSessionType = (type: string) => {
-    setSelectedTypes((prev) =>
+    setTempSelectedTypes((prev) =>
       prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type]
     );
   };
 
   const toggleCategory = (category: string) => {
-    setSelectedCategories((prev) =>
+    setTempSelectedCategories((prev) =>
       prev.includes(category)
         ? prev.filter((c) => c !== category)
         : [...prev, category]
@@ -201,10 +351,12 @@ const AllSessions = () => {
   };
 
   const applySessionTypeFilter = () => {
+    setSelectedTypes(tempSelectedTypes);
     setClassTypeDropdownOpen(false);
   };
 
   const applyCategoryFilter = () => {
+    setSelectedCategories(tempSelectedCategories);
     setCategoryTypeDropdownOpen(false);
   };
 
@@ -212,6 +364,8 @@ const AllSessions = () => {
     setSelectedTypes([]);
     setSelectedCategories([]);
     setDateRange([null, null]);
+    setClassTypeDropdownOpen(false);
+    setCategoryTypeDropdownOpen(false);
   };
 
   return (
@@ -275,7 +429,12 @@ const AllSessions = () => {
             <div>
               <DropDownMenu
                 show={classTypeDropdownOpen}
-                setShow={setClassTypeDropdownOpen}
+                setShow={(show) => {
+                  if (show && !classTypeDropdownOpen) {
+                    setTempSelectedTypes([...selectedTypes]);
+                  }
+                  setClassTypeDropdownOpen(show);
+                }}
                 dropDownPosition='center'
                 actionElement={
                   <div
@@ -283,7 +442,14 @@ const AllSessions = () => {
                     className='p-2 w-full gap-2 h-10 rounded-md outline-none cursor-pointer flex items-center justify-between'
                   >
                     <p className='text-primary text-sm font-normal'>
-                      Session Type
+                      {selectedTypes.length > 0
+                        ? selectedTypes
+                            .map(
+                              (type) =>
+                                type.charAt(0).toUpperCase() + type.slice(1)
+                            )
+                            .join(', ')
+                        : 'Session Type'}
                     </p>
                     <img src={dropdownIcon} alt='dropdown icon' />
                   </div>
@@ -295,26 +461,32 @@ const AllSessions = () => {
                   </h3>
 
                   <div>
-                    <div className='flex flex-wrap gap-4 mt-4 min-w-[300px]'>
+                    <div className='flex flex-col gap-2 mt-4 min-w-[160px]'>
                       {classTypesOptions.map((label, index) => (
-                        <button
-                          key={index}
-                          onClick={() => toggleSessionType(label)}
-                          className={`w-[calc(33.33%-12px)] px-2 py-2 border rounded-full
-                            ${
-                              selectedTypes.includes(label)
-                                ? 'border-secondary bg-secondary text-white'
-                                : 'border-gray-400 text-primary'
-                            }
-                            font-normal text-xs transition-colors duration-200`}
-                        >
-                          {label.charAt(0).toUpperCase() + label.slice(1)}
-                        </button>
+                        <div key={index} className='flex items-center'>
+                          <input
+                            type='checkbox'
+                            id={`session-type-${index}`}
+                            checked={tempSelectedTypes.includes(label)}
+                            onChange={() => toggleSessionType(label)}
+                            className='mr-2 h-4 w-4 rounded border-gray-300 focus:ring-0 focus:ring-offset-0 accent-[#1D9B5E]'
+                          />
+                          <label
+                            htmlFor={`session-type-${index}`}
+                            className={`text-sm cursor-pointer ${
+                              tempSelectedTypes.includes(label)
+                                ? 'text-secondary font-medium'
+                                : 'text-primary'
+                            }`}
+                          >
+                            {label.charAt(0).toUpperCase() + label.slice(1)}
+                          </label>
+                        </div>
                       ))}
                     </div>
-                    <div className='pt-16'>
+                    <div className='pt-4'>
                       <p className='text-gray-400 text-sm'>
-                        *You can choose multiple Class types
+                        *You can choose multiple Session types
                       </p>
                     </div>
                   </div>
@@ -335,7 +507,12 @@ const AllSessions = () => {
             <div>
               <DropDownMenu
                 show={categoryTypeDropdownOpen}
-                setShow={setCategoryTypeDropdownOpen}
+                setShow={(show) => {
+                  if (show && !categoryTypeDropdownOpen) {
+                    setTempSelectedCategories([...selectedCategories]);
+                  }
+                  setCategoryTypeDropdownOpen(show);
+                }}
                 dropDownPosition='center'
                 actionElement={
                   <div
@@ -343,7 +520,9 @@ const AllSessions = () => {
                     className='p-2 w-full gap-2 h-10 rounded-md outline-none cursor-pointer flex items-center justify-between'
                   >
                     <p className='text-primary text-sm font-normal'>
-                      Categories
+                      {selectedCategories.length > 0
+                        ? selectedCategories.join(', ')
+                        : 'Categories'}
                     </p>
                     <img src={dropdownIcon} alt='dropdown icon' />
                   </div>
@@ -355,32 +534,43 @@ const AllSessions = () => {
                   </h3>
 
                   <div>
-                    <div className='flex flex-wrap gap-4 mt-4 min-w-[300px]'>
+                    <div className='flex flex-col gap-2 mt-4 min-w-[160px]'>
                       {isLoadingCategories ? (
                         <p>Loading categories...</p>
                       ) : categoriesData && categoriesData.length > 0 ? (
                         categoriesData.map(
                           (category: { id: number; name: string }) => (
-                            <button
+                            <div
                               key={category.id}
-                              onClick={() => toggleCategory(category.name)}
-                              className={`w-[calc(33.33%-12px)] px-2 py-2 border rounded-full
-                              ${
-                                selectedCategories.includes(category.name)
-                                  ? 'border-secondary bg-secondary text-white'
-                                  : 'border-gray-400 text-primary'
-                              }
-                              font-normal text-xs transition-colors duration-200`}
+                              className='flex items-center'
                             >
-                              {category.name}
-                            </button>
+                              <input
+                                type='checkbox'
+                                id={`category-${category.id}`}
+                                checked={tempSelectedCategories.includes(
+                                  category.name
+                                )}
+                                onChange={() => toggleCategory(category.name)}
+                                className='mr-2 h-4 w-4 rounded border-gray-300 focus:ring-0 focus:ring-offset-0 accent-[#1D9B5E]'
+                              />
+                              <label
+                                htmlFor={`category-${category.id}`}
+                                className={`text-sm cursor-pointer ${
+                                  tempSelectedCategories.includes(category.name)
+                                    ? 'text-secondary font-medium'
+                                    : 'text-primary'
+                                }`}
+                              >
+                                {category.name}
+                              </label>
+                            </div>
                           )
                         )
                       ) : (
                         <p>No categories available</p>
                       )}
                     </div>
-                    <div className='pt-16'>
+                    <div className='pt-4'>
                       <p className='text-gray-400 text-sm'>
                         *You can choose multiple Categories
                       </p>
@@ -413,18 +603,36 @@ const AllSessions = () => {
             </div>
           </div>
         </div>
+        <EmptyDataPage
+          title='No Sessions Found!'
+          description="You don't have any sessions yet"
+          buttonText='Create New Session'
+          onButtonClick={openDrawer}
+          onClose={() => {
+            if (
+              selectedTypes.length > 0 ||
+              selectedCategories.length > 0 ||
+              (dateRange[0] && dateRange[1])
+            ) {
+              resetFilters();
+            }
+          }}
+          opened={
+            (!sessionsData || sessionsData.length === 0) && !isLoadingSessions
+          }
+          filterType={selectedTypes.length === 1 ? 'sessionType' : 
+                     selectedCategories.length === 1 ? 'category' : undefined}
+          filterValue={selectedTypes.length === 1 ? selectedTypes[0] : 
+                      selectedCategories.length === 1 ? selectedCategories[0] : undefined}
+        />
         <div className='flex-1 px-6 py-2'>
           {isLoadingSessions || isLoadingCategories ? (
             <div className='flex justify-center items-center py-10'>
               <p>Loading sessions data...</p>
             </div>
-          ) : !sessionsData || sessionsData.length === 0 ? (
-            <div className='flex justify-center items-center py-10'>
-              <p>No sessions found. Create a new session to get started.</p>
-            </div>
           ) : (
             <Table
-              data={sessionsData}
+              data={sessionsData || []}
               columns={columns}
               rowSelection={rowSelection}
               onRowSelectionChange={setRowSelection}
@@ -438,6 +646,50 @@ const AllSessions = () => {
         </div>
       </div>
       <AddSession isOpen={isModalOpen} onClose={closeDrawer} />
+      
+      <Modal
+        opened={exportModalOpened}
+        onClose={closeExportModal}
+        title={
+          <Text fw={600} size='lg'>
+            Export Sessions
+          </Text>
+        }
+        centered
+        radius='md'
+        size='md'
+        withCloseButton={false}
+        overlayProps={{
+          backgroundOpacity: 0.55,
+          blur: 3,
+        }}
+        shadow='xl'
+      >
+        <div className='py-2'>
+          <Text size='sm' className='mb-6'>
+            Are you sure you want to export the selected sessions?
+          </Text>
+          <div className='flex justify-end space-x-4 mt-8'>
+            <MantineButton
+              variant='outline'
+              color='#EA0234'
+              radius='md'
+              onClick={closeExportModal}
+              className='px-6'
+            >
+              Cancel
+            </MantineButton>
+            <MantineButton
+              color='#1D9B5E'
+              radius='md'
+              onClick={() => handleExport(Object.keys(rowSelection))}
+              className='px-6'
+            >
+              Export
+            </MantineButton>
+          </div>
+        </div>
+      </Modal>
     </>
   );
 };

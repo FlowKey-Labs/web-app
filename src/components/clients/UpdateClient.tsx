@@ -3,7 +3,11 @@ import Input from '../common/Input';
 import DropdownSelectInput from '../common/Dropdown';
 import Button from '../common/Button';
 import clientlocationIcons from '../../assets/icons/clientLocation.svg';
-import { useAddClient, useGetClassSessions } from '../../hooks/reactQuery';
+import {
+  useGetClassSessions,
+  useUpdateClient,
+  useGetClient,
+} from '../../hooks/reactQuery';
 import React from 'react';
 import moment from 'moment';
 import { AddClient, ClientData } from '../../types/clientTypes';
@@ -12,12 +16,13 @@ import { notifications } from '@mantine/notifications';
 import successIcon from '../../assets/icons/success.svg';
 import errorIcon from '../../assets/icons/error.svg';
 
-interface ClientsModalProps {
+interface UpdateClientProps {
   isOpen: boolean;
   onClose: () => void;
+  clientId?: string;
 }
 
-const AddClients = ({ isOpen, onClose }: ClientsModalProps) => {
+const UpdateClient = ({ isOpen, onClose, clientId }: UpdateClientProps) => {
   const methods = useForm<AddClient>({
     defaultValues: {
       first_name: '',
@@ -33,83 +38,136 @@ const AddClients = ({ isOpen, onClose }: ClientsModalProps) => {
   });
   const { control, handleSubmit, reset } = methods;
 
-  const { mutate: addClient, isPending, isSuccess } = useAddClient();
+  const { data: clientData, isLoading } = useGetClient(clientId || '');
+  const { mutate: updateClient, isPending, isSuccess } = useUpdateClient();
   const { data: classSessionsData, isLoading: isClassSessionsLoading } =
     useGetClassSessions();
 
   React.useEffect(() => {
+    if (clientData && isOpen) {
+      reset({
+        first_name: clientData.first_name || '',
+        last_name: clientData.last_name || '',
+        phone_number: clientData.phone_number || '',
+        email: clientData.email || '',
+        location: clientData.location || '',
+        dob: clientData.dob || '',
+        gender: clientData.gender || 'M',
+        assigned_classes: clientData.assigned_classes || 0,
+        sessions:
+          clientData.sessions?.map((session: any) => ({
+            label: session.title || '',
+            value: session.id?.toString() || '',
+          })) || [],
+      });
+    }
+  }, [clientData, isOpen, reset]);
+
+  React.useEffect(() => {
     if (isSuccess) {
-      reset();
       onClose();
     }
-  }, [isSuccess, reset, onClose]);
+  }, [isSuccess, onClose]);
 
   const onSubmit = (data: AddClient) => {
+    if (!clientId) return;
+
     try {
       const formattedDob = data.dob
         ? moment(data.dob).format('YYYY-MM-DD')
         : undefined;
 
-      const clientData: ClientData = {
+      const updateData: Partial<ClientData> = {
         first_name: data.first_name,
         last_name: data.last_name,
         email: data.email,
         phone_number: data.phone_number,
         location: data.location,
-        assigned_classes: data.assigned_classes,
-        active: false,
-        created_at: '',
-        created_by: 0,
-        business: 0,
         dob: formattedDob,
-        gender: data.gender ? data.gender : 'M',
+        gender: data.gender,
       };
 
-      // Add session_ids if sessions were selected
       if (data.sessions?.length) {
         const sessionIds = data.sessions.map((session) =>
           parseInt(session.value)
         );
         if (sessionIds.every((id) => !isNaN(id))) {
-          clientData.session_ids = sessionIds;
+          updateData.session_ids = sessionIds;
         }
       }
 
-      addClient(clientData);
-
-      notifications.show({
-        title: 'Success',
-        message: 'Client created successfully!',
-        color: 'green',
-        radius: 'md',
-        icon: (
-          <span className='flex items-center justify-center w-6 h-6 rounded-full bg-green-200'>
-            <img src={successIcon} alt='Success' className='w-4 h-4' />
-          </span>
-        ),
-        withBorder: true,
-        autoClose: 3000,
-        position: 'top-right',
-      });
+      updateClient(
+        { id: clientId, updateData },
+        {
+          onSuccess: () => {
+            notifications.show({
+              title: 'Success',
+              message: 'Client updated successfully',
+              color: 'green',
+              radius: 'md',
+              icon: (
+                <span className='flex items-center justify-center w-6 h-6 rounded-full bg-green-200'>
+                  <img src={successIcon} alt='Success' className='w-4 h-4' />
+                </span>
+              ),
+              withBorder: true,
+              autoClose: 3000,
+              position: 'top-right',
+            });
+          },
+          onError: (error) => {
+            notifications.show({
+              title: 'Error',
+              message: 'Failed to update client. Please try again.',
+              color: 'red',
+              radius: 'md',
+              icon: (
+                <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+                  <img src={errorIcon} alt='Error' className='w-4 h-4' />
+                </span>
+              ),
+              withBorder: true,
+              autoClose: 3000,
+              position: 'top-right',
+            });
+            console.error('Error updating client:', error);
+          },
+        }
+      );
     } catch (error) {
-      notifications.show({
-        title: 'Error',
-        message: 'Failed to create client. Please try again.',
-        color: 'red',
-        radius: 'md',
-        icon: (
-          <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
-            <img src={errorIcon} alt='Error' className='w-4 h-4' />
-          </span>
-        ),
-        withBorder: true,
-        autoClose: 3000,
-        position: 'top-right',
-      });
+      console.error('Error preparing update data:', error);
     }
   };
 
   if (!isOpen) return null;
+
+  if (isLoading) {
+    return (
+      <Drawer
+        opened={isOpen}
+        onClose={onClose}
+        position='right'
+        size='lg'
+        title='Update Client'
+      >
+        <div className='p-6'>Loading client data...</div>
+      </Drawer>
+    );
+  }
+
+  if (!clientData) {
+    return (
+      <Drawer
+        opened={isOpen}
+        onClose={onClose}
+        position='right'
+        size='lg'
+        title='Update Client'
+      >
+        <div className='p-6'>Client not found.</div>
+      </Drawer>
+    );
+  }
 
   return (
     <Drawer
@@ -117,7 +175,7 @@ const AddClients = ({ isOpen, onClose }: ClientsModalProps) => {
       onClose={onClose}
       position='right'
       size='lg'
-      title='New Client'
+      title='Update Client'
       styles={{
         header: {
           padding: '1rem 1.5rem',
@@ -303,7 +361,7 @@ const AddClients = ({ isOpen, onClose }: ClientsModalProps) => {
                 className='w-full md:w-auto'
                 disabled={isPending}
               >
-                {isPending ? 'Creating...' : 'Continue'}
+                {isPending ? 'Updating...' : 'Update Client'}
               </Button>
             </div>
           </form>
@@ -313,4 +371,4 @@ const AddClients = ({ isOpen, onClose }: ClientsModalProps) => {
   );
 };
 
-export default AddClients;
+export default UpdateClient;

@@ -63,6 +63,7 @@ export interface CreateSessionData {
   phone_number?: string; // optional, for appointments
   selected_class?: number; // optional, for appointments - references a class ID
   // Repetition fields (all optional)
+  repetition?: 'none' | 'daily' | 'weekly' | 'monthly' | 'custom'; // UI field for repetition type
   repeat_every?: number;
   repeat_unit?: RepeatUnit;
   repeat_on?: number[]; // for weekly repeat, array of weekday numbers (0-6)

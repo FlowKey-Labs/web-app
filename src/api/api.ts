@@ -1,7 +1,7 @@
-import { api } from "../lib/axios";
-import axios from "axios";
+import { api } from '../lib/axios';
+import axios from 'axios';
 
-import { CreateSessionData } from "../types/sessionTypes";
+import { CreateSessionData, Session } from '../types/sessionTypes';
 
 const BASE_URL = import.meta.env.VITE_APP_BASEURL;
 
@@ -37,6 +37,8 @@ const END_POINTS = {
     UPCOMING_SESSIONS: `${BASE_URL}/api/dashboard/upcoming-sessions/`,
     SESSION_ANALYTICS: (id: string) =>
       `${BASE_URL}/api/dashboard/sessions/analytics/${id}/`,
+    CLIENT_ANALYTICS: (id: string) =>
+      `${BASE_URL}/api/dashboard/clients/analytics/${id}/`,
     CANCEL_SESSION: (id: string) =>
       `${BASE_URL}/api/dashboard/upcoming-sessions/${id}/`,
   },
@@ -107,7 +109,7 @@ const searchCities = async (query: string) => {
   const { data } = await axios.get(END_POINTS.GOOGLE.PLACES_AUTOCOMPLETE, {
     params: {
       input: query,
-      types: "(cities)",
+      types: '(cities)',
       key: GOOGLE_API_KEY,
     },
   });
@@ -140,7 +142,7 @@ const add_client = async (clientData: {
   location: string;
   dob?: string;
   gender: string;
-  session_id?: number;
+  session_ids?: number[];
 }) => {
   const { data } = await api.post(END_POINTS.CLIENTS.CLIENTS_DATA, clientData);
   return data;
@@ -198,13 +200,19 @@ const get_analytics = async (filterOption?: string) => {
   const { data } = await api.get(END_POINTS.ANALYTICS.ANALYTICS_DATA, {
     params,
   });
-  console.log("API Response:", data);
   return data;
 };
 
 const get_session_analytics = async (sessionId: string) => {
   const { data } = await api.get(
     END_POINTS.ANALYTICS.SESSION_ANALYTICS(sessionId)
+  );
+  return data;
+};
+
+const get_client_analytics = async (clientId: string) => {
+  const { data } = await api.get(
+    END_POINTS.ANALYTICS.CLIENT_ANALYTICS(clientId)
   );
   return data;
 };
@@ -232,8 +240,44 @@ const reschedule_session = async (
   return data;
 };
 
-const get_sessions = async () => {
-  const { data } = await api.get(END_POINTS.SESSION.SESSIONS_DATA);
+// Define a type for the session filters
+interface SessionFilters {
+  sessionTypes?: string[];
+  categories?: string[];
+  dateRange?: [Date | null, Date | null];
+}
+
+const get_sessions = async (filters?: SessionFilters): Promise<Session[]> => {
+  let url = END_POINTS.SESSION.SESSIONS_DATA;
+  
+  if (filters) {
+    const params = new URLSearchParams();
+    
+    if (filters.sessionTypes && filters.sessionTypes.length > 0) {
+      filters.sessionTypes.forEach((type: string) => {
+        params.append('session_type', type);
+      });
+    }
+    
+    if (filters.categories && filters.categories.length > 0) {
+      filters.categories.forEach((category: string) => {
+        params.append('category', category);
+      });
+    }
+    
+    if (filters.dateRange && filters.dateRange[0] && filters.dateRange[1]) {
+      const startDate = new Date(filters.dateRange[0]);
+      const endDate = new Date(filters.dateRange[1]);
+      params.append('start_date', startDate.toISOString().split('T')[0]);
+      params.append('end_date', endDate.toISOString().split('T')[0]);
+    }
+    
+    if (params.toString()) {
+      url += `?${params.toString()}`;
+    }
+  }
+  
+  const { data } = await api.get<Session[]>(url);
   return data;
 };
 
@@ -252,10 +296,48 @@ const get_session_categories = async () => {
   return data;
 };
 
-// Create a new session
 const create_session = async (sessionData: CreateSessionData) => {
   const { data } = await api.post(
     END_POINTS.SESSION.SESSIONS_DATA,
+    sessionData
+  );
+  return data;
+};
+
+const update_client = async (
+  id: string,
+  updateData: {
+    first_name?: string;
+    last_name?: string;
+    email?: string;
+    phone_number?: string;
+    location?: string;
+    dob?: string;
+    gender?: string;
+    session_ids?: number[];
+  }
+) => {
+  const { data } = await api.patch(`${END_POINTS.CLIENTS.CLIENTS_DATA}${id}/`, updateData);
+  return data;
+};
+
+const deactivate_client = async (id: string) => {
+  const { data } = await api.patch(`${END_POINTS.CLIENTS.CLIENTS_DATA}${id}/`, {
+    active: false
+  });
+  return data;
+};
+
+const activate_client = async (id: string) => {
+  const { data } = await api.patch(`${END_POINTS.CLIENTS.CLIENTS_DATA}${id}/`, {
+    active: true
+  });
+  return data;
+};
+
+const update_session = async (id: string, sessionData: Partial<CreateSessionData>) => {
+  const { data } = await api.patch(
+    END_POINTS.SESSION.SESSION_DETAIL(id),
     sessionData
   );
   return data;
@@ -287,5 +369,10 @@ export {
   get_session_detail,
   get_session_categories,
   get_session_analytics,
+  get_client_analytics,
   get_class_sessions,
+  update_client,
+  deactivate_client,
+  activate_client,
+  update_session,
 };

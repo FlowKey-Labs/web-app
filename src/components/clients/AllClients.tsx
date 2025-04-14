@@ -2,100 +2,199 @@ import MembersHeader from '../headers/MembersHeader';
 import plusIcon from '../../assets/icons/plusWhite.svg';
 import { Client } from '../../types/clientTypes';
 import Table from '../common/Table';
-import { useGetClients } from '../../hooks/reactQuery';
+import {
+  useGetClients,
+  useDeactivateClient,
+  useActivateClient,
+} from '../../hooks/reactQuery';
 import { createColumnHelper } from '@tanstack/react-table';
-import { Progress } from '@mantine/core';
+import { Progress, Group, Modal, Text, Button, Menu } from '@mantine/core';
+import { useDisclosure } from '@mantine/hooks';
+import { notifications } from '@mantine/notifications';
+import successIcon from '../../assets/icons/success.svg';
+import errorIcon from '../../assets/icons/error.svg';
 
 import actionOptionIcon from '../../assets/icons/actionOption.svg';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { navigateToClientDetails } from '../../utils/navigationHelpers';
 import AddClients from './AddClient';
+import EmptyDataPage from '../common/EmptyDataPage';
 
 const columnHelper = createColumnHelper<Client>();
-
-const columns = [
-  columnHelper.display({
-    id: 'select',
-    header: ({ table }) => (
-      <input
-        type='checkbox'
-        checked={table.getIsAllRowsSelected()}
-        onChange={table.getToggleAllRowsSelectedHandler()}
-        className='w-4 h-4 rounded cursor-pointer bg-[#F7F8FA] accent-[#DBDEDF]'
-      />
-    ),
-    cell: ({ row }) => (
-      <input
-        type='checkbox'
-        checked={row.getIsSelected()}
-        onChange={row.getToggleSelectedHandler()}
-        className='w-4 h-4 rounded cursor-pointer bg-[#F7F8FA] accent-[#DBDEDF]'
-      />
-    ),
-  }),
-  columnHelper.accessor((row) => `${row.first_name} ${row.last_name}`, {
-    id: 'name',
-    header: 'Name',
-    cell: (info) => (
-      <div className='flex flex-col'>
-        <span className='text-sm text-primary'>{info.getValue()}</span>
-        <span className='text-xs text-[#8A8D8E]'>{info.row.original.id}</span>
-      </div>
-    ),
-  }),
-  columnHelper.accessor('phone_number', {
-    header: 'Phone',
-  }),
-  columnHelper.accessor('email', {
-    header: 'Email',
-    cell: (info) => info.getValue(),
-  }),
-  columnHelper.accessor('active', {
-    header: 'Status',
-    cell: (info) => (
-      <span
-        className={`inline-block px-2 py-1 rounded-lg text-sm text-center min-w-[70px] ${
-          info.getValue()
-            ? 'bg-active text-green-700'
-            : 'bg-red-100 text-red-700'
-        }`}
-      >
-        {info.getValue() ? 'Active' : 'Inactive'}
-      </span>
-    ),
-  }),
-  columnHelper.display({
-    id: 'progress',
-    header: 'Progress',
-    cell: () => <Progress color='#A6EECB' size='sm' radius='xl' value={50} />,
-  }),
-  columnHelper.display({
-    id: 'actions',
-    header: () => (
-      <img
-        src={actionOptionIcon}
-        alt='Options'
-        className='w-4 h-4 cursor-pointer'
-      />
-    ),
-    cell: () => (
-      <div className='flex space-x-2' onClick={(e) => e.stopPropagation()}>
-        <img
-          src={actionOptionIcon}
-          alt='Options'
-          className='w-4 h-4 cursor-pointer'
-        />
-      </div>
-    ),
-  }),
-];
 
 const AllClients = () => {
   const [rowSelection, setRowSelection] = useState({});
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+  const [opened, { open, close }] = useDisclosure(false);
+  const [isActivating, setIsActivating] = useState(false);
+
+  const [
+    exportModalOpened,
+    { open: openExportModal, close: closeExportModal },
+  ] = useDisclosure(false);
 
   const navigate = useNavigate();
+  const deactivateClientMutation = useDeactivateClient();
+  const activateClientMutation = useActivateClient();
+
+  const columns = useMemo(
+    () => [
+      columnHelper.display({
+        id: 'select',
+        header: ({ table }) => (
+          <input
+            type='checkbox'
+            checked={table.getIsAllRowsSelected()}
+            onChange={table.getToggleAllRowsSelectedHandler()}
+            className='w-4 h-4 rounded cursor-pointer bg-[#F7F8FA] accent-[#DBDEDF]'
+          />
+        ),
+        cell: ({ row }) => (
+          <input
+            type='checkbox'
+            checked={row.getIsSelected()}
+            onChange={row.getToggleSelectedHandler()}
+            className='w-4 h-4 rounded cursor-pointer bg-[#F7F8FA] accent-[#DBDEDF]'
+          />
+        ),
+      }),
+      columnHelper.accessor((row) => `${row.first_name} ${row.last_name}`, {
+        id: 'name',
+        header: 'Name',
+        cell: (info) => (
+          <div className='flex flex-col'>
+            <span className='text-sm text-primary'>{info.getValue()}</span>
+            <span className='text-xs text-[#8A8D8E]'>
+              {info.row.original.id}
+            </span>
+          </div>
+        ),
+      }),
+      columnHelper.accessor('phone_number', {
+        header: 'Phone',
+      }),
+      columnHelper.accessor('email', {
+        header: 'Email',
+        cell: (info) => info.getValue(),
+      }),
+      columnHelper.accessor('active', {
+        header: 'Status',
+        cell: (info) => (
+          <span
+            className={`inline-block px-2 py-1 rounded-lg text-sm text-center min-w-[70px] ${
+              info.getValue()
+                ? 'bg-active text-green-700'
+                : 'bg-red-100 text-red-700'
+            }`}
+          >
+            {info.getValue() ? 'Active' : 'Inactive'}
+          </span>
+        ),
+      }),
+      columnHelper.display({
+        id: 'progress',
+        header: 'Progress',
+        cell: () => (
+          <Progress color='#A6EECB' size='sm' radius='xl' value={50} />
+        ),
+      }),
+      columnHelper.display({
+        id: 'actions',
+        header: () => (
+          <div className='flex space-x-2' onClick={(e) => e.stopPropagation()}>
+            <Group justify='center'>
+              <Menu
+                width={150}
+                shadow='md'
+                position='bottom'
+                radius='md'
+                withArrow
+                offset={4}
+              >
+                <Menu.Target>
+                  <img
+                    src={actionOptionIcon}
+                    alt='Options'
+                    className='w-4 h-4 cursor-pointer'
+                  />
+                </Menu.Target>
+                <Menu.Dropdown>
+                  <Menu.Item
+                    color='#162F3B'
+                    className='text-sm'
+                    style={{ textAlign: 'center' }}
+                    onClick={openExportModal}
+                  >
+                    Export Clients
+                  </Menu.Item>
+                </Menu.Dropdown>
+              </Menu>
+            </Group>
+          </div>
+        ),
+        cell: (info) => {
+          const client = info.row.original;
+          return (
+            <div
+              className='flex space-x-2'
+              onClick={(e) => e.stopPropagation()}
+            >
+              <Group justify='center'>
+                <Menu
+                  width={150}
+                  shadow='md'
+                  position='bottom'
+                  radius='md'
+                  withArrow
+                  offset={4}
+                >
+                  <Menu.Target>
+                    <img
+                      src={actionOptionIcon}
+                      alt='Options'
+                      className='w-4 h-4 cursor-pointer'
+                    />
+                  </Menu.Target>
+                  <Menu.Dropdown>
+                    {client.active ? (
+                      <Menu.Item
+                        color='red'
+                        onClick={() => {
+                          setSelectedClient(client);
+                          setIsActivating(false);
+                          open();
+                        }}
+                        className='text-sm'
+                        style={{ textAlign: 'center' }}
+                      >
+                        Deactivate
+                      </Menu.Item>
+                    ) : (
+                      <Menu.Item
+                        color='green'
+                        onClick={() => {
+                          setSelectedClient(client);
+                          setIsActivating(true);
+                          open();
+                        }}
+                        className='text-sm'
+                        style={{ textAlign: 'center' }}
+                      >
+                        Activate
+                      </Menu.Item>
+                    )}
+                  </Menu.Dropdown>
+                </Menu>
+              </Group>
+            </div>
+          );
+        },
+      }),
+    ],
+    [setSelectedClient, open]
+  );
 
   const {
     data: clients = [],
@@ -105,8 +204,132 @@ const AllClients = () => {
     refetch,
   } = useGetClients();
 
+  const handleDeactivateClient = () => {
+    if (!selectedClient) return;
+
+    deactivateClientMutation.mutate(selectedClient.id.toString(), {
+      onSuccess: () => {
+        notifications.show({
+          title: 'Success',
+          message: 'Client deactivated successfully!',
+          color: 'green',
+          radius: 'md',
+          icon: (
+            <span className='flex items-center justify-center w-6 h-6 rounded-full bg-green-200'>
+              <img src={successIcon} alt='Success' className='w-4 h-4' />
+            </span>
+          ),
+          withBorder: true,
+          autoClose: 3000,
+          position: 'top-right',
+        });
+        close();
+        refetch();
+      },
+      onError: (_error: unknown) => {
+        notifications.show({
+          title: 'Error',
+          message: 'Failed to deactivate client. Please try again.',
+          color: 'red',
+          radius: 'md',
+          icon: (
+            <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+              <img src={errorIcon} alt='Error' className='w-4 h-4' />
+            </span>
+          ),
+          withBorder: true,
+          autoClose: 3000,
+          position: 'top-right',
+        });
+      },
+    });
+  };
+
+  const handleActivateClient = () => {
+    if (!selectedClient) return;
+
+    activateClientMutation.mutate(selectedClient.id.toString(), {
+      onSuccess: () => {
+        notifications.show({
+          title: 'Success',
+          message: 'Client activated successfully!',
+          color: 'green',
+          radius: 'md',
+          icon: (
+            <span className='flex items-center justify-center w-6 h-6 rounded-full bg-green-200'>
+              <img src={successIcon} alt='Success' className='w-4 h-4' />
+            </span>
+          ),
+          withBorder: true,
+          autoClose: 3000,
+          position: 'top-right',
+        });
+        close();
+        refetch();
+      },
+      onError: (_error: unknown) => {
+        notifications.show({
+          title: 'Error',
+          message: 'Failed to activate client. Please try again.',
+          color: 'red',
+          radius: 'md',
+          icon: (
+            <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+              <img src={errorIcon} alt='Error' className='w-4 h-4' />
+            </span>
+          ),
+          withBorder: true,
+          autoClose: 3000,
+          position: 'top-right',
+        });
+      },
+    });
+  };
+
   const openDrawer = () => setIsDrawerOpen(true);
   const closeDrawer = () => setIsDrawerOpen(false);
+
+  const handleExport = () => {
+    const selectedClientIds = Object.keys(rowSelection);
+
+    if (selectedClientIds.length === 0) {
+      notifications.show({
+        title: 'No clients selected',
+        message: 'Please select at least one client to export',
+        color: 'red',
+        radius: 'md',
+        icon: (
+          <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+            <img src={errorIcon} alt='Error' className='w-4 h-4' />
+          </span>
+        ),
+        withBorder: true,
+        autoClose: 3000,
+        position: 'top-right',
+      });
+      closeExportModal();
+      return;
+    }
+
+    console.log('Exporting clients:', selectedClientIds);
+
+    notifications.show({
+      title: 'Export successful',
+      message: `${selectedClientIds.length} client(s) exported successfully`,
+      color: 'green',
+      radius: 'md',
+      icon: (
+        <span className='flex items-center justify-center w-6 h-6 rounded-full bg-green-200'>
+          <img src={successIcon} alt='Success' className='w-4 h-4' />
+        </span>
+      ),
+      withBorder: true,
+      autoClose: 3000,
+      position: 'top-right',
+    });
+
+    closeExportModal();
+  };
 
   if (isLoading) {
     return (
@@ -144,6 +367,14 @@ const AllClients = () => {
           leftIcon={plusIcon}
           onButtonClick={openDrawer}
         />
+        <EmptyDataPage
+          title='No Clients Found'
+          description="You don't have any clients yet"
+          buttonText='Add New Client'
+          onButtonClick={openDrawer}
+          onClose={() => {}}
+          opened={clients.length === 0 && !isLoading}
+        />
         <div className='flex-1 px-6 py-3'>
           <Table
             data={clients}
@@ -159,6 +390,111 @@ const AllClients = () => {
         </div>
       </div>
       <AddClients isOpen={isDrawerOpen} onClose={closeDrawer} />
+
+      <Modal
+        opened={opened}
+        onClose={close}
+        title={
+          <Text fw={600} size='lg'>
+            {isActivating ? 'Activate Client' : 'Deactivate Client'}
+          </Text>
+        }
+        centered
+        radius='md'
+        size='md'
+        withCloseButton={false}
+        overlayProps={{
+          backgroundOpacity: 0.55,
+          blur: 3,
+        }}
+        shadow='xl'
+      >
+        <div className='flex items-start space-x-4 mb-6'>
+          <div
+            className={`flex-shrink-0 w-10 h-10 rounded-full ${
+              isActivating ? 'bg-green-100' : 'bg-red-100'
+            } flex items-center justify-center`}
+          >
+            <img
+              src={isActivating ? successIcon : errorIcon}
+              alt='Warning'
+              className='w-5 h-5'
+            />
+          </div>
+          <div>
+            <Text fw={500} size='md' mb={8} c='gray.8'>
+              Are you sure you want to{' '}
+              {isActivating ? 'activate' : 'deactivate'} this client?
+            </Text>
+            <Text size='sm' c='gray.6'>
+              {isActivating
+                ? 'This action will make the client active in the system. They will appear in active client lists.'
+                : 'This action will make the client inactive in the system. They will no longer appear in active client lists.'}
+            </Text>
+          </div>
+        </div>
+
+        <div className='flex justify-end gap-2 mt-4'>
+          <Button
+            color={isActivating ? 'green' : 'red'}
+            onClick={
+              isActivating ? handleActivateClient : handleDeactivateClient
+            }
+            loading={
+              isActivating
+                ? activateClientMutation.isPending
+                : deactivateClientMutation.isPending
+            }
+            radius='md'
+          >
+            {isActivating ? 'Activate' : 'Deactivate'}
+          </Button>
+        </div>
+      </Modal>
+
+      <Modal
+        opened={exportModalOpened}
+        onClose={closeExportModal}
+        title={
+          <Text fw={600} size='lg'>
+            Export Clients
+          </Text>
+        }
+        centered
+        radius='md'
+        size='md'
+        withCloseButton={false}
+        overlayProps={{
+          backgroundOpacity: 0.55,
+          blur: 3,
+        }}
+        shadow='xl'
+      >
+        <div className='py-2'>
+          <Text size='sm' className='mb-6'>
+            Are you sure you want to export the selected clients?
+          </Text>
+          <div className='flex justify-end space-x-4 mt-8'>
+            <Button
+            variant='outline'
+              color='#EA0234'
+              radius='md'
+              onClick={closeExportModal}
+              className='px-6'
+            >
+              Cancel
+            </Button>
+            <Button
+              color='#1D9B5E'
+              radius='md'
+              onClick={handleExport}
+              className='px-6'
+            >
+              Export
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </>
   );
 };

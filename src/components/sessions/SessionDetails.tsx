@@ -1,9 +1,7 @@
 import { useParams } from 'react-router-dom';
 import MembersHeader from '../headers/MembersHeader';
 import { Progress } from '@mantine/core';
-import plusIcon from '../../assets/icons/plusWhite.svg';
 import { useState } from 'react';
-import ClassesModal from './AddSession';
 import Table from '../common/Table';
 import { createColumnHelper } from '@tanstack/react-table';
 
@@ -16,6 +14,7 @@ import {
 import actionOptionIcon from '../../assets/icons/actionOption.svg';
 import { Client } from '../../types/clientTypes';
 import avatar from '../../assets/icons/newAvatar.svg';
+import UpdateSession from './UpdateSession';
 
 const columnHelper = createColumnHelper<Client>();
 
@@ -90,7 +89,7 @@ const columns = [
 const SessionDetails = () => {
   const { id: sessionId } = useParams();
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'overview' | 'clients'>(
     'overview'
   );
@@ -117,8 +116,8 @@ const SessionDetails = () => {
     error: clientsErrorDetails,
   } = useGetClients();
 
-  const openModal = () => setIsModalOpen(true);
-  const closeModal = () => setIsModalOpen(false);
+  const openDrawer = () => setIsDrawerOpen(true);
+  const closeDrawer = () => setIsDrawerOpen(false);
 
   const formatDate = (dateString: string) => {
     if (!dateString) return '';
@@ -164,6 +163,7 @@ const SessionDetails = () => {
       })
       .join(', ');
   };
+  
 
   const isLoading = sessionLoading || clientsLoading || analyticsLoading;
   const isError = sessionError || clientsError;
@@ -211,10 +211,9 @@ const SessionDetails = () => {
       <div className='flex flex-col h-screen bg-cardsBg w-full overflow-y-auto '>
         <MembersHeader
           title='Session Details'
-          buttonText='New Session'
+          buttonText='Update Session'
           searchPlaceholder='Search by ID, Name or Subject'
-          leftIcon={plusIcon}
-          onButtonClick={openModal}
+          onButtonClick={openDrawer}
           showFilterIcons={false}
           showSearch={false}
         />
@@ -238,9 +237,14 @@ const SessionDetails = () => {
                     {session.class_type || 'Class'}
                   </p>
                 </div>
-                <div className='flex space-x-6 mt-2'>
-                  <div className='rounded-lg bg-active py-2 px-4'>
-                    <p className='text-xs '>
+                <div className='flex space-x-2 mt-4'>
+                  <div 
+                    className={`flex justify-center items-center py-1.5 px-3 rounded-full gap-1.5 ${session.is_active ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}`}
+                  >
+                    <div className={`w-2 h-2 rounded-full ${session.is_active ? 'bg-secondary animate-pulse' : 'bg-red-500'}`}></div>
+                    <p
+                      className={`text-xs font-medium ${session.is_active ? 'text-green-700' : 'text-red-700'}`}
+                    >
                       {session.is_active ? 'Active' : 'Inactive'}
                     </p>
                   </div>
@@ -400,7 +404,7 @@ const SessionDetails = () => {
 
                     <div className='flex items-center border bg-white py-6 px-10 rounded-xl'>
                       <div className='flex flex-col items-center rounded-xl space-y-4'>
-                        <p className='text-2xl font-semibold test-primary'>
+                        <p className='text-2xl font-semibold text-primary'>
                           {sessionAnalytics?.average_attendance || 0}%
                         </p>
                         <p className='text-sm'>Average Attendance</p>
@@ -432,7 +436,7 @@ const SessionDetails = () => {
           </div>
         </div>
       </div>
-      <ClassesModal isOpen={isModalOpen} onClose={closeModal} />
+      <UpdateSession isOpen={isDrawerOpen} onClose={closeDrawer} sessionId={sessionId || ''} />
     </>
   );
 };

@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient, UseQueryResult } from "@tanstack/react-query";
 import {
   registerUser,
   loginUser,
@@ -24,7 +24,12 @@ import {
   get_session_detail,
   get_session_categories,
   get_session_analytics,
+  get_client_analytics,
   get_class_sessions,
+  update_client,
+  deactivate_client,
+  activate_client,
+  update_session,
 } from "../api/api";
 import { useAuthStore } from "../store/auth";
 import { BusinessServices } from "../types/business";
@@ -183,7 +188,7 @@ export const useAddClient = () => {
         location: data.location || "",
         gender: data.gender,
         dob: data.dob,
-        session_id: data.session_id,
+        session_ids: data.session_ids,
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["clients"] });
@@ -301,10 +306,26 @@ export const useGetSessionAnalytics = (sessionId: string) => {
   });
 };
 
-export const useGetSessions = () => {
-  return useQuery<Session[]>({
-    queryKey: ["sessions"],
-    queryFn: get_sessions,
+export const useGetClientAnalytics = (clientId: string) => {
+  return useQuery({
+    queryKey: ["client_analytics", clientId],
+    queryFn: () => get_client_analytics(clientId),
+    staleTime: 1000 * 60 * 5,
+    refetchOnWindowFocus: false,
+    enabled: !!clientId,
+  });
+};
+
+export interface SessionFilters {
+  sessionTypes?: string[];
+  categories?: string[];
+  dateRange?: [Date | null, Date | null];
+}
+
+export const useGetSessions = (filters?: SessionFilters): UseQueryResult<Session[], Error> => {
+  return useQuery<Session[], Error>({
+    queryKey: ["sessions", filters],
+    queryFn: () => get_sessions(filters),
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
     retry: 2,
@@ -349,5 +370,55 @@ export const useCreateSession = () => {
       queryClient.invalidateQueries({ queryKey: ["sessions"] });
       queryClient.invalidateQueries({ queryKey: ["upcoming_sessions"] });
     },
+  });
+};
+
+export const useUpdateSession = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, updateData }: { id: string; updateData: any }) =>
+      update_session(id, updateData),
+    onSuccess: (_, { id }) => {
+      queryClient.invalidateQueries({ queryKey: ["sessions"] });
+      queryClient.invalidateQueries({ queryKey: ["session", id] });
+      queryClient.invalidateQueries({ queryKey: ["upcoming_sessions"] });
+    },
+  });
+};
+
+export const useUpdateClient = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, updateData }: { id: string; updateData: Partial<Client> }) =>
+      update_client(id, updateData),
+    onSuccess: (_, { id }) => {
+      queryClient.invalidateQueries({ queryKey: ["clients"] });
+      queryClient.invalidateQueries({ queryKey: ["client", id] });
+    },
+    onError: (error) => console.error("Update client error:", error),
+  });
+};
+
+export const useDeactivateClient = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => deactivate_client(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["clients"] });
+      queryClient.invalidateQueries({ queryKey: ["analytics"] });
+    },
+    onError: (error) => console.error("Deactivate client error:", error),
+  });
+};
+
+export const useActivateClient = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => activate_client(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["clients"] });
+      queryClient.invalidateQueries({ queryKey: ["analytics"] });
+    },
+    onError: (error) => console.error("Activate client error:", error),
   });
 };
