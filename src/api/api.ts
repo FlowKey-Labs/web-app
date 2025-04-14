@@ -37,6 +37,8 @@ const END_POINTS = {
     UPCOMING_SESSIONS: `${BASE_URL}/api/dashboard/upcoming-sessions/`,
     SESSION_ANALYTICS: (id: string) =>
       `${BASE_URL}/api/dashboard/sessions/analytics/${id}/`,
+    CLIENT_ANALYTICS: (id: string) =>
+      `${BASE_URL}/api/dashboard/clients/analytics/${id}/`,
     CANCEL_SESSION: (id: string) =>
       `${BASE_URL}/api/dashboard/upcoming-sessions/${id}/`,
   },
@@ -208,6 +210,13 @@ const get_session_analytics = async (sessionId: string) => {
   return data;
 };
 
+const get_client_analytics = async (clientId: string) => {
+  const { data } = await api.get(
+    END_POINTS.ANALYTICS.CLIENT_ANALYTICS(clientId)
+  );
+  return data;
+};
+
 const get_upcoming_sessions = async () => {
   const { data } = await api.get(END_POINTS.ANALYTICS.UPCOMING_SESSIONS);
   return data;
@@ -360,6 +369,7 @@ export {
   get_session_detail,
   get_session_categories,
   get_session_analytics,
+  get_client_analytics,
   get_class_sessions,
   update_client,
   deactivate_client,

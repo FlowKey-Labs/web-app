@@ -163,6 +163,7 @@ const SessionDetails = () => {
       })
       .join(', ');
   };
+  
 
   const isLoading = sessionLoading || clientsLoading || analyticsLoading;
   const isError = sessionError || clientsError;
@@ -403,7 +404,7 @@ const SessionDetails = () => {
 
                     <div className='flex items-center border bg-white py-6 px-10 rounded-xl'>
                       <div className='flex flex-col items-center rounded-xl space-y-4'>
-                        <p className='text-2xl font-semibold test-primary'>
+                        <p className='text-2xl font-semibold text-primary'>
                           {sessionAnalytics?.average_attendance || 0}%
                         </p>
                         <p className='text-sm'>Average Attendance</p>

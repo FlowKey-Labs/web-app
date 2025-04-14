@@ -12,6 +12,8 @@ interface EmptyDataPageProps {
   className?: string;
   onClose?: () => void;
   opened?: boolean;
+  filterType?: string;
+  filterValue?: string;
 }
 
 const EmptyDataPage: React.FC<EmptyDataPageProps> = ({
@@ -24,7 +26,20 @@ const EmptyDataPage: React.FC<EmptyDataPageProps> = ({
   className = '',
   onClose,
   opened = true,
+  filterType,
+  filterValue,
 }) => {
+  // Generate a more specific description if filter values are provided
+  const getFilteredDescription = () => {
+    if (filterType && filterValue) {
+      if (filterType === 'sessionType') {
+        return `You don't have any sessions yet in ${filterValue} session type`;
+      } else if (filterType === 'category') {
+        return `You don't have any sessions yet in ${filterValue} category`;
+      }
+    }
+    return description;
+  };
   return (
     <Modal
       opened={opened}
@@ -80,7 +95,7 @@ const EmptyDataPage: React.FC<EmptyDataPageProps> = ({
       <div className='flex flex-col items-center justify-center'>
         <img src={icon} alt='Empty data' className='mb-3' />
         <p className='text-gray-700 text-lg font-semibold'>{title}</p>
-        <p className='text-gray-500 text-sm mt-1'>{description}</p>
+        <p className='text-gray-500 text-sm mt-1'>{getFilteredDescription()}</p>
         {showButton && onButtonClick && (
           <Button
             className='mt-4'

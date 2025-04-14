@@ -486,7 +486,7 @@ const AllSessions = () => {
                   </h3>
 
                   <div>
-                    <div className='flex flex-col gap-2 mt-4 min-w-[300px]'>
+                    <div className='flex flex-col gap-2 mt-4 min-w-[160px]'>
                       {classTypesOptions.map((label, index) => (
                         <div key={index} className='flex items-center'>
                           <input
@@ -559,7 +559,7 @@ const AllSessions = () => {
                   </h3>
 
                   <div>
-                    <div className='flex flex-col gap-2 mt-4 min-w-[300px]'>
+                    <div className='flex flex-col gap-2 mt-4 min-w-[160px]'>
                       {isLoadingCategories ? (
                         <p>Loading categories...</p>
                       ) : categoriesData && categoriesData.length > 0 ? (
@@ -645,6 +645,10 @@ const AllSessions = () => {
           opened={
             (!sessionsData || sessionsData.length === 0) && !isLoadingSessions
           }
+          filterType={selectedTypes.length === 1 ? 'sessionType' : 
+                     selectedCategories.length === 1 ? 'category' : undefined}
+          filterValue={selectedTypes.length === 1 ? selectedTypes[0] : 
+                      selectedCategories.length === 1 ? selectedCategories[0] : undefined}
         />
         <div className='flex-1 px-6 py-2'>
           {isLoadingSessions || isLoadingCategories ? (

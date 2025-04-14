@@ -2,13 +2,10 @@ import { useParams } from 'react-router-dom';
 import MembersHeader from '../headers/MembersHeader';
 import { Progress } from '@mantine/core';
 import rightIcon from '../../assets/icons/greenRight.svg';
-import plusIcon from '../../assets/icons/plusWhite.svg';
 import { useMemo, useState } from 'react';
 import Table from '../common/Table';
 import { createColumnHelper } from '@tanstack/react-table';
-import actionOptionIcon from '../../assets/icons/actionOption.svg';
-import { useGetClient } from '../../hooks/reactQuery';
-import { paymentHistories } from '../../utils/dummyData';
+import { useGetClient, useGetClientAnalytics } from '../../hooks/reactQuery';
 import avatar from '../../assets/icons/newAvatar.svg';
 import UpdateClient from './UpdateClient';
 
@@ -31,65 +28,77 @@ const ClientDetails = () => {
     error,
   } = useGetClient(clientId || '');
 
-  const paymentHistory = useMemo(() => {
-    return paymentHistories.filter((c) => c.clientId.toString() === clientId);
-  }, [clientId]);
+  const {
+    data: clientAnalytics,
+    isLoading: analyticsLoading,
+  } = useGetClientAnalytics(clientId || '');
 
-  const columnHelper = createColumnHelper<(typeof paymentHistories)[0]>();
+  // Define the type for client sessions
+  type ClientSession = {
+    session_id: number;
+    session_title: string;
+    staff: {
+      user: {
+        id: string;
+        first_name: string;
+        last_name: string;
+      };
+    };
+    start_time: string;
+    end_time: string;
+    attended: boolean;
+    session_type: string;
+    class_type: string;
+  };
+
+  // Get client sessions from the client details
+  const clientSessions = useMemo(() => {
+    return clientDetails?.sessions || [];
+  }, [clientDetails]);
+
+  const columnHelper = createColumnHelper<ClientSession>();
 
   const columns = [
-    columnHelper.accessor('class', {
-      header: 'Class',
+    columnHelper.accessor('session_title', {
+      header: 'Session',
       cell: (info) => info.getValue(),
     }),
-    columnHelper.accessor('package', {
-      header: 'Package',
-      cell: (info) => info.getValue(),
+    columnHelper.accessor('staff', {
+      header: 'Assigned To',
+      cell: (info) => {
+        const staff = info.getValue();
+        return staff && staff.user ? `${staff.user.first_name} ${staff.user.last_name}` : 'Not Assigned';
+      },
     }),
-    columnHelper.accessor('amount', {
-      header: 'Amount',
-      cell: (info) =>
-        info
-          .getValue()
-          .toLocaleString('en-US', { style: 'currency', currency: 'KES' }),
+    columnHelper.accessor('class_type', {
+      header: 'Session Type',
+      cell: (info) => {
+        const type = info.getValue();
+        return type ? type.charAt(0).toUpperCase() + type.slice(1) : 'N/A';
+      },
     }),
-    columnHelper.accessor('status', {
+    columnHelper.accessor('start_time', {
+      header: 'Date',
+      cell: (info) => {
+        const date = new Date(info.getValue());
+        return date.toLocaleDateString();
+      },
+    }),
+    columnHelper.accessor('attended', {
       header: 'Status',
       cell: (info) => (
         <span
           className={`inline-block px-2 py-1 rounded-lg text-sm text-center min-w-[70px] ${
-            info.getValue() === 'paid'
+            info.getValue()
               ? 'bg-active text-secondary'
               : 'bg-[#FFCFCC] text-[#FF3B30]'
           }`}
         >
-          {info.getValue()}
+          {info.getValue() ? 'Attended' : 'Not Attended'}
         </span>
       ),
     }),
-    columnHelper.accessor('transactionId', {
-      header: 'Transaction ID',
-      cell: (info) => info.getValue(),
-    }),
-    columnHelper.display({
-      id: 'actions',
-      header: () => (
-        <img
-          src={actionOptionIcon}
-          alt='Options'
-          className='w-4 h-4 cursor-pointer'
-        />
-      ),
-      cell: () => (
-        <div className='flex space-x-2' onClick={(e) => e.stopPropagation()}>
-          <img
-            src={actionOptionIcon}
-            alt='Options'
-            className='w-4 h-4 cursor-pointer'
-          />
-        </div>
-      ),
-    }),
+    
   ];
 
   if (isLoading) {
@@ -120,11 +129,11 @@ const ClientDetails = () => {
     );
   }
 
-  if (!paymentHistory) {
+  if (!clientSessions || clientSessions.length === 0) {
     return (
       <div className='p-8 min-h-screen'>
         <h2 className='text-[40px] font-bold text-primary'>
-          Payment history not found
+          No sessions found for this client
         </h2>
       </div>
     );
@@ -182,7 +191,7 @@ const ClientDetails = () => {
                       SESSIONS
                     </span>
                     <span className='text-gray-400  text-xs'>
-                      {clientDetails.assigned_classes || 0}
+                      {analyticsLoading ? 'Loading...' : (clientAnalytics?.total_sessions || 0)}
                     </span>
                   </div>
                   <div className='flex justify-between items-center w-full text-sm'>
@@ -252,14 +261,27 @@ const ClientDetails = () => {
                 <div className='flex items-center border py-6 px-10 bg-white rounded-xl'>
                   <div className='flex flex-col items-center rounded-xl  space-y-4'>
                     <p className='text-4xl'>
-                      14<span className='text-lg text-gray-500'>/44</span>
+                      {analyticsLoading ? (
+                        <span className='text-lg text-gray-500'>Loading...</span>
+                      ) : (
+                        <>
+                          {clientAnalytics?.attended_sessions}
+                          <span className='text-lg text-gray-500'>/{clientAnalytics?.total_sessions || 0}</span>
+                        </>
+                      )}
                     </p>
                     <p className='text-sm'>Sessions</p>
                   </div>
                 </div>
                 <div className='flex items-center border py-6 px-10 bg-white rounded-xl'>
                   <div className='flex flex-col items-center rounded-xl  space-y-4'>
-                    <p className='text-2xl font-semibold  test-primary'>93%</p>
+                    <p className='text-2xl font-semibold  test-primary'>
+                      {analyticsLoading ? (
+                        <span className='text-lg text-gray-500'>Loading...</span>
+                      ) : (
+                        `${clientAnalytics?.average_attendance || 0}%`
+                      )}
+                    </p>
                     <p className='text-sm'>Average Attendance</p>
                   </div>
                 </div>
@@ -268,7 +290,7 @@ const ClientDetails = () => {
                 <div className=''>
                   <div className='flex justify-between'>
                     <h3 className='text-primary text-xl font-semibold'>
-                      Payment History
+                      Client Sessions
                     </h3>
                     <div className='flex item-center justify-center gap-2 cursor-pointer'>
                       <h3 className='text-secondary font-medium'>View All</h3>
@@ -281,7 +303,7 @@ const ClientDetails = () => {
                   </div>
                   <div className='flex-1 py-2'>
                     <Table
-                      data={paymentHistory}
+                      data={clientSessions}
                       columns={columns}
                       rowSelection={rowSelection}
                       onRowSelectionChange={setRowSelection}

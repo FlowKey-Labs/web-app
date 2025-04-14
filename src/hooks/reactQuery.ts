@@ -24,6 +24,7 @@ import {
   get_session_detail,
   get_session_categories,
   get_session_analytics,
+  get_client_analytics,
   get_class_sessions,
   update_client,
   deactivate_client,
@@ -302,6 +303,16 @@ export const useGetSessionAnalytics = (sessionId: string) => {
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
     enabled: !!sessionId,
+  });
+};
+
+export const useGetClientAnalytics = (clientId: string) => {
+  return useQuery({
+    queryKey: ["client_analytics", clientId],
+    queryFn: () => get_client_analytics(clientId),
+    staleTime: 1000 * 60 * 5,
+    refetchOnWindowFocus: false,
+    enabled: !!clientId,
   });
 };
 
