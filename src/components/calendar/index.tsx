@@ -6,12 +6,16 @@ import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import Button from "../common/Button";
 import plusIcon from "../../assets/icons/plusWhite.svg";
-import { format, parse } from "date-fns";
+import { format, parse, isPast } from "date-fns";
 import DropDownMenu from "../common/DropdownMenu";
 import dropdownIcon from "../../assets/icons/dropIcon.svg";
 import { cn } from "../../utils/mergeClass";
-import "./index.css";
 import { EventClickArg } from "@fullcalendar/core/index.js";
+import EventCard from "./eventCard";
+import { Dictionary, EventImpl } from "@fullcalendar/core/internal";
+import { useGetSessions } from "../../hooks/reactQuery";
+import AddSession from "../sessions/AddSession";
+import "./index.css";
 
 const formatTimeTo12Hour = (timeStr: string): string => {
   try {
@@ -35,14 +39,9 @@ const formatTimeTo12Hour = (timeStr: string): string => {
   }
 };
 
-import EventCard from "./eventCard";
-import { Dictionary, EventImpl } from "@fullcalendar/core/internal";
-import { useGetSessions } from "../../hooks/reactQuery";
-import AddSession from "../sessions/AddSession";
-
 const headerToolbar = {
   start: "title",
-  center: "",
+  center: "prev today next",
   end: "",
 };
 
@@ -73,7 +72,7 @@ interface FullCalendarEvent {
   id: string | number;
   title: string;
   start: string; // ISO string
-  end?: string;  // ISO string
+  end?: string; // ISO string
   extendedProps?: Record<string, unknown>; // for additional metadata
 }
 
@@ -88,7 +87,11 @@ function mapSessionToFullCalendarEvents(session: any): FullCalendarEvent[] {
   // Helper to merge date and time
   const mergeDateAndTime = (date: Date, time: Date): Date => {
     const merged = new Date(date);
-    merged.setHours(time.getUTCHours(), time.getUTCMinutes(), time.getUTCSeconds());
+    merged.setHours(
+      time.getUTCHours(),
+      time.getUTCMinutes(),
+      time.getUTCSeconds()
+    );
     return merged;
   };
 
@@ -97,7 +100,9 @@ function mapSessionToFullCalendarEvents(session: any): FullCalendarEvent[] {
     const currentDate = new Date(startDate);
 
     while (currentDate <= repeatEndDate) {
-      const weekday = currentDate.toLocaleDateString('en-US', { weekday: 'long' });
+      const weekday = currentDate.toLocaleDateString("en-US", {
+        weekday: "long",
+      });
 
       if (session.repeat_on.includes(weekday)) {
         const eventStart = mergeDateAndTime(currentDate, startTime);
@@ -127,7 +132,7 @@ function mapSessionToFullCalendarEvents(session: any): FullCalendarEvent[] {
       start: eventStart.toISOString(),
       end: eventEnd.toISOString(),
       extendedProps: {
-        session
+        session,
       },
     });
   }
@@ -151,7 +156,7 @@ const CalendarView = () => {
   } | null>(null);
   const [selectedEvent, setSelectedEvent] = useState<EventImpl | null>(null);
   const popupRef = useRef<HTMLDivElement | null>(null);
-  const { data: sessionsData } = useGetSessions();  
+  const { data: sessionsData } = useGetSessions();
 
   const handleEventClick = (clickInfo: EventClickArg) => {
     const { event, el } = clickInfo;
@@ -204,7 +209,7 @@ const CalendarView = () => {
     });
     setSelectedEvent(clickInfo.event);
   };
-  
+
   const changeView = (view: CalendarView) => {
     setCurrentView(view);
     calendarRef.current?.getApi().changeView(view.view);
@@ -216,7 +221,13 @@ const CalendarView = () => {
   };
 
   const renderEventContent = useCallback(
-    (eventInfo: { timeText: string; event: { title: string } }) => {
+    (eventInfo: {
+      timeText: string;
+      event: {
+        extendedProps: { session: { date: string } };
+        title: string;
+      };
+    }) => {
       return (
         <div className="flex justify-between w-full h-full py-1 cursor-pointer">
           <div
@@ -224,7 +235,13 @@ const CalendarView = () => {
               "w-[40%]": currentView.type === "Week",
             })}
           >
-            <div className="rounded-full w-2 h-2 bg-green-400" />
+            <div
+              className={cn("rounded-full w-2 h-2 bg-green-400", {
+                "bg-gray-500": isPast(
+                  new Date(eventInfo.event.extendedProps.session.date)
+                ),
+              })}
+            />
             <i className="text-xs truncate">{eventInfo.event.title}</i>
           </div>
           <b className="text-xs flex items-center">
@@ -263,7 +280,7 @@ const CalendarView = () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [selectedEvent]);
-  
+
   return (
     <div className="pt-5 px-5 bg-[#f5f5f5]">
       <h1 className="text-[32px] font-bold text-primary pb-4">Calendar</h1>
@@ -357,7 +374,7 @@ const CalendarView = () => {
           </div>
         )}
       </div>
-    <AddSession isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} /> 
+      <AddSession isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
     </div>
   );
 };
