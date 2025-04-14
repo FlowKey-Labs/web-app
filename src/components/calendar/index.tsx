@@ -6,7 +6,7 @@ import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import Button from "../common/Button";
 import plusIcon from "../../assets/icons/plusWhite.svg";
-import { format, parse, isPast } from "date-fns";
+import { addHours, format, isPast, parse } from "date-fns";
 import DropDownMenu from "../common/DropdownMenu";
 import dropdownIcon from "../../assets/icons/dropIcon.svg";
 import { cn } from "../../utils/mergeClass";
@@ -16,28 +16,7 @@ import { Dictionary, EventImpl } from "@fullcalendar/core/internal";
 import { useGetSessions } from "../../hooks/reactQuery";
 import AddSession from "../sessions/AddSession";
 import "./index.css";
-
-const formatTimeTo12Hour = (timeStr: string): string => {
-  try {
-    // Handle time range format: "12:33 - 16:33"
-    if (timeStr.includes(" - ")) {
-      const [start, end] = timeStr.split(" - ");
-      return `${format(parse(start, "HH:mm", new Date()), "h:mm a")} - ${format(
-        parse(end, "HH:mm", new Date()),
-        "h:mm a"
-      )}`;
-    }
-
-    // Handle single time format: "12:33" or "12:33p"
-    return format(
-      parse(timeStr.replace(/[ap]$/, ""), "HH:mm", new Date()),
-      "h:mm a"
-    );
-  } catch (error) {
-    console.error("Error formatting time:", error);
-    return timeStr; // Return original if parsing fails
-  }
-};
+import { formatTo12Hour } from "../../utils/formatTo12Hour";
 
 const headerToolbar = {
   start: "title",
@@ -228,6 +207,9 @@ const CalendarView = () => {
         title: string;
       };
     }) => {
+      const time = parse(eventInfo.timeText, 'HH:mm', new Date())
+      const formattedTime = addHours(time, -3);
+      
       return (
         <div className="flex justify-between w-full h-full py-1 cursor-pointer">
           <div
@@ -245,7 +227,7 @@ const CalendarView = () => {
             <i className="text-xs truncate">{eventInfo.event.title}</i>
           </div>
           <b className="text-xs flex items-center">
-            {formatTimeTo12Hour(eventInfo.timeText)}
+            {format(formattedTime, 'HH:mm a')}
           </b>
         </div>
       );

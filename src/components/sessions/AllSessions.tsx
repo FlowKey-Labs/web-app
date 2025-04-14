@@ -21,6 +21,7 @@ import resetIcon from '../../assets/icons/resetIcon.svg';
 import dropdownIcon from '../../assets/icons/dropIcon.svg';
 import Button from '../common/Button';
 import AddSession from './AddSession';
+import { formatTo12Hour } from '../../utils/formatTo12Hour';
 
 const columnHelper = createColumnHelper<Session>();
 
@@ -117,32 +118,6 @@ const AllSessions = () => {
         header: 'Duration',
         cell: (info) => {
           const { start, end } = info.getValue();
-
-          const formatTo12Hour = (isoDateTimeStr: string) => {
-            if (!isoDateTimeStr || typeof isoDateTimeStr !== 'string')
-              return isoDateTimeStr;
-
-            try {
-              const timePart = isoDateTimeStr.split('T')[1];
-              if (!timePart) {
-                return isoDateTimeStr;
-              }
-
-              const timeComponents = timePart.split(':');
-              let hours = parseInt(timeComponents[0], 10);
-              const minutes = timeComponents[1].padStart(2, '0');
-
-              const ampm = hours >= 12 ? 'PM' : 'AM';
-
-              hours = hours % 12;
-              hours = hours ? hours : 12;
-
-              return `${hours}:${minutes} ${ampm}`;
-            } catch (e) {
-              console.error('Error formatting time:', isoDateTimeStr, e);
-              return isoDateTimeStr;
-            }
-          };
 
           return `${formatTo12Hour(start)} - ${formatTo12Hour(end)}`;
         },
