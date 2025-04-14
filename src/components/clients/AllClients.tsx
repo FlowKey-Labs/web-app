@@ -2,7 +2,7 @@ import MembersHeader from '../headers/MembersHeader';
 import plusIcon from '../../assets/icons/plusWhite.svg';
 import { Client } from '../../types/clientTypes';
 import Table from '../common/Table';
-import { useGetClients, useDeactivateClient } from '../../hooks/reactQuery';
+import { useGetClients, useDeactivateClient, useActivateClient } from '../../hooks/reactQuery';
 import { createColumnHelper } from '@tanstack/react-table';
 import { Progress, Group, Modal, Text, Button, Menu } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
@@ -24,9 +24,11 @@ const AllClients = () => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [opened, { open, close }] = useDisclosure(false);
+  const [isActivating, setIsActivating] = useState(false);
 
   const navigate = useNavigate();
   const deactivateClientMutation = useDeactivateClient();
+  const activateClientMutation = useActivateClient();
 
   const columns = useMemo(
     () => [
@@ -122,17 +124,33 @@ const AllClients = () => {
                     />
                   </Menu.Target>
                   <Menu.Dropdown>
-                    <Menu.Item
-                      color="red"
-                      onClick={() => {
-                        setSelectedClient(client);
-                        open();
-                      }}
-                      className="text-sm"
-                      style={{ textAlign: 'center' }}
-                    >
-                      Deactivate
-                    </Menu.Item>
+                    {client.active ? (
+                      <Menu.Item
+                        color="red"
+                        onClick={() => {
+                          setSelectedClient(client);
+                          setIsActivating(false);
+                          open();
+                        }}
+                        className="text-sm"
+                        style={{ textAlign: 'center' }}
+                      >
+                        Deactivate
+                      </Menu.Item>
+                    ) : (
+                      <Menu.Item
+                        color="green"
+                        onClick={() => {
+                          setSelectedClient(client);
+                          setIsActivating(true);
+                          open();
+                        }}
+                        className="text-sm"
+                        style={{ textAlign: 'center' }}
+                      >
+                        Activate
+                      </Menu.Item>
+                    )}
                   </Menu.Dropdown>
                 </Menu>
               </Group>
@@ -174,10 +192,51 @@ const AllClients = () => {
         close();
         refetch();
       },
-      onError: (_error) => {
+      onError: (_error: unknown) => {
         notifications.show({
           title: 'Error',
           message: 'Failed to deactivate client. Please try again.',
+          color: 'red',
+          radius: 'md',
+          icon: (
+            <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+              <img src={errorIcon} alt='Error' className='w-4 h-4' />
+            </span>
+          ),
+          withBorder: true,
+          autoClose: 3000,
+          position: 'top-right',
+        });
+      },
+    });
+  };
+  
+  const handleActivateClient = () => {
+    if (!selectedClient) return;
+
+    activateClientMutation.mutate(selectedClient.id.toString(), {
+      onSuccess: () => {
+        notifications.show({
+          title: 'Success',
+          message: 'Client activated successfully!',
+          color: 'green',
+          radius: 'md',
+          icon: (
+            <span className='flex items-center justify-center w-6 h-6 rounded-full bg-green-200'>
+              <img src={successIcon} alt='Success' className='w-4 h-4' />
+            </span>
+          ),
+          withBorder: true,
+          autoClose: 3000,
+          position: 'top-right',
+        });
+        close();
+        refetch();
+      },
+      onError: (_error: unknown) => {
+        notifications.show({
+          title: 'Error',
+          message: 'Failed to activate client. Please try again.',
           color: 'red',
           radius: 'md',
           icon: (
@@ -261,12 +320,13 @@ const AllClients = () => {
         onClose={close}
         title={
           <Text fw={600} size='lg'>
-            Deactivate Client
+            {isActivating ? 'Activate Client' : 'Deactivate Client'}
           </Text>
         }
         centered
         radius='md'
         size='md'
+        withCloseButton={false}
         overlayProps={{
           backgroundOpacity: 0.55,
           blur: 3,
@@ -274,28 +334,30 @@ const AllClients = () => {
         shadow='xl'
       >
         <div className='flex items-start space-x-4 mb-6'>
-          <div className='flex-shrink-0 w-10 h-10 rounded-full bg-red-100 flex items-center justify-center'>
-            <img src={errorIcon} alt='Warning' className='w-5 h-5' />
+          <div className={`flex-shrink-0 w-10 h-10 rounded-full ${isActivating ? 'bg-green-100' : 'bg-red-100'} flex items-center justify-center`}>
+            <img src={isActivating ? successIcon : errorIcon} alt='Warning' className='w-5 h-5' />
           </div>
           <div>
             <Text fw={500} size='md' mb={8} c='gray.8'>
-              Are you sure you want to deactivate this client?
+              Are you sure you want to {isActivating ? 'activate' : 'deactivate'} this client?
             </Text>
             <Text size='sm' c='gray.6'>
-              This action will make the client inactive in the system. They will
-              no longer appear in active client lists.
+              {isActivating 
+                ? 'This action will make the client active in the system. They will appear in active client lists.'
+                : 'This action will make the client inactive in the system. They will no longer appear in active client lists.'}
             </Text>
           </div>
         </div>
 
         <div className='flex justify-end gap-2 mt-4'>
+          
           <Button
-            color='red'
-            onClick={handleDeactivateClient}
-            loading={deactivateClientMutation.isPending}
+            color={isActivating ? 'green' : 'red'}
+            onClick={isActivating ? handleActivateClient : handleDeactivateClient}
+            loading={isActivating ? activateClientMutation.isPending : deactivateClientMutation.isPending}
             radius='md'
           >
-            Deactivate
+            {isActivating ? 'Activate' : 'Deactivate'}
           </Button>
         </div>
       </Modal>

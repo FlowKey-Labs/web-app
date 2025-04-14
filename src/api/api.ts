@@ -314,7 +314,14 @@ const update_client = async (
 
 const deactivate_client = async (id: string) => {
   const { data } = await api.patch(`${END_POINTS.CLIENTS.CLIENTS_DATA}${id}/`, {
-    is_active: false
+    active: false
+  });
+  return data;
+};
+
+const activate_client = async (id: string) => {
+  const { data } = await api.patch(`${END_POINTS.CLIENTS.CLIENTS_DATA}${id}/`, {
+    active: true
   });
   return data;
 };
@@ -356,5 +363,6 @@ export {
   get_class_sessions,
   update_client,
   deactivate_client,
+  activate_client,
   update_session,
 };

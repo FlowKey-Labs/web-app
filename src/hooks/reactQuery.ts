@@ -27,6 +27,7 @@ import {
   get_class_sessions,
   update_client,
   deactivate_client,
+  activate_client,
   update_session,
 } from "../api/api";
 import { useAuthStore } from "../store/auth";
@@ -396,5 +397,17 @@ export const useDeactivateClient = () => {
       queryClient.invalidateQueries({ queryKey: ["analytics"] });
     },
     onError: (error) => console.error("Deactivate client error:", error),
+  });
+};
+
+export const useActivateClient = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => activate_client(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["clients"] });
+      queryClient.invalidateQueries({ queryKey: ["analytics"] });
+    },
+    onError: (error) => console.error("Activate client error:", error),
   });
 };
