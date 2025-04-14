@@ -9,6 +9,7 @@ import {
 } from '../../assets/icons';
 import DropdownComingSoon from '../common/DropdownComingSoon';
 import { HoverCard, Group } from '@mantine/core';
+import SearchBar from '../common/SearchBar';
 
 interface HeaderProps {
   showSearch?: boolean;
@@ -19,18 +20,7 @@ const Header = ({ showSearch = true }: HeaderProps) => {
   return (
     <div className='h-[80px] flex items-center justify-between px-11'>
       {showSearch && (
-        <div className='flex-1 max-w-[50%]'>
-          <SearchInput
-            placeholder='Search Appointment, Clients, Staff etc'
-            leftIcon={
-              <div className='bg-[#F5F5F5] p-2 rounded-full cursor-pointer'>
-                <SearchIcon className='w-4 h-4 text-primary' />
-              </div>
-            }
-            containerClassName='w-[100%]'
-            inputClassName=''
-          />
-        </div>
+        <SearchBar />
       )}
 
       <div className='flex items-center justify-end gap-12 ml-auto'>

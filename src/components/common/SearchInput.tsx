@@ -5,11 +5,12 @@ interface SearchInputProps extends InputHTMLAttributes<HTMLInputElement> {
   leftIcon?: React.ReactNode;
   containerClassName?: string;
   inputClassName?: string;
+
 }
 
 const SearchInput = React.forwardRef<HTMLInputElement, SearchInputProps>(
   (
-    { leftIcon, containerClassName, inputClassName, className, ...props },
+    { leftIcon, containerClassName, inputClassName, ...props },
     ref
   ) => {
     return (
