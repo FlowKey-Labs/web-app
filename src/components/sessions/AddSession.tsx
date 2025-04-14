@@ -7,7 +7,7 @@ import { useState, useEffect } from 'react';
 import { notifications } from '@mantine/notifications';
 import successIcon from '../../assets/icons/success.svg';
 import errorIcon from '../../assets/icons/error.svg';
-import { repeatDays, weekdayNames } from '../../utils/dummyData';
+import { days, repeatDays, weekdayNames } from '../../utils/dummyData';
 import ChevronUp from '../../assets/icons/up.svg';
 import ChevronDown from '../../assets/icons/down.svg';
 import { DatePickerInput } from '@mantine/dates';
@@ -52,7 +52,7 @@ type FormData = Omit<
 
   repeat_every?: number;
   repeat_unit?: 'days' | 'weeks' | 'months';
-  repeat_on?: number[];
+  repeat_on?: string[];
   repeat_end_type: 'never' | 'on' | 'after';
   repeat_end_date?: string;
   repeat_occurrences?: number;
@@ -96,7 +96,7 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
     { open: openRepetitionModal, close: closeRepetitionModal },
   ] = useDisclosure();
 
-  const [selectedWeekdays, setSelectedWeekdays] = useState<number[]>([]);
+  const [selectedWeekdays, setSelectedWeekdays] = useState<string[]>([]);
   const [endsOption, setEndsOption] = useState<'never' | 'on' | 'after'>(
     'never'
   );
@@ -130,7 +130,7 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
     }
   }, [isOpen]);
 
-  const handleWeekdayClick = (weekday: number) => {
+  const handleWeekdayClick = (weekday: string) => {
     setSelectedWeekdays((prev) =>
       prev.includes(weekday)
         ? prev.filter((day) => day !== weekday)
@@ -893,13 +893,13 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
                   key={dayNum}
                   type='button'
                   className={`h-10 w-10 rounded-full flex items-center justify-center text-sm font-medium transition-colors ${
-                    selectedWeekdays.includes(dayNum)
+                    selectedWeekdays.includes(days[dayNum])
                       ? 'bg-secondary text-white hover:bg-secondary/90'
                       : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                   }`}
                   onClick={(e) => {
                     e.stopPropagation();
-                    handleWeekdayClick(dayNum);
+                    handleWeekdayClick(days[dayNum]);
                   }}
                 >
                   {weekdayNames[dayNum]?.charAt(0)}

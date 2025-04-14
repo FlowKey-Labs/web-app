@@ -6,12 +6,16 @@ import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import Button from "../common/Button";
 import plusIcon from "../../assets/icons/plusWhite.svg";
-import { format, isBefore, parse } from "date-fns";
+import { format, parse, isPast } from "date-fns";
 import DropDownMenu from "../common/DropdownMenu";
 import dropdownIcon from "../../assets/icons/dropIcon.svg";
 import { cn } from "../../utils/mergeClass";
-import "./index.css";
 import { EventClickArg } from "@fullcalendar/core/index.js";
+import EventCard from "./eventCard";
+import { Dictionary, EventImpl } from "@fullcalendar/core/internal";
+import { useGetSessions } from "../../hooks/reactQuery";
+import AddSession from "../sessions/AddSession";
+import "./index.css";
 
 const formatTimeTo12Hour = (timeStr: string): string => {
   try {
@@ -35,61 +39,9 @@ const formatTimeTo12Hour = (timeStr: string): string => {
   }
 };
 
-import EventCard from "./eventCard";
-import { EventImpl } from "@fullcalendar/core/internal";
-import { addDays, setHours, setMinutes } from "date-fns";
-
-const startDate = new Date(2025, 1, 23);
-const endDate = new Date(2025, 3, 5);
-
-const eventTitles = [
-  "Team Meeting",
-  "Client Call",
-  "Project Review",
-  "Lunch with Stakeholders",
-  "Code Review",
-  "Brainstorming Session",
-  "Standup Meeting",
-  "Budget Planning",
-  "Strategy Discussion",
-  "Weekly Sync",
-];
-
-const getRandomTime = () => {
-  const hour = Math.floor(Math.random() * 10) + 8; // Between 8 AM - 6 PM
-  const minute = Math.random() < 0.5 ? 0 : 30; // Either on the hour or half past
-  return { hour, minute };
-};
-
-// Generate a list of random event dates
-const getRandomDates = (start: Date, end: Date) => {
-  const dates = [];
-  let current = start;
-
-  while (isBefore(current, end) || current.getTime() === end.getTime()) {
-    if (Math.random() > 0.3) {
-      // ~70% chance of an event
-      dates.push(new Date(current));
-    }
-    current = addDays(current, 1);
-  }
-  return dates;
-};
-
-const randomDates = getRandomDates(startDate, endDate);
-
-const events = randomDates.map((date) => {
-  const { hour, minute } = getRandomTime();
-  return {
-    title: eventTitles[Math.floor(Math.random() * eventTitles.length)],
-    start: setMinutes(setHours(date, hour), minute),
-    backgroundColor: "rgba(29, 155, 94, 0.2)",
-  };
-}).slice(0, 15);
-
 const headerToolbar = {
   start: "title",
-  center: "",
+  center: "prev today next",
   end: "",
 };
 
@@ -116,20 +68,95 @@ const calendarViews: CalendarView[] = [
 const popupWidth = 400;
 const popupHeight = 500;
 
+interface FullCalendarEvent {
+  id: string | number;
+  title: string;
+  start: string; // ISO string
+  end?: string; // ISO string
+  extendedProps?: Record<string, unknown>; // for additional metadata
+}
+
+function mapSessionToFullCalendarEvents(session: any): FullCalendarEvent[] {
+  const events: FullCalendarEvent[] = [];
+
+  const startDate = new Date(session.date);
+  const repeatEndDate = new Date(session.repeat_end_date || session.date);
+  const startTime = new Date(session.start_time);
+  const endTime = new Date(session.end_time);
+
+  // Helper to merge date and time
+  const mergeDateAndTime = (date: Date, time: Date): Date => {
+    const merged = new Date(date);
+    merged.setHours(
+      time.getUTCHours(),
+      time.getUTCMinutes(),
+      time.getUTCSeconds()
+    );
+    return merged;
+  };
+
+  // Handle recurring sessions
+  if (session.repeat_on && session.repeat_on.length > 0) {
+    const currentDate = new Date(startDate);
+
+    while (currentDate <= repeatEndDate) {
+      const weekday = currentDate.toLocaleDateString("en-US", {
+        weekday: "long",
+      });
+
+      if (session.repeat_on.includes(weekday)) {
+        const eventStart = mergeDateAndTime(currentDate, startTime);
+        const eventEnd = mergeDateAndTime(currentDate, endTime);
+
+        events.push({
+          id: `${session.id}-${eventStart.toISOString()}`,
+          title: session.title,
+          start: eventStart.toISOString(),
+          end: eventEnd.toISOString(),
+          extendedProps: {
+            session,
+          },
+        });
+      }
+
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+  } else {
+    // Handle one-time session
+    const eventStart = new Date(session.start_time);
+    const eventEnd = new Date(session.end_time);
+
+    events.push({
+      id: `${session.id}`,
+      title: session.title,
+      start: eventStart.toISOString(),
+      end: eventEnd.toISOString(),
+      extendedProps: {
+        session,
+      },
+    });
+  }
+
+  return events;
+}
+
 const CalendarView = () => {
   const calendarRef = useRef<FullCalendar>(null);
   const [currentView, setCurrentView] = useState<CalendarView>(
     calendarViews[0]
   );
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [popupData, setPopupData] = useState<{
     title: string;
     description: string;
+    extendedProps: Dictionary;
     x: number;
     y: number;
   } | null>(null);
   const [selectedEvent, setSelectedEvent] = useState<EventImpl | null>(null);
   const popupRef = useRef<HTMLDivElement | null>(null);
+  const { data: sessionsData } = useGetSessions();
 
   const handleEventClick = (clickInfo: EventClickArg) => {
     const { event, el } = clickInfo;
@@ -176,6 +203,7 @@ const CalendarView = () => {
     setPopupData({
       title: event.title,
       description: event.extendedProps?.description || "No additional details",
+      extendedProps: event.extendedProps,
       x,
       y,
     });
@@ -189,20 +217,17 @@ const CalendarView = () => {
   };
 
   const handleAddEvent = () => {
-    const calendarApi = calendarRef.current?.getApi();
-
-    if (calendarApi) {
-      calendarApi.addEvent({
-        title: "New Event",
-        start: new Date(),
-        end: new Date(new Date().getTime() + 60 * 60 * 1000),
-        allDay: false,
-      });
-    }
+    setIsModalOpen(true);
   };
 
   const renderEventContent = useCallback(
-    (eventInfo: { timeText: string; event: { title: string } }) => {
+    (eventInfo: {
+      timeText: string;
+      event: {
+        extendedProps: { session: { date: string } };
+        title: string;
+      };
+    }) => {
       return (
         <div className="flex justify-between w-full h-full py-1 cursor-pointer">
           <div
@@ -210,7 +235,13 @@ const CalendarView = () => {
               "w-[40%]": currentView.type === "Week",
             })}
           >
-            <div className="rounded-full w-2 h-2 bg-green-400" />
+            <div
+              className={cn("rounded-full w-2 h-2 bg-green-400", {
+                "bg-gray-500": isPast(
+                  new Date(eventInfo.event.extendedProps.session.date)
+                ),
+              })}
+            />
             <i className="text-xs truncate">{eventInfo.event.title}</i>
           </div>
           <b className="text-xs flex items-center">
@@ -307,7 +338,7 @@ const CalendarView = () => {
             interactionPlugin,
           ]}
           initialView={currentView.view}
-          events={events}
+          events={sessionsData?.flatMap(mapSessionToFullCalendarEvents)}
           eventContent={renderEventContent}
           dayMaxEventRows={true}
           allDaySlot={false}
@@ -324,10 +355,11 @@ const CalendarView = () => {
             hour12: false,
           }}
           eventClick={handleEventClick}
+          dateClick={() => setIsModalOpen(true)}
         />
         {popupData && (
           <div
-            className="absolute bg-white shadow-md p-6 border shadow-lg min-w-[400px] min-h-[500px] z-[1000] rounded-2xl"
+            className="absolute bg-white shadow-md p-6 border shadow-lg min-w-[350px] min-h-[400px] z-[1000] rounded-2xl"
             style={{
               top: popupData.y,
               left: popupData.x,
@@ -337,10 +369,12 @@ const CalendarView = () => {
             <EventCard
               onClose={() => setPopupData(null)}
               handleRemoveEvent={handleRemoveEvent}
+              data={popupData.extendedProps}
             />
           </div>
         )}
       </div>
+      <AddSession isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
     </div>
   );
 };
