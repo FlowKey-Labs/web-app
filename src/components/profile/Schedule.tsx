@@ -233,41 +233,6 @@ const Schedule = () => {
               Add Time Slots Based On Your Availability.
             </p>
           </div>
-          <div className='mt-6 max-w-[340px]'>
-            <p className='text-primary font-semibold text-sm mb-2'>
-              Appointment Duration
-            </p>
-            <DropDownMenu
-              show={durationDropdownOpen}
-              setShow={setDurationDropdownOpen}
-              dropDownPosition='center'
-              actionElement={
-                <div
-                  id='viewSelect'
-                  className='p-2 border-b border-gray-200 w-28 h-10 rounded-md outline-none cursor-pointer flex items-center justify-between'
-                >
-                  <p className='text-primary text-sm'>{selectedDuration} Min</p>
-                  <img src={dropdownIcon} alt='dropdown icon' />
-                </div>
-              }
-            >
-              <div className='w-28 border border-secondary text-sm space-y-1 rounded-lg py-4 px-2 cursor-pointer max-h-40 overflow-y-auto scrollbar-hide'>
-                {appointmentDurationOptions.map((option) => (
-                  <div
-                    key={option.value}
-                    onClick={() => handleDurationSelect(option.value)}
-                    className={`block py-1 rounded px-2 ${
-                      selectedDuration === option.value
-                        ? 'bg-[#EAFCF3]'
-                        : 'hover:bg-[#DAF8E6]'
-                    }`}
-                  >
-                    {option.label}
-                  </div>
-                ))}
-              </div>
-            </DropDownMenu>
-          </div>
 
           <div className='mt-6 space-y-8 max-w-[340px]'>
             {days.map((day) => (

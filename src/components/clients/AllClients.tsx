@@ -30,6 +30,11 @@ const AllClients = () => {
   const [opened, { open, close }] = useDisclosure(false);
   const [isActivating, setIsActivating] = useState(false);
 
+  const [
+    exportModalOpened,
+    { open: openExportModal, close: closeExportModal },
+  ] = useDisclosure(false);
+
   const navigate = useNavigate();
   const deactivateClientMutation = useDeactivateClient();
   const activateClientMutation = useActivateClient();
@@ -120,8 +125,9 @@ const AllClients = () => {
                     color='#162F3B'
                     className='text-sm'
                     style={{ textAlign: 'center' }}
+                    onClick={openExportModal}
                   >
-                    Export
+                    Export Clients
                   </Menu.Item>
                 </Menu.Dropdown>
               </Menu>
@@ -283,6 +289,48 @@ const AllClients = () => {
   const openDrawer = () => setIsDrawerOpen(true);
   const closeDrawer = () => setIsDrawerOpen(false);
 
+  const handleExport = () => {
+    const selectedClientIds = Object.keys(rowSelection);
+
+    if (selectedClientIds.length === 0) {
+      notifications.show({
+        title: 'No clients selected',
+        message: 'Please select at least one client to export',
+        color: 'red',
+        radius: 'md',
+        icon: (
+          <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+            <img src={errorIcon} alt='Error' className='w-4 h-4' />
+          </span>
+        ),
+        withBorder: true,
+        autoClose: 3000,
+        position: 'top-right',
+      });
+      closeExportModal();
+      return;
+    }
+
+    console.log('Exporting clients:', selectedClientIds);
+
+    notifications.show({
+      title: 'Export successful',
+      message: `${selectedClientIds.length} client(s) exported successfully`,
+      color: 'green',
+      radius: 'md',
+      icon: (
+        <span className='flex items-center justify-center w-6 h-6 rounded-full bg-green-200'>
+          <img src={successIcon} alt='Success' className='w-4 h-4' />
+        </span>
+      ),
+      withBorder: true,
+      autoClose: 3000,
+      position: 'top-right',
+    });
+
+    closeExportModal();
+  };
+
   if (isLoading) {
     return (
       <div className='w-full space-y-6 bg-white rounded-lg p-6'>
@@ -401,6 +449,50 @@ const AllClients = () => {
           >
             {isActivating ? 'Activate' : 'Deactivate'}
           </Button>
+        </div>
+      </Modal>
+
+      <Modal
+        opened={exportModalOpened}
+        onClose={closeExportModal}
+        title={
+          <Text fw={600} size='lg'>
+            Export Clients
+          </Text>
+        }
+        centered
+        radius='md'
+        size='md'
+        withCloseButton={false}
+        overlayProps={{
+          backgroundOpacity: 0.55,
+          blur: 3,
+        }}
+        shadow='xl'
+      >
+        <div className='py-2'>
+          <Text size='sm' className='mb-6'>
+            Are you sure you want to export the selected clients?
+          </Text>
+          <div className='flex justify-end space-x-4 mt-8'>
+            <Button
+            variant='outline'
+              color='#EA0234'
+              radius='md'
+              onClick={closeExportModal}
+              className='px-6'
+            >
+              Cancel
+            </Button>
+            <Button
+              color='#1D9B5E'
+              radius='md'
+              onClick={handleExport}
+              className='px-6'
+            >
+              Export
+            </Button>
+          </div>
         </div>
       </Modal>
     </>
