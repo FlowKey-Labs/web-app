@@ -4,16 +4,17 @@ import closeIcon from "../../assets/icons/close.svg";
 import usersIcon from "../../assets/icons/users.svg";
 import { Dictionary } from "@fullcalendar/core/internal";
 import moment from "moment";
+import { subHours } from "date-fns";
 
 const formatSessionInfo = (session: any): { dateStr: string; repeatStr: string } => {
   if (!session) {
     return { dateStr: '', repeatStr: '' };
   }
 
-  const start = moment(session.start_time);
-  const end = moment(session.end_time);
+  const start = moment(subHours(new Date(session.start_time), 3));
+  const end = moment(subHours(new Date(session.end_time), 3));
 
-  const dateStr = `${start.format('dddd, MMMM D')}⋅${start.format('h:mm')} – ${end.format('h:mma')}`;
+  const dateStr = `${start.format('dddd, MMMM D')}⋅${start.format('h:mma')} – ${end.format('h:mma')}`;
 
   let repeatStr = '';
   if (session.repeat_every && session.repeat_unit && session.repeat_on?.length) {
