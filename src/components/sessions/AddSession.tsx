@@ -5,7 +5,7 @@ import Button from '../common/Button';
 import DropdownSelectInput from '../common/Dropdown';
 import Input from '../common/Input';
 import { useState, useEffect } from 'react';
-import { repeatDays, weekdayNames } from '../../utils/dummyData';
+import { days, repeatDays, weekdayNames } from '../../utils/dummyData';
 import ChevronUp from '../../assets/icons/up.svg';
 import ChevronDown from '../../assets/icons/down.svg';
 import { DatePickerInput } from '@mantine/dates';
@@ -55,7 +55,7 @@ type FormData = Omit<
   // Repetition fields
   repeat_every?: number;
   repeat_unit?: 'days' | 'weeks' | 'months';
-  repeat_on?: number[];
+  repeat_on?: string[];
   repeat_end_type: 'never' | 'on' | 'after';
   repeat_end_date?: string;
   repeat_occurrences?: number;
@@ -102,7 +102,7 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
   ] = useDisclosure();
 
   // Initialize repetition state
-  const [selectedWeekdays, setSelectedWeekdays] = useState<number[]>([]);
+  const [selectedWeekdays, setSelectedWeekdays] = useState<string[]>([]);
   const [endsOption, setEndsOption] = useState<'never' | 'on' | 'after'>(
     'never'
   );
@@ -138,7 +138,7 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
     }
   }, [isOpen]);
 
-  const handleWeekdayClick = (weekday: number) => {
+  const handleWeekdayClick = (weekday: string) => {
     setSelectedWeekdays((prev) =>
       prev.includes(weekday)
         ? prev.filter((day) => day !== weekday)
@@ -850,13 +850,13 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
                   key={dayNum}
                   type='button'
                   className={`h-10 w-10 rounded-full flex items-center justify-center text-sm font-medium transition-colors ${
-                    selectedWeekdays.includes(dayNum)
+                    selectedWeekdays.includes(days[dayNum])
                       ? 'bg-secondary text-white hover:bg-secondary/90'
                       : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                   }`}
                   onClick={(e) => {
                     e.stopPropagation();
-                    handleWeekdayClick(dayNum);
+                    handleWeekdayClick(days[dayNum]);
                   }}
                 >
                   {weekdayNames[dayNum]?.charAt(0)}
