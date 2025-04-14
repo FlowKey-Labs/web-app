@@ -2,7 +2,11 @@ import MembersHeader from '../headers/MembersHeader';
 import plusIcon from '../../assets/icons/plusWhite.svg';
 import { Client } from '../../types/clientTypes';
 import Table from '../common/Table';
-import { useGetClients, useDeactivateClient, useActivateClient } from '../../hooks/reactQuery';
+import {
+  useGetClients,
+  useDeactivateClient,
+  useActivateClient,
+} from '../../hooks/reactQuery';
 import { createColumnHelper } from '@tanstack/react-table';
 import { Progress, Group, Modal, Text, Button, Menu } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
@@ -94,11 +98,35 @@ const AllClients = () => {
       columnHelper.display({
         id: 'actions',
         header: () => (
-          <img
-            src={actionOptionIcon}
-            alt='Options'
-            className='w-4 h-4 cursor-pointer'
-          />
+          <div className='flex space-x-2' onClick={(e) => e.stopPropagation()}>
+            <Group justify='center'>
+              <Menu
+                width={150}
+                shadow='md'
+                position='bottom'
+                radius='md'
+                withArrow
+                offset={4}
+              >
+                <Menu.Target>
+                  <img
+                    src={actionOptionIcon}
+                    alt='Options'
+                    className='w-4 h-4 cursor-pointer'
+                  />
+                </Menu.Target>
+                <Menu.Dropdown>
+                  <Menu.Item
+                    color='#162F3B'
+                    className='text-sm'
+                    style={{ textAlign: 'center' }}
+                  >
+                    Export
+                  </Menu.Item>
+                </Menu.Dropdown>
+              </Menu>
+            </Group>
+          </div>
         ),
         cell: (info) => {
           const client = info.row.original;
@@ -108,10 +136,10 @@ const AllClients = () => {
               onClick={(e) => e.stopPropagation()}
             >
               <Group justify='center'>
-                <Menu 
-                  width={150} 
-                  shadow='md' 
-                  position='bottom' 
+                <Menu
+                  width={150}
+                  shadow='md'
+                  position='bottom'
                   radius='md'
                   withArrow
                   offset={4}
@@ -126,26 +154,26 @@ const AllClients = () => {
                   <Menu.Dropdown>
                     {client.active ? (
                       <Menu.Item
-                        color="red"
+                        color='red'
                         onClick={() => {
                           setSelectedClient(client);
                           setIsActivating(false);
                           open();
                         }}
-                        className="text-sm"
+                        className='text-sm'
                         style={{ textAlign: 'center' }}
                       >
                         Deactivate
                       </Menu.Item>
                     ) : (
                       <Menu.Item
-                        color="green"
+                        color='green'
                         onClick={() => {
                           setSelectedClient(client);
                           setIsActivating(true);
                           open();
                         }}
-                        className="text-sm"
+                        className='text-sm'
                         style={{ textAlign: 'center' }}
                       >
                         Activate
@@ -210,7 +238,7 @@ const AllClients = () => {
       },
     });
   };
-  
+
   const handleActivateClient = () => {
     if (!selectedClient) return;
 
@@ -334,15 +362,24 @@ const AllClients = () => {
         shadow='xl'
       >
         <div className='flex items-start space-x-4 mb-6'>
-          <div className={`flex-shrink-0 w-10 h-10 rounded-full ${isActivating ? 'bg-green-100' : 'bg-red-100'} flex items-center justify-center`}>
-            <img src={isActivating ? successIcon : errorIcon} alt='Warning' className='w-5 h-5' />
+          <div
+            className={`flex-shrink-0 w-10 h-10 rounded-full ${
+              isActivating ? 'bg-green-100' : 'bg-red-100'
+            } flex items-center justify-center`}
+          >
+            <img
+              src={isActivating ? successIcon : errorIcon}
+              alt='Warning'
+              className='w-5 h-5'
+            />
           </div>
           <div>
             <Text fw={500} size='md' mb={8} c='gray.8'>
-              Are you sure you want to {isActivating ? 'activate' : 'deactivate'} this client?
+              Are you sure you want to{' '}
+              {isActivating ? 'activate' : 'deactivate'} this client?
             </Text>
             <Text size='sm' c='gray.6'>
-              {isActivating 
+              {isActivating
                 ? 'This action will make the client active in the system. They will appear in active client lists.'
                 : 'This action will make the client inactive in the system. They will no longer appear in active client lists.'}
             </Text>
@@ -350,11 +387,16 @@ const AllClients = () => {
         </div>
 
         <div className='flex justify-end gap-2 mt-4'>
-          
           <Button
             color={isActivating ? 'green' : 'red'}
-            onClick={isActivating ? handleActivateClient : handleDeactivateClient}
-            loading={isActivating ? activateClientMutation.isPending : deactivateClientMutation.isPending}
+            onClick={
+              isActivating ? handleActivateClient : handleDeactivateClient
+            }
+            loading={
+              isActivating
+                ? activateClientMutation.isPending
+                : deactivateClientMutation.isPending
+            }
             radius='md'
           >
             {isActivating ? 'Activate' : 'Deactivate'}

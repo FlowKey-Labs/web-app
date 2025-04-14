@@ -155,22 +155,15 @@ const ClientDetails = () => {
                   </p>
                   <p className='text-sm text-gray-500'>{clientDetails.email}</p>
                 </div>
-                <div className='flex space-x-2 mt-2'>
-                  <div className='flex justify-center items-center py-2 px-4 gap-1'>
-                    {clientDetails.active && (
-                      <div className='w-2 h-2 rounded-full bg-active'></div>
-                    )}
+                <div className='flex space-x-2 mt-4'>
+                  <div 
+                    className={`flex justify-center items-center py-1.5 px-3 rounded-full gap-1.5 ${clientDetails.active ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}`}
+                  >
+                    <div className={`w-2 h-2 rounded-full ${clientDetails.active ? 'bg-secondary animate-pulse' : 'bg-red-500'}`}></div>
                     <p
-                      className={`text-sm ${
-                        clientDetails.active ? 'text-secondary' : ''
-                      }`}
+                      className={`text-xs font-medium ${clientDetails.active ? 'text-green-700' : 'text-red-700'}`}
                     >
                       {clientDetails.active ? 'Active' : 'Inactive'}
-                    </p>
-                  </div>
-                  <div className='rounded-full bg-[#F2F2F2] py-2 px-4'>
-                    <p className='text-xs'>
-                      {clientDetails.classCategory || 'No Category'}
                     </p>
                   </div>
                 </div>
@@ -302,7 +295,11 @@ const ClientDetails = () => {
           </div>
         </div>
       </div>
-      <UpdateClient isOpen={isDrawerOpen} onClose={closeDrawer} clientId={clientId} />
+      <UpdateClient
+        isOpen={isDrawerOpen}
+        onClose={closeDrawer}
+        clientId={clientId}
+      />
     </>
   );
 };

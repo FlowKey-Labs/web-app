@@ -236,9 +236,14 @@ const SessionDetails = () => {
                     {session.class_type || 'Class'}
                   </p>
                 </div>
-                <div className='flex space-x-6 mt-2'>
-                  <div className='rounded-lg bg-active py-2 px-4'>
-                    <p className='text-xs '>
+                <div className='flex space-x-2 mt-4'>
+                  <div 
+                    className={`flex justify-center items-center py-1.5 px-3 rounded-full gap-1.5 ${session.is_active ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}`}
+                  >
+                    <div className={`w-2 h-2 rounded-full ${session.is_active ? 'bg-secondary animate-pulse' : 'bg-red-500'}`}></div>
+                    <p
+                      className={`text-xs font-medium ${session.is_active ? 'text-green-700' : 'text-red-700'}`}
+                    >
                       {session.is_active ? 'Active' : 'Inactive'}
                     </p>
                   </div>

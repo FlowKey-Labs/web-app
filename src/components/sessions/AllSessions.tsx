@@ -35,6 +35,10 @@ const AllSessions = () => {
     useState(false);
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  
+  // Temporary states for filter selections before applying
+  const [tempSelectedTypes, setTempSelectedTypes] = useState<string[]>([]);
+  const [tempSelectedCategories, setTempSelectedCategories] = useState<string[]>([]);
   const [dateRange, setDateRange] = useState<[Date | null, Date | null]>([
     null,
     null,
@@ -42,6 +46,8 @@ const AllSessions = () => {
 
   const openDrawer = () => setIsModalOpen(true);
   const closeDrawer = () => setIsModalOpen(false);
+  
+
 
   const { data: allSessionsData, isLoading: isLoadingSessions } = useGetSessions();
   
@@ -61,10 +67,7 @@ const AllSessions = () => {
       if (selectedCategories.length > 0) {
         const sessionCategory = session.category?.name || '';
         
-        const matchesCategory = selectedCategories.some(category => 
-          sessionCategory.toLowerCase().includes(category.toLowerCase()) ||
-          category.toLowerCase().includes(sessionCategory.toLowerCase())
-        );
+        const matchesCategory = selectedCategories.includes(sessionCategory);
         
         if (!matchesCategory) {
           return false;
@@ -260,13 +263,13 @@ const AllSessions = () => {
   ];
 
   const toggleSessionType = (type: string) => {
-    setSelectedTypes((prev) =>
+    setTempSelectedTypes((prev) =>
       prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type]
     );
   };
 
   const toggleCategory = (category: string) => {
-    setSelectedCategories((prev) =>
+    setTempSelectedCategories((prev) =>
       prev.includes(category)
         ? prev.filter((c) => c !== category)
         : [...prev, category]
@@ -274,10 +277,12 @@ const AllSessions = () => {
   };
 
   const applySessionTypeFilter = () => {
+    setSelectedTypes(tempSelectedTypes);
     setClassTypeDropdownOpen(false);
   };
 
   const applyCategoryFilter = () => {
+    setSelectedCategories(tempSelectedCategories);
     setCategoryTypeDropdownOpen(false);
   };
 
@@ -350,7 +355,12 @@ const AllSessions = () => {
             <div>
               <DropDownMenu
                 show={classTypeDropdownOpen}
-                setShow={setClassTypeDropdownOpen}
+                setShow={(show) => {
+                  if (show && !classTypeDropdownOpen) {
+                    setTempSelectedTypes([...selectedTypes]);
+                  }
+                  setClassTypeDropdownOpen(show);
+                }}
                 dropDownPosition='center'
                 actionElement={
                   <div
@@ -376,13 +386,13 @@ const AllSessions = () => {
                           <input
                             type='checkbox'
                             id={`session-type-${index}`}
-                            checked={selectedTypes.includes(label)}
+                            checked={tempSelectedTypes.includes(label)}
                             onChange={() => toggleSessionType(label)}
                             className='mr-2 h-4 w-4 rounded border-gray-300 focus:ring-0 focus:ring-offset-0 accent-[#1D9B5E]'
                           />
                           <label 
                             htmlFor={`session-type-${index}`}
-                            className={`text-sm cursor-pointer ${selectedTypes.includes(label) ? 'text-secondary font-medium' : 'text-primary'}`}
+                            className={`text-sm cursor-pointer ${tempSelectedTypes.includes(label) ? 'text-secondary font-medium' : 'text-primary'}`}
                           >
                             {label.charAt(0).toUpperCase() + label.slice(1)}
                           </label>
@@ -412,7 +422,12 @@ const AllSessions = () => {
             <div>
               <DropDownMenu
                 show={categoryTypeDropdownOpen}
-                setShow={setCategoryTypeDropdownOpen}
+                setShow={(show) => {
+                  if (show && !categoryTypeDropdownOpen) {
+                    setTempSelectedCategories([...selectedCategories]);
+                  }
+                  setCategoryTypeDropdownOpen(show);
+                }}
                 dropDownPosition='center'
                 actionElement={
                   <div
@@ -442,13 +457,13 @@ const AllSessions = () => {
                               <input
                                 type='checkbox'
                                 id={`category-${category.id}`}
-                                checked={selectedCategories.includes(category.name)}
+                                checked={tempSelectedCategories.includes(category.name)}
                                 onChange={() => toggleCategory(category.name)}
                                 className='mr-2 h-4 w-4 rounded border-gray-300 focus:ring-0 focus:ring-offset-0 accent-[#1D9B5E]'
                               />
                               <label 
                                 htmlFor={`category-${category.id}`}
-                                className={`text-sm cursor-pointer ${selectedCategories.includes(category.name) ? 'text-secondary font-medium' : 'text-primary'}`}
+                                className={`text-sm cursor-pointer ${tempSelectedCategories.includes(category.name) ? 'text-secondary font-medium' : 'text-primary'}`}
                               >
                                 {category.name}
                               </label>

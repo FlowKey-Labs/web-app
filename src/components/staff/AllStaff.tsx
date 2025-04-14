@@ -10,6 +10,7 @@ import { useGetStaff } from '../../hooks/reactQuery';
 import { StaffResponse } from '../../types/staffTypes';
 import AddStaff from './AddStaff';
 import EmptyDataPage from '../common/EmptyDataPage';
+import { Group, Menu } from '@mantine/core';
 
 const columnHelper = createColumnHelper<StaffResponse>();
 
@@ -72,11 +73,35 @@ const columns = [
   columnHelper.display({
     id: 'actions',
     header: () => (
-      <img
-        src={actionOptionIcon}
-        alt='Options'
-        className='w-4 h-4 cursor-pointer'
-      />
+      <div className='flex space-x-2' onClick={(e) => e.stopPropagation()}>
+        <Group justify='center'>
+          <Menu
+            width={150}
+            shadow='md'
+            position='bottom'
+            radius='md'
+            withArrow
+            offset={4}
+          >
+            <Menu.Target>
+              <img
+                src={actionOptionIcon}
+                alt='Options'
+                className='w-4 h-4 cursor-pointer'
+              />
+            </Menu.Target>
+            <Menu.Dropdown>
+              <Menu.Item
+                color='#162F3B'
+                className='text-sm'
+                style={{ textAlign: 'center' }}
+              >
+                Export
+              </Menu.Item>
+            </Menu.Dropdown>
+          </Menu>
+        </Group>
+      </div>
     ),
     cell: () => (
       <div className='flex space-x-2' onClick={(e) => e.stopPropagation()}>
@@ -140,10 +165,10 @@ const AllStaff = () => {
           leftIcon={plusIcon}
           onButtonClick={openDrawer}
         />
-        <EmptyDataPage 
-          title="No Staff Found"
+        <EmptyDataPage
+          title='No Staff Found'
           description="You don't have any staff members yet"
-          buttonText="Add New Staff"
+          buttonText='Add New Staff'
           onButtonClick={openDrawer}
           onClose={() => {}}
           opened={staff.length === 0 && !isLoading}

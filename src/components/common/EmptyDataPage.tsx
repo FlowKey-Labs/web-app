@@ -86,7 +86,10 @@ const EmptyDataPage: React.FC<EmptyDataPageProps> = ({
             className='mt-4'
             color='#1D9B5E'
             radius='xl'
-            onClick={onButtonClick}
+            onClick={() => {
+              onButtonClick();
+              onClose?.();
+            }}
           >
             {buttonText}
           </Button>
