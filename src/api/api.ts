@@ -198,7 +198,6 @@ const get_analytics = async (filterOption?: string) => {
   const { data } = await api.get(END_POINTS.ANALYTICS.ANALYTICS_DATA, {
     params,
   });
-  console.log('API Response:', data);
   return data;
 };
 
@@ -277,6 +276,14 @@ const update_client = async (
   return data;
 };
 
+const update_session = async (id: string, sessionData: Partial<CreateSessionData>) => {
+  const { data } = await api.patch(
+    END_POINTS.SESSION.SESSION_DETAIL(id),
+    sessionData
+  );
+  return data;
+};
+
 export {
   END_POINTS,
   registerUser,
@@ -305,4 +312,5 @@ export {
   get_session_analytics,
   get_class_sessions,
   update_client,
+  update_session,
 };

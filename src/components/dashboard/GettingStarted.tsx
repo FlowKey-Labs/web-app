@@ -269,7 +269,6 @@ const GettingStarted = () => {
                       ...item,
                       color: index === 0 ? '#00A76F' : '#EEEAF2',
                     }));
-                    console.log('Chart data:', chartData);
                     return chartData;
                   })()}
                   startAngle={180}

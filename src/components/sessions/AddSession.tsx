@@ -91,8 +91,7 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
   // Fetch data from API
   const { data: staffData, isLoading: isStaffLoading } = useGetStaff();
   const { data: clientsData, isLoading: isClientsLoading } = useGetClients();
-  const { data: categoriesData } =
-    useGetSessionCategories();
+  const { data: categoriesData } = useGetSessionCategories();
 
   const createSession = useCreateSession();
 
@@ -355,11 +354,6 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
             >
               <div className='flex-1 p-8'>
                 <div className='space-y-4'>
-                  <h3 className='text-lg font-bold text-gray-700'>
-                    {methods.watch('session_type') === 'class'
-                      ? 'Class Details'
-                      : 'Client Information'}
-                  </h3>
                   <div className='space-y-6'>
                     {methods.watch('session_type') === 'class' ? (
                       <>
@@ -587,10 +581,6 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
                                         : ''
                                     }
                                     onSelectItem={(selectedItem) => {
-                                      console.log(
-                                        'Selected staff item:',
-                                        selectedItem
-                                      );
                                       const value = selectedItem?.value;
                                       field.onChange(
                                         value ? parseInt(value) : undefined

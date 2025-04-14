@@ -26,6 +26,7 @@ import {
   get_session_analytics,
   get_class_sessions,
   update_client,
+  update_session,
 } from "../api/api";
 import { useAuthStore } from "../store/auth";
 import { BusinessServices } from "../types/business";
@@ -348,6 +349,19 @@ export const useCreateSession = () => {
     mutationFn: (sessionData: any) => create_session(sessionData),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["sessions"] });
+      queryClient.invalidateQueries({ queryKey: ["upcoming_sessions"] });
+    },
+  });
+};
+
+export const useUpdateSession = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, updateData }: { id: string; updateData: any }) =>
+      update_session(id, updateData),
+    onSuccess: (_, { id }) => {
+      queryClient.invalidateQueries({ queryKey: ["sessions"] });
+      queryClient.invalidateQueries({ queryKey: ["session", id] });
       queryClient.invalidateQueries({ queryKey: ["upcoming_sessions"] });
     },
   });

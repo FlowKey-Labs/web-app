@@ -81,7 +81,6 @@ const BusinessInformation = ({
         }
       },
       {
-        onSuccess: () => console.log('Updated successfully'),
         onError: (error) => console.error('Update failed:', error),
       }
     );

@@ -46,8 +46,6 @@ const AddClients = ({ isOpen, onClose }: ClientsModalProps) => {
 
   const onSubmit = (data: AddClient) => {
     try {
-      console.log('Form data:', data);
-      // Format date using moment
       const formattedDob = data.dob
         ? moment(data.dob).format('YYYY-MM-DD')
         : undefined;
@@ -69,17 +67,14 @@ const AddClients = ({ isOpen, onClose }: ClientsModalProps) => {
 
       // Add session_ids if sessions were selected
       if (data.sessions?.length) {
-        console.log('Sessions selected:', data.sessions);
         const sessionIds = data.sessions.map((session) =>
           parseInt(session.value)
         );
         if (sessionIds.every((id) => !isNaN(id))) {
-          console.log('Adding session_ids:', sessionIds);
           clientData.session_ids = sessionIds;
         }
       }
 
-      console.log('Sending client data:', clientData);
       addClient(clientData);
 
       notifications.show({
@@ -111,7 +106,6 @@ const AddClients = ({ isOpen, onClose }: ClientsModalProps) => {
         autoClose: 3000,
         position: 'top-right',
       });
-      console.error('Error creating client:', error);
     }
   };
 
@@ -263,7 +257,6 @@ const AddClients = ({ isOpen, onClose }: ClientsModalProps) => {
                       ]}
                       value={field.value}
                       onSelectItem={(selected) => {
-                        console.log('Gender selected:', selected.value);
                         field.onChange(selected.value);
                       }}
                     />

@@ -137,7 +137,6 @@ const ClientDetails = () => {
           title='Client Details'
           buttonText='Update Client'
           searchPlaceholder='Search by ID, Name or Subject'
-          leftIcon={plusIcon}
           onButtonClick={openDrawer}
           showFilterIcons={false}
         />

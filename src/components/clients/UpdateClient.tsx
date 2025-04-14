@@ -315,7 +315,6 @@ const UpdateClient = ({ isOpen, onClose, clientId }: UpdateClientProps) => {
                       ]}
                       value={field.value}
                       onSelectItem={(selected) => {
-                        console.log('Gender selected:', selected.value);
                         field.onChange(selected.value);
                       }}
                     />

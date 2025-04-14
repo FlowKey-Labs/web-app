@@ -1,9 +1,7 @@
 import { useParams } from 'react-router-dom';
 import MembersHeader from '../headers/MembersHeader';
 import { Progress } from '@mantine/core';
-import plusIcon from '../../assets/icons/plusWhite.svg';
 import { useState } from 'react';
-import ClassesModal from './AddSession';
 import Table from '../common/Table';
 import { createColumnHelper } from '@tanstack/react-table';
 
@@ -16,6 +14,7 @@ import {
 import actionOptionIcon from '../../assets/icons/actionOption.svg';
 import { Client } from '../../types/clientTypes';
 import avatar from '../../assets/icons/newAvatar.svg';
+import UpdateSession from './UpdateSession';
 
 const columnHelper = createColumnHelper<Client>();
 
@@ -90,7 +89,7 @@ const columns = [
 const SessionDetails = () => {
   const { id: sessionId } = useParams();
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'overview' | 'clients'>(
     'overview'
   );
@@ -117,8 +116,8 @@ const SessionDetails = () => {
     error: clientsErrorDetails,
   } = useGetClients();
 
-  const openModal = () => setIsModalOpen(true);
-  const closeModal = () => setIsModalOpen(false);
+  const openDrawer = () => setIsDrawerOpen(true);
+  const closeDrawer = () => setIsDrawerOpen(false);
 
   const formatDate = (dateString: string) => {
     if (!dateString) return '';
@@ -211,10 +210,9 @@ const SessionDetails = () => {
       <div className='flex flex-col h-screen bg-cardsBg w-full overflow-y-auto '>
         <MembersHeader
           title='Session Details'
-          buttonText='New Session'
+          buttonText='Update Session'
           searchPlaceholder='Search by ID, Name or Subject'
-          leftIcon={plusIcon}
-          onButtonClick={openModal}
+          onButtonClick={openDrawer}
           showFilterIcons={false}
           showSearch={false}
         />
@@ -432,7 +430,7 @@ const SessionDetails = () => {
           </div>
         </div>
       </div>
-      <ClassesModal isOpen={isModalOpen} onClose={closeModal} />
+      <UpdateSession isOpen={isDrawerOpen} onClose={closeDrawer} sessionId={sessionId || ''} />
     </>
   );
 };
