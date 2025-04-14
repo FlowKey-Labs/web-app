@@ -368,7 +368,9 @@ const AllSessions = () => {
                     className='p-2 w-full gap-2 h-10 rounded-md outline-none cursor-pointer flex items-center justify-between'
                   >
                     <p className='text-primary text-sm font-normal'>
-                      Session Type {selectedTypes.length > 0 && `(${selectedTypes.length})`}
+                      {selectedTypes.length > 0 
+                        ? selectedTypes.map(type => type.charAt(0).toUpperCase() + type.slice(1)).join(', ')
+                        : 'Session Type'}
                     </p>
                     <img src={dropdownIcon} alt='dropdown icon' />
                   </div>
@@ -435,7 +437,9 @@ const AllSessions = () => {
                     className='p-2 w-full gap-2 h-10 rounded-md outline-none cursor-pointer flex items-center justify-between'
                   >
                     <p className='text-primary text-sm font-normal'>
-                      Categories {selectedCategories.length > 0 && `(${selectedCategories.length})`}
+                      {selectedCategories.length > 0 
+                        ? selectedCategories.join(', ')
+                        : 'Categories'}
                     </p>
                     <img src={dropdownIcon} alt='dropdown icon' />
                   </div>
