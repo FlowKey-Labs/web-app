@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createColumnHelper } from '@tanstack/react-table';
 
@@ -43,22 +43,14 @@ const AllSessions = () => {
   const openDrawer = () => setIsModalOpen(true);
   const closeDrawer = () => setIsModalOpen(false);
 
-  // Get all sessions without filtering at the API level
   const { data: allSessionsData, isLoading: isLoadingSessions } = useGetSessions();
   
-  // Apply client-side filtering
   const filteredSessions = useMemo(() => {
     if (!allSessionsData) return [];
     
     return allSessionsData.filter(session => {
-      // Filter by session type
       if (selectedTypes.length > 0) {
-        // For our session data, we need to check the class_type field
-        // which appears to be stored directly in the session object
         const classType = session.class_type || '';
-        
-        // Check if any selected type matches the class type
-        // Using direct equality since the values should match exactly
         const matchesType = selectedTypes.includes(classType);
         
         if (!matchesType) {
@@ -66,9 +58,7 @@ const AllSessions = () => {
         }
       }
       
-      // Filter by category
       if (selectedCategories.length > 0) {
-        // Handle potential null or undefined category
         const sessionCategory = session.category?.name || '';
         
         const matchesCategory = selectedCategories.some(category => 
@@ -81,13 +71,11 @@ const AllSessions = () => {
         }
       }
       
-      // Filter by date range
       if (dateRange[0] && dateRange[1]) {
         const sessionDate = new Date(session.date);
         const startDate = new Date(dateRange[0]);
         const endDate = new Date(dateRange[1]);
         
-        // Set hours to 0 for accurate date comparison
         sessionDate.setHours(0, 0, 0, 0);
         startDate.setHours(0, 0, 0, 0);
         endDate.setHours(0, 0, 0, 0);
@@ -101,7 +89,6 @@ const AllSessions = () => {
     });
   }, [allSessionsData, selectedTypes, selectedCategories, dateRange]);
   
-  // Use the filtered data for the table
   const sessionsData = filteredSessions;
   const { data: categoriesData, isLoading: isLoadingCategories } =
     useGetSessionCategories();
@@ -505,17 +492,18 @@ const AllSessions = () => {
             </div>
           </div>
         </div>
-        {(!sessionsData || sessionsData.length === 0) && !isLoadingSessions && (
-          <div className='absolute inset-0 z-10 bg-white bg-opacity-70'>
-            <EmptyDataPage 
-              title="No Sessions Found"
-              description="You don't have any sessions yet"
-              buttonText="Create New Session"
-              onButtonClick={openDrawer}
-              className="h-[calc(100%-70px)] mt-[70px]"
-            />
-          </div>
-        )}
+        <EmptyDataPage 
+          title="No Sessions Found!"
+          description="You don't have any sessions yet"
+          buttonText="Create New Session"
+          onButtonClick={openDrawer}
+          onClose={() => {
+            if (selectedTypes.length > 0 || selectedCategories.length > 0 || (dateRange[0] && dateRange[1])) {
+              resetFilters();
+            }
+          }}
+          opened={(!sessionsData || sessionsData.length === 0) && !isLoadingSessions}
+        />
         <div className='flex-1 px-6 py-2'>
           {isLoadingSessions || isLoadingCategories ? (
             <div className='flex justify-center items-center py-10'>

@@ -65,11 +65,14 @@ const NewStaffProfile = ({ onNext, initialData }: NewStaffProfileProps) => {
               <Controller
                 name='userId'
                 control={methods.control}
+                rules={{
+                  required: 'National ID/ Passport No is required',
+                }}
                 render={({ field }) => (
                   <Input
                     {...field}
-                    label='User ID'
-                    placeholder='Team member ID (optional)'
+                    label='National ID/ Passport No'
+                    placeholder='Enter National ID/ Passport No'
                     type='text'
                   />
                 )}

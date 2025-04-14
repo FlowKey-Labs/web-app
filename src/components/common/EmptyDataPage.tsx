@@ -1,5 +1,6 @@
 import React from 'react';
 import emptyDataIcon from '../../assets/icons/empty.svg';
+import { Modal, Button } from '@mantine/core';
 
 interface EmptyDataPageProps {
   title?: string;
@@ -9,6 +10,8 @@ interface EmptyDataPageProps {
   showButton?: boolean;
   icon?: string;
   className?: string;
+  onClose?: () => void;
+  opened?: boolean;
 }
 
 const EmptyDataPage: React.FC<EmptyDataPageProps> = ({
@@ -19,25 +22,77 @@ const EmptyDataPage: React.FC<EmptyDataPageProps> = ({
   showButton = true,
   icon = emptyDataIcon,
   className = '',
+  onClose,
+  opened = true,
 }) => {
   return (
-    <div
-      className={`w-full h-full bg-black opacity-50 flex items-center justify-center ${className}`}
+    <Modal
+      opened={opened}
+      onClose={() => onClose?.()}
+      title={null}
+      centered
+      withCloseButton={false}
+      closeOnClickOutside={true}
+      closeOnEscape={true}
+      transitionProps={{ duration: 200 }}
+      fullScreen={false}
+      overlayProps={{
+        opacity: 0.55,
+        blur: 3,
+        color: 'rgba(0, 0, 0, 0.5)',
+      }}
+      styles={{
+        content: {
+          width: 'auto',
+          minWidth: '300px',
+          padding: '1.5rem',
+          borderRadius: '8px',
+          position: 'relative',
+        },
+        body: {
+          padding: 0,
+        },
+        overlay: {
+          position: 'fixed',
+          top: 0,
+          right: 0,
+          bottom: 0,
+          left: '230px',
+          width: 'auto',
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          pointerEvents: opened ? 'auto' : 'none',
+        },
+        root: {
+          position: 'fixed',
+          top: 0,
+          right: 0,
+          bottom: 0,
+          left: '150px',
+          width: 'auto',
+          pointerEvents: opened ? 'auto' : 'none',
+          zIndex: opened ? 1000 : -1,
+        },
+      }}
+      classNames={{
+        root: className,
+      }}
     >
-      <div className='rounded-md bg-white flex flex-col items-center justify-center p-6 shadow-sm min-w-[400px]'>
+      <div className='flex flex-col items-center justify-center'>
         <img src={icon} alt='Empty data' className='mb-3' />
-        <p className='text-gray-700 text-base font-semibold'>{title}</p>
+        <p className='text-gray-700 text-lg font-semibold'>{title}</p>
         <p className='text-gray-500 text-sm mt-1'>{description}</p>
         {showButton && onButtonClick && (
-          <button
-            className='mt-4 bg-secondary text-white py-2 px-4 rounded-full hover:bg-secondary/90 transition-colors'
+          <Button
+            className='mt-4'
+            color='#1D9B5E'
+            radius='xl'
             onClick={onButtonClick}
           >
             {buttonText}
-          </button>
+          </Button>
         )}
       </div>
-    </div>
+    </Modal>
   );
 };
 

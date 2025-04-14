@@ -140,17 +140,14 @@ const AllStaff = () => {
           leftIcon={plusIcon}
           onButtonClick={openDrawer}
         />
-        {staff.length === 0 && !isLoading && (
-          <div className='absolute inset-0 z-10 bg-white bg-opacity-70'>
-            <EmptyDataPage 
-              title="No Staff Found"
-              description="You don't have any staff members yet"
-              buttonText="Add New Staff"
-              onButtonClick={openDrawer}
-              className="h-[calc(100%-70px)] mt-[70px]"
-            />
-          </div>
-        )}
+        <EmptyDataPage 
+          title="No Staff Found"
+          description="You don't have any staff members yet"
+          buttonText="Add New Staff"
+          onButtonClick={openDrawer}
+          onClose={() => {}}
+          opened={staff.length === 0 && !isLoading}
+        />
         <div className='flex-1 px-6 py-3'>
           <Table
             data={staff}

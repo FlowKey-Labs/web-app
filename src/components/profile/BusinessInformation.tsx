@@ -1,6 +1,9 @@
 import { Accordion } from '@mantine/core';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
 import { useEffect } from 'react';
+import { notifications } from '@mantine/notifications';
+import successIcon from '../../assets/icons/success.svg';
+import errorIcon from '../../assets/icons/error.svg';
 
 import Button from '../common/Button';
 import Input from '../common/Input';
@@ -65,6 +68,21 @@ const BusinessInformation = ({
   const onSubmit = (data: ProfileFormData) => {
     if (!businessProfile?.[0]?.id) {
       console.error('No business profile ID found');
+      
+      notifications.show({
+        title: 'Error',
+        message: 'Business profile not found. Please try again.',
+        color: 'red',
+        radius: 'md',
+        icon: (
+          <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+            <img src={errorIcon} alt='Error' className='w-4 h-4' />
+          </span>
+        ),
+        withBorder: true,
+        autoClose: 3000,
+        position: 'top-right',
+      });
       return;
     }
 
@@ -81,7 +99,39 @@ const BusinessInformation = ({
         }
       },
       {
-        onError: (error) => console.error('Update failed:', error),
+        onSuccess: () => {
+          notifications.show({
+            title: 'Success',
+            message: 'Business profile updated successfully!',
+            color: 'green',
+            radius: 'md',
+            icon: (
+              <span className='flex items-center justify-center w-6 h-6 rounded-full bg-green-200'>
+                <img src={successIcon} alt='Success' className='w-4 h-4' />
+              </span>
+            ),
+            withBorder: true,
+            autoClose: 3000,
+            position: 'top-right',
+          });
+        },
+        onError: (error) => {
+          console.error('Update failed:', error);
+          notifications.show({
+            title: 'Error',
+            message: 'Failed to update business profile. Please try again.',
+            color: 'red',
+            radius: 'md',
+            icon: (
+              <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+                <img src={errorIcon} alt='Error' className='w-4 h-4' />
+              </span>
+            ),
+            withBorder: true,
+            autoClose: 3000,
+            position: 'top-right',
+          });
+        },
       }
     );
   };

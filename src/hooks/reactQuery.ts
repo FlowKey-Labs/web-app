@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient, UseQueryResult } from "@tanstack/react-query";
 import {
   registerUser,
   loginUser,
@@ -26,6 +26,7 @@ import {
   get_session_analytics,
   get_class_sessions,
   update_client,
+  deactivate_client,
   update_session,
 } from "../api/api";
 import { useAuthStore } from "../store/auth";
@@ -309,8 +310,8 @@ export interface SessionFilters {
   dateRange?: [Date | null, Date | null];
 }
 
-export const useGetSessions = (filters?: SessionFilters) => {
-  return useQuery<Session[]>({
+export const useGetSessions = (filters?: SessionFilters): UseQueryResult<Session[], Error> => {
+  return useQuery<Session[], Error>({
     queryKey: ["sessions", filters],
     queryFn: () => get_sessions(filters),
     staleTime: 1000 * 60 * 5,
@@ -383,5 +384,17 @@ export const useUpdateClient = () => {
       queryClient.invalidateQueries({ queryKey: ["client", id] });
     },
     onError: (error) => console.error("Update client error:", error),
+  });
+};
+
+export const useDeactivateClient = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => deactivate_client(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["clients"] });
+      queryClient.invalidateQueries({ queryKey: ["analytics"] });
+    },
+    onError: (error) => console.error("Deactivate client error:", error),
   });
 };

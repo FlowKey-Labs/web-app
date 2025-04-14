@@ -1,7 +1,7 @@
 import { api } from '../lib/axios';
 import axios from 'axios';
 
-import { CreateSessionData } from '../types/sessionTypes';
+import { CreateSessionData, Session } from '../types/sessionTypes';
 
 const BASE_URL = import.meta.env.VITE_APP_BASEURL;
 
@@ -231,7 +231,14 @@ const reschedule_session = async (
   return data;
 };
 
-const get_sessions = async (filters?: any) => {
+// Define a type for the session filters
+interface SessionFilters {
+  sessionTypes?: string[];
+  categories?: string[];
+  dateRange?: [Date | null, Date | null];
+}
+
+const get_sessions = async (filters?: SessionFilters): Promise<Session[]> => {
   let url = END_POINTS.SESSION.SESSIONS_DATA;
   
   if (filters) {
@@ -261,7 +268,7 @@ const get_sessions = async (filters?: any) => {
     }
   }
   
-  const { data } = await api.get(url);
+  const { data } = await api.get<Session[]>(url);
   return data;
 };
 
@@ -305,6 +312,13 @@ const update_client = async (
   return data;
 };
 
+const deactivate_client = async (id: string) => {
+  const { data } = await api.patch(`${END_POINTS.CLIENTS.CLIENTS_DATA}${id}/`, {
+    is_active: false
+  });
+  return data;
+};
+
 const update_session = async (id: string, sessionData: Partial<CreateSessionData>) => {
   const { data } = await api.patch(
     END_POINTS.SESSION.SESSION_DETAIL(id),
@@ -341,5 +355,6 @@ export {
   get_session_analytics,
   get_class_sessions,
   update_client,
+  deactivate_client,
   update_session,
 };

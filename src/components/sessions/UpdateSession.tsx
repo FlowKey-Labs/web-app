@@ -5,6 +5,8 @@ import {
   RepeatUnit,
 } from '../../types/sessionTypes';
 import { notifications } from '@mantine/notifications';
+import successIcon from '../../assets/icons/success.svg';
+import errorIcon from '../../assets/icons/error.svg';
 import Button from '../common/Button';
 import DropdownSelectInput from '../common/Dropdown';
 import Input from '../common/Input';
@@ -282,9 +284,18 @@ const UpdateSession = ({ isOpen, onClose, sessionId }: SessionModalProps) => {
         title: 'Success',
         message:
           data.session_type === 'class'
-            ? 'Class updated successfully'
-            : 'Appointment updated successfully',
+            ? 'Class updated successfully!'
+            : 'Appointment updated successfully!',
         color: 'green',
+        radius: 'md',
+        icon: (
+          <span className='flex items-center justify-center w-6 h-6 rounded-full bg-green-200'>
+            <img src={successIcon} alt='Success' className='w-4 h-4' />
+          </span>
+        ),
+        withBorder: true,
+        autoClose: 3000,
+        position: 'top-right',
       });
     } catch (error: any) {
       console.error('Error:', error);
@@ -312,24 +323,47 @@ const UpdateSession = ({ isOpen, onClose, sessionId }: SessionModalProps) => {
           title: 'Error',
           message: `Failed to update session: ${errorMessages}`,
           color: 'red',
-          icon: 'alert',
+          radius: 'md',
+          icon: (
+            <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+              <img src={errorIcon} alt='Error' className='w-4 h-4' />
+            </span>
+          ),
+          withBorder: true,
+          autoClose: 3000,
+          position: 'top-right',
         });
       } else if (error.request) {
         console.error('Error Request:', error.request);
         notifications.show({
-          title: 'Error',
-          message:
-            'No response received from server. Please check your connection.',
+          title: 'Connection Error',
+          message: 'No response received from server. Please check your connection.',
           color: 'red',
-          icon: 'alert',
+          radius: 'md',
+          icon: (
+            <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+              <img src={errorIcon} alt='Error' className='w-4 h-4' />
+            </span>
+          ),
+          withBorder: true,
+          autoClose: 3000,
+          position: 'top-right',
         });
       } else {
         console.error('Error Message:', error.message || 'Unknown error');
         notifications.show({
           title: 'Error',
-          message: 'Unknown error occurred. Please try again.',
+          message: 'Failed to update session. Please try again.',
           color: 'red',
-          icon: 'alert',
+          radius: 'md',
+          icon: (
+            <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+              <img src={errorIcon} alt='Error' className='w-4 h-4' />
+            </span>
+          ),
+          withBorder: true,
+          autoClose: 3000,
+          position: 'top-right',
         });
       }
     }

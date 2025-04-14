@@ -1,10 +1,12 @@
 import { useForm, Controller, FormProvider } from 'react-hook-form';
 import { Session, Category, ClassFields } from '../../types/sessionTypes';
-import { toast } from 'react-toastify';
 import Button from '../common/Button';
 import DropdownSelectInput from '../common/Dropdown';
 import Input from '../common/Input';
 import { useState, useEffect } from 'react';
+import { notifications } from '@mantine/notifications';
+import successIcon from '../../assets/icons/success.svg';
+import errorIcon from '../../assets/icons/error.svg';
 import { repeatDays, weekdayNames } from '../../utils/dummyData';
 import ChevronUp from '../../assets/icons/up.svg';
 import ChevronDown from '../../assets/icons/down.svg';
@@ -35,24 +37,19 @@ type FormData = Omit<
   | 'profile_picture'
   | 'category'
 > & {
-  // Common fields
   start_time: string;
   end_time: string;
   session_type: 'class' | 'appointment';
   repetition: 'none' | 'daily' | 'weekly' | 'monthly' | 'custom';
   date: string;
 
-  // Class fields with dropdown support
   title: string;
   class_type: DropDownItem | ClassFields['class_type'];
   spots: number;
-
-  // Dropdown fields that can be objects or primitives
   staff?: DropDownItem | number;
   category_id?: DropDownItem | number;
   client_ids: string[];
 
-  // Repetition fields
   repeat_every?: number;
   repeat_unit?: 'days' | 'weeks' | 'months';
   repeat_on?: number[];
@@ -88,7 +85,6 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
     },
   });
 
-  // Fetch data from API
   const { data: staffData, isLoading: isStaffLoading } = useGetStaff();
   const { data: clientsData, isLoading: isClientsLoading } = useGetClients();
   const { data: categoriesData } = useGetSessionCategories();
@@ -100,7 +96,6 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
     { open: openRepetitionModal, close: closeRepetitionModal },
   ] = useDisclosure();
 
-  // Initialize repetition state
   const [selectedWeekdays, setSelectedWeekdays] = useState<number[]>([]);
   const [endsOption, setEndsOption] = useState<'never' | 'on' | 'after'>(
     'never'
@@ -108,8 +103,7 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
   const [occurrences, setOccurrences] = useState(2);
   const [value, setValue] = useState<Date | null>(null);
 
-  // Reset form when type changes
-  useEffect(() => {
+      useEffect(() => {
     if (methods.watch('session_type') === 'class') {
       methods.reset({
         ...methods.getValues(),
@@ -126,7 +120,6 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
     }
   }, [methods.watch('session_type')]);
 
-  // Reset repetition state when drawer closes
   useEffect(() => {
     if (!isOpen) {
       closeRepetitionModal();
@@ -239,11 +232,23 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
       }
 
       await createSession.mutateAsync(formattedData);
-      toast.success(
-        data.session_type === 'class'
+      
+      notifications.show({
+        title: 'Success',
+        message: data.session_type === 'class'
           ? 'Class created successfully!'
-          : 'Appointment created successfully!'
-      );
+          : 'Appointment created successfully!',
+        color: 'green',
+        radius: 'md',
+        icon: (
+          <span className='flex items-center justify-center w-6 h-6 rounded-full bg-green-200'>
+            <img src={successIcon} alt='Success' className='w-4 h-4' />
+          </span>
+        ),
+        withBorder: true,
+        autoClose: 3000,
+        position: 'top-right',
+      });
 
       onClose();
       methods.reset();
@@ -263,8 +268,19 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
             .map(([field, errors]) => `${field}: ${errors}`)
             .join('\n');
 
-          toast.error(`Validation errors:\n${errorMessages}`, {
+          notifications.show({
+            title: 'Validation Error',
+            message: `Validation errors:\n${errorMessages}`,
+            color: 'red',
+            radius: 'md',
+            icon: (
+              <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+                <img src={errorIcon} alt='Error' className='w-4 h-4' />
+              </span>
+            ),
+            withBorder: true,
             autoClose: 10000,
+            position: 'top-right',
           });
 
           if (methods.formState.errors) {
@@ -287,16 +303,53 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
             });
           }
         } else {
-          toast.error(`Server error: ${JSON.stringify(error.response.data)}`);
+          notifications.show({
+            title: 'Server Error',
+            message: `Server error: ${JSON.stringify(error.response.data)}`,
+            color: 'red',
+            radius: 'md',
+            icon: (
+              <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+                <img src={errorIcon} alt='Error' className='w-4 h-4' />
+              </span>
+            ),
+            withBorder: true,
+            autoClose: 3000,
+            position: 'top-right',
+          });
         }
       } else if (error.request) {
         console.error('Error Request:', error.request);
-        toast.error(
-          'No response received from server. Please check your connection.'
-        );
+        notifications.show({
+          title: 'Connection Error',
+          message: 'No response received from server. Please check your connection.',
+          color: 'red',
+          radius: 'md',
+          icon: (
+            <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+              <img src={errorIcon} alt='Error' className='w-4 h-4' />
+            </span>
+          ),
+          withBorder: true,
+          autoClose: 3000,
+          position: 'top-right',
+        });
       } else {
         console.error('Error Message:', error.message || 'Unknown error');
-        toast.error('Failed to create session. Please try again.');
+        notifications.show({
+          title: 'Error',
+          message: 'Failed to create session. Please try again.',
+          color: 'red',
+          radius: 'md',
+          icon: (
+            <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+              <img src={errorIcon} alt='Error' className='w-4 h-4' />
+            </span>
+          ),
+          withBorder: true,
+          autoClose: 3000,
+          position: 'top-right',
+        });
       }
     }
   };

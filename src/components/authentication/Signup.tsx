@@ -10,8 +10,10 @@ import Main from '../authentication/MainAuth';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useWatch } from 'react-hook-form';
-import NotificationToast from '../common/NotificationToast';
 import { useRegisterUser } from '../../hooks/reactQuery';
+import { notifications } from '@mantine/notifications';
+import successIcon from '../../assets/icons/success.svg';
+import errorIcon from '../../assets/icons/error.svg';
 
 import { EyeClosedIcon, EyeOpenIcon } from '../../assets/icons';
 
@@ -42,12 +44,6 @@ const Signup = () => {
   const [isHovered, setIsHovered] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [notification, setNotification] = useState<{
-    show: boolean;
-    type: 'success' | 'error';
-    title: string;
-    description: string;
-  }>({ show: false, type: 'success', title: '', description: '' });
 
   const togglePasswordVisibility = () => setShowPassword(!showPassword);
   const toggleConfirmPasswordVisibility = () =>
@@ -67,11 +63,19 @@ const Signup = () => {
       },
       {
         onSuccess: () => {
-          setNotification({
-            show: true,
-            type: 'success',
-            title: 'Success!',
-            description: 'Registration successful'
+          notifications.show({
+            title: 'Success',
+            message: 'Registration successful! Redirecting...',
+            color: 'green',
+            radius: 'md',
+            icon: (
+              <span className='flex items-center justify-center w-6 h-6 rounded-full bg-green-200'>
+                <img src={successIcon} alt='Success' className='w-4 h-4' />
+              </span>
+            ),
+            withBorder: true,
+            autoClose: 3000,
+            position: 'top-right',
           });
           setTimeout(() => {
             navigate('/welcome');
@@ -83,11 +87,19 @@ const Signup = () => {
             error?.response?.data?.email?.[0] || 
             error?.response?.data?.mobile_number?.[0] ||
             'Registration failed. Please try again.';
-          setNotification({
-            show: true,
-            type: 'error',
+          notifications.show({
             title: 'Error',
-            description: errorMessage
+            message: errorMessage,
+            color: 'red',
+            radius: 'md',
+            icon: (
+              <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+                <img src={errorIcon} alt='Error' className='w-4 h-4' />
+              </span>
+            ),
+            withBorder: true,
+            autoClose: 3000,
+            position: 'top-right',
           });
         },
       }
@@ -295,16 +307,7 @@ const Signup = () => {
           </Button>
         </form>
       </FormProvider>
-      {notification.show && (
-        <NotificationToast
-          type={notification.type}
-          title={notification.title}
-          description={notification.description}
-          onClose={() => setNotification(prev => ({ ...prev, show: false }))}
 
-          autoClose={5000}
-        />
-      )}
     </Main>
   );
 };
