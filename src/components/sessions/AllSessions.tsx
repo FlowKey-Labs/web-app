@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createColumnHelper } from '@tanstack/react-table';
 
@@ -22,6 +22,8 @@ import dropdownIcon from '../../assets/icons/dropIcon.svg';
 import Button from '../common/Button';
 import AddSession from './AddSession';
 
+import EmptyDataPage from '../common/EmptyDataPage';
+
 const columnHelper = createColumnHelper<Session>();
 
 const AllSessions = () => {
@@ -41,7 +43,66 @@ const AllSessions = () => {
   const openDrawer = () => setIsModalOpen(true);
   const closeDrawer = () => setIsModalOpen(false);
 
-  const { data: sessionsData, isLoading: isLoadingSessions } = useGetSessions();
+  // Get all sessions without filtering at the API level
+  const { data: allSessionsData, isLoading: isLoadingSessions } = useGetSessions();
+  
+  // Apply client-side filtering
+  const filteredSessions = useMemo(() => {
+    if (!allSessionsData) return [];
+    
+    return allSessionsData.filter(session => {
+      // Filter by session type
+      if (selectedTypes.length > 0) {
+        // For our session data, we need to check the class_type field
+        // which appears to be stored directly in the session object
+        const classType = session.class_type || '';
+        
+        // Check if any selected type matches the class type
+        // Using direct equality since the values should match exactly
+        const matchesType = selectedTypes.includes(classType);
+        
+        if (!matchesType) {
+          return false;
+        }
+      }
+      
+      // Filter by category
+      if (selectedCategories.length > 0) {
+        // Handle potential null or undefined category
+        const sessionCategory = session.category?.name || '';
+        
+        const matchesCategory = selectedCategories.some(category => 
+          sessionCategory.toLowerCase().includes(category.toLowerCase()) ||
+          category.toLowerCase().includes(sessionCategory.toLowerCase())
+        );
+        
+        if (!matchesCategory) {
+          return false;
+        }
+      }
+      
+      // Filter by date range
+      if (dateRange[0] && dateRange[1]) {
+        const sessionDate = new Date(session.date);
+        const startDate = new Date(dateRange[0]);
+        const endDate = new Date(dateRange[1]);
+        
+        // Set hours to 0 for accurate date comparison
+        sessionDate.setHours(0, 0, 0, 0);
+        startDate.setHours(0, 0, 0, 0);
+        endDate.setHours(0, 0, 0, 0);
+        
+        if (sessionDate < startDate || sessionDate > endDate) {
+          return false;
+        }
+      }
+      
+      return true;
+    });
+  }, [allSessionsData, selectedTypes, selectedCategories, dateRange]);
+  
+  // Use the filtered data for the table
+  const sessionsData = filteredSessions;
   const { data: categoriesData, isLoading: isLoadingCategories } =
     useGetSessionCategories();
 
@@ -237,6 +298,8 @@ const AllSessions = () => {
     setSelectedTypes([]);
     setSelectedCategories([]);
     setDateRange([null, null]);
+    setClassTypeDropdownOpen(false);
+    setCategoryTypeDropdownOpen(false);
   };
 
   return (
@@ -308,7 +371,7 @@ const AllSessions = () => {
                     className='p-2 w-full gap-2 h-10 rounded-md outline-none cursor-pointer flex items-center justify-between'
                   >
                     <p className='text-primary text-sm font-normal'>
-                      Session Type
+                      Session Type {selectedTypes.length > 0 && `(${selectedTypes.length})`}
                     </p>
                     <img src={dropdownIcon} alt='dropdown icon' />
                   </div>
@@ -320,26 +383,28 @@ const AllSessions = () => {
                   </h3>
 
                   <div>
-                    <div className='flex flex-wrap gap-4 mt-4 min-w-[300px]'>
+                    <div className='flex flex-col gap-2 mt-4 min-w-[300px]'>
                       {classTypesOptions.map((label, index) => (
-                        <button
-                          key={index}
-                          onClick={() => toggleSessionType(label)}
-                          className={`w-[calc(33.33%-12px)] px-2 py-2 border rounded-full
-                            ${
-                              selectedTypes.includes(label)
-                                ? 'border-secondary bg-secondary text-white'
-                                : 'border-gray-400 text-primary'
-                            }
-                            font-normal text-xs transition-colors duration-200`}
-                        >
-                          {label.charAt(0).toUpperCase() + label.slice(1)}
-                        </button>
+                        <div key={index} className='flex items-center'>
+                          <input
+                            type='checkbox'
+                            id={`session-type-${index}`}
+                            checked={selectedTypes.includes(label)}
+                            onChange={() => toggleSessionType(label)}
+                            className='mr-2 h-4 w-4 rounded border-gray-300 focus:ring-0 focus:ring-offset-0 accent-[#1D9B5E]'
+                          />
+                          <label 
+                            htmlFor={`session-type-${index}`}
+                            className={`text-sm cursor-pointer ${selectedTypes.includes(label) ? 'text-secondary font-medium' : 'text-primary'}`}
+                          >
+                            {label.charAt(0).toUpperCase() + label.slice(1)}
+                          </label>
+                        </div>
                       ))}
                     </div>
-                    <div className='pt-16'>
+                    <div className='pt-4'>
                       <p className='text-gray-400 text-sm'>
-                        *You can choose multiple Class types
+                        *You can choose multiple Session types
                       </p>
                     </div>
                   </div>
@@ -368,7 +433,7 @@ const AllSessions = () => {
                     className='p-2 w-full gap-2 h-10 rounded-md outline-none cursor-pointer flex items-center justify-between'
                   >
                     <p className='text-primary text-sm font-normal'>
-                      Categories
+                      Categories {selectedCategories.length > 0 && `(${selectedCategories.length})`}
                     </p>
                     <img src={dropdownIcon} alt='dropdown icon' />
                   </div>
@@ -380,32 +445,34 @@ const AllSessions = () => {
                   </h3>
 
                   <div>
-                    <div className='flex flex-wrap gap-4 mt-4 min-w-[300px]'>
+                    <div className='flex flex-col gap-2 mt-4 min-w-[300px]'>
                       {isLoadingCategories ? (
                         <p>Loading categories...</p>
                       ) : categoriesData && categoriesData.length > 0 ? (
                         categoriesData.map(
                           (category: { id: number; name: string }) => (
-                            <button
-                              key={category.id}
-                              onClick={() => toggleCategory(category.name)}
-                              className={`w-[calc(33.33%-12px)] px-2 py-2 border rounded-full
-                              ${
-                                selectedCategories.includes(category.name)
-                                  ? 'border-secondary bg-secondary text-white'
-                                  : 'border-gray-400 text-primary'
-                              }
-                              font-normal text-xs transition-colors duration-200`}
-                            >
-                              {category.name}
-                            </button>
+                            <div key={category.id} className='flex items-center'>
+                              <input
+                                type='checkbox'
+                                id={`category-${category.id}`}
+                                checked={selectedCategories.includes(category.name)}
+                                onChange={() => toggleCategory(category.name)}
+                                className='mr-2 h-4 w-4 rounded border-gray-300 focus:ring-0 focus:ring-offset-0 accent-[#1D9B5E]'
+                              />
+                              <label 
+                                htmlFor={`category-${category.id}`}
+                                className={`text-sm cursor-pointer ${selectedCategories.includes(category.name) ? 'text-secondary font-medium' : 'text-primary'}`}
+                              >
+                                {category.name}
+                              </label>
+                            </div>
                           )
                         )
                       ) : (
                         <p>No categories available</p>
                       )}
                     </div>
-                    <div className='pt-16'>
+                    <div className='pt-4'>
                       <p className='text-gray-400 text-sm'>
                         *You can choose multiple Categories
                       </p>
@@ -438,18 +505,25 @@ const AllSessions = () => {
             </div>
           </div>
         </div>
+        {(!sessionsData || sessionsData.length === 0) && !isLoadingSessions && (
+          <div className='absolute inset-0 z-10 bg-white bg-opacity-70'>
+            <EmptyDataPage 
+              title="No Sessions Found"
+              description="You don't have any sessions yet"
+              buttonText="Create New Session"
+              onButtonClick={openDrawer}
+              className="h-[calc(100%-70px)] mt-[70px]"
+            />
+          </div>
+        )}
         <div className='flex-1 px-6 py-2'>
           {isLoadingSessions || isLoadingCategories ? (
             <div className='flex justify-center items-center py-10'>
               <p>Loading sessions data...</p>
             </div>
-          ) : !sessionsData || sessionsData.length === 0 ? (
-            <div className='flex justify-center items-center py-10'>
-              <p>No sessions found. Create a new session to get started.</p>
-            </div>
           ) : (
             <Table
-              data={sessionsData}
+              data={sessionsData || []}
               columns={columns}
               rowSelection={rowSelection}
               onRowSelectionChange={setRowSelection}

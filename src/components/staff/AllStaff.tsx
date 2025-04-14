@@ -9,6 +9,7 @@ import { useNavigate } from 'react-router-dom';
 import { useGetStaff } from '../../hooks/reactQuery';
 import { StaffResponse } from '../../types/staffTypes';
 import AddStaff from './AddStaff';
+import EmptyDataPage from '../common/EmptyDataPage';
 
 const columnHelper = createColumnHelper<StaffResponse>();
 
@@ -139,6 +140,17 @@ const AllStaff = () => {
           leftIcon={plusIcon}
           onButtonClick={openDrawer}
         />
+        {staff.length === 0 && !isLoading && (
+          <div className='absolute inset-0 z-10 bg-white bg-opacity-70'>
+            <EmptyDataPage 
+              title="No Staff Found"
+              description="You don't have any staff members yet"
+              buttonText="Add New Staff"
+              onButtonClick={openDrawer}
+              className="h-[calc(100%-70px)] mt-[70px]"
+            />
+          </div>
+        )}
         <div className='flex-1 px-6 py-3'>
           <Table
             data={staff}

@@ -303,10 +303,16 @@ export const useGetSessionAnalytics = (sessionId: string) => {
   });
 };
 
-export const useGetSessions = () => {
+export interface SessionFilters {
+  sessionTypes?: string[];
+  categories?: string[];
+  dateRange?: [Date | null, Date | null];
+}
+
+export const useGetSessions = (filters?: SessionFilters) => {
   return useQuery<Session[]>({
-    queryKey: ["sessions"],
-    queryFn: get_sessions,
+    queryKey: ["sessions", filters],
+    queryFn: () => get_sessions(filters),
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
     retry: 2,

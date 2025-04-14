@@ -231,8 +231,37 @@ const reschedule_session = async (
   return data;
 };
 
-const get_sessions = async () => {
-  const { data } = await api.get(END_POINTS.SESSION.SESSIONS_DATA);
+const get_sessions = async (filters?: any) => {
+  let url = END_POINTS.SESSION.SESSIONS_DATA;
+  
+  if (filters) {
+    const params = new URLSearchParams();
+    
+    if (filters.sessionTypes && filters.sessionTypes.length > 0) {
+      filters.sessionTypes.forEach((type: string) => {
+        params.append('session_type', type);
+      });
+    }
+    
+    if (filters.categories && filters.categories.length > 0) {
+      filters.categories.forEach((category: string) => {
+        params.append('category', category);
+      });
+    }
+    
+    if (filters.dateRange && filters.dateRange[0] && filters.dateRange[1]) {
+      const startDate = new Date(filters.dateRange[0]);
+      const endDate = new Date(filters.dateRange[1]);
+      params.append('start_date', startDate.toISOString().split('T')[0]);
+      params.append('end_date', endDate.toISOString().split('T')[0]);
+    }
+    
+    if (params.toString()) {
+      url += `?${params.toString()}`;
+    }
+  }
+  
+  const { data } = await api.get(url);
   return data;
 };
 
