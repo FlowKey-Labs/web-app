@@ -1,3 +1,28 @@
+interface SessionStaff {
+  id: number;
+  user: {
+    id: number;
+    first_name: string;
+    last_name: string;
+    email: string;
+    mobile_number: string;
+    role: string;
+  };
+  role: string;
+  isActive: boolean;
+}
+
+interface ClientSession {
+  session_id: number;
+  session_title: string;
+  staff: SessionStaff;
+  start_time: string;
+  end_time: string;
+  attended: boolean;
+  session_type: string;
+  class_type: string;
+}
+
 export interface Client {
   id: number;
   first_name: string;
@@ -18,6 +43,7 @@ export interface Client {
   location?: string;
   dob?: string; // YYYY-MM-DD format
   gender: string; // 'M' or 'F'
+  sessions?: ClientSession[];
 }
 
 export interface AddClient {

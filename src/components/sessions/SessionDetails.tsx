@@ -1,93 +1,208 @@
 import { useParams } from 'react-router-dom';
 import MembersHeader from '../headers/MembersHeader';
-import { Progress } from '@mantine/core';
-import { useState } from 'react';
+import { Progress, Menu, Modal, Text, Button } from '@mantine/core';
+import { useMemo, useState } from 'react';
+import { useDisclosure } from '@mantine/hooks';
+import { notifications } from '@mantine/notifications';
 import Table from '../common/Table';
 import { createColumnHelper } from '@tanstack/react-table';
 
 import {
-  useGetClients,
   useGetSessionDetail,
   useGetSessionAnalytics,
+  useGetSessionClients,
+  useMarkClientAttended,
+  useMarkClientNotAttended,
+  useRemoveClientFromSession,
 } from '../../hooks/reactQuery';
 
 import actionOptionIcon from '../../assets/icons/actionOption.svg';
 import { Client } from '../../types/clientTypes';
 import avatar from '../../assets/icons/newAvatar.svg';
 import UpdateSession from './UpdateSession';
+import successIcon from '../../assets/icons/success.svg';
+import errorIcon from '../../assets/icons/error.svg';
 
 const columnHelper = createColumnHelper<Client>();
 
-const columns = [
-  columnHelper.display({
-    id: 'select',
-    header: ({ table }) => (
-      <input
-        type='checkbox'
-        checked={table.getIsAllRowsSelected()}
-        onChange={table.getToggleAllRowsSelectedHandler()}
-        className='w-4 h-4 rounded cursor-pointer bg-[#F7F8FA] accent-[#DBDEDF]'
-      />
-    ),
-    cell: ({ row }) => (
-      <input
-        type='checkbox'
-        checked={row.getIsSelected()}
-        onChange={row.getToggleSelectedHandler()}
-        className='w-4 h-4 rounded cursor-pointer bg-[#F7F8FA] accent-[#DBDEDF]'
-      />
-    ),
-  }),
-  columnHelper.accessor('first_name', {
-    header: 'Name',
-    cell: (info) => `${info.getValue()} ${info.row.original.last_name}`,
-  }),
-  columnHelper.accessor('phone_number', {
-    header: 'Phone',
-    cell: (info) => info.getValue(),
-  }),
-  columnHelper.accessor('active', {
-    header: 'Status',
-    cell: (info) => (
-      <span
-        className={`inline-block px-1 py-1 rounded-lg text-sm text-center min-w-[60px] ${
-          info.getValue()
-            ? 'bg-active text-green-700'
-            : 'bg-red-100 text-red-700'
-        }`}
-      >
-        {info.getValue() ? 'Active' : 'Inactive'}
-      </span>
-    ),
-  }),
-  columnHelper.display({
-    id: 'progress',
-    header: 'Progress',
-    cell: () => <Progress color='#FFAE0080' size='sm' radius='xl' value={50} />,
-  }),
-  columnHelper.display({
-    id: 'actions',
-    header: () => (
-      <img
-        src={actionOptionIcon}
-        alt='Options'
-        className='w-4 h-4 cursor-pointer'
-      />
-    ),
-    cell: () => (
-      <div className='flex space-x-2'>
-        <img
-          src={actionOptionIcon}
-          alt='Options'
-          className='w-4 h-4 cursor-pointer'
-        />
-      </div>
-    ),
-  }),
-];
-
 const SessionDetails = () => {
   const { id: sessionId } = useParams();
+  const currentSessionId = sessionId ? parseInt(sessionId) : 0;
+
+  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+  const [isMarkingAttended, setIsMarkingAttended] = useState(false);
+  const [isRemovingClient, setIsRemovingClient] = useState(false);
+  const [opened, { open, close }] = useDisclosure(false);
+
+  const markAttendedMutation = useMarkClientAttended();
+  const markNotAttendedMutation = useMarkClientNotAttended();
+  const removeClientMutation = useRemoveClientFromSession();
+
+  const columns = useMemo(
+    () => [
+      columnHelper.display({
+        id: 'select',
+        header: ({ table }) => (
+          <input
+            type='checkbox'
+            checked={table.getIsAllRowsSelected()}
+            onChange={table.getToggleAllRowsSelectedHandler()}
+            className='w-4 h-4 rounded cursor-pointer bg-[#F7F8FA] accent-[#DBDEDF]'
+          />
+        ),
+        cell: ({ row }) => (
+          <input
+            type='checkbox'
+            checked={row.getIsSelected()}
+            onChange={row.getToggleSelectedHandler()}
+            className='w-4 h-4 rounded cursor-pointer bg-[#F7F8FA] accent-[#DBDEDF]'
+          />
+        ),
+      }),
+      columnHelper.accessor('first_name', {
+        header: 'Name',
+        cell: (info) => `${info.getValue()} ${info.row.original.last_name}`,
+      }),
+      columnHelper.accessor('phone_number', {
+        header: 'Phone',
+        cell: (info) => info.getValue(),
+      }),
+      columnHelper.accessor('active', {
+        header: 'Status',
+        cell: (info) => (
+          <span
+            className={`inline-block px-1 py-1 rounded-lg text-sm text-center min-w-[60px] ${
+              info.getValue()
+                ? 'bg-active text-green-700'
+                : 'bg-red-100 text-red-700'
+            }`}
+          >
+            {info.getValue() ? 'Active' : 'Inactive'}
+          </span>
+        ),
+      }),
+      columnHelper.display({
+        id: 'attendance',
+        header: 'Attendance',
+        cell: ({ row }) => {
+          const client = row.original;
+          const sessionAttendance = client.sessions?.find(
+            (session) => session.session_id === currentSessionId
+          );
+
+          return (
+            <span
+              className={`inline-block px-2 py-1 rounded-lg text-sm text-center min-w-[80px] ${
+                sessionAttendance?.attended
+                  ? 'bg-active text-green-700'
+                  : 'bg-yellow-100 text-yellow-700'
+              }`}
+            >
+              {sessionAttendance?.attended ? 'Attended' : 'Not Yet'}
+            </span>
+          );
+        },
+      }),
+      columnHelper.display({
+        id: 'progress',
+        header: 'Progress',
+        cell: () => (
+          <Progress color='#FFAE0080' size='sm' radius='xl' value={50} />
+        ),
+      }),
+      columnHelper.display({
+        id: 'actions',
+        header: () => (
+          <img
+            src={actionOptionIcon}
+            alt='Options'
+            className='w-4 h-4 cursor-pointer'
+          />
+        ),
+        cell: ({ row }) => {
+          const client = row.original;
+          const sessionAttendance = client.sessions?.find(
+            (session) => session.session_id === currentSessionId
+          );
+
+          return (
+            <div
+              className='flex space-x-2'
+              onClick={(e) => e.stopPropagation()}
+            >
+              <Menu
+                width={150}
+                shadow='md'
+                position='bottom'
+                radius='md'
+                withArrow
+                offset={4}
+              >
+                <Menu.Target>
+                  <img
+                    src={actionOptionIcon}
+                    alt='Options'
+                    className='w-4 h-4 cursor-pointer'
+                  />
+                </Menu.Target>
+                <Menu.Dropdown>
+                  {sessionAttendance?.attended ? (
+                    <Menu.Item
+                      color='yellow'
+                      onClick={() => {
+                        setSelectedClient(client);
+                        setIsMarkingAttended(false);
+                        setIsRemovingClient(false);
+                        open();
+                      }}
+                      className='text-sm'
+                      style={{ textAlign: 'center' }}
+                    >
+                      Mark as Not Yet
+                    </Menu.Item>
+                  ) : (
+                    <Menu.Item
+                      color='green'
+                      onClick={() => {
+                        setSelectedClient(client);
+                        setIsMarkingAttended(true);
+                        setIsRemovingClient(false);
+                        open();
+                      }}
+                      className='text-sm'
+                      style={{ textAlign: 'center' }}
+                    >
+                      Mark as Attended
+                    </Menu.Item>
+                  )}
+                  <Menu.Item
+                    color='red'
+                    onClick={() => {
+                      setSelectedClient(client);
+                      setIsRemovingClient(true);
+                      setIsMarkingAttended(false);
+                      open();
+                    }}
+                    className='text-sm'
+                    style={{ textAlign: 'center' }}
+                  >
+                    Remove
+                  </Menu.Item>
+                </Menu.Dropdown>
+              </Menu>
+            </div>
+          );
+        },
+      }),
+    ],
+    [
+      currentSessionId,
+      open,
+      setSelectedClient,
+      setIsMarkingAttended,
+      setIsRemovingClient,
+    ]
+  );
 
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'overview' | 'clients'>(
@@ -95,7 +210,6 @@ const SessionDetails = () => {
   );
   const [rowSelection, setRowSelection] = useState({});
 
-  // Fetch session details by ID
   const {
     data: session,
     isLoading: sessionLoading,
@@ -104,17 +218,16 @@ const SessionDetails = () => {
     refetch: refetchSession,
   } = useGetSessionDetail(sessionId || '');
 
-  // Fetch session analytics
   const { data: sessionAnalytics, isLoading: analyticsLoading } =
     useGetSessionAnalytics(sessionId || '');
 
-  // Fetch clients for the table
   const {
     data: clients = [],
     isLoading: clientsLoading,
     isError: clientsError,
     error: clientsErrorDetails,
-  } = useGetClients();
+    refetch: refetchClients,
+  } = useGetSessionClients(sessionId || '');
 
   const openDrawer = () => setIsDrawerOpen(true);
   const closeDrawer = () => setIsDrawerOpen(false);
@@ -130,7 +243,6 @@ const SessionDetails = () => {
     });
   };
 
-  // Format day names for calendar display (Mon, Tue, etc.)
   const formatDayNames = (days: (string | number)[] | undefined) => {
     if (!days || !days.length) return '';
 
@@ -156,14 +268,147 @@ const SessionDetails = () => {
 
     return days
       .map((day) => {
-        // Convert number to day name (1 -> 'monday', 2 -> 'tuesday', etc.)
         const dayName =
           typeof day === 'number' ? dayNames[day % 7] : day.toLowerCase();
         return dayAbbreviations[dayName] || dayName;
       })
       .join(', ');
   };
-  
+
+  const handleMarkAttended = () => {
+    if (!selectedClient || !sessionId) return;
+
+    markAttendedMutation.mutate(
+      { clientId: selectedClient.id.toString(), sessionId },
+      {
+        onSuccess: () => {
+          notifications.show({
+            title: 'Success',
+            message: 'Client marked as attended!',
+            color: 'green',
+            radius: 'md',
+            icon: (
+              <span className='flex items-center justify-center w-6 h-6 rounded-full bg-green-200'>
+                <img src={successIcon} alt='Success' className='w-4 h-4' />
+              </span>
+            ),
+            withBorder: true,
+            autoClose: 3000,
+            position: 'top-right',
+          });
+          close();
+          refetchClients();
+        },
+        onError: (_error: unknown) => {
+          notifications.show({
+            title: 'Error',
+            message: 'Failed to mark client as attended. Please try again.',
+            color: 'red',
+            radius: 'md',
+            icon: (
+              <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+                <img src={errorIcon} alt='Error' className='w-4 h-4' />
+              </span>
+            ),
+            withBorder: true,
+            autoClose: 3000,
+            position: 'top-right',
+          });
+          close();
+        },
+      }
+    );
+  };
+
+  const handleRemoveClient = () => {
+    if (!selectedClient || !sessionId) return;
+
+    removeClientMutation.mutate(
+      { clientId: selectedClient.id.toString(), sessionId },
+      {
+        onSuccess: () => {
+          notifications.show({
+            title: 'Success',
+            message: 'Client removed from session!',
+            color: 'green',
+            radius: 'md',
+            icon: (
+              <span className='flex items-center justify-center w-6 h-6 rounded-full bg-green-200'>
+                <img src={successIcon} alt='Success' className='w-4 h-4' />
+              </span>
+            ),
+            withBorder: true,
+            autoClose: 3000,
+            position: 'top-right',
+          });
+          close();
+          refetchClients();
+        },
+        onError: (_error: unknown) => {
+          notifications.show({
+            title: 'Error',
+            message: 'Failed to remove client from session. Please try again.',
+            color: 'red',
+            radius: 'md',
+            icon: (
+              <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+                <img src={errorIcon} alt='Error' className='w-4 h-4' />
+              </span>
+            ),
+            withBorder: true,
+            autoClose: 3000,
+            position: 'top-right',
+          });
+          close();
+        },
+      }
+    );
+  };
+
+  const handleMarkNotAttended = () => {
+    if (!selectedClient || !sessionId) return;
+
+    markNotAttendedMutation.mutate(
+      { clientId: selectedClient.id.toString(), sessionId },
+      {
+        onSuccess: () => {
+          notifications.show({
+            title: 'Success',
+            message: 'Client marked as not attended!',
+            color: 'green',
+            radius: 'md',
+            icon: (
+              <span className='flex items-center justify-center w-6 h-6 rounded-full bg-green-200'>
+                <img src={successIcon} alt='Success' className='w-4 h-4' />
+              </span>
+            ),
+            withBorder: true,
+            autoClose: 3000,
+            position: 'top-right',
+          });
+          close();
+          refetchClients();
+        },
+        onError: (_error: unknown) => {
+          notifications.show({
+            title: 'Error',
+            message: 'Failed to mark client as not attended. Please try again.',
+            color: 'red',
+            radius: 'md',
+            icon: (
+              <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+                <img src={errorIcon} alt='Error' className='w-4 h-4' />
+              </span>
+            ),
+            withBorder: true,
+            autoClose: 3000,
+            position: 'top-right',
+          });
+          close();
+        },
+      }
+    );
+  };
 
   const isLoading = sessionLoading || clientsLoading || analyticsLoading;
   const isError = sessionError || clientsError;
@@ -238,12 +483,24 @@ const SessionDetails = () => {
                   </p>
                 </div>
                 <div className='flex space-x-2 mt-4'>
-                  <div 
-                    className={`flex justify-center items-center py-1.5 px-3 rounded-full gap-1.5 ${session.is_active ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}`}
+                  <div
+                    className={`flex justify-center items-center py-1.5 px-3 rounded-full gap-1.5 ${
+                      session.is_active
+                        ? 'bg-green-50 border border-green-200'
+                        : 'bg-red-50 border border-red-200'
+                    }`}
                   >
-                    <div className={`w-2 h-2 rounded-full ${session.is_active ? 'bg-secondary animate-pulse' : 'bg-red-500'}`}></div>
+                    <div
+                      className={`w-2 h-2 rounded-full ${
+                        session.is_active
+                          ? 'bg-secondary animate-pulse'
+                          : 'bg-red-500'
+                      }`}
+                    ></div>
                     <p
-                      className={`text-xs font-medium ${session.is_active ? 'text-green-700' : 'text-red-700'}`}
+                      className={`text-xs font-medium ${
+                        session.is_active ? 'text-green-700' : 'text-red-700'
+                      }`}
                     >
                       {session.is_active ? 'Active' : 'Inactive'}
                     </p>
@@ -306,7 +563,7 @@ const SessionDetails = () => {
                 <div className='w-full px-4 space-y-4'>
                   <div className='flex justify-between items-center w-full text-sm'>
                     <span className='text-gray-400 font-bold text-xs'>
-                      DATE CREATED
+                      START DATE
                     </span>
                     <span className='text-gray-400  text-xs'>
                       {formatDate(session.date)}
@@ -436,7 +693,63 @@ const SessionDetails = () => {
           </div>
         </div>
       </div>
-      <UpdateSession isOpen={isDrawerOpen} onClose={closeDrawer} sessionId={sessionId || ''} />
+      <UpdateSession
+        isOpen={isDrawerOpen}
+        onClose={closeDrawer}
+        sessionId={sessionId || ''}
+      />
+
+      {/* Modal for confirming client actions */}
+      <Modal
+        opened={opened}
+        onClose={close}
+        title={
+          <Text fw={600} size='lg'>
+            {isRemovingClient
+              ? 'Remove Client from Session'
+              : isMarkingAttended
+              ? 'Attended'
+              : 'Not Attended'}
+          </Text>
+        }
+        centered
+        radius='md'
+      >
+        <div className='space-y-4'>
+          <Text size='sm'>
+            {isRemovingClient
+              ? 'Are you sure you want to remove this client from this session? This action cannot be undone.'
+              : isMarkingAttended
+              ? 'Are you sure you want to mark this client as attended for this session?'
+              : 'Are you sure you want to mark this client as not attended for this session?'}
+          </Text>
+          <div className='flex justify-end space-x-3'>
+            <Button variant='subtle' onClick={close} color='gray'>
+              Cancel
+            </Button>
+            <Button
+              onClick={() => {
+                if (isRemovingClient) {
+                  handleRemoveClient();
+                } else if (isMarkingAttended) {
+                  handleMarkAttended();
+                } else {
+                  handleMarkNotAttended();
+                }
+              }}
+              color={
+                isRemovingClient
+                  ? 'red'
+                  : isMarkingAttended
+                  ? 'green'
+                  : 'yellow'
+              }
+            >
+              Confirm
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </>
   );
 };

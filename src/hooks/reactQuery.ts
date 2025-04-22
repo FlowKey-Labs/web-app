@@ -30,6 +30,12 @@ import {
   deactivate_client,
   activate_client,
   update_session,
+  get_session_clients,
+  mark_client_attended,
+  mark_client_not_attended,
+  activate_session,
+  deactivate_session,
+  remove_client_from_session,
 } from "../api/api";
 import { useAuthStore } from "../store/auth";
 import { BusinessServices } from "../types/business";
@@ -362,6 +368,17 @@ export const useGetSessionCategories = () => {
   });
 };
 
+export const useGetSessionClients = (sessionId: string) => {
+  return useQuery({
+    queryKey: ["session_clients", sessionId],
+    queryFn: () => get_session_clients(sessionId),
+    staleTime: 1000 * 60 * 5,
+    refetchOnWindowFocus: false,
+    retry: 2,
+    enabled: !!sessionId,
+  });
+};
+
 export const useCreateSession = () => {
   const queryClient = useQueryClient();
   return useMutation({
@@ -402,23 +419,74 @@ export const useUpdateClient = () => {
 export const useDeactivateClient = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (id: string) => deactivate_client(id),
+    mutationFn: deactivate_client,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["clients"] });
-      queryClient.invalidateQueries({ queryKey: ["analytics"] });
     },
-    onError: (error) => console.error("Deactivate client error:", error),
   });
 };
 
 export const useActivateClient = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (id: string) => activate_client(id),
+    mutationFn: activate_client,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["clients"] });
-      queryClient.invalidateQueries({ queryKey: ["analytics"] });
     },
-    onError: (error) => console.error("Activate client error:", error),
+  });
+};
+
+export const useMarkClientAttended = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ clientId, sessionId }: { clientId: string; sessionId: string }) =>
+      mark_client_attended(clientId, sessionId),
+    onSuccess: (_, { sessionId }) => {
+      queryClient.invalidateQueries({ queryKey: ["session_clients", sessionId] });
+    },
+  });
+};
+
+export const useMarkClientNotAttended = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ clientId, sessionId }: { clientId: string; sessionId: string }) =>
+      mark_client_not_attended(clientId, sessionId),
+    onSuccess: (_, { sessionId }) => {
+      queryClient.invalidateQueries({ queryKey: ["session_clients", sessionId] });
+    },
+  });
+};
+
+export const useActivateSession = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: activate_session,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["sessions"] });
+      queryClient.invalidateQueries({ queryKey: ["session"] });
+    },
+  });
+};
+
+export const useDeactivateSession = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: deactivate_session,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["sessions"] });
+      queryClient.invalidateQueries({ queryKey: ["session"] });
+    },
+  });
+};
+
+export const useRemoveClientFromSession = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ clientId, sessionId }: { clientId: string; sessionId: string }) =>
+      remove_client_from_session(clientId, sessionId),
+    onSuccess: (_, { sessionId }) => {
+      queryClient.invalidateQueries({ queryKey: ["session_clients", sessionId] });
+    },
   });
 };

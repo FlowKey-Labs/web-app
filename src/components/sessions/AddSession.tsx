@@ -40,7 +40,7 @@ type FormData = Omit<
   start_time: string;
   end_time: string;
   session_type: 'class' | 'appointment';
-  repetition: 'none' | 'daily' | 'weekly' | 'monthly' | 'custom';
+  repetition: string;
   date: string;
 
   title: string;
@@ -103,7 +103,7 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
   const [occurrences, setOccurrences] = useState(2);
   const [value, setValue] = useState<Date | null>(null);
 
-      useEffect(() => {
+  useEffect(() => {
     if (methods.watch('session_type') === 'class') {
       methods.reset({
         ...methods.getValues(),
@@ -232,12 +232,13 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
       }
 
       await createSession.mutateAsync(formattedData);
-      
+
       notifications.show({
         title: 'Success',
-        message: data.session_type === 'class'
-          ? 'Class created successfully!'
-          : 'Appointment created successfully!',
+        message:
+          data.session_type === 'class'
+            ? 'Class created successfully!'
+            : 'Appointment created successfully!',
         color: 'green',
         radius: 'md',
         icon: (
@@ -322,7 +323,8 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
         console.error('Error Request:', error.request);
         notifications.show({
           title: 'Connection Error',
-          message: 'No response received from server. Please check your connection.',
+          message:
+            'No response received from server. Please check your connection.',
           color: 'red',
           radius: 'md',
           icon: (
@@ -561,13 +563,30 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
                                     { label: 'Weekly', value: 'weekly' },
                                     { label: 'Monthly', value: 'monthly' },
                                     { label: 'Custom', value: 'custom' },
+                                    ...(field.value &&
+                                    ![
+                                      'none',
+                                      'daily',
+                                      'weekly',
+                                      'monthly',
+                                      'custom',
+                                    ].includes(field.value)
+                                      ? [
+                                          {
+                                            label: field.value,
+                                            value: field.value,
+                                          },
+                                        ]
+                                      : []),
                                   ]}
                                   onSelectItem={(selectedItem) => {
                                     const value =
                                       typeof selectedItem === 'string'
                                         ? selectedItem
                                         : selectedItem?.value;
-                                    field.onChange(value);
+
+                                    field.onChange(value as any);
+
                                     if (value === 'custom') {
                                       openRepetitionModal();
                                     }
@@ -1002,6 +1021,58 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
               type='button'
               className='px-4 py-2 text-sm font-medium text-white bg-secondary rounded-md hover:bg-secondary/90 '
               onClick={() => {
+                let repetitionDescription = '';
+
+                if (selectedWeekdays.length > 0) {
+                  const weekdayLabels = selectedWeekdays
+                    .sort((a, b) => a - b)
+                    .map((day) => {
+                      const validDay = day as keyof typeof weekdayNames;
+                      return weekdayNames[validDay];
+                    })
+                    .join(', ');
+
+                  repetitionDescription = `Weekly on ${weekdayLabels}`;
+                } else {
+                  repetitionDescription = 'Weekly';
+                }
+
+                if (
+                  endsOption === 'on' &&
+                  methods.getValues('repeat_end_date')
+                ) {
+                  const endDateStr = methods.getValues('repeat_end_date');
+                  if (endDateStr) {
+                    const endDate = new Date(endDateStr);
+                    repetitionDescription += ` until ${endDate.toLocaleDateString()}`;
+                  }
+                } else if (endsOption === 'after') {
+                  repetitionDescription += ` for ${occurrences} occurrences`;
+                }
+
+                const customRepetitionValue = repetitionDescription;
+                methods.setValue('repetition', customRepetitionValue as any);
+
+                setTimeout(() => {
+                  const currentValue = methods.getValues('repetition');
+                  methods.setValue('repetition', currentValue as any);
+                }, 0);
+
+                methods.setValue('repeat_every', 1);
+                methods.setValue('repeat_unit', 'weeks');
+                methods.setValue('repeat_on', selectedWeekdays);
+                methods.setValue('repeat_end_type', endsOption);
+
+                if (endsOption === 'after') {
+                  methods.setValue('repeat_end_date', undefined);
+                  methods.setValue('repeat_occurrences', occurrences);
+                } else if (endsOption === 'never') {
+                  methods.setValue('repeat_end_date', undefined);
+                  methods.setValue('repeat_occurrences', undefined);
+                } else if (endsOption === 'on') {
+                  methods.setValue('repeat_occurrences', undefined);
+                }
+
                 closeRepetitionModal();
               }}
             >

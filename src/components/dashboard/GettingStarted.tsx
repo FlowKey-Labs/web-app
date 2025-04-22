@@ -165,14 +165,14 @@ const GettingStarted = () => {
                       ? 'Last 3 Months'
                       : selectedTimeRange === 'last_year'
                       ? 'Last Year'
-                      : selectedTimeRange}
+                      : selectedTimeRange} 
                   </p>
                   <img src={dropdownIcon} />
                 </div>
               }
             >
               <div className='border-[1px] border-secondary rounded-lg'>
-                <ul className='w-[180px] py-4 space-y-1'>
+                <ul className='w-[180px] flex flex-col py-4 justify-center items-center space-y-1'>
                   {[
                     'to_date',
                     'today',
@@ -183,10 +183,10 @@ const GettingStarted = () => {
                   ].map((range) => (
                     <li
                       key={range}
-                      className={`cursor-pointer  text-center p-2 ${
+                      className={`cursor-pointer  text-center p-2 rounded-lg ${
                         selectedTimeRange === range
-                          ? 'text-green-500 font-bold bg-flowkeySecondary'
-                          : 'hover:bg-flowkeySecondary'
+                          ? 'text-green-500 font-bold bg-flowkeySecondary w-[95%]'
+                          : 'hover:bg-flowkeySecondary w-[95%]'
                       }`}
                       onClick={() => handleTimeRangeSelect(range)}
                     >

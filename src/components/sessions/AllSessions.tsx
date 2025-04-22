@@ -8,6 +8,8 @@ import { classTypesOptions } from '../../utils/dummyData';
 import {
   useGetSessions,
   useGetSessionCategories,
+  useActivateSession,
+  useDeactivateSession,
 } from '../../hooks/reactQuery';
 import { Session } from '../../types/sessionTypes';
 import { navigateToSessionDetails } from '../../utils/navigationHelpers';
@@ -24,7 +26,13 @@ import AddSession from './AddSession';
 import { formatTo12Hour } from '../../utils/formatTo12Hour';
 
 import EmptyDataPage from '../common/EmptyDataPage';
-import { Group, Menu, Modal, Text, Button as MantineButton } from '@mantine/core';
+import {
+  Group,
+  Menu,
+  Modal,
+  Text,
+  Button as MantineButton,
+} from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
 import successIcon from '../../assets/icons/success.svg';
@@ -33,8 +41,11 @@ import errorIcon from '../../assets/icons/error.svg';
 const columnHelper = createColumnHelper<Session>();
 
 const useExportSessions = () => {
-  const [exportModalOpened, { open: openExportModal, close: closeExportModal }] = useDisclosure(false);
-  
+  const [
+    exportModalOpened,
+    { open: openExportModal, close: closeExportModal },
+  ] = useDisclosure(false);
+
   const handleExport = (selectedIds: string[]) => {
     if (selectedIds.length === 0) {
       notifications.show({
@@ -54,7 +65,7 @@ const useExportSessions = () => {
       closeExportModal();
       return;
     }
-    
+
     notifications.show({
       title: 'Export successful',
       message: `${selectedIds.length} session(s) exported successfully`,
@@ -69,10 +80,10 @@ const useExportSessions = () => {
       autoClose: 3000,
       position: 'top-right',
     });
-    
+
     closeExportModal();
   };
-  
+
   return { exportModalOpened, openExportModal, closeExportModal, handleExport };
 };
 
@@ -85,6 +96,9 @@ const AllSessions = () => {
     useState(false);
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [selectedSession, setSelectedSession] = useState<Session | null>(null);
+  const [isActivating, setIsActivating] = useState(false);
+  const [opened, { open, close }] = useDisclosure(false);
 
   const [tempSelectedTypes, setTempSelectedTypes] = useState<string[]>([]);
   const [tempSelectedCategories, setTempSelectedCategories] = useState<
@@ -97,11 +111,18 @@ const AllSessions = () => {
 
   const openDrawer = () => setIsModalOpen(true);
   const closeDrawer = () => setIsModalOpen(false);
-  
-  const { exportModalOpened, openExportModal, closeExportModal, handleExport } = useExportSessions();
 
-  const { data: allSessionsData, isLoading: isLoadingSessions } =
-    useGetSessions();
+  const activateSessionMutation = useActivateSession();
+  const deactivateSessionMutation = useDeactivateSession();
+
+  const { exportModalOpened, openExportModal, closeExportModal, handleExport } =
+    useExportSessions();
+
+  const {
+    data: allSessionsData,
+    isLoading: isLoadingSessions,
+    refetch: refetchSessions,
+  } = useGetSessions();
 
   const filteredSessions = useMemo(() => {
     if (!allSessionsData) return [];
@@ -148,193 +169,264 @@ const AllSessions = () => {
   const { data: categoriesData, isLoading: isLoadingCategories } =
     useGetSessionCategories();
 
-  const columns = useMemo(() => [
-    columnHelper.display({
-      id: 'select',
-      header: ({ table }) => (
-        <input
-          type='checkbox'
-          checked={table.getIsAllRowsSelected()}
-          onChange={table.getToggleAllRowsSelectedHandler()}
-          className='w-4 h-4 rounded cursor-pointer bg-[#F7F8FA] accent-[#DBDEDF]'
-        />
-      ),
-      cell: ({ row }) => (
-        <input
-          type='checkbox'
-          checked={row.getIsSelected()}
-          onChange={row.getToggleSelectedHandler()}
-          className='w-4 h-4 rounded cursor-pointer bg-[#F7F8FA] accent-[#DBDEDF]'
-        />
-      ),
-    }),
-    columnHelper.accessor('title', {
-      header: 'Session',
-      cell: (info) => (
-        <div className='text-start'>
-          <p className='font-medium text-gray-900 text-sm'>{info.getValue()}</p>
-          <p className='text-xs text-gray-500'>
-            {info.row.original.category?.name || ''}
-          </p>
-        </div>
-      ),
-    }),
-    columnHelper.accessor('assigned_staff', {
-      header: 'Assigned to',
-      cell: (info) => {
-        const assignedStaff = info.getValue();
-        return assignedStaff
-          ? `${assignedStaff.user.first_name} ${assignedStaff.user.last_name}`
-          : 'Unassigned';
-      },
-    }),
-    columnHelper.accessor('class_type', {
-      header: 'Session Type',
-      cell: (info) => {
-        const SessionType = info.getValue();
-        return SessionType
-          ? SessionType.charAt(0).toUpperCase() + SessionType.slice(1)
-          : '';
-      },
-    }),
-    columnHelper.accessor('spots', {
-      header: 'Slots',
-      cell: (info) => info.getValue(),
-    }),
-    columnHelper.accessor('date', {
-      header: 'Date',
-      cell: (info) => {
-        const dateValue = info.getValue();
-        const date = new Date(dateValue);
-        return date.toLocaleDateString('en-US', {
-          year: 'numeric',
-          month: 'short',
-          day: 'numeric',
-        });
-      },
-    }),
-    columnHelper.accessor(
-      (row) => ({ start: row.start_time, end: row.end_time }),
-      {
-        id: 'duration',
-        header: 'Duration',
-        cell: (info) => {
-          const { start, end } = info.getValue();
-
-          return `${formatTo12Hour(start)} - ${formatTo12Hour(end)}`;
-        },
-      }
-    ),
-    columnHelper.accessor(
-      (row) => ({
-        repeat_on: row.repeat_on,
-        repeat_unit: row.repeat_unit,
-        repeat_every: row.repeat_every,
+  const columns = useMemo(
+    () => [
+      columnHelper.display({
+        id: 'select',
+        header: ({ table }) => (
+          <input
+            type='checkbox'
+            checked={table.getIsAllRowsSelected()}
+            onChange={table.getToggleAllRowsSelectedHandler()}
+            className='w-4 h-4 rounded cursor-pointer bg-[#F7F8FA] accent-[#DBDEDF]'
+          />
+        ),
+        cell: ({ row }) => (
+          <input
+            type='checkbox'
+            checked={row.getIsSelected()}
+            onChange={row.getToggleSelectedHandler()}
+            className='w-4 h-4 rounded cursor-pointer bg-[#F7F8FA] accent-[#DBDEDF]'
+          />
+        ),
       }),
-      {
-        id: 'repeats',
-        header: 'Repeats',
+      columnHelper.accessor('title', {
+        header: 'Session',
+        cell: (info) => (
+          <div className='text-start'>
+            <p className='font-medium text-gray-900 text-sm'>
+              {info.getValue()}
+            </p>
+            <p className='text-xs text-gray-500'>
+              {info.row.original.category?.name || ''}
+            </p>
+          </div>
+        ),
+      }),
+      columnHelper.accessor('assigned_staff', {
+        header: 'Assigned to',
         cell: (info) => {
-          const { repeat_on, repeat_unit, repeat_every } = info.getValue();
-
-          const dayMap: Record<number, string> = {
-            1: 'Mon',
-            2: 'Tue',
-            3: 'Wed',
-            4: 'Thu',
-            5: 'Fri',
-            6: 'Sat',
-            0: 'Sun',
-          };
-
-          if (repeat_unit === 'days' && repeat_every) {
-            return `Daily`;
-          }
-
-          if (repeat_unit === 'weeks') {
-            return `Weekly`;
-          }
-
-          if (repeat_unit === 'months' && repeat_every) {
-            return `Monthly`;
-          }
-
-          if (repeat_on && repeat_on.length > 0) {
-            return repeat_on.map((day: number) => dayMap[day] || '').join(', ');
-          }
-
-          return '';
+          const assignedStaff = info.getValue();
+          return assignedStaff
+            ? `${assignedStaff.user.first_name} ${assignedStaff.user.last_name}`
+            : 'Unassigned';
         },
-      }
-    ),
-    columnHelper.display({
-      id: 'actions',
-      header: () => (
-        <div className='flex space-x-2' onClick={(e) => e.stopPropagation()}>
-          <Group justify='center'>
-            <Menu
-              width={150}
-              shadow='md'
-              position='bottom'
-              radius='md'
-              withArrow
-              offset={4}
-            >
-              <Menu.Target>
-                <img
-                  src={actionOptionIcon}
-                  alt='Options'
-                  className='w-4 h-4 cursor-pointer'
-                />
-              </Menu.Target>
-              <Menu.Dropdown>
-                <Menu.Item
-                  color='#162F3B'
-                  className='text-sm'
-                  style={{ textAlign: 'center' }}
-                  onClick={openExportModal}
-                >
-                  Export Session
-                </Menu.Item>
-              </Menu.Dropdown>
-            </Menu>
-          </Group>
-        </div>
+      }),
+      columnHelper.accessor('class_type', {
+        header: 'Session Type',
+        cell: (info) => {
+          const SessionType = info.getValue();
+          return SessionType
+            ? SessionType.charAt(0).toUpperCase() + SessionType.slice(1)
+            : '';
+        },
+      }),
+      columnHelper.accessor('spots', {
+        header: 'Slots',
+        cell: (info) => info.getValue(),
+      }),
+      columnHelper.accessor('date', {
+        header: 'Date',
+        cell: (info) => {
+          const dateValue = info.getValue();
+          const date = new Date(dateValue);
+          return date.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+          });
+        },
+      }),
+      columnHelper.accessor(
+        (row) => ({ start: row.start_time, end: row.end_time }),
+        {
+          id: 'duration',
+          header: 'Duration',
+          cell: (info) => {
+            const { start, end } = info.getValue();
+
+            const formatTo12Hour = (isoDateTimeStr: string) => {
+              if (!isoDateTimeStr || typeof isoDateTimeStr !== 'string')
+                return isoDateTimeStr;
+              
+              try {
+                const timePart = isoDateTimeStr.split('T')[1];
+                if (!timePart) {
+                  return isoDateTimeStr;
+                }
+
+                const timeComponents = timePart.split(':');
+                let hours = parseInt(timeComponents[0], 10);
+                const minutes = timeComponents[1].padStart(2, '0');
+
+                const ampm = hours >= 12 ? 'PM' : 'AM';
+
+                hours = hours % 12;
+                hours = hours ? hours : 12;
+
+                return `${hours}:${minutes} ${ampm}`;
+              } catch (e) {
+                console.error('Error formatting time:', isoDateTimeStr, e);
+                return isoDateTimeStr;
+              }
+            };
+
+            return `${formatTo12Hour(start)} - ${formatTo12Hour(end)}`;
+          },
+        }
       ),
-      cell: () => (
-        <div className='flex space-x-2' onClick={(e) => e.stopPropagation()}>
-          <Group justify='center'>
-            <Menu
-              width={150}
-              shadow='md'
-              position='bottom'
-              radius='md'
-              withArrow
-              offset={4}
-            >
-              <Menu.Target>
-                <img
-                  src={actionOptionIcon}
-                  alt='Options'
-                  className='w-4 h-4 cursor-pointer'
-                />
-              </Menu.Target>
-              <Menu.Dropdown>
-                <Menu.Item
-                  color='#162F3B'
-                  className='text-sm'
-                  style={{ textAlign: 'center' }}
-                  onClick={openExportModal}
-                >
-                  Export Session
-                </Menu.Item>
-              </Menu.Dropdown>
-            </Menu>
-          </Group>
-        </div>
+      columnHelper.accessor(
+        (row) => ({
+          repeat_on: row.repeat_on,
+          repeat_unit: row.repeat_unit,
+          repeat_every: row.repeat_every,
+        }),
+        {
+          id: 'repeats',
+          header: 'Repeats',
+          cell: (info) => {
+            const { repeat_on, repeat_unit, repeat_every } = info.getValue();
+
+            const dayMap: Record<number, string> = {
+              1: 'Mon',
+              2: 'Tue',
+              3: 'Wed',
+              4: 'Thu',
+              5: 'Fri',
+              6: 'Sat',
+              0: 'Sun',
+            };
+
+            if (repeat_unit === 'days' && repeat_every) {
+              return `Daily`;
+            }
+
+            if (repeat_unit === 'weeks') {
+              return `Weekly`;
+            }
+            if (repeat_unit === 'months' && repeat_every) {
+              return `Monthly`;
+            }
+
+            if (repeat_on && repeat_on.length > 0) {
+              return repeat_on
+                .map((day: number) => dayMap[day] || '')
+                .join(', ');
+            }
+
+            return '';
+          },
+        }
       ),
-    }),
-  ], [openExportModal]);
+      columnHelper.accessor('is_active', {
+        header: 'Status',
+        cell: (info) => (
+          <span
+            className={`inline-block px-2 py-1 rounded-lg text-sm text-center min-w-[70px] ${
+              info.getValue()
+                ? 'bg-active text-green-700'
+                : 'bg-red-100 text-red-700'
+            }`}
+          >
+            {info.getValue() ? 'Active' : 'Inactive'}
+          </span>
+        ),
+      }),
+      columnHelper.display({
+        id: 'actions',
+        header: () => (
+          <div className='flex space-x-2' onClick={(e) => e.stopPropagation()}>
+            <Group justify='center'>
+              <Menu
+                width={150}
+                shadow='md'
+                position='bottom'
+                radius='md'
+                withArrow
+                offset={4}
+              >
+                <Menu.Target>
+                  <img
+                    src={actionOptionIcon}
+                    alt='Options'
+                    className='w-4 h-4 cursor-pointer'
+                  />
+                </Menu.Target>
+                <Menu.Dropdown>
+                  <Menu.Item
+                    color='#162F3B'
+                    className='text-sm'
+                    style={{ textAlign: 'center' }}
+                    onClick={openExportModal}
+                  >
+                    Export Session
+                  </Menu.Item>
+                </Menu.Dropdown>
+              </Menu>
+            </Group>
+          </div>
+        ),
+        cell: ({ row }) => {
+          const session = row.original;
+          return (
+            <div
+              className='flex space-x-2'
+              onClick={(e) => e.stopPropagation()}
+            >
+              <Group justify='center'>
+                <Menu
+                  width={150}
+                  shadow='md'
+                  position='bottom'
+                  radius='md'
+                  withArrow
+                  offset={4}
+                >
+                  <Menu.Target>
+                    <img
+                      src={actionOptionIcon}
+                      alt='Options'
+                      className='w-4 h-4 cursor-pointer'
+                    />
+                  </Menu.Target>
+                  <Menu.Dropdown>
+                    {session.is_active ? (
+                      <Menu.Item
+                        color='red'
+                        onClick={() => {
+                          setSelectedSession(session);
+                          setIsActivating(false);
+                          open();
+                        }}
+                        className='text-sm'
+                        style={{ textAlign: 'center' }}
+                      >
+                        Deactivate
+                      </Menu.Item>
+                    ) : (
+                      <Menu.Item
+                        color='green'
+                        onClick={() => {
+                          setSelectedSession(session);
+                          setIsActivating(true);
+                          open();
+                        }}
+                        className='text-sm'
+                        style={{ textAlign: 'center' }}
+                      >
+                        Activate
+                      </Menu.Item>
+                    )}
+                  </Menu.Dropdown>
+                </Menu>
+              </Group>
+            </div>
+          );
+        },
+      }),
+    ],
+    [openExportModal, open, setSelectedSession, setIsActivating]
+  );
 
   const toggleSessionType = (type: string) => {
     setTempSelectedTypes((prev) =>
@@ -366,6 +458,90 @@ const AllSessions = () => {
     setDateRange([null, null]);
     setClassTypeDropdownOpen(false);
     setCategoryTypeDropdownOpen(false);
+  };
+
+  const handleActivateSession = () => {
+    if (!selectedSession) return;
+
+    activateSessionMutation.mutate(selectedSession.id.toString(), {
+      onSuccess: () => {
+        notifications.show({
+          title: 'Success',
+          message: 'Session activated successfully!',
+          color: 'green',
+          radius: 'md',
+          icon: (
+            <span className='flex items-center justify-center w-6 h-6 rounded-full bg-green-200'>
+              <img src={successIcon} alt='Success' className='w-4 h-4' />
+            </span>
+          ),
+          withBorder: true,
+          autoClose: 3000,
+          position: 'top-right',
+        });
+        close();
+        refetchSessions();
+      },
+      onError: (_error: unknown) => {
+        notifications.show({
+          title: 'Error',
+          message: 'Failed to activate session. Please try again.',
+          color: 'red',
+          radius: 'md',
+          icon: (
+            <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+              <img src={errorIcon} alt='Error' className='w-4 h-4' />
+            </span>
+          ),
+          withBorder: true,
+          autoClose: 3000,
+          position: 'top-right',
+        });
+        close();
+      },
+    });
+  };
+
+  const handleDeactivateSession = () => {
+    if (!selectedSession) return;
+
+    deactivateSessionMutation.mutate(selectedSession.id.toString(), {
+      onSuccess: () => {
+        notifications.show({
+          title: 'Success',
+          message: 'Session deactivated successfully!',
+          color: 'green',
+          radius: 'md',
+          icon: (
+            <span className='flex items-center justify-center w-6 h-6 rounded-full bg-green-200'>
+              <img src={successIcon} alt='Success' className='w-4 h-4' />
+            </span>
+          ),
+          withBorder: true,
+          autoClose: 3000,
+          position: 'top-right',
+        });
+        close();
+        refetchSessions();
+      },
+      onError: (_error: unknown) => {
+        notifications.show({
+          title: 'Error',
+          message: 'Failed to deactivate session. Please try again.',
+          color: 'red',
+          radius: 'md',
+          icon: (
+            <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+              <img src={errorIcon} alt='Error' className='w-4 h-4' />
+            </span>
+          ),
+          withBorder: true,
+          autoClose: 3000,
+          position: 'top-right',
+        });
+        close();
+      },
+    });
   };
 
   return (
@@ -620,11 +796,21 @@ const AllSessions = () => {
           opened={
             (!sessionsData || sessionsData.length === 0) && !isLoadingSessions
           }
-          filterType={selectedTypes.length === 1 ? 'sessionType' : 
-                     selectedCategories.length === 1 ? 'category' : undefined}
-          filterValue={selectedTypes.length === 1 ? selectedTypes[0] : 
-                      selectedCategories.length === 1 ? selectedCategories[0] : undefined}
-        />}
+          filterType={
+            selectedTypes.length === 1
+              ? 'sessionType'
+              : selectedCategories.length === 1
+              ? 'category'
+              : undefined
+          }
+          filterValue={
+            selectedTypes.length === 1
+              ? selectedTypes[0]
+              : selectedCategories.length === 1
+              ? selectedCategories[0]
+              : undefined
+          }
+        />
         <div className='flex-1 px-6 py-2'>
           {isLoadingSessions || isLoadingCategories ? (
             <div className='flex justify-center items-center py-10'>
@@ -646,7 +832,76 @@ const AllSessions = () => {
         </div>
       </div>
       <AddSession isOpen={isModalOpen} onClose={closeDrawer} />
-      
+
+      <Modal
+        opened={opened}
+        onClose={close}
+        title={
+          <Text fw={600} size='lg'>
+            {isActivating ? 'Activate Session' : 'Deactivate Session'}
+          </Text>
+        }
+        centered
+        radius='md'
+        size='md'
+        withCloseButton={false}
+        overlayProps={{
+          backgroundOpacity: 0.55,
+          blur: 3,
+        }}
+        shadow='xl'
+      >
+        <div className='flex items-start space-x-4 mb-6'>
+          <div
+            className={`flex-shrink-0 w-10 h-10 rounded-full ${
+              isActivating ? 'bg-green-100' : 'bg-red-100'
+            } flex items-center justify-center`}
+          >
+            <img
+              src={isActivating ? successIcon : errorIcon}
+              alt='Warning'
+              className='w-5 h-5'
+            />
+          </div>
+          <div>
+            <Text fw={500} size='md' mb={8} c='gray.8'>
+              Are you sure you want to{' '}
+              {isActivating ? 'activate' : 'deactivate'} this session?
+            </Text>
+            <Text size='sm' c='gray.6'>
+              {isActivating
+                ? 'This action will make the session active in the system. It will appear in active session lists.'
+                : 'This action will make the session inactive in the system. It will no longer appear in active session lists.'}
+            </Text>
+          </div>
+        </div>
+
+        <div className='flex justify-end gap-2 mt-4'>
+          <MantineButton
+            variant='subtle'
+            onClick={close}
+            color='gray'
+            radius='md'
+          >
+            Cancel
+          </MantineButton>
+          <MantineButton
+            color={isActivating ? 'green' : 'red'}
+            onClick={
+              isActivating ? handleActivateSession : handleDeactivateSession
+            }
+            loading={
+              isActivating
+                ? activateSessionMutation.isPending
+                : deactivateSessionMutation.isPending
+            }
+            radius='md'
+          >
+            {isActivating ? 'Activate' : 'Deactivate'}
+          </MantineButton>
+        </div>
+      </Modal>
+
       <Modal
         opened={exportModalOpened}
         onClose={closeExportModal}
