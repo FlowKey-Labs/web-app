@@ -36,6 +36,8 @@ import {
   activate_session,
   deactivate_session,
   remove_client_from_session,
+  activate_staff,
+  deactivate_staff,
 } from "../api/api";
 import { useAuthStore } from "../store/auth";
 import { BusinessServices } from "../types/business";
@@ -491,6 +493,26 @@ export const useRemoveClientFromSession = () => {
       queryClient.invalidateQueries({ queryKey: ["session_clients", sessionId] });
       queryClient.invalidateQueries({ queryKey: ["session_analytics", sessionId] });
       queryClient.invalidateQueries({ queryKey: ["dashboard_analytics"] });
+    },
+  });
+};
+
+export const useActivateStaff = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: activate_staff,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["staff"] });
+    },
+  });
+};
+
+export const useDeactivateStaff = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: deactivate_staff,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["staff"] });
     },
   });
 };

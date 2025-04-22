@@ -181,6 +181,20 @@ const update_staff_member = async (
   return data;
 };
 
+const deactivate_staff = async (id: string) => {
+  const { data } = await api.patch(`${END_POINTS.STAFF.STAFF_DATA}${id}/`, {
+    isActive: false
+  });
+  return data;
+};
+
+const activate_staff = async (id: string) => {
+  const { data } = await api.patch(`${END_POINTS.STAFF.STAFF_DATA}${id}/`, {
+    isActive: true
+  });
+  return data;
+};
+
 const create_staff = async (staffData: {
   email: string;
   member_id?: string;
@@ -447,4 +461,6 @@ export {
   deactivate_session,
   remove_client_from_session,
   get_places_autocomplete,
+  activate_staff,
+  deactivate_staff,
 };
