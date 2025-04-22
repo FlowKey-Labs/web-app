@@ -35,7 +35,11 @@ interface SessionModalProps {
 const UpdateSession = ({ isOpen, onClose, sessionId }: SessionModalProps) => {
   const { data: sessionData } = useGetSessionDetail(sessionId || '');
   const updateSessionMutation = useUpdateSession();
-  const methods = useForm<Partial<CreateSessionData>>({
+  type CustomSessionData = Omit<CreateSessionData, 'repetition'> & {
+    repetition?: string;
+  };
+  
+  const methods = useForm<Partial<CustomSessionData>>({
     mode: 'onSubmit',
     defaultValues: {
       title: '',
@@ -129,14 +133,44 @@ const UpdateSession = ({ isOpen, onClose, sessionId }: SessionModalProps) => {
         setValue(new Date(sessionData.repeat_end_date));
       }
 
-      let repetitionValue: 'none' | 'daily' | 'weekly' | 'monthly' | 'custom' =
-        'none';
-      if (sessionData.repeat_unit) {
-        if (sessionData.repeat_unit === 'days') repetitionValue = 'daily';
-        else if (sessionData.repeat_unit === 'weeks')
-          repetitionValue = 'weekly';
-        else if (sessionData.repeat_unit === 'months')
+      // Determine the repetition value for the form
+      let repetitionValue: string = 'none';
+      
+      // If there's a custom repetition description saved, use that
+      if (sessionData.repetition && typeof sessionData.repetition === 'string') {
+        repetitionValue = sessionData.repetition;
+      } 
+      // Otherwise, determine based on repeat_unit
+      else if (sessionData.repeat_unit) {
+        if (sessionData.repeat_unit === 'days') {
+          repetitionValue = 'daily';
+        } else if (sessionData.repeat_unit === 'weeks') {
+          // For weekly repetition, check if we need to create a custom description
+          if (sessionData.repeat_on && Array.isArray(sessionData.repeat_on) && sessionData.repeat_on.length > 0) {
+            // Create a descriptive string for the weekdays
+            const weekdayLabels = sessionData.repeat_on
+              .sort((a, b) => a - b)
+              .map(day => {
+                const validDay = day as keyof typeof weekdayNames;
+                return weekdayNames[validDay];
+              })
+              .join(', ');
+            
+            // Start with the basic description
+            repetitionValue = `Weekly on ${weekdayLabels}`;
+            
+            // Add end condition if present
+            if (sessionData.repeat_end_type === 'on' && sessionData.repeat_end_date) {
+              repetitionValue += ` until ${moment(sessionData.repeat_end_date).format('MM/DD/YYYY')}`;
+            } else if (sessionData.repeat_end_type === 'after' && sessionData.repeat_occurrences) {
+              repetitionValue += ` for ${sessionData.repeat_occurrences} occurrences`;
+            }
+          } else {
+            repetitionValue = 'weekly';
+          }
+        } else if (sessionData.repeat_unit === 'months') {
           repetitionValue = 'monthly';
+        }
       }
 
       methods.reset({
@@ -154,7 +188,7 @@ const UpdateSession = ({ isOpen, onClose, sessionId }: SessionModalProps) => {
         email: sessionData.email,
         phone_number: sessionData.phone_number,
         selected_class: sessionData.selected_class,
-        repetition: repetitionValue,
+        repetition: repetitionValue as any,
         repeat_every: sessionData.repeat_every,
         repeat_unit: sessionData.repeat_unit,
         repeat_on: sessionData.repeat_on,
@@ -162,10 +196,30 @@ const UpdateSession = ({ isOpen, onClose, sessionId }: SessionModalProps) => {
         repeat_end_date: sessionData.repeat_end_date,
         repeat_occurrences: sessionData.repeat_occurrences,
       });
+
+      // Initialize selected weekdays from session data if available
+      if (sessionData.repeat_on && Array.isArray(sessionData.repeat_on)) {
+        setSelectedWeekdays(sessionData.repeat_on);
+      }
+      
+      // Initialize end option from session data
+      if (sessionData.repeat_end_type) {
+        setEndsOption(sessionData.repeat_end_type as 'never' | 'on' | 'after');
+      }
+      
+      // Initialize end date if it exists
+      if (sessionData.repeat_end_date) {
+        setValue(new Date(sessionData.repeat_end_date));
+      }
+      
+      // Initialize occurrences if they exist
+      if (sessionData.repeat_occurrences) {
+        setOccurrences(sessionData.repeat_occurrences);
+      }
     }
   }, [sessionData, isOpen]);
 
-  const onSubmit = async (data: Partial<CreateSessionData>) => {
+  const onSubmit = async (data: Partial<CustomSessionData>) => {
     if (!sessionId) return;
 
     try {
@@ -196,10 +250,17 @@ const UpdateSession = ({ isOpen, onClose, sessionId }: SessionModalProps) => {
           repeatOn = selectedWeekdays.length > 0 ? selectedWeekdays : undefined;
         } else if (data.repetition === 'monthly') {
           repeatUnit = 'months';
-        } else if (data.repetition === 'custom' && data.repeat_unit) {
-          repeatUnit = data.repeat_unit as RepeatUnit;
-          repeatEvery = data.repeat_every;
-          repeatOn = (data.repeat_on as number[]) || selectedWeekdays;
+        } else if (data.repetition === 'custom' || 
+                 (typeof data.repetition === 'string' && 
+                  !['none', 'daily', 'weekly', 'monthly', 'custom'].includes(data.repetition))) {
+          // For custom repetition or descriptive repetition strings (e.g. "Weekly on Mon, Wed")
+          repeatUnit = 'weeks';
+          repeatEvery = 1;
+          
+          // Always use the current selectedWeekdays state for custom repetition
+          // This ensures the UI state is what gets sent to the backend
+          repeatOn = selectedWeekdays;
+          console.log('Using selected weekdays for repeatOn:', selectedWeekdays);
         }
 
         repeatEndType = endsOption;
@@ -403,7 +464,8 @@ const UpdateSession = ({ isOpen, onClose, sessionId }: SessionModalProps) => {
             <form
               onSubmit={(e) => {
                 e.preventDefault();
-                methods.handleSubmit(onSubmit)(e);
+                // Use type assertion to ensure compatibility
+                methods.handleSubmit((formData) => onSubmit(formData))(e);
               }}
               className='flex-1 flex flex-col'
             >
@@ -550,21 +612,55 @@ const UpdateSession = ({ isOpen, onClose, sessionId }: SessionModalProps) => {
                                   { label: 'Weekly', value: 'weekly' },
                                   { label: 'Monthly', value: 'monthly' },
                                   { label: 'Custom', value: 'custom' },
+                                  // Add a dynamic option for custom repetition if it exists
+                                  ...(field.value && 
+                                    !['none', 'daily', 'weekly', 'monthly', 'custom'].includes(field.value) ? 
+                                    [{ label: field.value, value: field.value }] : 
+                                    [])
                                 ]}
                                 onSelectItem={(selectedItem) => {
-                                  const value = (
+                                  const value = 
                                     typeof selectedItem === 'string'
                                       ? selectedItem
-                                      : selectedItem?.value
-                                  ) as
-                                    | 'none'
-                                    | 'daily'
-                                    | 'weekly'
-                                    | 'monthly'
-                                    | 'custom';
-
-                                  field.onChange(value);
+                                      : selectedItem?.value;
+                                  
+                                  // Allow any string value to be set
+                                  field.onChange(value as any);
+                                  
                                   if (value === 'custom') {
+                                    // Initialize the repetition modal with current values
+                                    const currentRepeatOn = methods.getValues('repeat_on');
+                                    const currentRepeatEndType = methods.getValues('repeat_end_type') || 'never';
+                                    const currentRepeatEndDate = methods.getValues('repeat_end_date');
+                                    const currentRepeatOccurrences = methods.getValues('repeat_occurrences');
+                                    
+                                    // Set repeat unit to weeks for custom repetition
+                                    methods.setValue('repeat_unit', 'weeks');
+                                    
+                                    // Initialize selected weekdays if they exist
+                                    if (Array.isArray(currentRepeatOn) && currentRepeatOn.length > 0) {
+                                      setSelectedWeekdays(currentRepeatOn);
+                                    } else {
+                                      // Default to current day of week if no days are selected
+                                      const today = new Date().getDay();
+                                      // Convert from JS day (0=Sunday) to our day format (0=Monday)
+                                      const dayIndex = today === 0 ? 6 : today - 1;
+                                      setSelectedWeekdays([dayIndex]);
+                                    }
+                                    
+                                    // Initialize end option
+                                    setEndsOption(currentRepeatEndType as 'never' | 'on' | 'after');
+                                    
+                                    // Initialize end date if it exists
+                                    if (currentRepeatEndDate) {
+                                      setValue(new Date(currentRepeatEndDate));
+                                    }
+                                    
+                                    // Initialize occurrences if they exist
+                                    if (currentRepeatOccurrences) {
+                                      setOccurrences(currentRepeatOccurrences);
+                                    }
+                                    
                                     openRepetitionModal();
                                   }
                                 }}
@@ -859,8 +955,8 @@ const UpdateSession = ({ isOpen, onClose, sessionId }: SessionModalProps) => {
                         ? 'Updating Class...'
                         : 'Updating Appointment...'
                       : methods.watch('session_type') === 'class'
-                      ? 'Update Class'
-                      : 'Update Appointment'}
+                      ? 'Update '
+                      : 'Update '}
                   </Button>
                 </div>
               </div>
@@ -1010,10 +1106,57 @@ const UpdateSession = ({ isOpen, onClose, sessionId }: SessionModalProps) => {
               type='button'
               className='px-4 py-2 text-sm font-medium text-white bg-secondary rounded-md hover:bg-secondary/90 '
               onClick={() => {
-                if (methods.watch('repeat_unit') === 'weeks') {
-                  methods.setValue('repeat_on', selectedWeekdays);
+                // Create a descriptive repetition string based on selected options
+                let repetitionDescription = '';
+                
+                // Format the selected weekdays
+                if (selectedWeekdays.length > 0) {
+                  const weekdayLabels = selectedWeekdays
+                    .sort((a, b) => a - b)
+                    .map(day => {
+                      // Ensure day is a valid key in weekdayNames
+                      const validDay = day as keyof typeof weekdayNames;
+                      return weekdayNames[validDay];
+                    })
+                    .join(', ');
+                  
+                  repetitionDescription = `Weekly on ${weekdayLabels}`;
+                } else {
+                  repetitionDescription = 'Weekly';
                 }
+                
+                // Add end condition
+                if (endsOption === 'on' && value) {
+                  repetitionDescription += ` until ${moment(value).format('MM/DD/YYYY')}`;
+                } else if (endsOption === 'after') {
+                  repetitionDescription += ` for ${occurrences} occurrences`;
+                }
+                
+                // Set the form value with the descriptive string
+                methods.setValue('repetition', repetitionDescription as any);
+                
+                // Force a re-render of the dropdown to show the custom value
+                setTimeout(() => {
+                  const currentValue = methods.getValues('repetition');
+                  methods.setValue('repetition', currentValue as any);
+                }, 0);
+                
+                // Always set the repeat_unit to 'weeks' for custom repetition
+                methods.setValue('repeat_unit', 'weeks');
+                
+                // Set the selected weekdays and log for debugging
+                console.log('Setting repeat_on to:', selectedWeekdays);
+                
+                // Store the selected weekdays in the form
+                methods.setValue('repeat_on', selectedWeekdays);
+                
+                // Force update the form state to ensure the value is saved
+                methods.trigger('repeat_on');
+                
+                // Set repeat_every to 1 for consistency
+                methods.setValue('repeat_every', 1);
 
+                // Handle end conditions
                 if (endsOption === 'never') {
                   methods.setValue('repeat_end_date', undefined);
                   methods.setValue('repeat_occurrences', undefined);
