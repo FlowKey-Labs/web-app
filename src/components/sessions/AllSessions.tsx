@@ -620,11 +620,30 @@ const AllSessions = () => {
           opened={
             (!sessionsData || sessionsData.length === 0) && !isLoadingSessions
           }
+<<<<<<< Updated upstream
           filterType={selectedTypes.length === 1 ? 'sessionType' : 
                      selectedCategories.length === 1 ? 'category' : undefined}
           filterValue={selectedTypes.length === 1 ? selectedTypes[0] : 
                       selectedCategories.length === 1 ? selectedCategories[0] : undefined}
         />}
+=======
+          filterType={
+            selectedTypes.length === 1
+              ? 'sessionType'
+              : selectedCategories.length === 1
+              ? 'category'
+              : undefined
+          }
+          filterValue={
+            selectedTypes.length === 1
+              ? selectedTypes[0]
+              : selectedCategories.length === 1
+              ? selectedCategories[0]
+              : undefined
+          }
+        />
+        }
+>>>>>>> Stashed changes
         <div className='flex-1 px-6 py-2'>
           {isLoadingSessions || isLoadingCategories ? (
             <div className='flex justify-center items-center py-10'>
