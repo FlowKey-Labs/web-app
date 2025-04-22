@@ -30,10 +30,12 @@ const EventCard = ({
   data,
   onClose,
   handleRemoveEvent,
+  handleAddClient,
 }: {
   data: Dictionary;
   onClose: () => void;
   handleRemoveEvent: () => void;
+  handleAddClient: () => void;
 }) => {
   const attendances = data?.session?.attendances || [];
   const invitedCount = attendances.filter((a: { attended: boolean; }) => !a.attended).length;
@@ -94,7 +96,7 @@ const EventCard = ({
         <span className="w-5 h-5 text-gray-500">📅</span>
         <p className="text-gray-700">{data?.session?.assigned_staff?.user?.first_name} {data?.session?.assigned_staff?.user?.last_name}</p>
       </div>
-      <button className="w-full bg-green-600 text-white py-2 rounded-lg text-lg font-semibold hover:bg-green-700">
+      <button onClick={handleAddClient} className="w-full bg-green-600 text-white py-2 rounded-lg text-lg font-semibold hover:bg-green-700">
         + Add Clients
       </button>
     </div>

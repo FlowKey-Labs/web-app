@@ -779,7 +779,7 @@ const AllSessions = () => {
             </div>
           </div>
         </div>
-        <EmptyDataPage
+        {!isModalOpen && <EmptyDataPage
           title='No Sessions Found!'
           description="You don't have any sessions yet"
           buttonText='Create New Session'

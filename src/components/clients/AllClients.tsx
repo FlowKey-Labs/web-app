@@ -367,14 +367,14 @@ const AllClients = () => {
           leftIcon={plusIcon}
           onButtonClick={openDrawer}
         />
-        <EmptyDataPage
+        {!isDrawerOpen && <EmptyDataPage
           title='No Clients Found'
           description="You don't have any clients yet"
           buttonText='Add New Client'
           onButtonClick={openDrawer}
           onClose={() => {}}
           opened={clients.length === 0 && !isLoading}
-        />
+        />}
         <div className='flex-1 px-6 py-3'>
           <Table
             data={clients}
