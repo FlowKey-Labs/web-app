@@ -361,6 +361,22 @@ const get_session_clients = async (sessionId: string) => {
   return data;
 };
 
+const remove_client_from_session = async (clientId: string, sessionId: string) => {
+  const { data } = await api.delete(`${BASE_URL}/api/session/${sessionId}/clients/${clientId}/`);
+  return data;
+};
+
+const get_places_autocomplete = async (input: string) => {
+  const { data } = await axios.get(END_POINTS.GOOGLE.PLACES_AUTOCOMPLETE, {
+    params: {
+      input,
+      key: GOOGLE_API_KEY,
+      types: 'geocode',
+    },
+  });
+  return data.predictions;
+};
+
 // Simplified API calls for attendance management
 const mark_client_attended = async (clientId: string, sessionId: string) => {
   try {
@@ -429,4 +445,6 @@ export {
   mark_client_not_attended,
   activate_session,
   deactivate_session,
+  remove_client_from_session,
+  get_places_autocomplete,
 };
