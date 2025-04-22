@@ -413,9 +413,6 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
                     {methods.watch('session_type') === 'class' ? (
                       <>
                         <div className='flex flex-col space-y-3'>
-                          <div>
-                            <h2 className='font-medium mb-2'>Session Type</h2>
-                          </div>
                           <Controller
                             name='class_type'
                             control={methods.control}
@@ -473,7 +470,7 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
                               control={methods.control}
                               render={({ field }) => (
                                 <DropdownSelectInput
-                                  label='Categories'
+                                  label='Category'
                                   placeholder='Select a category'
                                   options={
                                     categoriesData
@@ -1024,13 +1021,7 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
                 let repetitionDescription = '';
 
                 if (selectedWeekdays.length > 0) {
-                  const weekdayLabels = selectedWeekdays
-                    .sort((a, b) => a - b)
-                    .map((day) => {
-                      const validDay = day as keyof typeof weekdayNames;
-                      return weekdayNames[validDay];
-                    })
-                    .join(', ');
+                  const weekdayLabels = selectedWeekdays.join(', ');
 
                   repetitionDescription = `Weekly on ${weekdayLabels}`;
                 } else {
@@ -1044,6 +1035,8 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
                   const endDateStr = methods.getValues('repeat_end_date');
                   if (endDateStr) {
                     const endDate = new Date(endDateStr);
+                    console.log('endDateStr===>', endDateStr);
+                    
                     repetitionDescription += ` until ${endDate.toLocaleDateString()}`;
                   }
                 } else if (endsOption === 'after') {
