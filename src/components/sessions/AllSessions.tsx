@@ -116,19 +116,19 @@ const AllSessions = () => {
   }, [allSessionsData, selectedTypes, selectedCategories, dateRange]);
 
   const sessionsData = filteredSessions;
-  
-  const { 
-    exportModalOpened, 
-    openExportModal, 
-    closeExportModal, 
+
+  const {
+    exportModalOpened,
+    openExportModal,
+    closeExportModal,
     handleExport,
-    isExporting 
+    isExporting,
   } = useExportSessions(sessionsData || []);
-  
+
   const getSelectedSessionIds = useCallback(() => {
     if (!sessionsData) return [];
-    
-    return Object.keys(rowSelection).map(index => {
+
+    return Object.keys(rowSelection).map((index) => {
       const sessionIndex = parseInt(index);
       return sessionsData[sessionIndex].id;
     });
@@ -271,7 +271,6 @@ const AllSessions = () => {
             if (repeat_unit === 'weeks') {
               return `Weekly`;
             }
-
             if (repeat_unit === 'months' && repeat_every) {
               return `Monthly`;
             }
@@ -536,7 +535,7 @@ const AllSessions = () => {
               <p className='text-primary text-sm font-normal'>Filter By</p>
             </div>
             <div className='h-full w-[1px] bg-gray-200'></div>
-            
+
             <div
               className='flex items-center space-x-2 cursor-pointer'
               onClick={() => {}}
@@ -747,38 +746,40 @@ const AllSessions = () => {
             </div>
           </div>
         </div>
-        <EmptyDataPage
-          title='No Sessions Found!'
-          description="You don't have any sessions yet"
-          buttonText='Create New Session'
-          onButtonClick={openDrawer}
-          onClose={() => {
-            if (
-              selectedTypes.length > 0 ||
-              selectedCategories.length > 0 ||
-              (dateRange[0] && dateRange[1])
-            ) {
-              resetFilters();
+        {!isModalOpen && (
+          <EmptyDataPage
+            title='No Sessions Found!'
+            description="You don't have any sessions yet"
+            buttonText='Create New Session'
+            onButtonClick={openDrawer}
+            onClose={() => {
+              if (
+                selectedTypes.length > 0 ||
+                selectedCategories.length > 0 ||
+                (dateRange[0] && dateRange[1])
+              ) {
+                resetFilters();
+              }
+            }}
+            opened={
+              (!sessionsData || sessionsData.length === 0) && !isLoadingSessions
             }
-          }}
-          opened={
-            (!sessionsData || sessionsData.length === 0) && !isLoadingSessions
-          }
-          filterType={
-            selectedTypes.length === 1
-              ? 'sessionType'
-              : selectedCategories.length === 1
-              ? 'category'
-              : undefined
-          }
-          filterValue={
-            selectedTypes.length === 1
-              ? selectedTypes[0]
-              : selectedCategories.length === 1
-              ? selectedCategories[0]
-              : undefined
-          }
-        />
+            filterType={
+              selectedTypes.length === 1
+                ? 'sessionType'
+                : selectedCategories.length === 1
+                ? 'category'
+                : undefined
+            }
+            filterValue={
+              selectedTypes.length === 1
+                ? selectedTypes[0]
+                : selectedCategories.length === 1
+                ? selectedCategories[0]
+                : undefined
+            }
+          />
+        )}
         <div className='flex-1 px-6 py-2'>
           {isLoadingSessions || isLoadingCategories ? (
             <div className='flex justify-center items-center py-10'>
@@ -890,10 +891,11 @@ const AllSessions = () => {
       >
         <div className='py-2'>
           <Text size='sm' style={{ marginBottom: '2rem' }}>
-            Select a format to export {Object.keys(rowSelection).length} selected sessions
+            Select a format to export {Object.keys(rowSelection).length}{' '}
+            selected sessions
           </Text>
-          
-          <Stack gap="md">
+
+          <Stack gap='md'>
             <MantineButton
               variant='outline'
               color='#1D9B5E'
@@ -904,7 +906,7 @@ const AllSessions = () => {
             >
               Export as Excel
             </MantineButton>
-            
+
             <MantineButton
               variant='outline'
               color='#1D9B5E'
@@ -916,7 +918,7 @@ const AllSessions = () => {
               Export as CSV
             </MantineButton>
           </Stack>
-          
+
           <div className='flex justify-end space-x-4 mt-8'>
             <MantineButton
               variant='outline'

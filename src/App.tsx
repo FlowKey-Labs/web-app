@@ -31,7 +31,6 @@ import Settings from './components/accountSettings';
 import ClientDetails from './components/clients/ClientDetails';
 import ComingSoon from './components/common/ComingSoon';
 import './App.css';
-import EmptyDataPage from './components/common/EmptyDataPage';
 
 function App() {
   return (

@@ -5,11 +5,22 @@ import actionOptionIcon from '../../assets/icons/actionOption.svg';
 import Table from '../common/Table';
 import plusIcon from '../../assets/icons/plusWhite.svg';
 import { useNavigate } from 'react-router-dom';
-import { useGetStaff, useActivateStaff, useDeactivateStaff } from '../../hooks/reactQuery';
+import {
+  useGetStaff,
+  useActivateStaff,
+  useDeactivateStaff,
+} from '../../hooks/reactQuery';
 import { StaffResponse } from '../../types/staffTypes';
 import AddStaff from './AddStaff';
 import EmptyDataPage from '../common/EmptyDataPage';
-import { Group, Menu, Modal, Text, Button as MantineButton, Stack } from '@mantine/core';
+import {
+  Group,
+  Menu,
+  Modal,
+  Text,
+  Button as MantineButton,
+  Stack,
+} from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
 import successIcon from '../../assets/icons/success.svg';
@@ -23,7 +34,9 @@ const AllStaff = () => {
   const navigate = useNavigate();
   const [rowSelection, setRowSelection] = useState({});
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const [selectedStaff, setSelectedStaff] = useState<StaffResponse | null>(null);
+  const [selectedStaff, setSelectedStaff] = useState<StaffResponse | null>(
+    null
+  );
   const [isActivating, setIsActivating] = useState(false);
   const [opened, { open, close }] = useDisclosure(false);
 
@@ -34,14 +47,14 @@ const AllStaff = () => {
     error,
     refetch,
   } = useGetStaff();
-  
+
   const activateStaffMutation = useActivateStaff();
   const deactivateStaffMutation = useDeactivateStaff();
-  
+
   const getSelectedStaffIds = useCallback(() => {
     if (!staff) return [];
-    
-    return Object.keys(rowSelection).map(index => {
+
+    return Object.keys(rowSelection).map((index) => {
       const staffIndex = parseInt(index);
       return staff[staffIndex].id;
     });
@@ -52,12 +65,12 @@ const AllStaff = () => {
     openExportModal,
     closeExportModal,
     handleExport,
-    isExporting
+    isExporting,
   } = useExportStaff(staff || []);
 
   const openDrawer = () => setIsDrawerOpen(true);
   const closeDrawer = () => setIsDrawerOpen(false);
-  
+
   const handleDeactivateStaff = () => {
     if (!selectedStaff) return;
 
@@ -187,7 +200,11 @@ const AllStaff = () => {
         header: 'Status',
         cell: (info) => (
           <span
-            className={`inline-block px-2 py-1 rounded-lg text-sm text-center min-w-[70px] ${info.getValue() === true ? 'bg-active text-primary' : 'bg-red-100 text-red-800'}`}
+            className={`inline-block px-2 py-1 rounded-lg text-sm text-center min-w-[70px] ${
+              info.getValue() === true
+                ? 'bg-active text-primary'
+                : 'bg-red-100 text-red-800'
+            }`}
           >
             {info.getValue() === true ? 'Active' : 'Inactive'}
           </span>
@@ -229,7 +246,7 @@ const AllStaff = () => {
         ),
         cell: (info) => {
           const currentStaff = info.row.original;
-          
+
           return (
             <div
               className='flex space-x-2'
@@ -302,9 +319,7 @@ const AllStaff = () => {
     return (
       <div className='w-full space-y-6 bg-white rounded-lg p-6'>
         <div className='space-y-4'>
-          <p className='text-red-500'>
-            Error loading staff: {error?.message}
-          </p>
+          <p className='text-red-500'>Error loading staff: {error?.message}</p>
           <button
             onClick={() => refetch()}
             className='px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90'
@@ -326,14 +341,16 @@ const AllStaff = () => {
           leftIcon={plusIcon}
           onButtonClick={openDrawer}
         />
-        <EmptyDataPage
-          title='No Staff Found'
-          description="You don't have any staff yet"
-          buttonText='Add New Staff'
-          onButtonClick={openDrawer}
-          onClose={() => {}}
-          opened={staff.length === 0 && !isLoading && !isError}
-        />
+        {!isDrawerOpen && (
+          <EmptyDataPage
+            title='No Staff Found'
+            description="You don't have any staff yet"
+            buttonText='Add New Staff'
+            onButtonClick={openDrawer}
+            onClose={() => {}}
+            opened={staff.length === 0 && !isLoading && !isError}
+          />
+        )}
         {staff.length > 0 && (
           <div className='flex-1 px-6 py-3'>
             <Table
@@ -352,7 +369,7 @@ const AllStaff = () => {
       </div>
 
       <AddStaff isOpen={isDrawerOpen} onClose={closeDrawer} />
-      
+
       <Modal
         opened={opened}
         onClose={close}
@@ -373,7 +390,9 @@ const AllStaff = () => {
       >
         <div className='flex items-start space-x-4 mb-6'>
           <div
-            className={`flex-shrink-0 w-10 h-10 rounded-full ${isActivating ? 'bg-green-100' : 'bg-red-100'} flex items-center justify-center`}
+            className={`flex-shrink-0 w-10 h-10 rounded-full ${
+              isActivating ? 'bg-green-100' : 'bg-red-100'
+            } flex items-center justify-center`}
           >
             <img
               src={isActivating ? successIcon : errorIcon}
@@ -383,7 +402,8 @@ const AllStaff = () => {
           </div>
           <div>
             <Text fw={500} size='md' mb={8} c='gray.8'>
-              Are you sure you want to {isActivating ? 'activate' : 'deactivate'} this staff member?
+              Are you sure you want to{' '}
+              {isActivating ? 'activate' : 'deactivate'} this staff member?
             </Text>
             <Text size='sm' c='gray.6'>
               {isActivating
@@ -397,7 +417,11 @@ const AllStaff = () => {
           <MantineButton
             color={isActivating ? 'green' : 'red'}
             onClick={isActivating ? handleActivateStaff : handleDeactivateStaff}
-            loading={isActivating ? activateStaffMutation.isPending : deactivateStaffMutation.isPending}
+            loading={
+              isActivating
+                ? activateStaffMutation.isPending
+                : deactivateStaffMutation.isPending
+            }
             radius='md'
           >
             {isActivating ? 'Activate' : 'Deactivate'}
@@ -425,10 +449,11 @@ const AllStaff = () => {
       >
         <div className='py-2'>
           <Text size='sm' style={{ marginBottom: '2rem' }}>
-            Select a format to export {Object.keys(rowSelection).length} selected staff members
+            Select a format to export {Object.keys(rowSelection).length}{' '}
+            selected staff members
           </Text>
-          
-          <Stack gap="md">
+
+          <Stack gap='md'>
             <MantineButton
               variant='outline'
               color='#1D9B5E'
@@ -439,7 +464,7 @@ const AllStaff = () => {
             >
               Export as Excel
             </MantineButton>
-            
+
             <MantineButton
               variant='outline'
               color='#1D9B5E'
@@ -451,7 +476,7 @@ const AllStaff = () => {
               Export as CSV
             </MantineButton>
           </Stack>
-          
+
           <div className='flex justify-end space-x-4 mt-8'>
             <MantineButton
               variant='outline'

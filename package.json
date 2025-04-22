@@ -31,6 +31,7 @@
     "@types/node": "^22.13.8",
     "axios": "^1.8.4",
     "date-fns": "^4.1.0",
+    "date-fns-tz": "^3.2.0",
     "dayjs": "^1.11.13",
     "lucide-react": "^0.484.0",
     "moment": "^2.30.1",
