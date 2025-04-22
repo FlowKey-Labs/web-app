@@ -299,10 +299,21 @@ const get_session_categories = async () => {
 };
 
 const create_session = async (sessionData: CreateSessionData) => {
-  const { data } = await api.post(
-    END_POINTS.SESSION.SESSIONS_DATA,
-    sessionData
-  );
+  const { data } = await api.post(END_POINTS.SESSION.SESSIONS_DATA, sessionData);
+  return data;
+};
+
+const activate_session = async (sessionId: string) => {
+  const { data } = await api.patch(END_POINTS.SESSION.SESSION_DETAIL(sessionId), {
+    is_active: true
+  });
+  return data;
+};
+
+const deactivate_session = async (sessionId: string) => {
+  const { data } = await api.patch(END_POINTS.SESSION.SESSION_DETAIL(sessionId), {
+    is_active: false
+  });
   return data;
 };
 
@@ -416,4 +427,6 @@ export {
   get_session_clients,
   mark_client_attended,
   mark_client_not_attended,
+  activate_session,
+  deactivate_session,
 };

@@ -8,6 +8,8 @@ import { classTypesOptions } from '../../utils/dummyData';
 import {
   useGetSessions,
   useGetSessionCategories,
+  useActivateSession,
+  useDeactivateSession,
 } from '../../hooks/reactQuery';
 import { Session } from '../../types/sessionTypes';
 import { navigateToSessionDetails } from '../../utils/navigationHelpers';
@@ -94,6 +96,9 @@ const AllSessions = () => {
     useState(false);
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [selectedSession, setSelectedSession] = useState<Session | null>(null);
+  const [isActivating, setIsActivating] = useState(false);
+  const [opened, { open, close }] = useDisclosure(false);
 
   const [tempSelectedTypes, setTempSelectedTypes] = useState<string[]>([]);
   const [tempSelectedCategories, setTempSelectedCategories] = useState<
@@ -107,11 +112,17 @@ const AllSessions = () => {
   const openDrawer = () => setIsModalOpen(true);
   const closeDrawer = () => setIsModalOpen(false);
 
+  const activateSessionMutation = useActivateSession();
+  const deactivateSessionMutation = useDeactivateSession();
+
   const { exportModalOpened, openExportModal, closeExportModal, handleExport } =
     useExportSessions();
 
-  const { data: allSessionsData, isLoading: isLoadingSessions } =
-    useGetSessions();
+  const {
+    data: allSessionsData,
+    isLoading: isLoadingSessions,
+    refetch: refetchSessions,
+  } = useGetSessions();
 
   const filteredSessions = useMemo(() => {
     if (!allSessionsData) return [];
@@ -307,6 +318,20 @@ const AllSessions = () => {
           },
         }
       ),
+      columnHelper.accessor('is_active', {
+        header: 'Status',
+        cell: (info) => (
+          <span
+            className={`inline-block px-2 py-1 rounded-lg text-sm text-center min-w-[70px] ${
+              info.getValue()
+                ? 'bg-active text-green-700'
+                : 'bg-red-100 text-red-700'
+            }`}
+          >
+            {info.getValue() ? 'Active' : 'Inactive'}
+          </span>
+        ),
+      }),
       columnHelper.display({
         id: 'actions',
         header: () => (
@@ -341,18 +366,66 @@ const AllSessions = () => {
             </Group>
           </div>
         ),
-        cell: () => (
-          <div className='flex space-x-2' onClick={(e) => e.stopPropagation()}>
-            <img
-              src={actionOptionIcon}
-              alt='Options'
-              className='w-4 h-4 cursor-pointer'
-            />
-          </div>
-        ),
+        cell: ({ row }) => {
+          const session = row.original;
+          return (
+            <div
+              className='flex space-x-2'
+              onClick={(e) => e.stopPropagation()}
+            >
+              <Group justify='center'>
+                <Menu
+                  width={150}
+                  shadow='md'
+                  position='bottom'
+                  radius='md'
+                  withArrow
+                  offset={4}
+                >
+                  <Menu.Target>
+                    <img
+                      src={actionOptionIcon}
+                      alt='Options'
+                      className='w-4 h-4 cursor-pointer'
+                    />
+                  </Menu.Target>
+                  <Menu.Dropdown>
+                    {session.is_active ? (
+                      <Menu.Item
+                        color='red'
+                        onClick={() => {
+                          setSelectedSession(session);
+                          setIsActivating(false);
+                          open();
+                        }}
+                        className='text-sm'
+                        style={{ textAlign: 'center' }}
+                      >
+                        Deactivate
+                      </Menu.Item>
+                    ) : (
+                      <Menu.Item
+                        color='green'
+                        onClick={() => {
+                          setSelectedSession(session);
+                          setIsActivating(true);
+                          open();
+                        }}
+                        className='text-sm'
+                        style={{ textAlign: 'center' }}
+                      >
+                        Activate
+                      </Menu.Item>
+                    )}
+                  </Menu.Dropdown>
+                </Menu>
+              </Group>
+            </div>
+          );
+        },
       }),
     ],
-    [openExportModal]
+    [openExportModal, open, setSelectedSession, setIsActivating]
   );
 
   const toggleSessionType = (type: string) => {
@@ -385,6 +458,90 @@ const AllSessions = () => {
     setDateRange([null, null]);
     setClassTypeDropdownOpen(false);
     setCategoryTypeDropdownOpen(false);
+  };
+
+  const handleActivateSession = () => {
+    if (!selectedSession) return;
+
+    activateSessionMutation.mutate(selectedSession.id.toString(), {
+      onSuccess: () => {
+        notifications.show({
+          title: 'Success',
+          message: 'Session activated successfully!',
+          color: 'green',
+          radius: 'md',
+          icon: (
+            <span className='flex items-center justify-center w-6 h-6 rounded-full bg-green-200'>
+              <img src={successIcon} alt='Success' className='w-4 h-4' />
+            </span>
+          ),
+          withBorder: true,
+          autoClose: 3000,
+          position: 'top-right',
+        });
+        close();
+        refetchSessions();
+      },
+      onError: (_error: unknown) => {
+        notifications.show({
+          title: 'Error',
+          message: 'Failed to activate session. Please try again.',
+          color: 'red',
+          radius: 'md',
+          icon: (
+            <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+              <img src={errorIcon} alt='Error' className='w-4 h-4' />
+            </span>
+          ),
+          withBorder: true,
+          autoClose: 3000,
+          position: 'top-right',
+        });
+        close();
+      },
+    });
+  };
+
+  const handleDeactivateSession = () => {
+    if (!selectedSession) return;
+
+    deactivateSessionMutation.mutate(selectedSession.id.toString(), {
+      onSuccess: () => {
+        notifications.show({
+          title: 'Success',
+          message: 'Session deactivated successfully!',
+          color: 'green',
+          radius: 'md',
+          icon: (
+            <span className='flex items-center justify-center w-6 h-6 rounded-full bg-green-200'>
+              <img src={successIcon} alt='Success' className='w-4 h-4' />
+            </span>
+          ),
+          withBorder: true,
+          autoClose: 3000,
+          position: 'top-right',
+        });
+        close();
+        refetchSessions();
+      },
+      onError: (_error: unknown) => {
+        notifications.show({
+          title: 'Error',
+          message: 'Failed to deactivate session. Please try again.',
+          color: 'red',
+          radius: 'md',
+          icon: (
+            <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+              <img src={errorIcon} alt='Error' className='w-4 h-4' />
+            </span>
+          ),
+          withBorder: true,
+          autoClose: 3000,
+          position: 'top-right',
+        });
+        close();
+      },
+    });
   };
 
   return (
@@ -675,6 +832,75 @@ const AllSessions = () => {
         </div>
       </div>
       <AddSession isOpen={isModalOpen} onClose={closeDrawer} />
+
+      <Modal
+        opened={opened}
+        onClose={close}
+        title={
+          <Text fw={600} size='lg'>
+            {isActivating ? 'Activate Session' : 'Deactivate Session'}
+          </Text>
+        }
+        centered
+        radius='md'
+        size='md'
+        withCloseButton={false}
+        overlayProps={{
+          backgroundOpacity: 0.55,
+          blur: 3,
+        }}
+        shadow='xl'
+      >
+        <div className='flex items-start space-x-4 mb-6'>
+          <div
+            className={`flex-shrink-0 w-10 h-10 rounded-full ${
+              isActivating ? 'bg-green-100' : 'bg-red-100'
+            } flex items-center justify-center`}
+          >
+            <img
+              src={isActivating ? successIcon : errorIcon}
+              alt='Warning'
+              className='w-5 h-5'
+            />
+          </div>
+          <div>
+            <Text fw={500} size='md' mb={8} c='gray.8'>
+              Are you sure you want to{' '}
+              {isActivating ? 'activate' : 'deactivate'} this session?
+            </Text>
+            <Text size='sm' c='gray.6'>
+              {isActivating
+                ? 'This action will make the session active in the system. It will appear in active session lists.'
+                : 'This action will make the session inactive in the system. It will no longer appear in active session lists.'}
+            </Text>
+          </div>
+        </div>
+
+        <div className='flex justify-end gap-2 mt-4'>
+          <MantineButton
+            variant='subtle'
+            onClick={close}
+            color='gray'
+            radius='md'
+          >
+            Cancel
+          </MantineButton>
+          <MantineButton
+            color={isActivating ? 'green' : 'red'}
+            onClick={
+              isActivating ? handleActivateSession : handleDeactivateSession
+            }
+            loading={
+              isActivating
+                ? activateSessionMutation.isPending
+                : deactivateSessionMutation.isPending
+            }
+            radius='md'
+          >
+            {isActivating ? 'Activate' : 'Deactivate'}
+          </MantineButton>
+        </div>
+      </Modal>
 
       <Modal
         opened={exportModalOpened}

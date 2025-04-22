@@ -33,6 +33,8 @@ import {
   get_session_clients,
   mark_client_attended,
   mark_client_not_attended,
+  activate_session,
+  deactivate_session,
 } from "../api/api";
 import { useAuthStore } from "../store/auth";
 import { BusinessServices } from "../types/business";
@@ -451,6 +453,28 @@ export const useMarkClientNotAttended = () => {
       mark_client_not_attended(clientId, sessionId),
     onSuccess: (_, { sessionId }) => {
       queryClient.invalidateQueries({ queryKey: ["session_clients", sessionId] });
+    },
+  });
+};
+
+export const useActivateSession = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: activate_session,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["sessions"] });
+      queryClient.invalidateQueries({ queryKey: ["session"] });
+    },
+  });
+};
+
+export const useDeactivateSession = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: deactivate_session,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["sessions"] });
+      queryClient.invalidateQueries({ queryKey: ["session"] });
     },
   });
 };
