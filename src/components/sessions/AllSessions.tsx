@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createColumnHelper } from '@tanstack/react-table';
 
@@ -15,7 +15,7 @@ import { Session } from '../../types/sessionTypes';
 import { navigateToSessionDetails } from '../../utils/navigationHelpers';
 import { DatePickerInput } from '@mantine/dates';
 import DropDownMenu from '../common/DropdownMenu';
-
+import { useExportSessions } from '../../hooks/useExport';
 import actionOptionIcon from '../../assets/icons/actionOption.svg';
 import plusIcon from '../../assets/icons/plusWhite.svg';
 import classesFilterIcon from '../../assets/icons/classesFilter.svg';
@@ -31,6 +31,7 @@ import {
   Modal,
   Text,
   Button as MantineButton,
+  Stack,
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
@@ -38,53 +39,6 @@ import successIcon from '../../assets/icons/success.svg';
 import errorIcon from '../../assets/icons/error.svg';
 
 const columnHelper = createColumnHelper<Session>();
-
-const useExportSessions = () => {
-  const [
-    exportModalOpened,
-    { open: openExportModal, close: closeExportModal },
-  ] = useDisclosure(false);
-
-  const handleExport = (selectedIds: string[]) => {
-    if (selectedIds.length === 0) {
-      notifications.show({
-        title: 'No sessions selected',
-        message: 'Please select at least one session to export',
-        color: 'red',
-        radius: 'md',
-        icon: (
-          <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
-            <img src={errorIcon} alt='Error' className='w-4 h-4' />
-          </span>
-        ),
-        withBorder: true,
-        autoClose: 3000,
-        position: 'top-right',
-      });
-      closeExportModal();
-      return;
-    }
-
-    notifications.show({
-      title: 'Export successful',
-      message: `${selectedIds.length} session(s) exported successfully`,
-      color: 'green',
-      radius: 'md',
-      icon: (
-        <span className='flex items-center justify-center w-6 h-6 rounded-full bg-green-200'>
-          <img src={successIcon} alt='Success' className='w-4 h-4' />
-        </span>
-      ),
-      withBorder: true,
-      autoClose: 3000,
-      position: 'top-right',
-    });
-
-    closeExportModal();
-  };
-
-  return { exportModalOpened, openExportModal, closeExportModal, handleExport };
-};
 
 const AllSessions = () => {
   const navigate = useNavigate();
@@ -113,9 +67,6 @@ const AllSessions = () => {
 
   const activateSessionMutation = useActivateSession();
   const deactivateSessionMutation = useDeactivateSession();
-
-  const { exportModalOpened, openExportModal, closeExportModal, handleExport } =
-    useExportSessions();
 
   const {
     data: allSessionsData,
@@ -165,6 +116,23 @@ const AllSessions = () => {
   }, [allSessionsData, selectedTypes, selectedCategories, dateRange]);
 
   const sessionsData = filteredSessions;
+  
+  const { 
+    exportModalOpened, 
+    openExportModal, 
+    closeExportModal, 
+    handleExport,
+    isExporting 
+  } = useExportSessions(sessionsData || []);
+  
+  const getSelectedSessionIds = useCallback(() => {
+    if (!sessionsData) return [];
+    
+    return Object.keys(rowSelection).map(index => {
+      const sessionIndex = parseInt(index);
+      return sessionsData[sessionIndex].id;
+    });
+  }, [rowSelection, sessionsData]);
   const { data: categoriesData, isLoading: isLoadingCategories } =
     useGetSessionCategories();
 
@@ -568,7 +536,7 @@ const AllSessions = () => {
               <p className='text-primary text-sm font-normal'>Filter By</p>
             </div>
             <div className='h-full w-[1px] bg-gray-200'></div>
-
+            
             <div
               className='flex items-center space-x-2 cursor-pointer'
               onClick={() => {}}
@@ -921,26 +889,43 @@ const AllSessions = () => {
         shadow='xl'
       >
         <div className='py-2'>
-          <Text size='sm' className='mb-6'>
-            Are you sure you want to export the selected sessions?
+          <Text size='sm' style={{ marginBottom: '2rem' }}>
+            Select a format to export {Object.keys(rowSelection).length} selected sessions
           </Text>
+          
+          <Stack gap="md">
+            <MantineButton
+              variant='outline'
+              color='#1D9B5E'
+              radius='md'
+              onClick={() => handleExport('excel', getSelectedSessionIds())}
+              className='px-6'
+              loading={isExporting}
+            >
+              Export as Excel
+            </MantineButton>
+            
+            <MantineButton
+              variant='outline'
+              color='#1D9B5E'
+              radius='md'
+              onClick={() => handleExport('csv', getSelectedSessionIds())}
+              className='px-6'
+              loading={isExporting}
+            >
+              Export as CSV
+            </MantineButton>
+          </Stack>
+          
           <div className='flex justify-end space-x-4 mt-8'>
             <MantineButton
               variant='outline'
-              color='#EA0234'
+              color='red'
               radius='md'
               onClick={closeExportModal}
               className='px-6'
             >
               Cancel
-            </MantineButton>
-            <MantineButton
-              color='#1D9B5E'
-              radius='md'
-              onClick={() => handleExport(Object.keys(rowSelection))}
-              className='px-6'
-            >
-              Export
             </MantineButton>
           </div>
         </div>
