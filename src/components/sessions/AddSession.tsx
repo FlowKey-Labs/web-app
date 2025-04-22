@@ -1035,8 +1035,6 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
                   const endDateStr = methods.getValues('repeat_end_date');
                   if (endDateStr) {
                     const endDate = new Date(endDateStr);
-                    console.log('endDateStr===>', endDateStr);
-                    
                     repetitionDescription += ` until ${endDate.toLocaleDateString()}`;
                   }
                 } else if (endsOption === 'after') {
