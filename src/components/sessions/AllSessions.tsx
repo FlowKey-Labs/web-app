@@ -21,6 +21,7 @@ import resetIcon from '../../assets/icons/resetIcon.svg';
 import dropdownIcon from '../../assets/icons/dropIcon.svg';
 import Button from '../common/Button';
 import AddSession from './AddSession';
+import { formatTo12Hour } from '../../utils/formatTo12Hour';
 
 import EmptyDataPage from '../common/EmptyDataPage';
 import {
@@ -236,7 +237,7 @@ const AllSessions = () => {
             const formatTo12Hour = (isoDateTimeStr: string) => {
               if (!isoDateTimeStr || typeof isoDateTimeStr !== 'string')
                 return isoDateTimeStr;
-
+              
               try {
                 const timePart = isoDateTimeStr.split('T')[1];
                 if (!timePart) {
@@ -292,7 +293,6 @@ const AllSessions = () => {
             if (repeat_unit === 'weeks') {
               return `Weekly`;
             }
-
             if (repeat_unit === 'months' && repeat_every) {
               return `Monthly`;
             }
