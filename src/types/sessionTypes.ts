@@ -40,7 +40,7 @@ export interface AssignedStaff {
   isActive: boolean;
 }
 
-export type SessionType = 'class' | 'appointment';
+export type SessionType = 'class' | 'appointment' | 'event';
 export type ClassType = 'private' | 'regular' | 'workshop';
 export type RepeatUnit = 'days' | 'weeks' | 'months';
 export type EndType = 'never' | 'on' | 'after';
@@ -67,7 +67,7 @@ export interface CreateSessionData {
   repetition?: 'none' | 'daily' | 'weekly' | 'monthly' | 'custom'; // UI field for repetition type
   repeat_every?: number;
   repeat_unit?: RepeatUnit;
-  repeat_on?: number[]; // for weekly repeat, array of weekday numbers (0-6)
+  repeat_on?: string[]; // for weekly repeat, array of weekday strings
   repeat_end_type?: EndType;
   repeat_end_date?: string; // YYYY-MM-DD, required if repeat_end_type is 'on'
   repeat_occurrences?: number; // required if repeat_end_type is 'after'
@@ -112,4 +112,13 @@ export interface AppointmentFields {
   selected_class?: number;
   category?: number;
   title?: string;
+}
+
+// Event session specific fields
+export interface EventFields {
+  title: string;
+  description?: string;
+  spots: number;
+  category?: number;
+  client_ids?: number[];
 }
