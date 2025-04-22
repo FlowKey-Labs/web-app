@@ -49,6 +49,7 @@ type FormData = Omit<
   staff?: DropDownItem | number;
   category_id?: DropDownItem | number;
   client_ids: string[];
+  description?: string;
 
   repeat_every?: number;
   repeat_unit?: 'days' | 'weeks' | 'months';
@@ -192,6 +193,7 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
         category: extractValue(data.category_id),
         staff: extractValue(data.staff),
         client_ids: data.client_ids || [],
+        description: data.description,
         repeat_end_date: formattedRepeatEndDate,
         repeat_every: data.repeat_every,
         repeat_unit: data.repeat_unit,
@@ -464,6 +466,21 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
                                 {...field}
                                 label='Class Name'
                                 placeholder='Enter Class Name'
+                              />
+                            )}
+                          />
+                          
+                          <Controller
+                            name='description'
+                            control={methods.control}
+                            render={({ field }) => (
+                              <Input
+                                {...field}
+                                type='textarea'
+                                label='Description (Optional)'
+                                placeholder='Enter session description'
+                                rows={4}
+                                containerClassName='mb-4'
                               />
                             )}
                           />
@@ -753,6 +770,33 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
                             Appointment Details
                           </h3>
                           <div className='w-full'>
+                            <Controller
+                              name='title'
+                              control={methods.control}
+                              render={({ field }) => (
+                                <Input
+                                  {...field}
+                                  label='Appointment Name'
+                                  placeholder='Enter Appointment Name'
+                                  containerClassName='mb-4'
+                                />
+                              )}
+                            />
+                            
+                            <Controller
+                              name='description'
+                              control={methods.control}
+                              render={({ field }) => (
+                                <Input
+                                  {...field}
+                                  type='textarea'
+                                  label='Description (Optional)'
+                                  placeholder='Enter appointment description'
+                                  rows={4}
+                                  containerClassName='mb-4'
+                                />
+                              )}
+                            />
                             <Controller
                               name='date'
                               control={methods.control}

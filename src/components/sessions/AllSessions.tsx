@@ -282,7 +282,7 @@ const AllSessions = () => {
                 .join(', ');
             }
 
-            return '';
+            return 'No Repeats';
           },
         }
       ),

@@ -88,7 +88,7 @@ const ClientDetails = () => {
       header: 'Status',
       cell: (info) => (
         <span
-          className={`inline-block px-2 py-1 rounded-lg text-sm text-center min-w-[70px] ${
+          className={`inline-block px-2 py-1 rounded-lg text-sm text-center min-w-[100px] ${
             info.getValue()
               ? 'bg-active text-secondary'
               : 'bg-[#FFCFCC] text-[#FF3B30]'

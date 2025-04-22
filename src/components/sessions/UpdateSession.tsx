@@ -43,6 +43,7 @@ const UpdateSession = ({ isOpen, onClose, sessionId }: SessionModalProps) => {
     mode: 'onSubmit',
     defaultValues: {
       title: '',
+      description: '',
       session_type: 'class',
       date: '',
       start_time: '',
@@ -175,9 +176,9 @@ const UpdateSession = ({ isOpen, onClose, sessionId }: SessionModalProps) => {
 
       methods.reset({
         title: sessionData.title || '',
-        session_type: sessionData.session_type,
-        class_type: sessionData.class_type,
-        staff: sessionData.staff,
+        description: sessionData.description || '',
+        session_type: sessionData.session_type || 'class',
+        class_type: sessionData.class_type || 'regular',
         date: moment(sessionData.date).format('YYYY-MM-DD'),
         start_time: sessionData.start_time,
         end_time: sessionData.end_time,
@@ -310,6 +311,7 @@ const UpdateSession = ({ isOpen, onClose, sessionId }: SessionModalProps) => {
 
       const formattedData: any = {
         title: data.title,
+        description: data.description,
         session_type: data.session_type,
         class_type: extractValue(data.class_type),
         date: dateOnly,
@@ -328,6 +330,7 @@ const UpdateSession = ({ isOpen, onClose, sessionId }: SessionModalProps) => {
         email: data.email,
         phone_number: data.phone_number,
         selected_class: data.selected_class,
+        client_ids: [] // Initialize with empty array
       };
 
       if (data.session_type === 'class') {
@@ -525,6 +528,21 @@ const UpdateSession = ({ isOpen, onClose, sessionId }: SessionModalProps) => {
                               {...field}
                               label='Class Name'
                               placeholder='Enter Class Name'
+                            />
+                          )}
+                        />
+                        
+                        <Controller
+                          name='description'
+                          control={methods.control}
+                          render={({ field }) => (
+                            <Input
+                              {...field}
+                              type='textarea'
+                              label='Description (Optional)'
+                              placeholder='Enter session description'
+                              rows={4}
+                              containerClassName='mb-4'
                             />
                           )}
                         />
@@ -782,6 +800,33 @@ const UpdateSession = ({ isOpen, onClose, sessionId }: SessionModalProps) => {
                           Appointment Details
                         </h2>
                       </div>
+                      
+                      <Controller
+                        name='title'
+                        control={methods.control}
+                        render={({ field }) => (
+                          <Input
+                            {...field}
+                            label='Appointment Name'
+                            placeholder='Enter Appointment Name'
+                          />
+                        )}
+                      />
+                      
+                      <Controller
+                        name='description'
+                        control={methods.control}
+                        render={({ field }) => (
+                          <Input
+                            {...field}
+                            type='textarea'
+                            label='Description (Optional)'
+                            placeholder='Enter appointment description'
+                            rows={4}
+                            containerClassName='mb-4'
+                          />
+                        )}
+                      />
                       <Controller
                         name='client_ids'
                         control={methods.control}

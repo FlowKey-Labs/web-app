@@ -58,6 +58,7 @@ export interface CreateSessionData {
   category: number; // category ID
   is_active?: boolean;
   client_ids?: number[]; // optional list of client IDs
+  description?: string; // optional description for the session
   // Appointment specific fields
   email?: string; // optional, for appointments
   phone_number?: string; // optional, for appointments
