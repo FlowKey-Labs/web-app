@@ -2,6 +2,7 @@ import { api } from '../lib/axios';
 import axios from 'axios';
 
 import { CreateSessionData, Session } from '../types/sessionTypes';
+import { CreateLocationData } from '../types/location';
 
 const BASE_URL = import.meta.env.VITE_APP_BASEURL;
 
@@ -19,6 +20,7 @@ const END_POINTS = {
   PROFILE: {
     BUSINESS_PROFILE: `${BASE_URL}/api/business/profile/`,
     SERVICES: `${BASE_URL}/api/business/services/`,
+    LOCATIONS: `${BASE_URL}/api/business/locations/`,
   },
   CLIENTS: {
     CLIENTS_DATA: `${BASE_URL}/api/client/`,
@@ -422,6 +424,36 @@ const mark_client_not_attended = async (clientId: string, sessionId: string) => 
   }
 };
 
+// Location API functions
+const get_locations = async (): Promise<Location[]> => {
+  const { data } = await api.get(END_POINTS.PROFILE.LOCATIONS);
+  return data;
+};
+
+const get_location = async (id: number): Promise<Location> => {
+  const { data } = await api.get(`${END_POINTS.PROFILE.LOCATIONS}${id}/`);
+  return data;
+};
+
+const create_location = async (locationData: CreateLocationData): Promise<Location> => {
+  const { data } = await api.post(END_POINTS.PROFILE.LOCATIONS, locationData);
+  return data;
+};
+
+const update_location = async (id: number, locationData: Partial<CreateLocationData>): Promise<Location> => {
+  const { data } = await api.put(`${END_POINTS.PROFILE.LOCATIONS}${id}/`, locationData);
+  return data;
+};
+
+const delete_location = async (id: number): Promise<void> => {
+  await api.delete(`${END_POINTS.PROFILE.LOCATIONS}${id}/`);
+};
+
+const set_primary_location = async (id: number): Promise<Location> => {
+  const { data } = await api.patch(`${END_POINTS.PROFILE.LOCATIONS}${id}/set_primary/`, {});
+  return data;
+};
+
 export {
   END_POINTS,
   registerUser,
@@ -431,6 +463,12 @@ export {
   get_business_profile,
   searchCities,
   get_business_services,
+  get_locations,
+  get_location,
+  create_location,
+  update_location,
+  delete_location,
+  set_primary_location,
   get_clients,
   get_client,
   add_client,

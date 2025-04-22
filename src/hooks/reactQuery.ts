@@ -8,6 +8,12 @@ import {
   get_business_profile,
   searchCities,
   get_business_services,
+  get_locations,
+  get_location,
+  create_location,
+  update_location,
+  delete_location,
+  set_primary_location,
   get_clients,
   get_client,
   add_client,
@@ -49,6 +55,7 @@ import {
   UpcomingSession,
 } from "../types/dashboard";
 import { Session } from "../types/sessionTypes";
+import { CreateLocationData } from "../types/location";
 
 export const useRegisterUser = () => {
   const queryClient = useQueryClient();
@@ -154,12 +161,79 @@ export const useSearchCities = () => {
 };
 
 export const useGetBusinessServices = () => {
-  return useQuery<BusinessServices>({
-    queryKey: ["business_services"],
+  return useQuery({
+    queryKey: ["business-services"],
     queryFn: get_business_services,
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
     retry: 2,
+  });
+};
+
+export const useGetLocations = () => {
+  return useQuery({
+    queryKey: ["locations"],
+    queryFn: get_locations,
+    staleTime: 1000 * 60 * 5,
+    refetchOnWindowFocus: false,
+    retry: 2,
+  });
+};
+
+export const useGetLocation = (id: number) => {
+  return useQuery({
+    queryKey: ["locations", id],
+    queryFn: () => get_location(id),
+    staleTime: 1000 * 60 * 5,
+    refetchOnWindowFocus: false,
+    retry: 2,
+    enabled: !!id,
+  });
+};
+
+export const useCreateLocation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: create_location,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["locations"] });
+    },
+    onError: (error) => console.error("Create location error:", error),
+  });
+};
+
+export const useUpdateLocation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, data }: { id: number; data: Partial<CreateLocationData> }) => {
+      return update_location(id, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["locations"] });
+    },
+    onError: (error) => console.error("Update location error:", error),
+  });
+};
+
+export const useDeleteLocation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: delete_location,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["locations"] });
+    },
+    onError: (error) => console.error("Delete location error:", error),
+  });
+};
+
+export const useSetPrimaryLocation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: set_primary_location,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["locations"] });
+    },
+    onError: (error) => console.error("Set primary location error:", error),
   });
 };
 
