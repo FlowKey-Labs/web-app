@@ -7,7 +7,7 @@ import { useState, useEffect } from 'react';
 import { notifications } from '@mantine/notifications';
 import successIcon from '../../assets/icons/success.svg';
 import errorIcon from '../../assets/icons/error.svg';
-import { repeatDays, weekdayNames } from '../../utils/dummyData';
+import { days, repeatDays, weekdayNames } from '../../utils/dummyData';
 import ChevronUp from '../../assets/icons/up.svg';
 import ChevronDown from '../../assets/icons/down.svg';
 import { DatePickerInput } from '@mantine/dates';
@@ -53,7 +53,7 @@ type FormData = Omit<
 
   repeat_every?: number;
   repeat_unit?: 'days' | 'weeks' | 'months';
-  repeat_on?: number[];
+  repeat_on?: string[];
   repeat_end_type: 'never' | 'on' | 'after';
   repeat_end_date?: string;
   repeat_occurrences?: number;
@@ -97,7 +97,7 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
     { open: openRepetitionModal, close: closeRepetitionModal },
   ] = useDisclosure();
 
-  const [selectedWeekdays, setSelectedWeekdays] = useState<number[]>([]);
+  const [selectedWeekdays, setSelectedWeekdays] = useState<string[]>([]);
   const [endsOption, setEndsOption] = useState<'never' | 'on' | 'after'>(
     'never'
   );
@@ -131,7 +131,7 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
     }
   }, [isOpen]);
 
-  const handleWeekdayClick = (weekday: number) => {
+  const handleWeekdayClick = (weekday: string) => {
     setSelectedWeekdays((prev) =>
       prev.includes(weekday)
         ? prev.filter((day) => day !== weekday)
@@ -415,9 +415,6 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
                     {methods.watch('session_type') === 'class' ? (
                       <>
                         <div className='flex flex-col space-y-3'>
-                          <div>
-                            <h2 className='font-medium mb-2'>Session Type</h2>
-                          </div>
                           <Controller
                             name='class_type'
                             control={methods.control}
@@ -490,7 +487,7 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
                               control={methods.control}
                               render={({ field }) => (
                                 <DropdownSelectInput
-                                  label='Categories'
+                                  label='Category'
                                   placeholder='Select a category'
                                   options={
                                     categoriesData
@@ -956,13 +953,13 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
                   key={dayNum}
                   type='button'
                   className={`h-10 w-10 rounded-full flex items-center justify-center text-sm font-medium transition-colors ${
-                    selectedWeekdays.includes(dayNum)
+                    selectedWeekdays.includes(days[dayNum])
                       ? 'bg-secondary text-white hover:bg-secondary/90'
                       : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                   }`}
                   onClick={(e) => {
                     e.stopPropagation();
-                    handleWeekdayClick(dayNum);
+                    handleWeekdayClick(days[dayNum]);
                   }}
                 >
                   {weekdayNames[dayNum]?.charAt(0)}
@@ -1068,13 +1065,7 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
                 let repetitionDescription = '';
 
                 if (selectedWeekdays.length > 0) {
-                  const weekdayLabels = selectedWeekdays
-                    .sort((a, b) => a - b)
-                    .map((day) => {
-                      const validDay = day as keyof typeof weekdayNames;
-                      return weekdayNames[validDay];
-                    })
-                    .join(', ');
+                  const weekdayLabels = selectedWeekdays.join(', ');
 
                   repetitionDescription = `Weekly on ${weekdayLabels}`;
                 } else {

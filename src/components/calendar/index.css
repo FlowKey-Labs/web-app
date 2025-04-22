@@ -58,3 +58,19 @@
 .fc .fc-timegrid-slot-minor {
   border-top-style: none;
 }
+
+.fc-next-button {
+  background-color: rgb(29, 155, 94) !important;
+  border: none !important;
+}
+.fc-prev-button {
+  background-color: rgb(29, 155, 94) !important;
+  border: none !important;
+}
+.fc-today-button {
+  background-color: white !important;
+  border: none !important;
+  color: black !important;
+  text-transform: capitalize !important;
+  cursor: pointer !important;
+}
