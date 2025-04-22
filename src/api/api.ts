@@ -22,6 +22,7 @@ const END_POINTS = {
   },
   CLIENTS: {
     CLIENTS_DATA: `${BASE_URL}/api/client/`,
+    ATTENDANCE: `${BASE_URL}/api/client/attendance/manage/`,
   },
   STAFF: {
     STAFF_DATA: `${BASE_URL}/api/staff/`,
@@ -29,6 +30,7 @@ const END_POINTS = {
   SESSION: {
     SESSIONS_DATA: `${BASE_URL}/api/session/`,
     SESSION_DETAIL: (id: string) => `${BASE_URL}/api/session/${id}/`,
+    SESSION_CLIENTS: (id: string) => `${BASE_URL}/api/session/${id}/clients/`,
     CATEGORIES: `${BASE_URL}/api/session/categories/`,
     CLASS_SESSIONS: `${BASE_URL}/api/session/?session_type=class`,
   },
@@ -297,10 +299,21 @@ const get_session_categories = async () => {
 };
 
 const create_session = async (sessionData: CreateSessionData) => {
-  const { data } = await api.post(
-    END_POINTS.SESSION.SESSIONS_DATA,
-    sessionData
-  );
+  const { data } = await api.post(END_POINTS.SESSION.SESSIONS_DATA, sessionData);
+  return data;
+};
+
+const activate_session = async (sessionId: string) => {
+  const { data } = await api.patch(END_POINTS.SESSION.SESSION_DETAIL(sessionId), {
+    is_active: true
+  });
+  return data;
+};
+
+const deactivate_session = async (sessionId: string) => {
+  const { data } = await api.patch(END_POINTS.SESSION.SESSION_DETAIL(sessionId), {
+    is_active: false
+  });
   return data;
 };
 
@@ -343,6 +356,58 @@ const update_session = async (id: string, sessionData: Partial<CreateSessionData
   return data;
 };
 
+const get_session_clients = async (sessionId: string) => {
+  const { data } = await api.get(END_POINTS.SESSION.SESSION_CLIENTS(sessionId));
+  return data;
+};
+
+const remove_client_from_session = async (clientId: string, sessionId: string) => {
+  const { data } = await api.delete(`${BASE_URL}/api/session/${sessionId}/clients/${clientId}/`);
+  return data;
+};
+
+const get_places_autocomplete = async (input: string) => {
+  const { data } = await axios.get(END_POINTS.GOOGLE.PLACES_AUTOCOMPLETE, {
+    params: {
+      input,
+      key: GOOGLE_API_KEY,
+      types: 'geocode',
+    },
+  });
+  return data.predictions;
+};
+
+// Simplified API calls for attendance management
+const mark_client_attended = async (clientId: string, sessionId: string) => {
+  try {
+    // Send integers instead of strings for client and session IDs
+    const { data } = await api.post(END_POINTS.CLIENTS.ATTENDANCE, {
+      client: parseInt(clientId),
+      session: parseInt(sessionId),
+      attended: true
+    });
+    return data;
+  } catch (error) {
+    console.error('Error marking client as attended:', error);
+    throw error;
+  }
+};
+
+const mark_client_not_attended = async (clientId: string, sessionId: string) => {
+  try {
+    // Send integers instead of strings for client and session IDs
+    const { data } = await api.post(END_POINTS.CLIENTS.ATTENDANCE, {
+      client: parseInt(clientId),
+      session: parseInt(sessionId),
+      attended: false
+    });
+    return data;
+  } catch (error) {
+    console.error('Error marking client as not attended:', error);
+    throw error;
+  }
+};
+
 export {
   END_POINTS,
   registerUser,
@@ -375,4 +440,11 @@ export {
   deactivate_client,
   activate_client,
   update_session,
+  get_session_clients,
+  mark_client_attended,
+  mark_client_not_attended,
+  activate_session,
+  deactivate_session,
+  remove_client_from_session,
+  get_places_autocomplete,
 };
