@@ -16,7 +16,7 @@ import { Dictionary, EventImpl } from "@fullcalendar/core/internal";
 import { useGetSessions } from "../../hooks/reactQuery";
 import AddSession from "../sessions/AddSession";
 import "./index.css";
-import { formatTo12Hour } from "../../utils/formatTo12Hour";
+import AddClients from "../clients/AddClient";
 
 const headerToolbar = {
   start: "title",
@@ -126,6 +126,7 @@ const CalendarView = () => {
   );
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [popupData, setPopupData] = useState<{
     title: string;
     description: string;
@@ -207,9 +208,9 @@ const CalendarView = () => {
         title: string;
       };
     }) => {
-      const time = parse(eventInfo.timeText, 'HH:mm', new Date())
+      const time = parse(eventInfo.timeText, "HH:mm", new Date());
       const formattedTime = addHours(time, -3);
-      
+
       return (
         <div className="flex justify-between w-full h-full py-1 cursor-pointer">
           <div
@@ -227,7 +228,7 @@ const CalendarView = () => {
             <i className="text-xs truncate">{eventInfo.event.title}</i>
           </div>
           <b className="text-xs flex items-center">
-            {format(formattedTime, 'HH:mm a')}
+            {format(formattedTime, "HH:mm a")}
           </b>
         </div>
       );
@@ -352,11 +353,19 @@ const CalendarView = () => {
               onClose={() => setPopupData(null)}
               handleRemoveEvent={handleRemoveEvent}
               data={popupData.extendedProps}
+              handleAddClient={() => {
+                setPopupData(null);
+                setIsModalOpen(true);
+              }}
             />
           </div>
         )}
       </div>
       <AddSession isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+      <AddClients
+        isOpen={isDrawerOpen}
+        onClose={() => setIsDrawerOpen(false)}
+      />
     </div>
   );
 };

@@ -603,7 +603,7 @@ const AllSessions = () => {
             </div>
           </div>
         </div>
-        <EmptyDataPage
+        {!isModalOpen && <EmptyDataPage
           title='No Sessions Found!'
           description="You don't have any sessions yet"
           buttonText='Create New Session'
@@ -624,7 +624,7 @@ const AllSessions = () => {
                      selectedCategories.length === 1 ? 'category' : undefined}
           filterValue={selectedTypes.length === 1 ? selectedTypes[0] : 
                       selectedCategories.length === 1 ? selectedCategories[0] : undefined}
-        />
+        />}
         <div className='flex-1 px-6 py-2'>
           {isLoadingSessions || isLoadingCategories ? (
             <div className='flex justify-center items-center py-10'>
