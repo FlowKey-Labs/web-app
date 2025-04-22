@@ -115,18 +115,21 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
   const [value, setValue] = useState<Date | null>(null);
 
   useEffect(() => {
-    if (methods.watch('session_type') === 'class') {
+    const currentType = methods.watch('session_type');
+    const currentValues = methods.getValues();
+    
+    if (currentType === 'class') {
       methods.reset({
-        ...methods.getValues(),
+        ...currentValues,
         email: '',
         phone_number: '',
         selected_class: undefined,
       });
     } else {
       methods.reset({
-        ...methods.getValues(),
+        ...currentValues,
         spots: 0,
-        class_type: 'regular',
+        class_type: undefined, // Clear the class_type when not in class mode
       });
     }
   }, [methods.watch('session_type')]);
@@ -738,7 +741,7 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
                             control={methods.control}
                             render={({ field }) => (
                               <DropdownSelectInput
-                                label='Name'
+                                label='Client Name'
                                 placeholder='Select or create Clients'
                                 options={
                                   isClientsLoading
@@ -748,7 +751,7 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
                                         value: client.id.toString(),
                                       })) || []
                                 }
-                                value={field.value || []}
+                                
                                 onSelectItem={(selectedItems) => {
                                   const values = Array.isArray(selectedItems)
                                     ? selectedItems.map((item) => item.value)

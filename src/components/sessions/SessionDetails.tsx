@@ -218,8 +218,11 @@ const SessionDetails = () => {
     refetch: refetchSession,
   } = useGetSessionDetail(sessionId || '');
 
-  const { data: sessionAnalytics, isLoading: analyticsLoading } =
-    useGetSessionAnalytics(sessionId || '');
+  const { 
+    data: sessionAnalytics, 
+    isLoading: analyticsLoading,
+    refetch: refetchAnalytics 
+  } = useGetSessionAnalytics(sessionId || '');
 
   const {
     data: clients = [],
@@ -230,7 +233,15 @@ const SessionDetails = () => {
   } = useGetSessionClients(sessionId || '');
 
   const openDrawer = () => setIsDrawerOpen(true);
-  const closeDrawer = () => setIsDrawerOpen(false);
+  const closeDrawer = () => {
+    setIsDrawerOpen(false);
+  };
+
+  const refreshSessionData = () => {
+    refetchSession();
+    refetchClients();
+    refetchAnalytics();
+  };
 
   const formatDate = (dateString: string) => {
     if (!dateString) return '';
@@ -247,13 +258,13 @@ const SessionDetails = () => {
     if (!days || !days.length) return '';
 
     const dayNames = [
-      'sunday', // 0
-      'monday', // 1
-      'tuesday', // 2
-      'wednesday', // 3
-      'thursday', // 4
-      'friday', // 5
-      'saturday', // 6
+      'sunday',
+      'monday',
+      'tuesday',
+      'wednesday',
+      'thursday',
+      'friday',
+      'saturday',
     ];
 
     const dayAbbreviations: Record<string, string> = {
@@ -697,9 +708,9 @@ const SessionDetails = () => {
         isOpen={isDrawerOpen}
         onClose={closeDrawer}
         sessionId={sessionId || ''}
+        onUpdateSuccess={refreshSessionData}
       />
 
-      {/* Modal for confirming client actions */}
       <Modal
         opened={opened}
         onClose={close}
