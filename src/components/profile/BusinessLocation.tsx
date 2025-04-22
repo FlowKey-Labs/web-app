@@ -243,7 +243,7 @@ export const BusinessLocation = () => {
   };
 
   return (
-    <div className='p-6 bg-white rounded-lg shadow-sm'>
+    <div className='p-6 bg-white rounded-lg shadow-sm w-full'>
       <div className='flex justify-between items-center mb-6'>
         <Text fw={600} size='lg'>
           Business Locations
@@ -263,7 +263,7 @@ export const BusinessLocation = () => {
           <Loader color='green' />
         </div>
       ) : locations.length === 0 ? (
-        <div className='text-center py-12 bg-gray-50 rounded-lg border border-gray-200'>
+        <div className='text-center py-12 bg-gray-50 rounded-lg border border-gray-200 space-y-2'>
           <IconMapPin size={48} className='mx-auto text-gray-400 mb-4' />
           <Text size='lg' fw={500} className='mb-2'>
             No locations added yet
@@ -292,7 +292,7 @@ export const BusinessLocation = () => {
               className='transition-all duration-200 hover:shadow-md flex flex-col h-full'
             >
               {location.is_primary && (
-                <div className='absolute top-2 right-2 bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full'>
+                <div className='absolute top-2 right-2 bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-lg'>
                   Primary
                 </div>
               )}
@@ -309,7 +309,7 @@ export const BusinessLocation = () => {
                 </div>
                 {location.notes && (
                   <Text size='sm' className='mb-4 italic text-gray-600'>
-                    "{location.notes}"
+                    {location.notes}
                   </Text>
                 )}
               </div>
@@ -461,6 +461,7 @@ export const BusinessLocation = () => {
                     checked={value}
                     onChange={(e) => onChange(e.currentTarget.checked)}
                     label='Set as primary location'
+                    color='green'
                   />
                 )}
               />
