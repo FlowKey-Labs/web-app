@@ -1,7 +1,7 @@
 import { useParams } from 'react-router-dom';
 import MembersHeader from '../headers/MembersHeader';
 import { Progress, Menu, Modal, Text, Button } from '@mantine/core';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useDisclosure } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
 import Table from '../common/Table';
@@ -35,7 +35,7 @@ const SessionDetails = () => {
   const markAttendedMutation = useMarkClientAttended();
   const markNotAttendedMutation = useMarkClientNotAttended();
 
-  const columns = [
+  const columns = useMemo(() => [
     columnHelper.display({
       id: 'select',
       header: ({ table }) => (
@@ -149,7 +149,7 @@ const SessionDetails = () => {
                     className='text-sm'
                     style={{ textAlign: 'center' }}
                   >
-                    Mark as Not Attended
+                    Mark as Not Yet
                   </Menu.Item>
                 ) : (
                   <Menu.Item
@@ -171,7 +171,7 @@ const SessionDetails = () => {
         );
       },
     }),
-  ];
+  ], [currentSessionId, open]);
 
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'overview' | 'clients'>(
