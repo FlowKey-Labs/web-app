@@ -36,6 +36,8 @@ import {
   activate_session,
   deactivate_session,
   remove_client_from_session,
+  activate_staff,
+  deactivate_staff,
 } from "../api/api";
 import { useAuthStore } from "../store/auth";
 import { BusinessServices } from "../types/business";
@@ -306,8 +308,8 @@ export const useGetSessionAnalytics = (sessionId: string) => {
   return useQuery({
     queryKey: ["session_analytics", sessionId],
     queryFn: () => get_session_analytics(sessionId),
-    staleTime: 1000 * 60 * 5,
-    refetchOnWindowFocus: false,
+    staleTime: 0, // Set to 0 to ensure it always fetches fresh data
+    refetchOnWindowFocus: true,
     enabled: !!sessionId,
   });
 };
@@ -443,6 +445,7 @@ export const useMarkClientAttended = () => {
       mark_client_attended(clientId, sessionId),
     onSuccess: (_, { sessionId }) => {
       queryClient.invalidateQueries({ queryKey: ["session_clients", sessionId] });
+      queryClient.invalidateQueries({ queryKey: ["session_analytics", sessionId] });
     },
   });
 };
@@ -454,6 +457,7 @@ export const useMarkClientNotAttended = () => {
       mark_client_not_attended(clientId, sessionId),
     onSuccess: (_, { sessionId }) => {
       queryClient.invalidateQueries({ queryKey: ["session_clients", sessionId] });
+      queryClient.invalidateQueries({ queryKey: ["session_analytics", sessionId] });
     },
   });
 };
@@ -487,6 +491,28 @@ export const useRemoveClientFromSession = () => {
       remove_client_from_session(clientId, sessionId),
     onSuccess: (_, { sessionId }) => {
       queryClient.invalidateQueries({ queryKey: ["session_clients", sessionId] });
+      queryClient.invalidateQueries({ queryKey: ["session_analytics", sessionId] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard_analytics"] });
+    },
+  });
+};
+
+export const useActivateStaff = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: activate_staff,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["staff"] });
+    },
+  });
+};
+
+export const useDeactivateStaff = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: deactivate_staff,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["staff"] });
     },
   });
 };

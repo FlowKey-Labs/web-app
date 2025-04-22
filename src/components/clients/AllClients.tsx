@@ -8,20 +8,22 @@ import {
   useActivateClient,
 } from '../../hooks/reactQuery';
 import { createColumnHelper } from '@tanstack/react-table';
-import { Progress, Group, Modal, Text, Button, Menu } from '@mantine/core';
+import { Progress, Group, Modal, Text, Button as MantineButton, Menu, Stack } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
 import successIcon from '../../assets/icons/success.svg';
 import errorIcon from '../../assets/icons/error.svg';
-
 import actionOptionIcon from '../../assets/icons/actionOption.svg';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
+import { useExportClients } from '../../hooks/useExport';
 import { useNavigate } from 'react-router-dom';
 import { navigateToClientDetails } from '../../utils/navigationHelpers';
 import AddClients from './AddClient';
 import EmptyDataPage from '../common/EmptyDataPage';
 
 const columnHelper = createColumnHelper<Client>();
+
+
 
 const AllClients = () => {
   const [rowSelection, setRowSelection] = useState({});
@@ -30,14 +32,34 @@ const AllClients = () => {
   const [opened, { open, close }] = useDisclosure(false);
   const [isActivating, setIsActivating] = useState(false);
 
-  const [
-    exportModalOpened,
-    { open: openExportModal, close: closeExportModal },
-  ] = useDisclosure(false);
-
   const navigate = useNavigate();
   const deactivateClientMutation = useDeactivateClient();
   const activateClientMutation = useActivateClient();
+  
+  const {
+    data: clients = [],
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useGetClients();
+  
+  const getSelectedClientIds = useCallback(() => {
+    if (!clients) return [];
+    
+    return Object.keys(rowSelection).map(index => {
+      const clientIndex = parseInt(index);
+      return clients[clientIndex].id;
+    });
+  }, [rowSelection, clients]);
+  
+  const {
+    exportModalOpened,
+    openExportModal,
+    closeExportModal,
+    handleExport,
+    isExporting
+  } = useExportClients(clients || []);
 
   const columns = useMemo(
     () => [
@@ -196,13 +218,7 @@ const AllClients = () => {
     [setSelectedClient, open]
   );
 
-  const {
-    data: clients = [],
-    isLoading,
-    isError,
-    error,
-    refetch,
-  } = useGetClients();
+
 
   const handleDeactivateClient = () => {
     if (!selectedClient) return;
@@ -289,47 +305,7 @@ const AllClients = () => {
   const openDrawer = () => setIsDrawerOpen(true);
   const closeDrawer = () => setIsDrawerOpen(false);
 
-  const handleExport = () => {
-    const selectedClientIds = Object.keys(rowSelection);
 
-    if (selectedClientIds.length === 0) {
-      notifications.show({
-        title: 'No clients selected',
-        message: 'Please select at least one client to export',
-        color: 'red',
-        radius: 'md',
-        icon: (
-          <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
-            <img src={errorIcon} alt='Error' className='w-4 h-4' />
-          </span>
-        ),
-        withBorder: true,
-        autoClose: 3000,
-        position: 'top-right',
-      });
-      closeExportModal();
-      return;
-    }
-
-    console.log('Exporting clients:', selectedClientIds);
-
-    notifications.show({
-      title: 'Export successful',
-      message: `${selectedClientIds.length} client(s) exported successfully`,
-      color: 'green',
-      radius: 'md',
-      icon: (
-        <span className='flex items-center justify-center w-6 h-6 rounded-full bg-green-200'>
-          <img src={successIcon} alt='Success' className='w-4 h-4' />
-        </span>
-      ),
-      withBorder: true,
-      autoClose: 3000,
-      position: 'top-right',
-    });
-
-    closeExportModal();
-  };
 
   if (isLoading) {
     return (
@@ -362,8 +338,8 @@ const AllClients = () => {
       <div className='flex flex-col h-screen bg-cardsBg w-full overflow-y-auto'>
         <MembersHeader
           title='All Clients'
-          buttonText='New Client'
-          searchPlaceholder='Search by Name, Session or Phone'
+          buttonText='Add Client'
+          searchPlaceholder='Search by Name, Email or Phone Number'
           leftIcon={plusIcon}
           onButtonClick={openDrawer}
         />
@@ -435,7 +411,7 @@ const AllClients = () => {
         </div>
 
         <div className='flex justify-end gap-2 mt-4'>
-          <Button
+          <MantineButton
             color={isActivating ? 'green' : 'red'}
             onClick={
               isActivating ? handleActivateClient : handleDeactivateClient
@@ -448,7 +424,7 @@ const AllClients = () => {
             radius='md'
           >
             {isActivating ? 'Activate' : 'Deactivate'}
-          </Button>
+          </MantineButton>
         </div>
       </Modal>
 
@@ -471,27 +447,44 @@ const AllClients = () => {
         shadow='xl'
       >
         <div className='py-2'>
-          <Text size='sm' className='mb-6'>
-            Are you sure you want to export the selected clients?
+          <Text size='sm' style={{ marginBottom: '2rem' }}>
+            Select a format to export {Object.keys(rowSelection).length} selected clients
           </Text>
+          
+          <Stack gap="md">
+            <MantineButton
+              variant='outline'
+              color='#1D9B5E'
+              radius='md'
+              onClick={() => handleExport('excel', getSelectedClientIds())}
+              className='px-6'
+              loading={isExporting}
+            >
+              Export as Excel
+            </MantineButton>
+            
+            <MantineButton
+              variant='outline'
+              color='#1D9B5E'
+              radius='md'
+              onClick={() => handleExport('csv', getSelectedClientIds())}
+              className='px-6'
+              loading={isExporting}
+            >
+              Export as CSV
+            </MantineButton>
+          </Stack>
+          
           <div className='flex justify-end space-x-4 mt-8'>
-            <Button
-            variant='outline'
-              color='#EA0234'
+            <MantineButton
+              variant='outline'
+              color='red'
               radius='md'
               onClick={closeExportModal}
               className='px-6'
             >
               Cancel
-            </Button>
-            <Button
-              color='#1D9B5E'
-              radius='md'
-              onClick={handleExport}
-              className='px-6'
-            >
-              Export
-            </Button>
+            </MantineButton>
           </div>
         </div>
       </Modal>
