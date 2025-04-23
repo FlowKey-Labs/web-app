@@ -1,7 +1,7 @@
 import { useParams } from 'react-router-dom';
 import MembersHeader from '../headers/MembersHeader';
 import { Progress, Menu, Modal, Text, Button } from '@mantine/core';
-import { useMemo, useState, useRef } from 'react';
+import { useMemo, useState } from 'react';
 import { useDisclosure } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
 import Table from '../common/Table';
@@ -11,8 +11,7 @@ import {
   useGetSessionDetail,
   useGetSessionAnalytics,
   useGetSessionClients,
-  useMarkClientAttended,
-  useMarkClientNotAttended,
+  // useMarkClientAttended,
   useRemoveClientFromSession,
   useUpdateAttendanceStatus,
 } from '../../hooks/reactQuery';
@@ -36,7 +35,7 @@ const SessionDetails = () => {
   const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
   const [opened, { open, close }] = useDisclosure(false);
 
-  const markAttendedMutation = useMarkClientAttended();
+  // const markAttendedMutation = useMarkClientAttended();
   const removeClientMutation = useRemoveClientFromSession();
   const updateStatusMutation = useUpdateAttendanceStatus();
 
@@ -411,7 +410,7 @@ const SessionDetails = () => {
           close();
           refetchClients();
         },
-        onError: (_error: unknown) => {
+        onError: () => {
           notifications.show({
             title: 'Error',
             message: 'Failed to remove client from session. Please try again.',
