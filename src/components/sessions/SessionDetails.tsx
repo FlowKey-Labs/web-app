@@ -1,7 +1,7 @@
 import { useParams } from 'react-router-dom';
 import MembersHeader from '../headers/MembersHeader';
 import { Progress, Menu, Modal, Text, Button } from '@mantine/core';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useRef } from 'react';
 import { useDisclosure } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
 import Table from '../common/Table';
@@ -14,6 +14,7 @@ import {
   useMarkClientAttended,
   useMarkClientNotAttended,
   useRemoveClientFromSession,
+  useUpdateAttendanceStatus,
 } from '../../hooks/reactQuery';
 
 import actionOptionIcon from '../../assets/icons/actionOption.svg';
@@ -30,13 +31,14 @@ const SessionDetails = () => {
   const currentSessionId = sessionId ? parseInt(sessionId) : 0;
 
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
-  const [isMarkingAttended, setIsMarkingAttended] = useState(false);
+  const [, setIsMarkingAttended] = useState(false);
   const [isRemovingClient, setIsRemovingClient] = useState(false);
+  const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
   const [opened, { open, close }] = useDisclosure(false);
 
   const markAttendedMutation = useMarkClientAttended();
-  const markNotAttendedMutation = useMarkClientNotAttended();
   const removeClientMutation = useRemoveClientFromSession();
+  const updateStatusMutation = useUpdateAttendanceStatus();
 
   const columns = useMemo(
     () => [
@@ -86,19 +88,41 @@ const SessionDetails = () => {
         header: 'Attendance',
         cell: ({ row }) => {
           const client = row.original;
+          
           const sessionAttendance = client.sessions?.find(
             (session) => session.session_id === currentSessionId
+          );
+
+          const getStatusColor = (status: string) => {
+            switch (status) {
+              case 'attended':
+                return 'bg-active text-green-700';
+              case 'not_yet':
+                return 'bg-yellow-100 text-yellow-700';
+              case 'make_up':
+                return 'bg-blue-100 text-blue-700';
+              case 'cancelled':
+                return 'bg-gray-100 text-gray-700';
+              default:
+                return 'bg-yellow-100 text-yellow-700';
+            }
+          };
+          
+          const status = sessionAttendance?.status || 'not_yet';
+          const statusDisplay = sessionAttendance?.status_display || (
+            status === 'attended' ? 'Attended' :
+            status === 'make_up' ? 'Make-up' :
+            status === 'cancelled' ? 'Cancelled' :
+            'Not Yet'
           );
 
           return (
             <span
               className={`inline-block px-2 py-1 rounded-lg text-sm text-center min-w-[80px] ${
-                sessionAttendance?.attended
-                  ? 'bg-active text-green-700'
-                  : 'bg-yellow-100 text-yellow-700'
+                getStatusColor(status)
               }`}
             >
-              {sessionAttendance?.attended ? 'Attended' : 'Not Yet'}
+              {statusDisplay}
             </span>
           );
         },
@@ -121,9 +145,6 @@ const SessionDetails = () => {
         ),
         cell: ({ row }) => {
           const client = row.original;
-          const sessionAttendance = client.sessions?.find(
-            (session) => session.session_id === currentSessionId
-          );
 
           return (
             <div
@@ -146,41 +167,65 @@ const SessionDetails = () => {
                   />
                 </Menu.Target>
                 <Menu.Dropdown>
-                  {sessionAttendance?.attended ? (
-                    <Menu.Item
-                      color='yellow'
-                      onClick={() => {
-                        setSelectedClient(client);
-                        setIsMarkingAttended(false);
-                        setIsRemovingClient(false);
-                        open();
-                      }}
-                      className='text-sm'
-                      style={{ textAlign: 'center' }}
-                    >
-                      Mark as Not Yet
-                    </Menu.Item>
-                  ) : (
-                    <Menu.Item
-                      color='green'
-                      onClick={() => {
-                        setSelectedClient(client);
-                        setIsMarkingAttended(true);
-                        setIsRemovingClient(false);
-                        open();
-                      }}
-                      className='text-sm'
-                      style={{ textAlign: 'center' }}
-                    >
-                      Mark as Attended
-                    </Menu.Item>
-                  )}
+                  <Menu.Item
+                    color='green'
+                    onClick={() => {
+                      setSelectedClient(client);
+                      setSelectedStatus('attended');
+                      setIsRemovingClient(false);
+                      open();
+                    }}
+                    className='text-sm'
+                    style={{ textAlign: 'center' }}
+                  >
+                    Attended
+                  </Menu.Item>
+                  <Menu.Item
+                    color='yellow'
+                    onClick={() => {
+                      setSelectedClient(client);
+                      setSelectedStatus('not_yet');
+                      setIsRemovingClient(false);
+                      open();
+                    }}
+                    className='text-sm'
+                    style={{ textAlign: 'center' }}
+                  >
+                    Not Yet
+                  </Menu.Item>
+
+                  <Menu.Item
+                    color='blue'
+                    onClick={() => {
+                      setSelectedClient(client);
+                      setSelectedStatus('make_up');
+                      setIsRemovingClient(false);
+                      open();
+                    }}
+                    className='text-sm'
+                    style={{ textAlign: 'center' }}
+                  >
+                    Make-up
+                  </Menu.Item>
+                  <Menu.Item
+                    color='gray'
+                    onClick={() => {
+                      setSelectedClient(client);
+                      setSelectedStatus('cancelled');
+                      setIsRemovingClient(false);
+                      open();
+                    }}
+                    className='text-sm'
+                    style={{ textAlign: 'center' }}
+                  >
+                    Cancelled
+                  </Menu.Item>
                   <Menu.Item
                     color='red'
                     onClick={() => {
                       setSelectedClient(client);
                       setIsRemovingClient(true);
-                      setIsMarkingAttended(false);
+                      setSelectedStatus(null);
                       open();
                     }}
                     className='text-sm'
@@ -201,6 +246,7 @@ const SessionDetails = () => {
       setSelectedClient,
       setIsMarkingAttended,
       setIsRemovingClient,
+      setSelectedStatus,
     ]
   );
 
@@ -286,20 +332,37 @@ const SessionDetails = () => {
       .join(', ');
   };
 
-  const handleMarkAttended = () => {
-    if (!selectedClient || !sessionId) return;
+  const handleUpdateAttendanceStatus = () => {
+    if (!selectedClient || !sessionId || !selectedStatus) return;
 
-    markAttendedMutation.mutate(
-      { clientId: selectedClient.id.toString(), sessionId },
+    updateStatusMutation.mutate(
+      { clientId: selectedClient.id.toString(), sessionId, status: selectedStatus },
       {
         onSuccess: () => {
+          const statusMessages: Record<string, string> = {
+            'attended': 'Client marked as attended!',
+            'not_yet': 'Client marked as not yet attended!',
+            'make_up': 'Client marked for make-up class!',
+            'cancelled': 'Client attendance marked as cancelled!',
+          };
+          
+          const statusColors: Record<string, string> = {
+            'attended': 'green',
+            'not_yet': 'yellow',
+            'make_up': 'blue',
+            'cancelled': 'gray',
+          };
+          
+          const color = statusColors[selectedStatus] || 'green';
+          const message = statusMessages[selectedStatus] || 'Attendance status updated!';
+          
           notifications.show({
             title: 'Success',
-            message: 'Client marked as attended!',
-            color: 'green',
+            message,
+            color,
             radius: 'md',
             icon: (
-              <span className='flex items-center justify-center w-6 h-6 rounded-full bg-green-200'>
+              <span className={`flex items-center justify-center w-6 h-6 rounded-full bg-${color}-200`}>
                 <img src={successIcon} alt='Success' className='w-4 h-4' />
               </span>
             ),
@@ -308,12 +371,11 @@ const SessionDetails = () => {
             position: 'top-right',
           });
           close();
-          refetchClients();
         },
-        onError: (_error: unknown) => {
+        onError: () => {
           notifications.show({
             title: 'Error',
-            message: 'Failed to mark client as attended. Please try again.',
+            message: 'Failed to update attendance status. Please try again.',
             color: 'red',
             radius: 'md',
             icon: (
@@ -330,6 +392,7 @@ const SessionDetails = () => {
       }
     );
   };
+
 
   const handleRemoveClient = () => {
     if (!selectedClient || !sessionId) return;
@@ -371,51 +434,7 @@ const SessionDetails = () => {
             position: 'top-right',
           });
           close();
-        },
-      }
-    );
-  };
-
-  const handleMarkNotAttended = () => {
-    if (!selectedClient || !sessionId) return;
-
-    markNotAttendedMutation.mutate(
-      { clientId: selectedClient.id.toString(), sessionId },
-      {
-        onSuccess: () => {
-          notifications.show({
-            title: 'Success',
-            message: 'Client marked as not attended!',
-            color: 'green',
-            radius: 'md',
-            icon: (
-              <span className='flex items-center justify-center w-6 h-6 rounded-full bg-green-200'>
-                <img src={successIcon} alt='Success' className='w-4 h-4' />
-              </span>
-            ),
-            withBorder: true,
-            autoClose: 3000,
-            position: 'top-right',
-          });
-          close();
           refetchClients();
-        },
-        onError: (_error: unknown) => {
-          notifications.show({
-            title: 'Error',
-            message: 'Failed to mark client as not attended. Please try again.',
-            color: 'red',
-            radius: 'md',
-            icon: (
-              <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
-                <img src={errorIcon} alt='Error' className='w-4 h-4' />
-              </span>
-            ),
-            withBorder: true,
-            autoClose: 3000,
-            position: 'top-right',
-          });
-          close();
         },
       }
     );
@@ -731,9 +750,17 @@ const SessionDetails = () => {
           <Text fw={600} size='lg'>
             {isRemovingClient
               ? 'Remove Client from Session'
-              : isMarkingAttended
-              ? 'Attended'
-              : 'Not Attended'}
+              : selectedStatus === 'attended'
+              ? 'Mark as Attended'
+              : selectedStatus === 'not_yet'
+              ? 'Mark as Not Yet'
+              : selectedStatus === 'missed'
+              ? 'Mark as Missed'
+              : selectedStatus === 'make_up'
+              ? 'Request Make-up Class'
+              : selectedStatus === 'cancelled'
+              ? 'Mark as Cancelled'
+              : 'Update Attendance Status'}
           </Text>
         }
         centered
@@ -743,9 +770,17 @@ const SessionDetails = () => {
           <Text size='sm'>
             {isRemovingClient
               ? 'Are you sure you want to remove this client from this session? This action cannot be undone.'
-              : isMarkingAttended
+              : selectedStatus === 'attended'
               ? 'Are you sure you want to mark this client as attended for this session?'
-              : 'Are you sure you want to mark this client as not attended for this session?'}
+              : selectedStatus === 'not_yet'
+              ? 'Are you sure you want to mark this client as not yet attended for this session?'
+              : selectedStatus === 'missed'
+              ? 'Are you sure you want to mark this client as missed for this session?'
+              : selectedStatus === 'make_up'
+              ? 'Are you sure you want to request a make-up class for this client?'
+              : selectedStatus === 'cancelled'
+              ? 'Are you sure you want to mark this client\'s attendance as cancelled for this session?'
+              : 'Are you sure you want to update the attendance status for this client?'}
           </Text>
           <div className='flex justify-end space-x-3'>
             <Button variant='subtle' onClick={close} color='gray'>
@@ -755,18 +790,24 @@ const SessionDetails = () => {
               onClick={() => {
                 if (isRemovingClient) {
                   handleRemoveClient();
-                } else if (isMarkingAttended) {
-                  handleMarkAttended();
-                } else {
-                  handleMarkNotAttended();
+                } else if (selectedStatus) {
+                  handleUpdateAttendanceStatus();
                 }
               }}
               color={
                 isRemovingClient
                   ? 'red'
-                  : isMarkingAttended
+                  : selectedStatus === 'attended'
                   ? 'green'
-                  : 'yellow'
+                  : selectedStatus === 'not_yet'
+                  ? 'yellow'
+                  : selectedStatus === 'missed'
+                  ? 'red'
+                  : selectedStatus === 'make_up'
+                  ? 'blue'
+                  : selectedStatus === 'cancelled'
+                  ? 'gray'
+                  : 'green'
               }
             >
               Confirm

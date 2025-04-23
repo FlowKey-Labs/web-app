@@ -319,6 +319,36 @@ const create_session = async (sessionData: CreateSessionData) => {
   return data;
 };
 
+const mark_client_attended = async (clientId: string, sessionId: string) => {
+  const { data } = await api.post(END_POINTS.CLIENTS.ATTENDANCE, {
+    client: clientId,
+    session: sessionId,
+    attended: true,
+    status: 'attended',
+  });
+  return data;
+};
+
+const mark_client_not_attended = async (clientId: string, sessionId: string) => {
+  const { data } = await api.post(END_POINTS.CLIENTS.ATTENDANCE, {
+    client: clientId,
+    session: sessionId,
+    attended: false,
+    status: 'missed',
+  });
+  return data;
+};
+
+const update_attendance_status = async (clientId: string, sessionId: string, status: string) => {
+  const { data } = await api.post(`${END_POINTS.CLIENTS.ATTENDANCE}update_status/`, {
+    client: clientId,
+    session: sessionId,
+    status: status,
+  });
+  console.log('Attendance status update response:', data);
+  return data;
+};
+
 const activate_session = async (sessionId: string) => {
   const { data } = await api.patch(END_POINTS.SESSION.SESSION_DETAIL(sessionId), {
     is_active: true
@@ -393,36 +423,6 @@ const get_places_autocomplete = async (input: string) => {
   return data.predictions;
 };
 
-// Simplified API calls for attendance management
-const mark_client_attended = async (clientId: string, sessionId: string) => {
-  try {
-    // Send integers instead of strings for client and session IDs
-    const { data } = await api.post(END_POINTS.CLIENTS.ATTENDANCE, {
-      client: parseInt(clientId),
-      session: parseInt(sessionId),
-      attended: true
-    });
-    return data;
-  } catch (error) {
-    console.error('Error marking client as attended:', error);
-    throw error;
-  }
-};
-
-const mark_client_not_attended = async (clientId: string, sessionId: string) => {
-  try {
-    // Send integers instead of strings for client and session IDs
-    const { data } = await api.post(END_POINTS.CLIENTS.ATTENDANCE, {
-      client: parseInt(clientId),
-      session: parseInt(sessionId),
-      attended: false
-    });
-    return data;
-  } catch (error) {
-    console.error('Error marking client as not attended:', error);
-    throw error;
-  }
-};
 
 // Location API functions
 const get_locations = async (): Promise<Location[]> => {
@@ -495,6 +495,7 @@ export {
   get_session_clients,
   mark_client_attended,
   mark_client_not_attended,
+  update_attendance_status,
   activate_session,
   deactivate_session,
   remove_client_from_session,

@@ -44,6 +44,7 @@ import {
   remove_client_from_session,
   activate_staff,
   deactivate_staff,
+  update_attendance_status,
 } from "../api/api";
 import { useAuthStore } from "../store/auth";
 import { BusinessServices } from "../types/business";
@@ -529,6 +530,18 @@ export const useMarkClientNotAttended = () => {
   return useMutation({
     mutationFn: ({ clientId, sessionId }: { clientId: string; sessionId: string }) =>
       mark_client_not_attended(clientId, sessionId),
+    onSuccess: (_, { sessionId }) => {
+      queryClient.invalidateQueries({ queryKey: ["session_clients", sessionId] });
+      queryClient.invalidateQueries({ queryKey: ["session_analytics", sessionId] });
+    },
+  });
+};
+
+export const useUpdateAttendanceStatus = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ clientId, sessionId, status }: { clientId: string; sessionId: string; status: string }) =>
+      update_attendance_status(clientId, sessionId, status),
     onSuccess: (_, { sessionId }) => {
       queryClient.invalidateQueries({ queryKey: ["session_clients", sessionId] });
       queryClient.invalidateQueries({ queryKey: ["session_analytics", sessionId] });

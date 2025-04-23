@@ -13,6 +13,8 @@ export interface Staff {
   email: string;
 }
 
+export type AttendanceStatus = 'not_yet' | 'attended' | 'missed' | 'make_up' | 'cancelled';
+
 export interface Attendance {
   id: number;
   client: {
@@ -23,6 +25,8 @@ export interface Attendance {
   };
   session: number;
   attended: boolean;
+  status: AttendanceStatus;
+  status_display: string;
   timestamp: string;
 }
 

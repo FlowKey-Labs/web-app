@@ -19,6 +19,8 @@ interface ClientSession {
   start_time: string;
   end_time: string;
   attended: boolean;
+  status?: string;
+  status_display?: string;
   session_type: string;
   class_type: string;
 }
