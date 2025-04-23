@@ -74,3 +74,27 @@
   text-transform: capitalize !important;
   cursor: pointer !important;
 }
+
+
+/* Custom styles for TUI Calendar popup */
+.tui-calendar-popup-detail {
+  width: 400px !important;
+  max-height: 500px !important;
+  padding: 1.5rem !important;
+  border-radius: 1rem !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+}
+
+.tui-calendar-popup-detail .tui-calendar-section {
+  margin-bottom: 1rem;
+}
+
+.tui-calendar-popup-detail .tui-calendar-title {
+  font-size: 1.25rem !important;
+  font-weight: 600 !important;
+  margin-bottom: 0.5rem !important;
+}
+
+.tui-calendar-popup-detail .tui-calendar-content {
+  color: #4B5563 !important;
+}
