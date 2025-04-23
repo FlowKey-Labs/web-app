@@ -6,9 +6,9 @@ import clientlocationIcons from '../../assets/icons/clientLocation.svg';
 import { useAddClient, useGetClassSessions, useGetGroups, useAddGroup, useGetLocations, useGetClients, useGetSessions } from '../../hooks/reactQuery';
 import React from 'react';
 import moment from 'moment';
-import { AddClient, ClientData, GroupData, Group, Client } from '../../types/clientTypes';
+import { AddClient, ClientData, GroupData, Client } from '../../types/clientTypes';
 import { Location } from '../../types/location';
-import { Drawer, Radio, Group as MantineGroup } from '@mantine/core';
+import { Drawer } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import successIcon from '../../assets/icons/success.svg';
 import errorIcon from '../../assets/icons/error.svg';
@@ -78,42 +78,42 @@ const AddClients = ({ isOpen, onClose }: ClientsModalProps) => {
     }
   }, [isGroupSuccess, groupReset, onClose]);
 
-  const handleCreateGroup = async (groupData: GroupData) => {
-    return new Promise<number>((resolve, reject) => {
-      addGroup(groupData, {
-        onSuccess: (response) => {
-          notifications.show({
-            title: 'Success',
-            message: 'Group created successfully',
-            color: 'green',
-            icon: (
-              <span className='flex items-center justify-center w-6 h-6 rounded-full bg-green-200'>
-                <img src={successIcon} alt='Success' className='w-4 h-4' />
-              </span>
-            ),
-            withBorder: true,
-            autoClose: 3000,
-          });
-          resolve(response.id);
-        },
-        onError: (error) => {
-          notifications.show({
-            title: 'Error',
-            message: 'Failed to create group. Please try again.',
-            color: 'red',
-            icon: (
-              <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
-                <img src={errorIcon} alt='Error' className='w-4 h-4' />
-              </span>
-            ),
-            withBorder: true,
-            autoClose: 3000,
-          });
-          reject(error);
-        }
-      });
-    });
-  };
+  // const handleCreateGroup = async (groupData: GroupData) => {
+  //   return new Promise<number>((resolve, reject) => {
+  //     addGroup(groupData, {
+  //       onSuccess: (response) => {
+  //         notifications.show({
+  //           title: 'Success',
+  //           message: 'Group created successfully',
+  //           color: 'green',
+  //           icon: (
+  //             <span className='flex items-center justify-center w-6 h-6 rounded-full bg-green-200'>
+  //               <img src={successIcon} alt='Success' className='w-4 h-4' />
+  //             </span>
+  //           ),
+  //           withBorder: true,
+  //           autoClose: 3000,
+  //         });
+  //         resolve(response.id);
+  //       },
+  //       onError: (error) => {
+  //         notifications.show({
+  //           title: 'Error',
+  //           message: 'Failed to create group. Please try again.',
+  //           color: 'red',
+  //           icon: (
+  //             <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+  //               <img src={errorIcon} alt='Error' className='w-4 h-4' />
+  //             </span>
+  //           ),
+  //           withBorder: true,
+  //           autoClose: 3000,
+  //         });
+  //         reject(error);
+  //       }
+  //     });
+  //   });
+  // };
 
   const handleSubmitIndividual = individualHandleSubmit(async (data) => {
     try {

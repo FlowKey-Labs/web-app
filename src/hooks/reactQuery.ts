@@ -1,4 +1,9 @@
-import { useMutation, useQuery, useQueryClient, UseQueryResult } from "@tanstack/react-query";
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+  UseQueryResult,
+} from "@tanstack/react-query";
 import {
   registerUser,
   loginUser,
@@ -55,7 +60,7 @@ import {
   remove_member_from_group,
 } from "../api/api";
 import { useAuthStore } from "../store/auth";
-import { BusinessServices } from "../types/business";
+// import { BusinessServices } from "../types/business";
 import { AddClient, Client } from "../types/clientTypes";
 import { CreateStaffRequest, StaffResponse } from "../types/staffTypes";
 import {
@@ -215,7 +220,13 @@ export const useCreateLocation = () => {
 export const useUpdateLocation = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, data }: { id: number; data: Partial<CreateLocationData> }) => {
+    mutationFn: ({
+      id,
+      data,
+    }: {
+      id: number;
+      data: Partial<CreateLocationData>;
+    }) => {
       return update_location(id, data);
     },
     onSuccess: () => {
@@ -414,7 +425,9 @@ export interface SessionFilters {
   dateRange?: [Date | null, Date | null];
 }
 
-export const useGetSessions = (filters?: SessionFilters): UseQueryResult<Session[], Error> => {
+export const useGetSessions = (
+  filters?: SessionFilters
+): UseQueryResult<Session[], Error> => {
   return useQuery<Session[], Error>({
     queryKey: ["sessions", filters],
     queryFn: () => get_sessions(filters),
@@ -492,8 +505,13 @@ export const useUpdateSession = () => {
 export const useUpdateClient = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, updateData }: { id: string; updateData: Partial<Client> }) =>
-      update_client(id, updateData),
+    mutationFn: ({
+      id,
+      updateData,
+    }: {
+      id: string;
+      updateData: Partial<Client>;
+    }) => update_client(id, updateData),
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: ["clients"] });
       queryClient.invalidateQueries({ queryKey: ["client", id] });
@@ -525,11 +543,20 @@ export const useActivateClient = () => {
 export const useMarkClientAttended = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ clientId, sessionId }: { clientId: string; sessionId: string }) =>
-      mark_client_attended(clientId, sessionId),
+    mutationFn: ({
+      clientId,
+      sessionId,
+    }: {
+      clientId: string;
+      sessionId: string;
+    }) => mark_client_attended(clientId, sessionId),
     onSuccess: (_, { sessionId }) => {
-      queryClient.invalidateQueries({ queryKey: ["session_clients", sessionId] });
-      queryClient.invalidateQueries({ queryKey: ["session_analytics", sessionId] });
+      queryClient.invalidateQueries({
+        queryKey: ["session_clients", sessionId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["session_analytics", sessionId],
+      });
     },
   });
 };
@@ -537,11 +564,20 @@ export const useMarkClientAttended = () => {
 export const useMarkClientNotAttended = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ clientId, sessionId }: { clientId: string; sessionId: string }) =>
-      mark_client_not_attended(clientId, sessionId),
+    mutationFn: ({
+      clientId,
+      sessionId,
+    }: {
+      clientId: string;
+      sessionId: string;
+    }) => mark_client_not_attended(clientId, sessionId),
     onSuccess: (_, { sessionId }) => {
-      queryClient.invalidateQueries({ queryKey: ["session_clients", sessionId] });
-      queryClient.invalidateQueries({ queryKey: ["session_analytics", sessionId] });
+      queryClient.invalidateQueries({
+        queryKey: ["session_clients", sessionId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["session_analytics", sessionId],
+      });
     },
   });
 };
@@ -549,11 +585,22 @@ export const useMarkClientNotAttended = () => {
 export const useUpdateAttendanceStatus = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ clientId, sessionId, status }: { clientId: string; sessionId: string; status: string }) =>
-      update_attendance_status(clientId, sessionId, status),
+    mutationFn: ({
+      clientId,
+      sessionId,
+      status,
+    }: {
+      clientId: string;
+      sessionId: string;
+      status: string;
+    }) => update_attendance_status(clientId, sessionId, status),
     onSuccess: (_, { sessionId }) => {
-      queryClient.invalidateQueries({ queryKey: ["session_clients", sessionId] });
-      queryClient.invalidateQueries({ queryKey: ["session_analytics", sessionId] });
+      queryClient.invalidateQueries({
+        queryKey: ["session_clients", sessionId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["session_analytics", sessionId],
+      });
     },
   });
 };
@@ -583,11 +630,20 @@ export const useDeactivateSession = () => {
 export const useRemoveClientFromSession = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ clientId, sessionId }: { clientId: string; sessionId: string }) =>
-      remove_client_from_session(clientId, sessionId),
+    mutationFn: ({
+      clientId,
+      sessionId,
+    }: {
+      clientId: string;
+      sessionId: string;
+    }) => remove_client_from_session(clientId, sessionId),
     onSuccess: (_, { sessionId }) => {
-      queryClient.invalidateQueries({ queryKey: ["session_clients", sessionId] });
-      queryClient.invalidateQueries({ queryKey: ["session_analytics", sessionId] });
+      queryClient.invalidateQueries({
+        queryKey: ["session_clients", sessionId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["session_analytics", sessionId],
+      });
       queryClient.invalidateQueries({ queryKey: ["dashboard_analytics"] });
     },
   });
@@ -647,8 +703,13 @@ export const useAddGroup = () => {
 export const useUpdateGroup = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, updateData }: { id: string; updateData: Partial<GroupData> }) =>
-      update_group(id, updateData),
+    mutationFn: ({
+      id,
+      updateData,
+    }: {
+      id: string;
+      updateData: Partial<GroupData>;
+    }) => update_group(id, updateData),
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: ["groups"] });
       queryClient.invalidateQueries({ queryKey: ["group", id] });
@@ -670,8 +731,13 @@ export const useGetGroupMembers = (groupId: string) => {
 export const useAddMemberToGroup = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ groupId, clientId }: { groupId: string; clientId: string }) =>
-      add_member_to_group(groupId, clientId),
+    mutationFn: ({
+      groupId,
+      clientId,
+    }: {
+      groupId: string;
+      clientId: string;
+    }) => add_member_to_group(groupId, clientId),
     onSuccess: (_, { groupId }) => {
       queryClient.invalidateQueries({ queryKey: ["group_members", groupId] });
       queryClient.invalidateQueries({ queryKey: ["group", groupId] });
@@ -682,8 +748,13 @@ export const useAddMemberToGroup = () => {
 export const useRemoveMemberFromGroup = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ groupId, clientId }: { groupId: string; clientId: string }) =>
-      remove_member_from_group(groupId, clientId),
+    mutationFn: ({
+      groupId,
+      clientId,
+    }: {
+      groupId: string;
+      clientId: string;
+    }) => remove_member_from_group(groupId, clientId),
     onSuccess: (_, { groupId }) => {
       queryClient.invalidateQueries({ queryKey: ["group_members", groupId] });
       queryClient.invalidateQueries({ queryKey: ["group", groupId] });

@@ -1,6 +1,5 @@
 import { JSX, useState } from 'react';
 
-import Button from '../common/Button';
 import Header from '../headers/Header';
 import Services from './Services';
 import Schedule from './Schedule';

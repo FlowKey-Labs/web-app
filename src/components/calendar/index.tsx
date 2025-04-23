@@ -10,7 +10,7 @@ import { addHours, format, isPast, parse } from "date-fns";
 import DropDownMenu from "../common/DropdownMenu";
 import dropdownIcon from "../../assets/icons/dropIcon.svg";
 import { cn } from "../../utils/mergeClass";
-import { EventClickArg } from "@fullcalendar/core/index.js";
+import { EventClickArg, EventInput } from "@fullcalendar/core/index.js";
 import EventCard from "./eventCard";
 import { Dictionary, EventImpl } from "@fullcalendar/core/internal";
 import { useGetSessions } from "../../hooks/reactQuery";
@@ -321,7 +321,7 @@ const CalendarView = () => {
             interactionPlugin,
           ]}
           initialView={currentView.view}
-          events={sessionsData?.flatMap(mapSessionToFullCalendarEvents)}
+          events={sessionsData?.flatMap(mapSessionToFullCalendarEvents) as EventInput}
           eventContent={renderEventContent}
           dayMaxEventRows={true}
           allDaySlot={false}

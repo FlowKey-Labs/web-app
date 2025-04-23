@@ -23,6 +23,7 @@ const ForgotPassword = () => {
   const methods = useForm<FormData>();
 
   const onSubmit: SubmitHandler<FormData> = async (data) => {
+    console.log(data);
     setIsSubmitting(true);
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
