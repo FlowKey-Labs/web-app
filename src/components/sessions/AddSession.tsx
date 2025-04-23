@@ -1,5 +1,6 @@
 import { useForm, Controller, FormProvider } from 'react-hook-form';
 import { Session, Category, ClassFields } from '../../types/sessionTypes';
+
 import Button from '../common/Button';
 import DropdownSelectInput from '../common/Dropdown';
 import Input from '../common/Input';
@@ -15,10 +16,20 @@ import {
   useGetStaff,
   useGetClients,
   useGetSessionCategories,
+  useGetLocations,
 } from '../../hooks/reactQuery';
 import { useCreateSession } from '../../hooks/reactQuery';
 import moment from 'moment';
 import { Modal, Drawer } from '@mantine/core';
+
+// Define Client interface for type safety
+interface Client {
+  id: number;
+  first_name: string;
+  last_name: string;
+  email?: string;
+  phone_number?: string;
+}
 
 interface SessionModalProps {
   isOpen: boolean;
@@ -39,7 +50,7 @@ type FormData = Omit<
 > & {
   start_time: string;
   end_time: string;
-  session_type: 'class' | 'appointment';
+  session_type: 'class' | 'appointment' | 'event';
   repetition: string;
   date: string;
 
@@ -48,7 +59,9 @@ type FormData = Omit<
   spots: number;
   staff?: DropDownItem | number;
   category_id?: DropDownItem | number;
+  location_id?: DropDownItem | number;
   client_ids: string[];
+  description?: string;
 
   repeat_every?: number;
   repeat_unit?: 'days' | 'weeks' | 'months';
@@ -72,6 +85,7 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
       repeat_on: undefined,
       staff: undefined,
       category_id: undefined,
+      location_id: undefined,
       client_ids: [],
       repeat_end_type: 'never',
       repeat_end_date: undefined,
@@ -88,6 +102,8 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
   const { data: staffData, isLoading: isStaffLoading } = useGetStaff();
   const { data: clientsData, isLoading: isClientsLoading } = useGetClients();
   const { data: categoriesData } = useGetSessionCategories();
+  const { data: locationsData, isLoading: isLocationsLoading } =
+    useGetLocations();
 
   const createSession = useCreateSession();
 
@@ -104,18 +120,21 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
   const [value, setValue] = useState<Date | null>(null);
 
   useEffect(() => {
-    if (methods.watch('session_type') === 'class') {
+    const currentType = methods.watch('session_type');
+    const currentValues = methods.getValues();
+
+    if (currentType === 'class') {
       methods.reset({
-        ...methods.getValues(),
+        ...currentValues,
         email: '',
         phone_number: '',
         selected_class: undefined,
       });
     } else {
       methods.reset({
-        ...methods.getValues(),
+        ...currentValues,
         spots: 0,
-        class_type: 'regular',
+        class_type: undefined, // Clear the class_type when not in class mode
       });
     }
   }, [methods.watch('session_type')]);
@@ -183,15 +202,16 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
         return field;
       };
 
-      const formattedData = {
+      // Create the base formatted data object
+      const formattedData: any = {
         title: data.title,
         session_type: data.session_type,
-        class_type: extractValue(data.class_type),
         date: dateOnly,
         spots: parseInt(data.spots.toString()),
         category: extractValue(data.category_id),
         staff: extractValue(data.staff),
         client_ids: data.client_ids || [],
+        description: data.description,
         repeat_end_date: formattedRepeatEndDate,
         repeat_every: data.repeat_every,
         repeat_unit: data.repeat_unit,
@@ -203,7 +223,13 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
         email: data.email,
         phone_number: data.phone_number,
         selected_class: extractValue(data.selected_class),
+        location_id: extractValue(data.location_id),
       };
+      
+      // Include class_type for class and appointment session types
+      if (data.session_type === 'class' || data.session_type === 'appointment') {
+        formattedData.class_type = extractValue(data.class_type);
+      }
 
       const repetitionValue = data.repetition;
 
@@ -238,7 +264,9 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
         message:
           data.session_type === 'class'
             ? 'Class created successfully!'
-            : 'Appointment created successfully!',
+            : data.session_type === 'appointment'
+            ? 'Appointment created successfully!'
+            : 'Event created successfully!',
         color: 'green',
         radius: 'md',
         icon: (
@@ -401,6 +429,17 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
             >
               Appointment
             </button>
+            <button
+              type='button'
+              onClick={() => methods.setValue('session_type', 'event')}
+              className={`px-6 py-2 font-medium rounded-lg hover:opacity-90 transition-opacity w-[120px] text-sm ${
+                methods.watch('session_type') === 'event'
+                  ? 'text-primary bg-[#1D9B5E33]'
+                  : 'text-gray-500 bg-gray-100'
+              }`}
+            >
+              Event
+            </button>
           </div>
           <FormProvider {...methods}>
             <form
@@ -461,6 +500,21 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
                                 {...field}
                                 label='Class Name'
                                 placeholder='Enter Class Name'
+                              />
+                            )}
+                          />
+
+                          <Controller
+                            name='description'
+                            control={methods.control}
+                            render={({ field }) => (
+                              <Input
+                                {...field}
+                                type='textarea'
+                                label='Description (Optional)'
+                                placeholder='Enter session description'
+                                rows={4}
+                                containerClassName='mb-4'
                               />
                             )}
                           />
@@ -689,8 +743,50 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
                             />
                           )}
                         />
+                        <Controller
+                          name='location_id'
+                          control={methods.control}
+                          render={({ field }) => (
+                            <DropdownSelectInput
+                              label='Location'
+                              placeholder='Select Location'
+                              options={
+                                isLocationsLoading
+                                  ? [{ label: 'Loading...', value: '' }]
+                                  : locationsData
+                                      ?.map((location: any) => {
+                                        if (!location || !location.id) {
+                                          console.warn(
+                                            'Invalid location data:',
+                                            location
+                                          );
+                                          return null;
+                                        }
+                                        return {
+                                          label: location.name,
+                                          value: location.id.toString(),
+                                        };
+                                      })
+                                      .filter(
+                                        (item): item is DropDownItem =>
+                                          item !== null
+                                      ) || []
+                              }
+                              value={
+                                field.value?.toString
+                                  ? field.value?.toString()
+                                  : field.value?.toString
+                                  ? field.value.toString()
+                                  : ''
+                              }
+                              onSelectItem={(selectedItem) => {
+                                field.onChange(selectedItem);
+                              }}
+                            />
+                          )}
+                        />
                       </>
-                    ) : (
+                    ) : methods.watch('session_type') === 'appointment' ? (
                       <>
                         <div className='space-y-4'>
                           <Controller
@@ -698,7 +794,7 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
                             control={methods.control}
                             render={({ field }) => (
                               <DropdownSelectInput
-                                label='Name'
+                                label='Client Name'
                                 placeholder='Select or create Clients'
                                 options={
                                   isClientsLoading
@@ -708,7 +804,6 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
                                         value: client.id.toString(),
                                       })) || []
                                 }
-                                value={field.value || []}
                                 onSelectItem={(selectedItems) => {
                                   const values = Array.isArray(selectedItems)
                                     ? selectedItems.map((item) => item.value)
@@ -716,6 +811,23 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
                                     ? [selectedItems.value]
                                     : [];
                                   field.onChange(values);
+                                  if (values.length > 0) {
+                                    const clientId = values[0];
+                                    const selectedClient = clientsData?.find(
+                                      (client: Client) =>
+                                        client.id.toString() === clientId
+                                    );
+                                    if (selectedClient) {
+                                      methods.setValue(
+                                        'email',
+                                        selectedClient.email || ''
+                                      );
+                                      methods.setValue(
+                                        'phone_number',
+                                        selectedClient.phone_number || ''
+                                      );
+                                    }
+                                  }
                                 }}
                               />
                             )}
@@ -748,6 +860,308 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
                         <div className='space-y-4'>
                           <h3 className='text-lg font-bold text-gray-700'>
                             Appointment Details
+                          </h3>
+                          <div className='w-full'>
+                            <Controller
+                              name='title'
+                              control={methods.control}
+                              render={({ field }) => (
+                                <Input
+                                  {...field}
+                                  label='Appointment Name'
+                                  placeholder='Enter Appointment Name'
+                                  containerClassName='mb-4'
+                                />
+                              )}
+                            />
+
+                            <Controller
+                              name='class_type'
+                              control={methods.control}
+                              render={({ field }) => {
+                                let stringValue: string | undefined = undefined;
+
+                                if (field.value) {
+                                  if (
+                                    typeof field.value === 'object' &&
+                                    field.value !== null &&
+                                    'value' in field.value
+                                  ) {
+                                    const dropdownItem = field.value as {
+                                      value: string | number;
+                                    };
+                                    stringValue = String(dropdownItem.value);
+                                  } else {
+                                    stringValue = String(field.value);
+                                  }
+                                }
+
+                                return (
+                                  <DropdownSelectInput
+                                    value={stringValue}
+                                    label='Session Type'
+                                    placeholder='Select Session Type'
+                                    options={[
+                                      { label: 'Regular', value: 'regular' },
+                                      { label: 'Private', value: 'private' },
+                                      { label: 'Workshop', value: 'workshop' },
+                                    ]}
+                                    onSelectItem={(selectedItem) =>
+                                      field.onChange(selectedItem)
+                                    }
+                                  />
+                                );
+                              }}
+                            />
+
+                            <Controller
+                              name='description'
+                              control={methods.control}
+                              render={({ field }) => (
+                                <Input
+                                  {...field}
+                                  type='textarea'
+                                  label='Description (Optional)'
+                                  placeholder='Enter appointment description'
+                                  rows={4}
+                                  containerClassName='mb-4'
+                                />
+                              )}
+                            />
+                            <Controller
+                              name='date'
+                              control={methods.control}
+                              render={({ field }) => (
+                                <Input
+                                  {...field}
+                                  type='date'
+                                  value={
+                                    field.value ? field.value.toString() : ''
+                                  }
+                                  label='Date'
+                                  placeholder='2020/12/12'
+                                  containerClassName='mb-4'
+                                />
+                              )}
+                            />
+                            <div className='grid grid-cols-2 gap-4'>
+                              <Controller
+                                name='start_time'
+                                control={methods.control}
+                                render={({ field }) => (
+                                  <Input
+                                    {...field}
+                                    type='time'
+                                    label='Start Time'
+                                    placeholder='12:00 PM'
+                                  />
+                                )}
+                              />
+                              <Controller
+                                name='end_time'
+                                control={methods.control}
+                                render={({ field }) => (
+                                  <Input
+                                    {...field}
+                                    type='time'
+                                    label='End Time'
+                                    placeholder='12:00 PM'
+                                  />
+                                )}
+                              />
+                            </div>
+                          </div>
+                          <Controller
+                            name='staff'
+                            control={methods.control}
+                            render={({ field }) => (
+                              <DropdownSelectInput
+                                label='Assign Coach'
+                                placeholder='Select Coach'
+                                options={
+                                  isStaffLoading
+                                    ? [{ label: 'Loading...', value: '' }]
+                                    : staffData
+                                        ?.map((staff: any) => {
+                                          if (!staff || !staff.id) {
+                                            console.warn(
+                                              'Invalid staff data:',
+                                              staff
+                                            );
+                                            return null;
+                                          }
+                                          return {
+                                            label: `${staff.user?.first_name} ${staff.user?.last_name}`,
+                                            value: staff.id.toString(),
+                                          };
+                                        })
+                                        .filter(Boolean) || []
+                                }
+                                value={
+                                  field.value?.toString
+                                    ? field.value?.toString()
+                                    : field.value?.toString
+                                    ? field.value.toString()
+                                    : ''
+                                }
+                                onSelectItem={(selectedItem) => {
+                                  field.onChange(selectedItem);
+                                }}
+                              />
+                            )}
+                          />
+                          <Controller
+                            name='location_id'
+                            control={methods.control}
+                            render={({ field }) => (
+                              <DropdownSelectInput
+                                label='Location'
+                                placeholder='Select Location'
+                                options={
+                                  isLocationsLoading
+                                    ? [{ label: 'Loading...', value: '' }]
+                                    : locationsData
+                                        ?.map((location: any) => {
+                                          if (!location || !location.id) {
+                                            console.warn(
+                                              'Invalid location data:',
+                                              location
+                                            );
+                                            return null;
+                                          }
+                                          return {
+                                            label: location.name,
+                                            value: location.id.toString(),
+                                          };
+                                        })
+                                        .filter(
+                                          (item): item is DropDownItem =>
+                                            item !== null
+                                        ) || []
+                                }
+                                value={
+                                  field.value?.toString
+                                    ? field.value?.toString()
+                                    : field.value?.toString
+                                    ? field.value.toString()
+                                    : ''
+                                }
+                                onSelectItem={(selectedItem) => {
+                                  field.onChange(selectedItem);
+                                }}
+                              />
+                            )}
+                          />
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div className='flex flex-col space-y-3'>
+                          <Controller
+                            name='title'
+                            control={methods.control}
+                            rules={{ required: true }}
+                            render={({ field }) => (
+                              <Input
+                                {...field}
+                                label='Event Name'
+                                placeholder='Enter Event Name'
+                              />
+                            )}
+                          />
+                          <Controller
+                            name='location_id'
+                            control={methods.control}
+                            render={({ field }) => (
+                              <DropdownSelectInput
+                                label='Location'
+                                placeholder='Select Location'
+                                options={
+                                  isLocationsLoading
+                                    ? [{ label: 'Loading...', value: '' }]
+                                    : locationsData
+                                        ?.map((location: any) => {
+                                          if (!location || !location.id) {
+                                            console.warn(
+                                              'Invalid location data:',
+                                              location
+                                            );
+                                            return null;
+                                          }
+                                          return {
+                                            label: location.name,
+                                            value: location.id.toString(),
+                                          };
+                                        })
+                                        .filter(
+                                          (item): item is DropDownItem =>
+                                            item !== null
+                                        ) || []
+                                }
+                                value={
+                                  field.value?.toString
+                                    ? field.value?.toString()
+                                    : field.value?.toString
+                                    ? field.value.toString()
+                                    : ''
+                                }
+                                onSelectItem={(selectedItem) => {
+                                  field.onChange(selectedItem);
+                                }}
+                              />
+                            )}
+                          />
+
+                          <Controller
+                            name='description'
+                            control={methods.control}
+                            render={({ field }) => (
+                              <Input
+                                {...field}
+                                type='textarea'
+                                label='Description (Optional)'
+                                placeholder='Enter event description'
+                                rows={4}
+                                containerClassName='mb-4'
+                              />
+                            )}
+                          />
+                          <div>
+                            <Controller
+                              name='category_id'
+                              control={methods.control}
+                              render={({ field }) => (
+                                <DropdownSelectInput
+                                  label='Category'
+                                  placeholder='Select a category'
+                                  options={
+                                    categoriesData
+                                      ? categoriesData.map(
+                                          (category: Category) => ({
+                                            label: category.name,
+                                            value: category.id.toString(),
+                                          })
+                                        )
+                                      : []
+                                  }
+                                  value={
+                                    field.value?.toString
+                                      ? field.value?.toString()
+                                      : field.value?.toString
+                                      ? field.value.toString()
+                                      : ''
+                                  }
+                                  onSelectItem={(selectedItem) => {
+                                    field.onChange(selectedItem);
+                                  }}
+                                />
+                              )}
+                            />
+                          </div>
+                        </div>
+                        <div className='space-y-4'>
+                          <h3 className='text-lg font-bold text-gray-700'>
+                            Event Schedule
                           </h3>
                           <div className='w-full'>
                             <Controller
@@ -793,58 +1207,93 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
                               />
                             </div>
                           </div>
-                          <div className='w-full'>
+                          <div className='flex justify-between items-center gap-4'>
                             <Controller
-                              name='staff'
+                              name='spots'
                               control={methods.control}
                               render={({ field }) => (
-                                <DropdownSelectInput
-                                  label='Assign Coach'
-                                  placeholder='Select Coach'
-                                  options={
-                                    isStaffLoading
-                                      ? [{ label: 'Loading...', value: '' }]
-                                      : staffData
-                                          ?.map((staff: any) => {
-                                            if (!staff || !staff.id) {
-                                              console.warn(
-                                                'Invalid staff data:',
-                                                staff
-                                              );
-                                              return null;
-                                            }
-
-                                            const userData = staff.user || {};
-
-                                            return {
-                                              label:
-                                                userData.first_name &&
-                                                userData.last_name
-                                                  ? `${userData.first_name} ${userData.last_name}`
-                                                  : `Staff ${staff.id}`,
-                                              value: staff.id.toString(),
-                                            };
-                                          })
-                                          .filter(Boolean) || []
+                                <Input
+                                  {...field}
+                                  type='number'
+                                  label='Spots Available'
+                                  placeholder='Enter number of spots'
+                                  onChange={(e) =>
+                                    field.onChange(parseInt(e.target.value))
                                   }
-                                  value={
-                                    field.value?.toString
-                                      ? field.value?.toString()
-                                      : field.value?.toString
-                                      ? field.value.toString()
-                                      : ''
-                                  }
-                                  onSelectItem={(selectedItem) => {
-                                    const value = selectedItem?.value;
-                                    field.onChange(
-                                      value ? parseInt(value) : undefined
-                                    );
-                                  }}
                                 />
                               )}
                             />
+                            <div className='w-full mt-4'>
+                              <Controller
+                                name='staff'
+                                control={methods.control}
+                                render={({ field }) => (
+                                  <DropdownSelectInput
+                                    label='Assign Staff'
+                                    placeholder='Select Staff'
+                                    options={
+                                      isStaffLoading
+                                        ? [{ label: 'Loading...', value: '' }]
+                                        : staffData
+                                            ?.map((staff: any) => {
+                                              if (!staff || !staff.id) {
+                                                console.warn(
+                                                  'Invalid staff data:',
+                                                  staff
+                                                );
+                                                return null;
+                                              }
+                                              return {
+                                                label: `${staff.user?.first_name} ${staff.user?.last_name}`,
+                                                value: staff.id.toString(),
+                                              };
+                                            })
+                                            .filter(Boolean) || []
+                                    }
+                                    value={
+                                      field.value?.toString
+                                        ? field.value?.toString()
+                                        : field.value?.toString
+                                        ? field.value.toString()
+                                        : ''
+                                    }
+                                    onSelectItem={(selectedItem) => {
+                                      field.onChange(selectedItem);
+                                    }}
+                                  />
+                                )}
+                              />
+                            </div>
                           </div>
                         </div>
+                        <Controller
+                          name='client_ids'
+                          control={methods.control}
+                          render={({ field }) => (
+                            <DropdownSelectInput
+                              label='Clients'
+                              placeholder='Select Clients'
+                              singleSelect={false}
+                              options={
+                                isClientsLoading
+                                  ? [{ label: 'Loading...', value: '' }]
+                                  : clientsData?.map((client: any) => ({
+                                      label: `${client.first_name} ${client.last_name}`,
+                                      value: client.id.toString(),
+                                    })) || []
+                              }
+                              value={field.value || []}
+                              onSelectItem={(selectedItems) => {
+                                const values = Array.isArray(selectedItems)
+                                  ? selectedItems.map((item) => item.value)
+                                  : selectedItems
+                                  ? [selectedItems.value]
+                                  : [];
+                                field.onChange(values);
+                              }}
+                            />
+                          )}
+                        />
                       </>
                     )}
                   </div>
@@ -865,9 +1314,9 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
                     {createSession.isPending
                       ? methods.watch('session_type') === 'class'
                         ? 'Creating Class...'
-                        : 'Creating Appointment...'
-                      : methods.watch('session_type') === 'class'
-                      ? 'Continue'
+                        : methods.watch('session_type') === 'appointment'
+                        ? 'Creating Appointment...'
+                        : 'Creating Event...'
                       : 'Continue'}
                   </Button>
                 </div>

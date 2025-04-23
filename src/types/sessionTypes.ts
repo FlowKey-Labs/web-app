@@ -1,3 +1,5 @@
+import { Location } from './location';
+
 export interface Category {
   id: number;
   name: string;
@@ -11,6 +13,8 @@ export interface Staff {
   email: string;
 }
 
+export type AttendanceStatus = 'not_yet' | 'attended' | 'missed' | 'make_up' | 'cancelled';
+
 export interface Attendance {
   id: number;
   client: {
@@ -21,6 +25,8 @@ export interface Attendance {
   };
   session: number;
   attended: boolean;
+  status: AttendanceStatus;
+  status_display: string;
   timestamp: string;
 }
 
@@ -40,7 +46,7 @@ export interface AssignedStaff {
   isActive: boolean;
 }
 
-export type SessionType = 'class' | 'appointment';
+export type SessionType = 'class' | 'appointment' | 'event';
 export type ClassType = 'private' | 'regular' | 'workshop';
 export type RepeatUnit = 'days' | 'weeks' | 'months';
 export type EndType = 'never' | 'on' | 'after';
@@ -56,8 +62,10 @@ export interface CreateSessionData {
   end_time: string; // ISO datetime
   spots: number;
   category: number; // category ID
+  location_id?: number; // optional location ID
   is_active?: boolean;
   client_ids?: number[]; // optional list of client IDs
+  description?: string; // optional description for the session
   // Appointment specific fields
   email?: string; // optional, for appointments
   phone_number?: string; // optional, for appointments
@@ -66,18 +74,20 @@ export interface CreateSessionData {
   repetition?: 'none' | 'daily' | 'weekly' | 'monthly' | 'custom'; // UI field for repetition type
   repeat_every?: number;
   repeat_unit?: RepeatUnit;
-  repeat_on?: number[]; // for weekly repeat, array of weekday numbers (0-6)
+  repeat_on?: string[]; // for weekly repeat, array of weekday strings
   repeat_end_type?: EndType;
   repeat_end_date?: string; // YYYY-MM-DD, required if repeat_end_type is 'on'
   repeat_occurrences?: number; // required if repeat_end_type is 'after'
 }
 
+
 // Session data as returned by the API
 export interface Session
-  extends Omit<CreateSessionData, 'category' | 'client_ids'> {
+  extends Omit<CreateSessionData, 'category' | 'client_ids' | 'location_id'> {
   id: number;
   assigned_staff: AssignedStaff | null;
   category: Category;
+  location?: Location;
   attendances?: Attendance[];
 }
 
@@ -111,4 +121,13 @@ export interface AppointmentFields {
   selected_class?: number;
   category?: number;
   title?: string;
+}
+
+// Event session specific fields
+export interface EventFields {
+  title: string;
+  description?: string;
+  spots: number;
+  category?: number;
+  client_ids?: number[];
 }
