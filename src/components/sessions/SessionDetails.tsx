@@ -180,19 +180,7 @@ const SessionDetails = () => {
                   >
                     Attended
                   </Menu.Item>
-                  <Menu.Item
-                    color='yellow'
-                    onClick={() => {
-                      setSelectedClient(client);
-                      setSelectedStatus('not_yet');
-                      setIsRemovingClient(false);
-                      open();
-                    }}
-                    className='text-sm'
-                    style={{ textAlign: 'center' }}
-                  >
-                    Not Yet
-                  </Menu.Item>
+
 
                   <Menu.Item
                     color='blue'
@@ -362,7 +350,12 @@ const SessionDetails = () => {
             color,
             radius: 'md',
             icon: (
-              <span className={`flex items-center justify-center w-6 h-6 rounded-full bg-${color}-200`}>
+              <span className={`flex items-center justify-center w-6 h-6 rounded-full ${
+                color === 'green' ? 'bg-green-200' : 
+                color === 'blue' ? 'bg-blue-200' : 
+                color === 'yellow' ? 'bg-yellow-200' : 
+                color === 'gray' ? 'bg-gray-200' : 'bg-green-200'
+              }`}>
                 <img src={successIcon} alt='Success' className='w-4 h-4' />
               </span>
             ),

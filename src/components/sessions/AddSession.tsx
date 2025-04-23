@@ -102,7 +102,8 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
   const { data: staffData, isLoading: isStaffLoading } = useGetStaff();
   const { data: clientsData, isLoading: isClientsLoading } = useGetClients();
   const { data: categoriesData } = useGetSessionCategories();
-  const { data: locationsData, isLoading: isLocationsLoading } = useGetLocations();
+  const { data: locationsData, isLoading: isLocationsLoading } =
+    useGetLocations();
 
   const createSession = useCreateSession();
 
@@ -121,7 +122,7 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
   useEffect(() => {
     const currentType = methods.watch('session_type');
     const currentValues = methods.getValues();
-    
+
     if (currentType === 'class') {
       methods.reset({
         ...currentValues,
@@ -201,10 +202,10 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
         return field;
       };
 
-      const formattedData = {
+      // Create the base formatted data object
+      const formattedData: any = {
         title: data.title,
         session_type: data.session_type,
-        class_type: extractValue(data.class_type),
         date: dateOnly,
         spots: parseInt(data.spots.toString()),
         category: extractValue(data.category_id),
@@ -224,6 +225,11 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
         selected_class: extractValue(data.selected_class),
         location_id: extractValue(data.location_id),
       };
+      
+      // Include class_type for class and appointment session types
+      if (data.session_type === 'class' || data.session_type === 'appointment') {
+        formattedData.class_type = extractValue(data.class_type);
+      }
 
       const repetitionValue = data.repetition;
 
@@ -747,7 +753,7 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
                               options={
                                 isLocationsLoading
                                   ? [{ label: 'Loading...', value: '' }]
-                                  : (locationsData
+                                  : locationsData
                                       ?.map((location: any) => {
                                         if (!location || !location.id) {
                                           console.warn(
@@ -761,7 +767,10 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
                                           value: location.id.toString(),
                                         };
                                       })
-                                      .filter((item): item is DropDownItem => item !== null) || [])
+                                      .filter(
+                                        (item): item is DropDownItem =>
+                                          item !== null
+                                      ) || []
                               }
                               value={
                                 field.value?.toString
@@ -795,7 +804,6 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
                                         value: client.id.toString(),
                                       })) || []
                                 }
-                                
                                 onSelectItem={(selectedItems) => {
                                   const values = Array.isArray(selectedItems)
                                     ? selectedItems.map((item) => item.value)
@@ -806,11 +814,18 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
                                   if (values.length > 0) {
                                     const clientId = values[0];
                                     const selectedClient = clientsData?.find(
-                                      (client: Client) => client.id.toString() === clientId
+                                      (client: Client) =>
+                                        client.id.toString() === clientId
                                     );
                                     if (selectedClient) {
-                                      methods.setValue('email', selectedClient.email || '');
-                                      methods.setValue('phone_number', selectedClient.phone_number || '');
+                                      methods.setValue(
+                                        'email',
+                                        selectedClient.email || ''
+                                      );
+                                      methods.setValue(
+                                        'phone_number',
+                                        selectedClient.phone_number || ''
+                                      );
                                     }
                                   }
                                 }}
@@ -861,6 +876,45 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
                             />
 
                             <Controller
+                              name='class_type'
+                              control={methods.control}
+                              render={({ field }) => {
+                                let stringValue: string | undefined = undefined;
+
+                                if (field.value) {
+                                  if (
+                                    typeof field.value === 'object' &&
+                                    field.value !== null &&
+                                    'value' in field.value
+                                  ) {
+                                    const dropdownItem = field.value as {
+                                      value: string | number;
+                                    };
+                                    stringValue = String(dropdownItem.value);
+                                  } else {
+                                    stringValue = String(field.value);
+                                  }
+                                }
+
+                                return (
+                                  <DropdownSelectInput
+                                    value={stringValue}
+                                    label='Session Type'
+                                    placeholder='Select Session Type'
+                                    options={[
+                                      { label: 'Regular', value: 'regular' },
+                                      { label: 'Private', value: 'private' },
+                                      { label: 'Workshop', value: 'workshop' },
+                                    ]}
+                                    onSelectItem={(selectedItem) =>
+                                      field.onChange(selectedItem)
+                                    }
+                                  />
+                                );
+                              }}
+                            />
+
+                            <Controller
                               name='description'
                               control={methods.control}
                               render={({ field }) => (
@@ -895,7 +949,7 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
                                 name='start_time'
                                 control={methods.control}
                                 render={({ field }) => (
-                                  <Input  
+                                  <Input
                                     {...field}
                                     type='time'
                                     label='Start Time'
@@ -966,7 +1020,7 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
                                 options={
                                   isLocationsLoading
                                     ? [{ label: 'Loading...', value: '' }]
-                                    : (locationsData
+                                    : locationsData
                                         ?.map((location: any) => {
                                           if (!location || !location.id) {
                                             console.warn(
@@ -980,7 +1034,10 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
                                             value: location.id.toString(),
                                           };
                                         })
-                                        .filter((item): item is DropDownItem => item !== null) || [])
+                                        .filter(
+                                          (item): item is DropDownItem =>
+                                            item !== null
+                                        ) || []
                                 }
                                 value={
                                   field.value?.toString
@@ -1022,7 +1079,7 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
                                 options={
                                   isLocationsLoading
                                     ? [{ label: 'Loading...', value: '' }]
-                                    : (locationsData
+                                    : locationsData
                                         ?.map((location: any) => {
                                           if (!location || !location.id) {
                                             console.warn(
@@ -1036,7 +1093,10 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
                                             value: location.id.toString(),
                                           };
                                         })
-                                        .filter((item): item is DropDownItem => item !== null) || [])
+                                        .filter(
+                                          (item): item is DropDownItem =>
+                                            item !== null
+                                        ) || []
                                 }
                                 value={
                                   field.value?.toString
@@ -1147,53 +1207,6 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
                               />
                             </div>
                           </div>
-                          <Controller
-                            name='repetition'
-                            control={methods.control}
-                            render={({ field }) => (
-                              <div>
-                                <DropdownSelectInput
-                                  value={field.value}
-                                  label='Set Repetition'
-                                  placeholder='Does not repeat'
-                                  options={[
-                                    { label: 'Does not repeat', value: 'none' },
-                                    { label: 'Daily', value: 'daily' },
-                                    { label: 'Weekly', value: 'weekly' },
-                                    { label: 'Monthly', value: 'monthly' },
-                                    { label: 'Custom', value: 'custom' },
-                                    ...(field.value &&
-                                    ![
-                                      'none',
-                                      'daily',
-                                      'weekly',
-                                      'monthly',
-                                      'custom',
-                                    ].includes(field.value)
-                                      ? [
-                                          {
-                                            label: field.value,
-                                            value: field.value,
-                                          },
-                                        ]
-                                      : []),
-                                  ]}
-                                  onSelectItem={(selectedItem) => {
-                                    const value =
-                                      typeof selectedItem === 'string'
-                                        ? selectedItem
-                                        : selectedItem?.value;
-
-                                    field.onChange(value as any);
-
-                                    if (value === 'custom') {
-                                      openRepetitionModal();
-                                    }
-                                  }}
-                                />
-                              </div>
-                            )}
-                          />
                           <div className='flex justify-between items-center gap-4'>
                             <Controller
                               name='spots'

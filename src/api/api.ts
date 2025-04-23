@@ -25,6 +25,11 @@ const END_POINTS = {
   CLIENTS: {
     CLIENTS_DATA: `${BASE_URL}/api/client/`,
     ATTENDANCE: `${BASE_URL}/api/client/attendance/manage/`,
+    GROUPS: `${BASE_URL}/api/client/groups/`,
+    GROUP_DETAIL: (id: string) => `${BASE_URL}/api/client/groups/${id}/`,
+    GROUP_MEMBERS: (id: string) => `${BASE_URL}/api/client/groups/${id}/members/`,
+    ADD_MEMBER: (id: string) => `${BASE_URL}/api/client/groups/${id}/add_member/`,
+    REMOVE_MEMBER: (id: string) => `${BASE_URL}/api/client/groups/${id}/remove_member/`,
   },
   STAFF: {
     STAFF_DATA: `${BASE_URL}/api/staff/`,
@@ -146,6 +151,7 @@ const add_client = async (clientData: {
   location: string;
   dob?: string;
   gender: string;
+  group_id?: number | null;
   session_ids?: number[];
 }) => {
   const { data } = await api.post(END_POINTS.CLIENTS.CLIENTS_DATA, clientData);
@@ -454,6 +460,61 @@ const set_primary_location = async (id: number): Promise<Location> => {
   return data;
 };
 
+// Group API functions
+const get_groups = async () => {
+  try {
+    const { data } = await api.get(`${BASE_URL}/api/client/list-groups/`);
+    return data;
+  } catch (error) {
+    console.error('Error fetching groups:', error);
+    return [];
+  }
+};
+
+const get_group = async (id: string) => {
+  const { data } = await api.get(END_POINTS.CLIENTS.GROUP_DETAIL(id));
+  return data;
+};
+
+const add_group = async (groupData: {
+  name: string;
+  description?: string;
+  location?: string;
+  active?: boolean;
+  client_ids?: number[];
+  session_ids?: number[];
+  contact_person_id?: number;
+}) => {
+  const { data } = await api.post(`${BASE_URL}/api/client/create-group/`, groupData);
+  return data;
+};
+
+const update_group = async (id: string, updateData: {
+  name?: string;
+  description?: string;
+  size?: number;
+  location?: string;
+  active?: boolean;
+}) => {
+  const { data } = await api.patch(END_POINTS.CLIENTS.GROUP_DETAIL(id), updateData);
+  return data;
+};
+
+const get_group_members = async (groupId: string) => {
+  const { data } = await api.get(END_POINTS.CLIENTS.GROUP_MEMBERS(groupId));
+  return data;
+};
+
+const add_member_to_group = async (groupId: string, clientId: string) => {
+  const { data } = await api.post(END_POINTS.CLIENTS.ADD_MEMBER(groupId), { client_id: clientId });
+  return data;
+};
+
+const remove_member_from_group = async (groupId: string, clientId: string) => {
+  const { data } = await api.post(END_POINTS.CLIENTS.REMOVE_MEMBER(groupId), { client_id: clientId });
+  return data;
+};
+
 export {
   END_POINTS,
   registerUser,
@@ -502,4 +563,12 @@ export {
   get_places_autocomplete,
   activate_staff,
   deactivate_staff,
+  // Group exports
+  get_groups,
+  get_group,
+  add_group,
+  update_group,
+  get_group_members,
+  add_member_to_group,
+  remove_member_from_group,
 };

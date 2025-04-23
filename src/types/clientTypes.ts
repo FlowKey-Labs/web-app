@@ -67,11 +67,34 @@ export interface AddClient {
   location: string;
   dob?: string; // YYYY-MM-DD format
   gender: string; // 'M' or 'F'
+  group_id?: number | null; // ID of the group this client belongs to
   session_ids?: number[]; // Optional session IDs for initial session assignments
   sessions?: Array<{ // For dropdown selection
     label: string;
     value: string;
   }>;
+}
+
+export interface Group {
+  id: number;
+  name: string;
+  description: string | null;
+  active: boolean;
+  location: string | null;
+  created_at: string;
+  created_by: number;
+  business: number;
+  member_count: number;
+}
+
+export interface GroupData {
+  name: string;
+  description?: string;
+  location?: string;
+  active?: boolean;
+  contact_person_id?: number;
+  client_ids?: number[];
+  session_ids?: number[];
 }
 
 export interface ClientData {
@@ -87,5 +110,8 @@ export interface ClientData {
   business: number;
   dob?: string;
   gender: string;
+  group?: number | null;
+  group_id?: number | null;
+  group_details?: Group;
   session_ids?: number[];
 }

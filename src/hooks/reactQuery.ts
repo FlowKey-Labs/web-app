@@ -45,6 +45,14 @@ import {
   activate_staff,
   deactivate_staff,
   update_attendance_status,
+  // Group API functions
+  get_groups,
+  get_group,
+  add_group,
+  update_group,
+  get_group_members,
+  add_member_to_group,
+  remove_member_from_group,
 } from "../api/api";
 import { useAuthStore } from "../store/auth";
 import { BusinessServices } from "../types/business";
@@ -57,6 +65,7 @@ import {
 } from "../types/dashboard";
 import { Session } from "../types/sessionTypes";
 import { CreateLocationData } from "../types/location";
+import { Group, GroupData } from "../types/clientTypes";
 
 export const useRegisterUser = () => {
   const queryClient = useQueryClient();
@@ -600,6 +609,84 @@ export const useDeactivateStaff = () => {
     mutationFn: deactivate_staff,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["staff"] });
+    },
+  });
+};
+
+// Group related hooks
+export const useGetGroups = () => {
+  return useQuery<Group[]>({
+    queryKey: ["groups"],
+    queryFn: get_groups,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    refetchOnWindowFocus: false,
+  });
+};
+
+export const useGetGroup = (id: string) => {
+  return useQuery<Group>({
+    queryKey: ["group", id],
+    queryFn: () => get_group(id),
+    enabled: !!id,
+  });
+};
+
+export const useAddGroup = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: add_group,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["groups"] });
+    },
+    onError: (error) => {
+      console.error("Failed to add group:", error);
+    },
+  });
+};
+
+export const useUpdateGroup = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, updateData }: { id: string; updateData: Partial<GroupData> }) =>
+      update_group(id, updateData),
+    onSuccess: (_, { id }) => {
+      queryClient.invalidateQueries({ queryKey: ["groups"] });
+      queryClient.invalidateQueries({ queryKey: ["group", id] });
+    },
+    onError: (error) => {
+      console.error("Failed to update group:", error);
+    },
+  });
+};
+
+export const useGetGroupMembers = (groupId: string) => {
+  return useQuery({
+    queryKey: ["group_members", groupId],
+    queryFn: () => get_group_members(groupId),
+    enabled: !!groupId,
+  });
+};
+
+export const useAddMemberToGroup = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ groupId, clientId }: { groupId: string; clientId: string }) =>
+      add_member_to_group(groupId, clientId),
+    onSuccess: (_, { groupId }) => {
+      queryClient.invalidateQueries({ queryKey: ["group_members", groupId] });
+      queryClient.invalidateQueries({ queryKey: ["group", groupId] });
+    },
+  });
+};
+
+export const useRemoveMemberFromGroup = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ groupId, clientId }: { groupId: string; clientId: string }) =>
+      remove_member_from_group(groupId, clientId),
+    onSuccess: (_, { groupId }) => {
+      queryClient.invalidateQueries({ queryKey: ["group_members", groupId] });
+      queryClient.invalidateQueries({ queryKey: ["group", groupId] });
     },
   });
 };

@@ -962,7 +962,7 @@ const UpdateSession = ({
                           );
                         }}
                       />
-                      
+
                       <Controller
                         name='location_id'
                         control={methods.control}
