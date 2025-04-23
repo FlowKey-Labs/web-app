@@ -58,6 +58,7 @@ import {
   get_group_members,
   add_member_to_group,
   remove_member_from_group,
+  setStaffPassword,
 } from "../api/api";
 import { useAuthStore } from "../store/auth";
 // import { BusinessServices } from "../types/business";
@@ -100,6 +101,20 @@ export const useLoginUser = () => {
     },
     onError: (error) => {
       console.error("Failed to log in==>", error);
+    },
+  });
+};
+
+export const useSetStaffPassword = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: setStaffPassword,
+    onSuccess: () => {
+      queryClient.invalidateQueries();
+    },
+    onError: (error) => {
+      console.error("Failed to set staff passsword==>", error);
     },
   });
 };
