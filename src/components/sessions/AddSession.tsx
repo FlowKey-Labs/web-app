@@ -16,6 +16,7 @@ import {
   useGetStaff,
   useGetClients,
   useGetSessionCategories,
+  useGetLocations,
 } from '../../hooks/reactQuery';
 import { useCreateSession } from '../../hooks/reactQuery';
 import moment from 'moment';
@@ -58,6 +59,7 @@ type FormData = Omit<
   spots: number;
   staff?: DropDownItem | number;
   category_id?: DropDownItem | number;
+  location_id?: DropDownItem | number;
   client_ids: string[];
   description?: string;
 
@@ -83,6 +85,7 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
       repeat_on: undefined,
       staff: undefined,
       category_id: undefined,
+      location_id: undefined,
       client_ids: [],
       repeat_end_type: 'never',
       repeat_end_date: undefined,
@@ -99,6 +102,7 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
   const { data: staffData, isLoading: isStaffLoading } = useGetStaff();
   const { data: clientsData, isLoading: isClientsLoading } = useGetClients();
   const { data: categoriesData } = useGetSessionCategories();
+  const { data: locationsData, isLoading: isLocationsLoading } = useGetLocations();
 
   const createSession = useCreateSession();
 
@@ -218,6 +222,7 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
         email: data.email,
         phone_number: data.phone_number,
         selected_class: extractValue(data.selected_class),
+        location_id: extractValue(data.location_id),
       };
 
       const repetitionValue = data.repetition;
@@ -732,6 +737,45 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
                             />
                           )}
                         />
+                        <Controller
+                          name='location_id'
+                          control={methods.control}
+                          render={({ field }) => (
+                            <DropdownSelectInput
+                              label='Location'
+                              placeholder='Select Location'
+                              options={
+                                isLocationsLoading
+                                  ? [{ label: 'Loading...', value: '' }]
+                                  : (locationsData
+                                      ?.map((location: any) => {
+                                        if (!location || !location.id) {
+                                          console.warn(
+                                            'Invalid location data:',
+                                            location
+                                          );
+                                          return null;
+                                        }
+                                        return {
+                                          label: location.name,
+                                          value: location.id.toString(),
+                                        };
+                                      })
+                                      .filter((item): item is DropDownItem => item !== null) || [])
+                              }
+                              value={
+                                field.value?.toString
+                                  ? field.value?.toString()
+                                  : field.value?.toString
+                                  ? field.value.toString()
+                                  : ''
+                              }
+                              onSelectItem={(selectedItem) => {
+                                field.onChange(selectedItem);
+                              }}
+                            />
+                          )}
+                        />
                       </>
                     ) : methods.watch('session_type') === 'appointment' ? (
                       <>
@@ -912,6 +956,45 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
                               />
                             )}
                           />
+                          <Controller
+                            name='location_id'
+                            control={methods.control}
+                            render={({ field }) => (
+                              <DropdownSelectInput
+                                label='Location'
+                                placeholder='Select Location'
+                                options={
+                                  isLocationsLoading
+                                    ? [{ label: 'Loading...', value: '' }]
+                                    : (locationsData
+                                        ?.map((location: any) => {
+                                          if (!location || !location.id) {
+                                            console.warn(
+                                              'Invalid location data:',
+                                              location
+                                            );
+                                            return null;
+                                          }
+                                          return {
+                                            label: location.name,
+                                            value: location.id.toString(),
+                                          };
+                                        })
+                                        .filter((item): item is DropDownItem => item !== null) || [])
+                                }
+                                value={
+                                  field.value?.toString
+                                    ? field.value?.toString()
+                                    : field.value?.toString
+                                    ? field.value.toString()
+                                    : ''
+                                }
+                                onSelectItem={(selectedItem) => {
+                                  field.onChange(selectedItem);
+                                }}
+                              />
+                            )}
+                          />
                         </div>
                       </>
                     ) : (
@@ -926,6 +1009,45 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
                                 {...field}
                                 label='Event Name'
                                 placeholder='Enter Event Name'
+                              />
+                            )}
+                          />
+                          <Controller
+                            name='location_id'
+                            control={methods.control}
+                            render={({ field }) => (
+                              <DropdownSelectInput
+                                label='Location'
+                                placeholder='Select Location'
+                                options={
+                                  isLocationsLoading
+                                    ? [{ label: 'Loading...', value: '' }]
+                                    : (locationsData
+                                        ?.map((location: any) => {
+                                          if (!location || !location.id) {
+                                            console.warn(
+                                              'Invalid location data:',
+                                              location
+                                            );
+                                            return null;
+                                          }
+                                          return {
+                                            label: location.name,
+                                            value: location.id.toString(),
+                                          };
+                                        })
+                                        .filter((item): item is DropDownItem => item !== null) || [])
+                                }
+                                value={
+                                  field.value?.toString
+                                    ? field.value?.toString()
+                                    : field.value?.toString
+                                    ? field.value.toString()
+                                    : ''
+                                }
+                                onSelectItem={(selectedItem) => {
+                                  field.onChange(selectedItem);
+                                }}
                               />
                             )}
                           />

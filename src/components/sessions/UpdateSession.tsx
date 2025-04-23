@@ -4,6 +4,7 @@ import {
   CreateSessionData,
   RepeatUnit,
 } from '../../types/sessionTypes';
+import { Location } from '../../types/location';
 import { notifications } from '@mantine/notifications';
 import successIcon from '../../assets/icons/success.svg';
 import errorIcon from '../../assets/icons/error.svg';
@@ -20,6 +21,7 @@ import {
   useGetClients,
   useGetSessionCategories,
   useUpdateSession,
+  useGetLocations,
 } from '../../hooks/reactQuery';
 import { useGetSessionDetail } from '../../hooks/reactQuery';
 import moment from 'moment';
@@ -33,13 +35,18 @@ interface SessionModalProps {
   onUpdateSuccess?: () => void;
 }
 
-const UpdateSession = ({ isOpen, onClose, sessionId, onUpdateSuccess }: SessionModalProps) => {
+const UpdateSession = ({
+  isOpen,
+  onClose,
+  sessionId,
+  onUpdateSuccess,
+}: SessionModalProps) => {
   const { data: sessionData } = useGetSessionDetail(sessionId || '');
   const updateSessionMutation = useUpdateSession();
   type CustomSessionData = Omit<CreateSessionData, 'repetition'> & {
     repetition?: string;
   };
-  
+
   const methods = useForm<Partial<CustomSessionData>>({
     mode: 'onSubmit',
     defaultValues: {
@@ -54,6 +61,7 @@ const UpdateSession = ({ isOpen, onClose, sessionId, onUpdateSuccess }: SessionM
       repeat_on: undefined,
       staff: undefined,
       category: undefined,
+      location_id: undefined,
       client_ids: [],
       repeat_end_type: 'never',
       repeat_end_date: undefined,
@@ -69,6 +77,8 @@ const UpdateSession = ({ isOpen, onClose, sessionId, onUpdateSuccess }: SessionM
   const { data: staffData, isLoading: isStaffLoading } = useGetStaff();
   const { data: clientsData, isLoading: isClientsLoading } = useGetClients();
   const { data: categoriesData } = useGetSessionCategories();
+  const { data: locationsData, isLoading: isLocationsLoading } =
+    useGetLocations();
 
   const [
     isRepetitionModalOpen,
@@ -136,32 +146,52 @@ const UpdateSession = ({ isOpen, onClose, sessionId, onUpdateSuccess }: SessionM
       }
 
       let repetitionValue: string = 'none';
-      
-      if (sessionData.repetition && typeof sessionData.repetition === 'string') {
+
+      if (
+        sessionData.repetition &&
+        typeof sessionData.repetition === 'string'
+      ) {
         repetitionValue = sessionData.repetition;
-      } 
-      else if (sessionData.repeat_unit) {
+      } else if (sessionData.repeat_unit) {
         if (sessionData.repeat_unit === 'days') {
           repetitionValue = 'daily';
         } else if (sessionData.repeat_unit === 'weeks') {
-          if (sessionData.repeat_on && Array.isArray(sessionData.repeat_on) && sessionData.repeat_on.length > 0) {
-            const weekdayLabels = sessionData.repeat_on.map(day => {
-              if (!isNaN(Number(day))) {
-                const dayIndex = Number(day);
-                return weekdayNames[dayIndex as keyof typeof weekdayNames] || day;
-              }
-              const dayIndex = days.findIndex(d => d === day);
-              if (dayIndex !== -1) {
-                return weekdayNames[dayIndex as keyof typeof weekdayNames] || day;
-              }
-              return day;
-            }).join(', ');
-            
+          if (
+            sessionData.repeat_on &&
+            Array.isArray(sessionData.repeat_on) &&
+            sessionData.repeat_on.length > 0
+          ) {
+            const weekdayLabels = sessionData.repeat_on
+              .map((day) => {
+                if (!isNaN(Number(day))) {
+                  const dayIndex = Number(day);
+                  return (
+                    weekdayNames[dayIndex as keyof typeof weekdayNames] || day
+                  );
+                }
+                const dayIndex = days.findIndex((d) => d === day);
+                if (dayIndex !== -1) {
+                  return (
+                    weekdayNames[dayIndex as keyof typeof weekdayNames] || day
+                  );
+                }
+                return day;
+              })
+              .join(', ');
+
             repetitionValue = `Weekly on ${weekdayLabels}`;
-            
-            if (sessionData.repeat_end_type === 'on' && sessionData.repeat_end_date) {
-              repetitionValue += ` until ${moment(sessionData.repeat_end_date).format('MM/DD/YYYY')}`;
-            } else if (sessionData.repeat_end_type === 'after' && sessionData.repeat_occurrences) {
+
+            if (
+              sessionData.repeat_end_type === 'on' &&
+              sessionData.repeat_end_date
+            ) {
+              repetitionValue += ` until ${moment(
+                sessionData.repeat_end_date
+              ).format('MM/DD/YYYY')}`;
+            } else if (
+              sessionData.repeat_end_type === 'after' &&
+              sessionData.repeat_occurrences
+            ) {
               repetitionValue += ` for ${sessionData.repeat_occurrences} occurrences`;
             }
           } else {
@@ -182,6 +212,7 @@ const UpdateSession = ({ isOpen, onClose, sessionId, onUpdateSuccess }: SessionM
         end_time: sessionData.end_time,
         spots: sessionData.spots,
         category: sessionData.category?.id,
+        location_id: sessionData.location?.id,
         is_active: sessionData.is_active,
         client_ids: sessionData.attendances?.map((a) => a.client.id) || [],
         email: sessionData.email,
@@ -197,25 +228,25 @@ const UpdateSession = ({ isOpen, onClose, sessionId, onUpdateSuccess }: SessionM
       });
 
       if (sessionData.repeat_on && Array.isArray(sessionData.repeat_on)) {
-        const dayNames = sessionData.repeat_on.map(day => {
+        const dayNames = sessionData.repeat_on.map((day) => {
           if (!isNaN(Number(day))) {
             return days[Number(day)];
           }
           return day;
         });
         setSelectedWeekdays(dayNames);
-        
+
         methods.setValue('repeat_on', dayNames);
       }
-      
+
       if (sessionData.repeat_end_type) {
         setEndsOption(sessionData.repeat_end_type as 'never' | 'on' | 'after');
       }
-      
+
       if (sessionData.repeat_end_date) {
         setValue(new Date(sessionData.repeat_end_date));
       }
-      
+
       if (sessionData.repeat_occurrences) {
         setOccurrences(sessionData.repeat_occurrences);
       }
@@ -253,12 +284,16 @@ const UpdateSession = ({ isOpen, onClose, sessionId, onUpdateSuccess }: SessionM
           repeatOn = selectedWeekdays.length > 0 ? selectedWeekdays : undefined;
         } else if (data.repetition === 'monthly') {
           repeatUnit = 'months';
-        } else if (data.repetition === 'custom' || 
-                 (typeof data.repetition === 'string' && 
-                  !['none', 'daily', 'weekly', 'monthly', 'custom'].includes(data.repetition))) {
+        } else if (
+          data.repetition === 'custom' ||
+          (typeof data.repetition === 'string' &&
+            !['none', 'daily', 'weekly', 'monthly', 'custom'].includes(
+              data.repetition
+            ))
+        ) {
           repeatUnit = 'weeks';
           repeatEvery = 1;
-          
+
           repeatOn = selectedWeekdays;
         }
 
@@ -315,6 +350,7 @@ const UpdateSession = ({ isOpen, onClose, sessionId, onUpdateSuccess }: SessionM
         date: dateOnly,
         spots: data.spots ? parseInt(data.spots.toString()) : undefined,
         category: extractValue(data.category),
+        location_id: extractValue(data.location_id),
         staff: extractValue(data.staff),
         repeat_every: repeatEvery,
         repeat_unit: repeatUnit,
@@ -328,7 +364,7 @@ const UpdateSession = ({ isOpen, onClose, sessionId, onUpdateSuccess }: SessionM
         email: data.email,
         phone_number: data.phone_number,
         selected_class: data.selected_class,
-        client_ids: [] 
+        client_ids: [],
       };
 
       formattedData.client_ids = clientIds;
@@ -341,7 +377,7 @@ const UpdateSession = ({ isOpen, onClose, sessionId, onUpdateSuccess }: SessionM
       if (onUpdateSuccess) {
         onUpdateSuccess();
       }
-      
+
       onClose();
       methods.reset();
       notifications.show({
@@ -401,7 +437,8 @@ const UpdateSession = ({ isOpen, onClose, sessionId, onUpdateSuccess }: SessionM
         console.error('Error Request:', error.request);
         notifications.show({
           title: 'Connection Error',
-          message: 'No response received from server. Please check your connection.',
+          message:
+            'No response received from server. Please check your connection.',
           color: 'red',
           radius: 'md',
           icon: (
@@ -532,7 +569,7 @@ const UpdateSession = ({ isOpen, onClose, sessionId, onUpdateSuccess }: SessionM
                             />
                           )}
                         />
-                        
+
                         <Controller
                           name='description'
                           control={methods.control}
@@ -632,45 +669,69 @@ const UpdateSession = ({ isOpen, onClose, sessionId, onUpdateSuccess }: SessionM
                                   { label: 'Monthly', value: 'monthly' },
                                   { label: 'Custom', value: 'custom' },
                                   // Add a dynamic option for custom repetition if it exists
-                                  ...(field.value && 
-                                    !['none', 'daily', 'weekly', 'monthly', 'custom'].includes(field.value) ? 
-                                    [{ label: field.value, value: field.value }] : 
-                                    [])
+                                  ...(field.value &&
+                                  ![
+                                    'none',
+                                    'daily',
+                                    'weekly',
+                                    'monthly',
+                                    'custom',
+                                  ].includes(field.value)
+                                    ? [
+                                        {
+                                          label: field.value,
+                                          value: field.value,
+                                        },
+                                      ]
+                                    : []),
                                 ]}
                                 onSelectItem={(selectedItem) => {
-                                  const value = 
+                                  const value =
                                     typeof selectedItem === 'string'
                                       ? selectedItem
                                       : selectedItem?.value;
-                                  
+
                                   field.onChange(value as any);
-                                  
+
                                   if (value === 'custom') {
-                                    const currentRepeatOn = methods.getValues('repeat_on');
-                                    const currentRepeatEndType = methods.getValues('repeat_end_type') || 'never';
-                                    const currentRepeatEndDate = methods.getValues('repeat_end_date');
-                                    const currentRepeatOccurrences = methods.getValues('repeat_occurrences');
-                                    
+                                    const currentRepeatOn =
+                                      methods.getValues('repeat_on');
+                                    const currentRepeatEndType =
+                                      methods.getValues('repeat_end_type') ||
+                                      'never';
+                                    const currentRepeatEndDate =
+                                      methods.getValues('repeat_end_date');
+                                    const currentRepeatOccurrences =
+                                      methods.getValues('repeat_occurrences');
+
                                     methods.setValue('repeat_unit', 'weeks');
-                                    
-                                    if (Array.isArray(currentRepeatOn) && currentRepeatOn.length > 0) {
+
+                                    if (
+                                      Array.isArray(currentRepeatOn) &&
+                                      currentRepeatOn.length > 0
+                                    ) {
                                       setSelectedWeekdays(currentRepeatOn);
                                     } else {
                                       const today = new Date().getDay();
                                       const dayName = days[today];
                                       setSelectedWeekdays([dayName]);
                                     }
-                                    
-                                    setEndsOption(currentRepeatEndType as 'never' | 'on' | 'after');
-                                    
+
+                                    setEndsOption(
+                                      currentRepeatEndType as
+                                        | 'never'
+                                        | 'on'
+                                        | 'after'
+                                    );
+
                                     if (currentRepeatEndDate) {
                                       setValue(new Date(currentRepeatEndDate));
                                     }
-                                    
+
                                     if (currentRepeatOccurrences) {
                                       setOccurrences(currentRepeatOccurrences);
                                     }
-                                    
+
                                     openRepetitionModal();
                                   }
                                 }}
@@ -749,7 +810,6 @@ const UpdateSession = ({ isOpen, onClose, sessionId, onUpdateSuccess }: SessionM
                         name='client_ids'
                         control={methods.control}
                         render={({ field }) => {
-
                           return (
                             <DropdownSelectInput
                               label='Clients'
@@ -784,6 +844,52 @@ const UpdateSession = ({ isOpen, onClose, sessionId, onUpdateSuccess }: SessionM
                           );
                         }}
                       />
+                      <Controller
+                        name='location_id'
+                        control={methods.control}
+                        render={({ field }) => {
+                          const locationId = field.value
+                            ? typeof field.value === 'object' &&
+                              field.value !== null
+                              ? (field.value as any).id
+                              : field.value
+                            : null;
+
+                          // Use type assertion to avoid conflicts
+                          const selectedLocation = locationsData?.find(
+                            (location: any) =>
+                              location.id?.toString() === locationId?.toString()
+                          ) as Location | undefined;
+
+                          const locationValue = selectedLocation
+                            ? selectedLocation.id.toString()
+                            : typeof field.value === 'string' ||
+                              typeof field.value === 'number'
+                            ? field.value.toString()
+                            : '';
+
+                          return (
+                            <DropdownSelectInput
+                              label='Location'
+                              placeholder='Select Location'
+                              options={
+                                isLocationsLoading
+                                  ? [{ label: 'Loading...', value: '' }]
+                                  : locationsData?.map((location: any) => ({
+                                      label: location.name,
+                                      value: location.id.toString(),
+                                    })) || []
+                              }
+                              value={locationValue}
+                              onSelectItem={(selectedItem) => {
+                                field.onChange(
+                                  selectedItem ? selectedItem.value : ''
+                                );
+                              }}
+                            />
+                          );
+                        }}
+                      />
                     </div>
                   ) : methods.watch('session_type') === 'appointment' ? (
                     <div className='space-y-4'>
@@ -792,7 +898,7 @@ const UpdateSession = ({ isOpen, onClose, sessionId, onUpdateSuccess }: SessionM
                           Appointment Details
                         </h2>
                       </div>
-                      
+
                       <Controller
                         name='title'
                         control={methods.control}
@@ -804,7 +910,7 @@ const UpdateSession = ({ isOpen, onClose, sessionId, onUpdateSuccess }: SessionM
                           />
                         )}
                       />
-                      
+
                       <Controller
                         name='description'
                         control={methods.control}
@@ -823,7 +929,6 @@ const UpdateSession = ({ isOpen, onClose, sessionId, onUpdateSuccess }: SessionM
                         name='client_ids'
                         control={methods.control}
                         render={({ field }) => {
-
                           return (
                             <DropdownSelectInput
                               label='Name'
@@ -852,6 +957,53 @@ const UpdateSession = ({ isOpen, onClose, sessionId, onUpdateSuccess }: SessionM
                                   ? [parseInt(selectedItems.value)]
                                   : [];
                                 field.onChange(values);
+                              }}
+                            />
+                          );
+                        }}
+                      />
+                      
+                      <Controller
+                        name='location_id'
+                        control={methods.control}
+                        render={({ field }) => {
+                          const locationId = field.value
+                            ? typeof field.value === 'object' &&
+                              field.value !== null
+                              ? (field.value as any).id
+                              : field.value
+                            : null;
+
+                          // Use type assertion to avoid conflicts
+                          const selectedLocation = locationsData?.find(
+                            (location: any) =>
+                              location.id?.toString() === locationId?.toString()
+                          ) as Location | undefined;
+
+                          const locationValue = selectedLocation
+                            ? selectedLocation.id.toString()
+                            : typeof field.value === 'string' ||
+                              typeof field.value === 'number'
+                            ? field.value.toString()
+                            : '';
+
+                          return (
+                            <DropdownSelectInput
+                              label='Location'
+                              placeholder='Select Location'
+                              options={
+                                isLocationsLoading
+                                  ? [{ label: 'Loading...', value: '' }]
+                                  : locationsData?.map((location: any) => ({
+                                      label: location.name,
+                                      value: location.id.toString(),
+                                    })) || []
+                              }
+                              value={locationValue}
+                              onSelectItem={(selectedItem) => {
+                                field.onChange(
+                                  selectedItem ? selectedItem.value : ''
+                                );
                               }}
                             />
                           );
@@ -974,11 +1126,9 @@ const UpdateSession = ({ isOpen, onClose, sessionId, onUpdateSuccess }: SessionM
                   ) : methods.watch('session_type') === 'event' ? (
                     <div className='space-y-4'>
                       <div>
-                        <h2 className='font-medium mb-2'>
-                          Event Details
-                        </h2>
+                        <h2 className='font-medium mb-2'>Event Details</h2>
                       </div>
-                      
+
                       <Controller
                         name='title'
                         control={methods.control}
@@ -990,7 +1140,7 @@ const UpdateSession = ({ isOpen, onClose, sessionId, onUpdateSuccess }: SessionM
                           />
                         )}
                       />
-                      
+
                       <Controller
                         name='description'
                         control={methods.control}
@@ -1005,7 +1155,54 @@ const UpdateSession = ({ isOpen, onClose, sessionId, onUpdateSuccess }: SessionM
                           />
                         )}
                       />
-                      
+
+                      <Controller
+                        name='location_id'
+                        control={methods.control}
+                        render={({ field }) => {
+                          const locationId = field.value
+                            ? typeof field.value === 'object' &&
+                              field.value !== null
+                              ? (field.value as any).id
+                              : field.value
+                            : null;
+
+                          // Use type assertion to avoid conflicts
+                          const selectedLocation = locationsData?.find(
+                            (location: any) =>
+                              location.id?.toString() === locationId?.toString()
+                          ) as Location | undefined;
+
+                          const locationValue = selectedLocation
+                            ? selectedLocation.id.toString()
+                            : typeof field.value === 'string' ||
+                              typeof field.value === 'number'
+                            ? field.value.toString()
+                            : '';
+
+                          return (
+                            <DropdownSelectInput
+                              label='Location'
+                              placeholder='Select Location'
+                              options={
+                                isLocationsLoading
+                                  ? [{ label: 'Loading...', value: '' }]
+                                  : locationsData?.map((location: any) => ({
+                                      label: location.name,
+                                      value: location.id.toString(),
+                                    })) || []
+                              }
+                              value={locationValue}
+                              onSelectItem={(selectedItem) => {
+                                field.onChange(
+                                  selectedItem ? selectedItem.value : ''
+                                );
+                              }}
+                            />
+                          );
+                        }}
+                      />
+
                       <div className='space-y-3'>
                         <h3 className='text-sm font-medium text-gray-700'>
                           Schedule
@@ -1094,7 +1291,7 @@ const UpdateSession = ({ isOpen, onClose, sessionId, onUpdateSuccess }: SessionM
                           </div>
                         )}
                       />
-                      
+
                       <Controller
                         name='client_ids'
                         control={methods.control}
@@ -1127,14 +1324,10 @@ const UpdateSession = ({ isOpen, onClose, sessionId, onUpdateSuccess }: SessionM
                                 ? [parseInt(selectedItems.value)]
                                 : [];
                               field.onChange(values);
-                              
-                              
                             }}
                           />
                         )}
                       />
-                      
-                      
                     </div>
                   ) : null}
                 </div>
@@ -1156,13 +1349,13 @@ const UpdateSession = ({ isOpen, onClose, sessionId, onUpdateSuccess }: SessionM
                       ? methods.watch('session_type') === 'class'
                         ? 'Updating Class...'
                         : methods.watch('session_type') === 'appointment'
-                          ? 'Updating Appointment...'
-                          : 'Updating Event...'
+                        ? 'Updating Appointment...'
+                        : 'Updating Event...'
                       : methods.watch('session_type') === 'class'
-                        ? 'Update Class'
-                        : methods.watch('session_type') === 'appointment'
-                          ? 'Update Appointment'
-                          : 'Update Event'}
+                      ? 'Update Class'
+                      : methods.watch('session_type') === 'appointment'
+                      ? 'Update Appointment'
+                      : 'Update Event'}
                   </Button>
                 </div>
               </div>
@@ -1313,40 +1506,42 @@ const UpdateSession = ({ isOpen, onClose, sessionId, onUpdateSuccess }: SessionM
               className='px-4 py-2 text-sm font-medium text-white bg-secondary rounded-md hover:bg-secondary/90 '
               onClick={() => {
                 let repetitionDescription = '';
-                
+
                 if (selectedWeekdays.length > 0) {
                   const weekdayLabels = selectedWeekdays
-                    .map(day => {
+                    .map((day) => {
                       return day;
                     })
                     .join(', ');
-                  
+
                   repetitionDescription = `Weekly on ${weekdayLabels}`;
                 } else {
                   repetitionDescription = 'Weekly';
                 }
-                
+
                 if (endsOption === 'on' && value) {
-                  repetitionDescription += ` until ${moment(value).format('MM/DD/YYYY')}`;
+                  repetitionDescription += ` until ${moment(value).format(
+                    'MM/DD/YYYY'
+                  )}`;
                 } else if (endsOption === 'after') {
                   repetitionDescription += ` for ${occurrences} occurrences`;
                 }
-                
+
                 methods.setValue('repetition', repetitionDescription as any);
-                
+
                 setTimeout(() => {
                   const currentValue = methods.getValues('repetition');
                   methods.setValue('repetition', currentValue as any);
                 }, 0);
-                
+
                 methods.setValue('repeat_unit', 'weeks');
-                
+
                 console.log('Setting repeat_on to:', selectedWeekdays);
-                
+
                 methods.setValue('repeat_on', selectedWeekdays);
-                
+
                 methods.trigger('repeat_on');
-                
+
                 methods.setValue('repeat_every', 1);
 
                 if (endsOption === 'never') {

@@ -486,12 +486,17 @@ const SessionDetails = () => {
                     />
                   </div>
                   <p className='font-medium text-gray-900 text-sm'>
-                    {session.id}{' '}
+                    {session.title || `Session ${session.id}`}{' '}
                     <span>({session.category?.name || 'No Category'})</span>
                   </p>
                   <p className='text-sm text-gray-500'>
                     {session.class_type || 'Class'}
                   </p>
+                  {session.description && (
+                    <p className='text-sm text-gray-600 mt-2 max-w-[250px]'>
+                      {session.description}
+                    </p>
+                  )}
                 </div>
                 <div className='flex space-x-2 mt-4'>
                   <div
@@ -531,6 +536,14 @@ const SessionDetails = () => {
                     </span>
                     <span className='text-gray-400  text-xs'>
                       {session.spots}
+                    </span>
+                  </div>
+                  <div className='flex justify-between items-center w-full text-sm'>
+                    <span className='text-gray-400 font-bold text-xs'>
+                      LOCATION
+                    </span>
+                    <span className='text-gray-400 text-xs'>
+                      {session.location?.name || 'No location set'}
                     </span>
                   </div>
                   {/* repeats  */}

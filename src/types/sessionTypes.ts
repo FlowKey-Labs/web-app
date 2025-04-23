@@ -1,3 +1,5 @@
+import { Location } from './location';
+
 export interface Category {
   id: number;
   name: string;
@@ -56,6 +58,7 @@ export interface CreateSessionData {
   end_time: string; // ISO datetime
   spots: number;
   category: number; // category ID
+  location_id?: number; // optional location ID
   is_active?: boolean;
   client_ids?: number[]; // optional list of client IDs
   description?: string; // optional description for the session
@@ -73,12 +76,14 @@ export interface CreateSessionData {
   repeat_occurrences?: number; // required if repeat_end_type is 'after'
 }
 
+
 // Session data as returned by the API
 export interface Session
-  extends Omit<CreateSessionData, 'category' | 'client_ids'> {
+  extends Omit<CreateSessionData, 'category' | 'client_ids' | 'location_id'> {
   id: number;
   assigned_staff: AssignedStaff | null;
   category: Category;
+  location?: Location;
   attendances?: Attendance[];
 }
 
