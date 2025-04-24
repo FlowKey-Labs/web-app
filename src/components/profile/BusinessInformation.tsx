@@ -169,7 +169,7 @@ const BusinessInformation = ({
                 <h3 className='text-primary text-sm font-[600]'>
                   General Information
                 </h3>
-                <p className='text-gray-500 text-sm'>
+                <p className='text-gray-500 text-sm font-sans'>
                   Tell us more about your business
                 </p>
               </div>
@@ -181,8 +181,8 @@ const BusinessInformation = ({
                     onSubmit={methods.handleSubmit(onSubmit)}
                     className='w-full'
                   >
-                    <div className='flex items-center h-[160px]'>
-                      <div className='flex flex-col space-y-2 text-center mr-8'>
+                    <div className='flex items-center h-[160px] font-sans'>
+                      <div className='flex flex-col space-y-2 text-center mr-8 font-sans'>
                         <div className='max-w-[100px] max-h-[100px]'>
                           <div className='flex items-center justify-center w-[80px] h-[80px] rounded-full bg-secondary text-white text-3xl font-bold select-none mx-auto'>
                             {(() => {
@@ -197,10 +197,10 @@ const BusinessInformation = ({
                           </div>
                         </div>
                         <div>
-                          <h3 className='text-[16px] font-[600] text-primary'>
+                          <h3 className='text-[16px] font-[600] text-primary font-sans'>
                             {methods.getValues('business_name') || 'Add Business Name'}
                           </h3>
-                          <p className='text-gray-500 text-sm'>
+                          <p className='text-gray-500 text-sm font-sans'>
                             {methods.getValues('about') || 'Add About'}
                           </p>
                         </div>

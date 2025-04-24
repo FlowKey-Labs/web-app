@@ -291,6 +291,7 @@ export const BusinessLocation = () => {
               radius='md'
               withBorder
               bg='#F8F7F7'
+              className='font-sans'
             >
               {location.is_primary && (
                 <div className='absolute top-2 right-2 bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-lg'>
@@ -298,18 +299,18 @@ export const BusinessLocation = () => {
                 </div>
               )}
               <div className='flex-grow'>
-                <Text fw={500} size='lg' className='mb-2'>
+                <Text fw={500} size='md' className='mb-2 font-sans'>
                   {location.name}
                 </Text>
                 <div className='flex items-start mb-3'>
                   <IconMapPin size={16} className='text-gray-500 mr-2 mt-1' />
-                  <Text size='sm' c='dimmed'>
+                  <Text size='sm' c='dimmed' className='font-sans'>
                     {location.address}, {location.city}, {location.state}{' '}
                     {location.zip_code}, {location.country}
                   </Text>
                 </div>
                 {location.notes && (
-                  <Text size='sm' className='mb-4 italic text-gray-600'>
+                  <Text size='sm' className='mb-4 text-gray-600 font-sans'>
                     {location.notes}
                   </Text>
                 )}
@@ -318,8 +319,8 @@ export const BusinessLocation = () => {
               <Group justify='space-between' mt='auto' pt='md'>
                 {!location.is_primary ? (
                   <Button
-                    variant='light'
-                    color='green'
+                    variant='outline'
+                    color='#1D9B5E'
                     size='xs'
                     radius='md'
                     onClick={() => handleSetPrimary(location.id)}

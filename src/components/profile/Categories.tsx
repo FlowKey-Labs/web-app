@@ -233,10 +233,10 @@ const Categories = () => {
             {categories.map((category) => (
               <div
                 key={category.id}
-                className='border border-gray-200 bg-cardsBg rounded-lg p-4 shadow-sm transition-shadow'
+                className='border border-gray-200 bg-cardsBg rounded-lg p-4 shadow-sm transition-shadow font-sans'
               >
                 <div className='flex justify-between items-start'>
-                  <h3 className='text-sm font-medium text-primary'>
+                  <h3 className='text-sm font-medium text-primary font-sans'>
                     {category.name}
                   </h3>
                   <Group gap={8} ml='auto'>
@@ -261,7 +261,7 @@ const Categories = () => {
                   </Group>
                 </div>
                 {category.description && (
-                  <p className='text-gray-600 mt-2 text-sm'>
+                  <p className='text-gray-600 mt-2 text-sm font-sans'>
                     {category.description}
                   </p>
                 )}
@@ -322,6 +322,7 @@ const Categories = () => {
       </Drawer>
       <Modal
         opened={deleteModalOpen}
+        className='font-sans'
         onClose={() => { setDeleteModalOpen(false); setCategoryToDelete(null); }}
         title={<Text fw={600} size='lg'>Delete Category</Text>}
         centered
@@ -336,10 +337,10 @@ const Categories = () => {
             <img src={errorIcon} alt='Warning' className='w-5 h-5' />
           </div>
           <div>
-            <Text fw={500} size='md' mb={8} c='gray.8'>
+            <Text fw={500} size='md' mb={8} c='gray.8' className='font-sans'>
               Are you sure you want to delete this category?
             </Text>
-            <Text size='sm' c='gray.6'>
+            <Text size='sm' c='gray.6' className='font-sans'>
               This action cannot be undone. The category will be permanently removed.
             </Text>
           </div>
