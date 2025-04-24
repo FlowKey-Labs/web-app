@@ -338,6 +338,21 @@ const get_session_categories = async () => {
   return data;
 };
 
+const create_session_category = async (categoryData: { name: string; description?: string }) => {
+  const { data } = await api.post(END_POINTS.SESSION.CATEGORIES, categoryData);
+  return data;
+};
+
+const update_session_category = async (id: number, categoryData: { name: string; description?: string }) => {
+  const { data } = await api.patch(`${END_POINTS.SESSION.CATEGORIES}${id}/`, categoryData);
+  return data;
+};
+
+const delete_session_category = async (id: number) => {
+  const { data } = await api.delete(`${END_POINTS.SESSION.CATEGORIES}${id}/`);
+  return data;
+};
+
 const create_session = async (sessionData: CreateSessionData) => {
   const { data } = await api.post(
     END_POINTS.SESSION.SESSIONS_DATA,
@@ -617,6 +632,9 @@ export {
   get_sessions,
   get_session_detail,
   get_session_categories,
+  create_session_category,
+  update_session_category,
+  delete_session_category,
   get_session_analytics,
   get_client_analytics,
   get_class_sessions,

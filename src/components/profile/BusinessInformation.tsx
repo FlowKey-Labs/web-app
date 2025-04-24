@@ -14,8 +14,6 @@ import {
 
 import profileGeneralIcon from '../../assets/icons/profileGeneral.svg';
 import greenProfileGeneralIcon from '../../assets/icons/greenProfileGeneral.svg';
-import locationIcon from '../../assets/icons/location.svg';
-import greenLocationIcon from '../../assets/icons/greenLocation.svg';
 import grayPhoto from '../../assets/images/greyPhoto.png';
 import editIcon from '../../assets/icons/editWhite.svg';
 
@@ -68,7 +66,7 @@ const BusinessInformation = ({
   const onSubmit = (data: ProfileFormData) => {
     if (!businessProfile?.[0]?.id) {
       console.error('No business profile ID found');
-      
+
       notifications.show({
         title: 'Error',
         message: 'Business profile not found. Please try again.',
@@ -96,7 +94,7 @@ const BusinessInformation = ({
           contact_phone: data.contact_phone,
           contact_email: data.contact_email,
           about: data.about,
-        }
+        },
       },
       {
         onSuccess: () => {
@@ -298,8 +296,8 @@ const BusinessInformation = ({
                                 name='about'
                                 label='About'
                                 placeholder='Tell us about your business'
-                                type='text'
-                                className='h-32'
+                                type='textarea'
+                                rows={4}
                               />
                             )}
                           />
@@ -325,88 +323,6 @@ const BusinessInformation = ({
                           Save & Continue
                         </Button>
                       </div>
-                    </div>
-                  </form>
-                </div>
-              </div>
-            </Accordion.Panel>
-          </Accordion.Item>
-        </Accordion>
-
-        <Accordion
-          transitionDuration={300}
-          variant='contained'
-          chevronPosition='right'
-          radius='md'
-          value={openedAccordion}
-          onChange={setOpenedAccordion}
-        >
-          <Accordion.Item value='location'>
-            <Accordion.Control
-              icon={
-                <div className='rounded-full bg-cardsBg p-2 ml-4'>
-                  <img
-                    src={
-                      openedAccordion === 'location'
-                        ? greenLocationIcon
-                        : locationIcon
-                    }
-                    alt='locationIcon'
-                    className='w-6 h-6'
-                  />
-                </div>
-              }
-            >
-              <div className='flex flex-col gap-1 ml-6'>
-                <h3 className='text-primary text-sm font-[600]'>
-                  Set up your Location
-                </h3>
-                <p className='text-gray-500 text-sm'>
-                  Add your business Location, hours of operation, etc
-                </p>
-              </div>
-            </Accordion.Control>
-            <Accordion.Panel>
-              <div className='px-6 py-4'>
-                <div className='flex items-center'>
-                  <form
-                    onSubmit={methods.handleSubmit(onSubmit)}
-                    className='w-full'
-                  >
-                    <div className='flex items-center justify-center w-full gap-4'>
-                      <Controller
-                        name='address'
-                        control={methods.control}
-                        render={({ field }) => (
-                          <Input
-                            {...field}
-                            name='address'
-                            label='Address'
-                            placeholder='address'
-                            type='text'
-                          />
-                        )}
-                      />
-                    </div>
-                    <div className='flex py-4 mt-4 gap-6 justify-end'>
-                      <Button
-                        size='sm'
-                        radius='md'
-                        type='button'
-                        variant='outline'
-                        color='red'
-                        onClick={() => {}}
-                      >
-                        Cancel
-                      </Button>
-                      <Button
-                        size='sm'
-                        radius='md'
-                        type='submit'
-                        color='#1D9B5E'
-                      >
-                        Save & Continue
-                      </Button>
                     </div>
                   </form>
                 </div>
