@@ -7,7 +7,12 @@ import BusinessInformation from './BusinessInformation';
 import { BusinessLocation } from './BusinessLocation';
 import Categories from './Categories';
 
-type TabType = 'business' | 'services' | 'locations' | 'schedule' | 'categories';
+type TabType =
+  | 'business'
+  | 'services'
+  | 'locations'
+  | 'schedule'
+  | 'categories';
 
 const Profile = () => {
   const [openedAccordion, setOpenedAccordion] = useState<string | null>(null);
@@ -58,7 +63,7 @@ const Profile = () => {
           ))}
         </div>
 
-        <div className='mt-6 flex min-h-[350px] w-[95%] px-6'>
+        <div className='mt-6 flex min-h-[350px] px-6'>
           {contentMap[activeTab]}
         </div>
       </div>
