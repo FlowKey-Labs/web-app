@@ -59,6 +59,11 @@ import {
   add_member_to_group,
   remove_member_from_group,
   setStaffPassword,
+  // Policy API
+  getPolicies,
+  createPolicy,
+  updatePolicy,
+  deletePolicy,
 } from "../api/api";
 import { useAuthStore } from "../store/auth";
 // import { BusinessServices } from "../types/business";
@@ -115,6 +120,45 @@ export const useSetStaffPassword = () => {
     },
     onError: (error) => {
       console.error("Failed to set staff passsword==>", error);
+    },
+  });
+};
+
+// Policy CRUD hooks
+
+export const useGetPolicies = () => {
+  return useQuery({
+    queryKey: ["policies"],
+    queryFn: getPolicies,
+  });
+};
+
+export const useCreatePolicy = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: createPolicy,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["policies"] });
+    },
+  });
+};
+
+export const useUpdatePolicy = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, ...data }: { id: number; title?: string; content?: string }) => updatePolicy(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["policies"] });
+    },
+  });
+};
+
+export const useDeletePolicy = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) => deletePolicy(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["policies"] });
     },
   });
 };

@@ -1,10 +1,12 @@
 import Button from '../common/Button';
 import { Group, Text, Image, Box, Checkbox, Stack } from '@mantine/core';
+import styles from './GeneralSettings.module.css';
 import { Dropzone, IMAGE_MIME_TYPE } from '@mantine/dropzone';
 import dropZoneIcon from '../../assets/icons/dropZone.svg';
 import { useForm, Controller, FormProvider } from 'react-hook-form';
 import Input from '../common/Input';
 import DropdownSelectInput from '../common/Dropdown';
+
 
 interface SettingsFormData {
   companyName: string;
@@ -33,12 +35,10 @@ const GeneralSettings = () => {
   });
 
   const onSubmit = (data: SettingsFormData) => {
-    console.log(data);
     
   };
 
   const handleFileUpload = (files: File[]) => {
-    console.log(files);
   };
 
   return (
@@ -61,21 +61,7 @@ const GeneralSettings = () => {
               onDrop={handleFileUpload}
               maxSize={20 * 1024 ** 2}
               accept={IMAGE_MIME_TYPE}
-              styles={{
-                root: {
-                  borderColor: '#1D9B5E',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'center',
-                  '&[data-accept]': {
-                    borderColor: '#1D9B5E',
-                    backgroundColor: 'rgba(29, 155, 94, 0.1)',
-                  },
-                  '&[data-reject]': {
-                    borderColor: '#ff6b6b',
-                  },
-                },
-              }}
+              className={styles.dropzoneRoot}
             >
               <Box style={{ pointerEvents: 'none' }}>
                 <Group justify='center' gap='xl' mb='md' p='6'>

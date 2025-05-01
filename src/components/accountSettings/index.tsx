@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { useForm, FormProvider } from 'react-hook-form';
-import Button from '../common/Button';
 import GeneralSettings from './GeneralSettings';
 import Notifications from './Notifications';
 import { NotificationsFormData } from './Notifications';
+import Policies from './Policies';
 
-type TabType = 'general' | 'notifications';
+type TabType = 'general' | 'notifications' | 'policies';
 
 const Settings = () => {
   const [activeTab, setActiveTab] = useState<TabType>('general');
@@ -13,31 +13,23 @@ const Settings = () => {
 
   const notificationsMethods = useForm<NotificationsFormData>({
     defaultValues: {
-      sessionReminderSms: '' 
-    }
+      sessionReminderSms: '',
+    },
   });
   const tabConfig = [
     { id: 'general', label: 'General Settings' },
     { id: 'notifications', label: 'Notifications' },
+    { id: 'policies', label: 'Policies' },
   ];
 
   return (
     <div className='flex flex-col h-screen bg-cardsBg w-full overflow-y-auto'>
       <div className='mt-2 flex justify-between px-8 py-6'>
         <h2 className='font-[700] text-[32px]'>Settings</h2>
-        <Button
-          color='#1D9B5E'
-          radius='md'
-          size='md'
-          onClick={() => {
-          }}
-        >
-          Save Changes
-        </Button>
       </div>
 
       <div className='flex-1 p-6'>
-        <div className='flex gap-6 px-4 pb-4'>
+        <div className='flex gap-6 px-4'>
           {tabConfig.map((tab) => (
             <button
               key={tab.id}
@@ -53,7 +45,7 @@ const Settings = () => {
           ))}
         </div>
 
-        <div className='mt-6'>
+        <div className=''>
           {activeTab === 'general' && <GeneralSettings />}
           {activeTab === 'notifications' && (
             <FormProvider {...notificationsMethods}>
@@ -66,6 +58,7 @@ const Settings = () => {
               />
             </FormProvider>
           )}
+          {activeTab === 'policies' && <Policies />}
         </div>
       </div>
     </div>

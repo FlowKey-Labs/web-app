@@ -33,7 +33,6 @@ const ResetPassword = () => {
     setShowConfirmPassword(!showConfirmPassword);
 
   const onSubmit: SubmitHandler<FormData> = async (data) => {
-    console.log(data);
     setIsResetting(true);
     await new Promise((resolve) => setTimeout(resolve, 2000));
 

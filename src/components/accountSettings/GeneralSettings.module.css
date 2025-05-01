@@ -1,0 +1,13 @@
+.dropzoneRoot {
+  border-color: #1D9B5E;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.dropzoneRoot[data-accept] {
+  border-color: #1D9B5E;
+  background-color: rgba(29, 155, 94, 0.1);
+}
+.dropzoneRoot[data-reject] {
+  border-color: #ff6b6b;
+}
