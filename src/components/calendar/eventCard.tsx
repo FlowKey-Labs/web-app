@@ -6,20 +6,31 @@ import { Dictionary } from "@fullcalendar/core/internal";
 import moment from "moment";
 import { subHours } from "date-fns";
 
-const formatSessionInfo = (session: any): { dateStr: string; repeatStr: string } => {
+const formatSessionInfo = (
+  session: any
+): { dateStr: string; repeatStr: string } => {
   if (!session) {
-    return { dateStr: '', repeatStr: '' };
+    return { dateStr: "", repeatStr: "" };
   }
 
   const start = moment(subHours(new Date(session.start_time), 3));
   const end = moment(subHours(new Date(session.end_time), 3));
 
-  const dateStr = `${start.format('dddd, MMMM D')}⋅${start.format('h:mma')} – ${end.format('h:mma')}`;
+  const dateStr = `${start.format("dddd, MMMM D")}⋅${start.format(
+    "h:mma"
+  )} – ${end.format("h:mma")}`;
 
-  let repeatStr = '';
-  if (session.repeat_every && session.repeat_unit && session.repeat_on?.length) {
-    const pluralUnit = session.repeat_every > 1 ? `${session.repeat_unit}s` : session.repeat_unit;
-    const repeatDays = session.repeat_on.join(', ');
+  let repeatStr = "";
+  if (
+    session.repeat_every &&
+    session.repeat_unit &&
+    session.repeat_on?.length
+  ) {
+    const pluralUnit =
+      session.repeat_every > 1
+        ? `${session.repeat_unit}s`
+        : session.repeat_unit;
+    const repeatDays = session.repeat_on.join(", ");
     repeatStr = `Every ${session.repeat_every} ${pluralUnit} on ${repeatDays}`;
   }
 
@@ -30,22 +41,26 @@ const EventCard = ({
   data,
   onClose,
   handleRemoveEvent,
-  handleAddClient,
+  handleEditEvent,
 }: {
   data: Dictionary;
   onClose: () => void;
   handleRemoveEvent: () => void;
-  handleAddClient: () => void;
+  handleEditEvent: (id: string) => void;
 }) => {
   const attendances = data?.session?.attendances || [];
-  const invitedCount = attendances.filter((a: { attended: boolean; }) => !a.attended).length;
-  const attendedCount = attendances.filter((a: { attended: boolean; }) => a.attended).length;
+  const invitedCount = attendances.filter(
+    (a: { attended: boolean }) => !a.attended
+  ).length;
+  const attendedCount = attendances.filter(
+    (a: { attended: boolean }) => a.attended
+  ).length;
   const { dateStr, repeatStr } = formatSessionInfo(data?.session || {});
 
   return (
     <div className="w-full h-full bg-white space-y-4">
       <div className="flex w-full items-center justify-end gap-3">
-        <img src={editIcon} className="cursor-pointer" />
+        <img src={editIcon} className="cursor-pointer" onClick={() => handleEditEvent(data?.session?.id)} />
         <img
           src={deleteIcon}
           className="cursor-pointer"
@@ -94,9 +109,15 @@ const EventCard = ({
       </div>
       <div className="flex items-center space-x-2">
         <span className="w-5 h-5 text-gray-500">📅</span>
-        <p className="text-gray-700">{data?.session?.assigned_staff?.user?.first_name} {data?.session?.assigned_staff?.user?.last_name}</p>
+        <p className="text-gray-700">
+          {data?.session?.assigned_staff?.user?.first_name}{" "}
+          {data?.session?.assigned_staff?.user?.last_name}
+        </p>
       </div>
-      <button onClick={handleAddClient} className="w-full bg-green-600 text-white py-2 rounded-lg text-lg font-semibold hover:bg-green-700">
+      <button
+        onClick={() => handleEditEvent(data?.session?.id)}
+        className="w-full bg-green-600 text-white py-2 rounded-lg text-lg font-semibold hover:bg-green-700"
+      >
         + Add Clients
       </button>
     </div>

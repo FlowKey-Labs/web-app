@@ -1,43 +1,126 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import Calendar from "@toast-ui/react-calendar";
-import "@toast-ui/calendar/dist/toastui-calendar.min.css";
 import FullCalendar from "@fullcalendar/react";
+import dayGridPlugin from "@fullcalendar/daygrid";
+import dayGridWeek from "@fullcalendar/daygrid";
+import timeGridPlugin from "@fullcalendar/timegrid";
+import interactionPlugin from "@fullcalendar/interaction";
 import Button from "../common/Button";
 import plusIcon from "../../assets/icons/plusWhite.svg";
-import { addHours, format, isPast, parse, subHours } from "date-fns";
+import { addHours, format, isPast, parse } from "date-fns";
 import DropDownMenu from "../common/DropdownMenu";
 import dropdownIcon from "../../assets/icons/dropIcon.svg";
 import { cn } from "../../utils/mergeClass";
+import { EventClickArg, EventInput } from "@fullcalendar/core/index.js";
+import EventCard from "./eventCard";
+import { Dictionary, EventImpl } from "@fullcalendar/core/internal";
 import { useGetSessions } from "../../hooks/reactQuery";
 import AddSession from "../sessions/AddSession";
 import "./index.css";
 import AddClients from "../clients/AddClient";
-import moment from "moment";
-import { EventImpl } from "@fullcalendar/core/internal.js";
+import UpdateSession from "../sessions/UpdateSession";
+
+const headerToolbar = {
+  start: "title",
+  center: "prev today next",
+  end: "",
+};
 
 type CalendarView = {
   type: string;
   view: string;
-  tuiView: "day" | "week" | "month";
 };
 
 const calendarViews: CalendarView[] = [
   {
     type: "Month",
     view: "dayGridMonth",
-    tuiView: "month",
   },
   {
     type: "Week",
     view: "timeGridWeek",
-    tuiView: "week",
   },
   {
     type: "Day",
     view: "timeGridDay",
-    tuiView: "day",
   },
 ];
+
+const popupWidth = 400;
+const popupHeight = 500;
+
+interface FullCalendarEvent {
+  id: string | number;
+  title: string;
+  start: string; // ISO string
+  end?: string; // ISO string
+  extendedProps?: Record<string, unknown>; // for additional metadata
+}
+
+function mapSessionToFullCalendarEvents(session: any): FullCalendarEvent[] {
+  const events: FullCalendarEvent[] = [];
+
+  const startDate = new Date(session.date);
+  const repeatEndDate = new Date(session.repeat_end_date || session.date);
+  const startTime = new Date(session.start_time);
+  const endTime = new Date(session.end_time);
+
+  // Helper to merge date and time
+  const mergeDateAndTime = (date: Date, time: Date): Date => {
+    const merged = new Date(date);
+    merged.setHours(
+      time.getUTCHours(),
+      time.getUTCMinutes(),
+      time.getUTCSeconds()
+    );
+    return merged;
+  };
+
+  // Handle recurring sessions
+  if (session.repeat_on && session.repeat_on.length > 0) {
+    const currentDate = new Date(startDate);
+
+    while (currentDate <= repeatEndDate) {
+      const weekday = currentDate.toLocaleDateString("en-US", {
+        weekday: "long",
+      });
+
+      if (session.repeat_on.includes(weekday)) {
+        const eventStart = mergeDateAndTime(currentDate, startTime);
+        const eventEnd = mergeDateAndTime(currentDate, endTime);
+
+        events.push({
+          id: `${session.id}-${eventStart.toISOString()}`,
+          title: session.title,
+          start: eventStart.toISOString(),
+          end: eventEnd.toISOString(),
+          extendedProps: {
+            session,
+          },
+        });
+      }
+
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+  } else {
+    // Handle one-time session
+    const eventStart = new Date(session.start_time);
+    const eventEnd = new Date(session.end_time);
+
+    events.push({
+      id: `${session.id}`,
+      title: session.title,
+      start: eventStart.toISOString(),
+      end: eventEnd.toISOString(),
+      extendedProps: {
+        session,
+      },
+    });
+  }
+
+  return events;
+}
+
+// ...existing code...
 
 const CalendarView = () => {
   const calendarRef = useRef<FullCalendar>(null);
@@ -47,9 +130,70 @@ const CalendarView = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [isSessionDrawerOpen, setIsSessionDrawerOpen] = useState(false);
+  const [sessionID, setSessionID] = useState<string>();
+  const [popupData, setPopupData] = useState<{
+    title: string;
+    description: string;
+    extendedProps: Dictionary;
+    x: number;
+    y: number;
+  } | null>(null);
   const [selectedEvent, setSelectedEvent] = useState<EventImpl | null>(null);
+  const popupRef = useRef<HTMLDivElement | null>(null);
   const { data: sessionsData } = useGetSessions();
-  console.log("sessionsData==>", sessionsData);
+
+  const handleEventClick = (clickInfo: EventClickArg) => {
+    const { event, el } = clickInfo;
+    const rect = el.getBoundingClientRect();
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    let x = rect.left + 5;
+    let y = rect.top - 300; // Default: above the event
+
+    // Available space around the event
+    const spaceBottom = viewportHeight - rect.bottom;
+    const spaceTop = rect.top;
+    const spaceLeft = rect.left;
+    const spaceRight = viewportWidth - rect.right;
+
+    // Positioning Logic
+    if (spaceBottom < popupHeight && spaceTop >= popupHeight) {
+      y = rect.top + window.scrollY - popupHeight - 10; // Move above event
+      if (spaceRight < popupHeight) {
+        x = rect.left - popupWidth - 260; // Move to the left
+      } else {
+        x = rect.right - 237; // Move to the right
+      }
+    }
+    if (spaceTop < popupHeight && spaceBottom < popupHeight) {
+      if (spaceRight >= popupWidth) {
+        x = rect.right - 237; // Move to the right
+      } else if (spaceLeft >= popupWidth || spaceRight <= popupWidth) {
+        x = rect.left - popupWidth - 260; // Move to the left
+      } else {
+        y = rect.bottom + window.scrollY + 10; // Stay below
+      }
+    }
+    if (spaceTop < popupHeight && spaceRight < popupWidth) {
+      x = rect.left - popupWidth - 260; // Move to the left
+    } else if (spaceTop < popupHeight && spaceRight > popupWidth) {
+      x = rect.right - 237; // Move to the right
+    }
+
+    if (spaceTop <= popupHeight - 200 && spaceLeft <= popupWidth) {
+      x = rect.right - 237; // Move to the right
+    }
+
+    setPopupData({
+      title: event.title,
+      description: event.extendedProps?.description || "No additional details",
+      extendedProps: event.extendedProps,
+      x,
+      y,
+    });
+    setSelectedEvent(clickInfo.event);
+  };
 
   const changeView = (view: CalendarView) => {
     setCurrentView(view);
@@ -61,306 +205,70 @@ const CalendarView = () => {
     setIsModalOpen(true);
   };
 
-  //   (eventInfo: {
-  //     timeText: string;
-  //     event: {
-  //       extendedProps: { session: { date: string } };
-  //       title: string;
-  //     };
-  //   }) => {
-  //     const time = parse(eventInfo.timeText, "HH:mm", new Date());
-  //     const formattedTime = addHours(time, -3);
+  const renderEventContent = useCallback(
+    (eventInfo: {
+      timeText: string;
+      event: {
+        extendedProps: { session: { date: string } };
+        title: string;
+        start: Date;
+      };
+    }) => {
+      const time = parse(eventInfo.timeText, "HH:mm", new Date());
+      const formattedTime = addHours(time, -3);
 
-  //     return (
-  //       <div className="flex justify-between w-full h-full py-1 cursor-pointer">
-  //         <div
-  //           className={cn("flex items-center gap-1 w-[70%]", {
-  //             "w-[40%]": currentView.type === "Week",
-  //           })}
-  //         >
-  //           <div
-  //             className={cn("rounded-full w-2 h-2 bg-green-400", {
-  //               "bg-gray-500": isPast(
-  //                 new Date(eventInfo.event.extendedProps.session.date)
-  //               ),
-  //             })}
-  //           />
-  //           <i className="text-xs truncate">{eventInfo.event.title}</i>
-  //         </div>
-  //         <b className="text-xs flex items-center">
-  //           {format(formattedTime, "HH:mm a")}
-  //         </b>
-  //       </div>
-  //     );
-  //   },
-  //   [currentView]
-  // );
-
-  // Map sessions to TUI Calendar format
-  const mapSessionToTUIEvents = useCallback((session: any) => {
-    const events: any[] = [];
-    const startDate = new Date(session.date);
-    const repeatEndDate = new Date(session.repeat_end_date || session.date);
-    const startTime = new Date(session.start_time);
-    const endTime = new Date(session.end_time);
-
-    const mergeDateAndTime = (date: Date, time: Date): Date => {
-      const merged = new Date(date);
-      merged.setHours(
-        time.getUTCHours(),
-        time.getUTCMinutes(),
-        time.getUTCSeconds()
+      return (
+        <div className="flex justify-between w-full h-full py-1 cursor-pointer">
+          <div
+            className={cn("flex items-center gap-1 w-[70%]", {
+              "w-[40%]": currentView.type === "Week",
+            })}
+          >
+            <div
+              className={cn("rounded-full w-2 h-2 bg-green-400", {
+                "bg-gray-500": isPast(
+                  new Date(eventInfo.event.start)
+                ),
+              })}
+            />
+            <i className="text-xs truncate">{eventInfo.event.title}</i>
+          </div>
+          <b className="text-xs flex items-center">
+            {format(formattedTime, "HH:mm a")}
+          </b>
+        </div>
       );
-      return merged;
-    };
-
-    if (session.repeat_on && session.repeat_on.length > 0) {
-      const currentDate = new Date(startDate);
-      const daysOfWeek = [
-        "sunday",
-        "monday",
-        "tuesday",
-        "wednesday",
-        "thursday",
-        "friday",
-        "saturday",
-      ];
-
-      while (currentDate <= repeatEndDate) {
-        const weekday = currentDate.getDay();
-        const weekdayName = daysOfWeek[weekday];
-
-        if (
-          session.repeat_on.includes(
-            weekdayName.charAt(0).toUpperCase() + weekdayName.slice(1)
-          )
-        ) {
-          const eventStart = mergeDateAndTime(currentDate, startTime);
-          const eventEnd = mergeDateAndTime(currentDate, endTime);
-
-          events.push({
-            id: `${session.id}-${eventStart.toISOString()}`,
-            calendarId: "1",
-            title: session.title,
-            start: eventStart,
-            end: eventEnd,
-            category: "time",
-            isReadOnly: true,
-            raw: {
-              session,
-            },
-            backgroundColor: isPast(eventStart) ? "#9CA3AF" : "#10B981",
-            borderColor: isPast(eventStart) ? "#9CA3AF" : "#10B981",
-          });
-        }
-
-        currentDate.setDate(currentDate.getDate() + 1);
-      }
-    } else {
-      const eventStart = new Date(session.start_time);
-      const eventEnd = new Date(session.end_time);
-
-      events.push({
-        id: `${session.id}`,
-        calendarId: "1",
-        title: session.title,
-        start: eventStart,
-        end: eventEnd,
-        category: "time",
-        isReadOnly: true,
-        raw: {
-          session,
-        },
-        backgroundColor: isPast(eventStart) ? "#9CA3AF" : "#10B981",
-        borderColor: isPast(eventStart) ? "#9CA3AF" : "#10B981",
-      });
-    }
-
-    return events;
-  }, []);
+    },
+    [currentView]
+  );
 
   const handleRemoveEvent = () => {
     if (selectedEvent) {
       selectedEvent.remove();
+      setPopupData(null);
       setSelectedEvent(null);
     }
   };
 
-  // Customize the popup template
-  const customizePopup = useCallback(() => {
-    if (!calendarRef.current) return;
-
-    const calendarInstance = calendarRef.current.getInstance();
-
-    calendarInstance.on("clickEvent", () => {
-      console.log("here");
-    });
-
-    // Customize the popup template
-    calendarInstance.setOptions({
-      template: {
-        popupDetailTitle: (event: any) => {
-          return `
-            <div class="flex items-start space-x-2 items-center">
-              <span class="w-3 h-3 bg-blue-500 rounded-full mt-1"></span>
-              <h2 class="text-xl font-semibold">${event.title}</h2>
-            </div>
-          `;
-        },
-        popupDetailDate: (event: any) => {
-          const startDate = moment(new Date(event.start));
-          const endDate = moment(new Date(event.end));
-
-          return `
-            <p class="text-gray-600">
-              ${startDate.format("dddd, MMMM D")}⋅${startDate.format(
-            "h:mma"
-          )} – ${endDate.format("h:mma")}
-            </p>
-          `;
-        },
-        popupDetailBody: (event: any) => {
-          console.log("event===>", event);
-
-          const session = event.raw?.session || {};
-          const attendances = session.attendances || [];
-          const invitedCount = attendances.filter(
-            (a: any) => !a.attended
-          ).length;
-          const attendedCount = attendances.filter(
-            (a: any) => a.attended
-          ).length;
-
-          return `
-            <div class="space-y-4">
-              ${
-                session.repeat_every &&
-                session.repeat_unit &&
-                session.repeat_on?.length
-                  ? `
-                <p class="text-gray-600">
-                  Every ${session.repeat_every} ${
-                      session.repeat_every > 1
-                        ? `${session.repeat_unit}s`
-                        : session.repeat_unit
-                    } 
-                  on ${session.repeat_on.join(", ")}
-                </p>
-              `
-                  : ""
-              }
-              
-              <div>
-                <div class="flex gap-2 items-start">
-                  <img src="" class="w-6" />
-                  <div>
-                    <p class="text-gray-900 font-semibold">${
-                      session.spots || 0
-                    } Slots</p>
-                    <p class="text-gray-400">${invitedCount} Invited · ${attendedCount} Attended</p>
-                    <div class="max-h-30 overflow-y-scroll space-y-2 mt-2">
-                      ${attendances
-                        .map(
-                          (user: any) => `
-                        <div class="flex items-center space-x-2">
-                          <span class="w-3 h-3 bg-blue-500 rounded-full"></span>
-                          <p class="text-gray-700 text-sm">${
-                            user?.client_name || ""
-                          }</p>
-                        </div>
-                      `
-                        )
-                        .join("")}
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              <div class="flex items-center space-x-2">
-                <span class="w-5 h-5 text-gray-500">⏰</span>
-                <p class="text-gray-700">30 minutes before</p>
-              </div>
-              
-              <div class="flex items-center space-x-2">
-                <span class="w-5 h-5 text-gray-500">📅</span>
-                <p class="text-gray-700">${
-                  session.assigned_staff?.user?.first_name || ""
-                } ${session.assigned_staff?.user?.last_name || ""}</p>
-              </div>
-              
-              <button 
-                id="addClientsBtn" 
-                class="w-full bg-green-600 text-white py-2 rounded-lg text-lg font-semibold hover:bg-green-700"
-              >
-                + Add Clients
-              </button>
-            </div>
-          `;
-        },
-        popupDetailEdit: () => "", // Hide edit button
-        popupDetailClose: () => "", // Hide close button
-      },
-      useDetailPopup: true,
-    });
-
-    // Add event listener for the Add Clients button
-    document.addEventListener("click", (e) => {
-      if ((e.target as HTMLElement).id === "addClientsBtn") {
-        const popup = document.querySelector(".tui-calendar-popup-detail");
-        if (popup) {
-          const eventId = popup.getAttribute("data-event-id");
-          if (eventId) {
-            const event = calendarInstance.getEvent(eventId, "1");
-            setSelectedEvent(event);
-            setIsModalOpen(true);
-          }
-        }
-      }
-    });
-  }, []);
-
   useEffect(() => {
-    if (calendarRef.current) {
-      const calendarInstance = calendarRef.current.getInstance();
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        popupRef.current &&
+        !popupRef.current.contains(event.target as Node)
+      ) {
+        setSelectedEvent(null);
+        setPopupData(null);
+      }
+    };
 
-      customizePopup();
-
-      // Set event handlers
-      calendarInstance.on("clickEvent", (eventObj: any) => {
-        // You can still track the selected event if needed
-        setSelectedEvent(eventObj.event);
-      });
-
-      // calendarInstance.on("selectDateTime", setIsModalOpen(!isModalOpen));
-
-      // Set theme
-      calendarInstance.setTheme({
-        // ... your theme configuration ...
-      });
+    if (selectedEvent) {
+      document.addEventListener("mousedown", handleClickOutside);
     }
-  }, [customizePopup]);
 
-  // Custom template for events
-  const eventTemplate = useCallback(
-    (event: any) => {
-      const time = parse(format(event.start, "HH:mm"), "HH:mm", new Date());
-      const formattedTime = addHours(time, -3);
-
-      return `
-      <div class="flex justify-between w-full h-full py-1 cursor-pointer">
-        <div class="${cn("flex items-center gap-1 w-[70%]", {
-          "w-[40%]": currentView.type === "Week",
-        })}">
-          <i class="text-xs truncate">${event.title}</i>
-        </div>
-        <b class="text-xs flex items-center">
-          ${format(formattedTime, "HH:mm a")}
-        </b>
-      </div>
-    `;
-    },
-    [currentView]
-  );
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [selectedEvent]);
 
   return (
     <div className="pt-5 px-5 bg-[#f5f5f5]">
@@ -393,7 +301,7 @@ const CalendarView = () => {
             ))}
           </DropDownMenu>
         </div>
-        <div className="">
+        <div className="absolute top-4 right-[20px]">
           <Button
             w={140}
             h={52}
@@ -410,53 +318,65 @@ const CalendarView = () => {
             New Event
           </Button>
         </div>
-        <div style={{ height: "calc(100vh - 200px)" }}>
-          <Calendar
-            ref={calendarRef}
-            usageStatistics={false}
-            calendars={[
-              {
-                id: "1",
-                name: "Default",
-                backgroundColor: "#1D9B5E",
-              },
-            ]}
-            events={sessionsData?.flatMap(mapSessionToTUIEvents)}
-            template={{
-              time: eventTemplate,
+        <FullCalendar
+          ref={calendarRef}
+          plugins={[
+            dayGridPlugin,
+            timeGridPlugin,
+            dayGridWeek,
+            interactionPlugin,
+          ]}
+          initialView={currentView.view}
+          events={sessionsData?.flatMap(mapSessionToFullCalendarEvents) as EventInput}
+          eventContent={renderEventContent}
+          dayMaxEventRows={true}
+          allDaySlot={false}
+          headerToolbar={headerToolbar}
+          height={`calc(100vh - 130px)`}
+          slotLabelFormat={{
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: false,
+          }}
+          eventTimeFormat={{
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: false,
+          }}
+          eventClick={handleEventClick}
+          dateClick={() => setIsModalOpen(true)}
+        />
+        {popupData && (
+          <div
+            className="absolute bg-white shadow-md p-6 border shadow-lg min-w-[350px] min-h-[400px] z-[1000] rounded-2xl"
+            style={{
+              top: popupData.y,
+              left: popupData.x,
             }}
-            useFormPopup={false}
-            isReadOnly={false}
-            view={currentView.tuiView}
-            week={{
-              showTimezoneCollapseButton: false,
-              timezonesCollapsed: false,
-              hourStart: 0,
-              hourEnd: 24,
-              taskView: false,
-              eventView: ["time"],
-              collapseDuplicateEvents: false,
-            }}
-            month={{
-              dayNames: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
-              visibleWeeksCount: 6,
-              startDayOfWeek: 0,
-            }}
-            timezone={{
-              zones: [
-                {
-                  timezoneName: "UTC",
-                  displayLabel: "UTC",
-                },
-              ],
-            }}
-          />
-        </div>
+            ref={popupRef}
+          >
+            <EventCard
+              onClose={() => setPopupData(null)}
+              handleRemoveEvent={handleRemoveEvent}
+              data={popupData.extendedProps}
+              handleEditEvent={(id) => {
+                setSessionID(id);
+                setPopupData(null);
+                setIsSessionDrawerOpen(true);
+              }}
+            />
+          </div>
+        )}
       </div>
       <AddSession isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
       <AddClients
         isOpen={isDrawerOpen}
         onClose={() => setIsDrawerOpen(false)}
+      />
+      <UpdateSession
+        isOpen={isSessionDrawerOpen}
+        onClose={() => setIsSessionDrawerOpen(false)}
+        sessionId={sessionID|| ''}
       />
     </div>
   );
