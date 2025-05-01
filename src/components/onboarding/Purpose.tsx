@@ -9,11 +9,11 @@ import { useOnboardingStore } from '../../store/onboardingStore';
 import { useBusinessProfile } from '../../hooks/reactQuery';
 
 import arrowRightIcon from '../../assets/icons/arrowRight.svg';
-import checkIcon from '../../assets/icons/check.svg';
 
 import { businessPurpose } from '../../utils/dummyData';
-import NotificationToast from '../common/NotificationToast';
+
 import { navigateToProfile } from '../../utils/navigationHelpers';
+import { notifications } from '@mantine/notifications';
 
 const Purpose = () => {
   const navigate = useNavigate();
@@ -25,8 +25,6 @@ const Purpose = () => {
   const { mutate: updateBusinessProfile, status } = useBusinessProfile();
   const isLoading = status === 'pending';
   const [buttonHovered, setButtonHovered] = useState(false);
-
-  const [showNotification, setShowNotification] = useState(false);
 
   return (
     <MainOnboarding>
@@ -146,7 +144,11 @@ const Purpose = () => {
                   },
                   {
                     onSuccess: () => {
-                      setShowNotification(true);
+                      notifications.show({
+                        color: 'green',
+                        title: 'Success!',
+                        message: 'Onboarding completed successfully',
+                      });
                       setTimeout(() => {
                         navigateToProfile(navigate);
                       }, 1500);
@@ -161,20 +163,6 @@ const Purpose = () => {
           </Button>
         </div>
       </div>
-      {showNotification && (
-        <NotificationToast
-          type='success'
-          title='Success!'
-          description='Onboarding completed successfully'
-          onClose={() => setShowNotification(false)}
-          icon={
-            <div className='rounded-full p-2 bg-secondary'>
-              <img src={checkIcon} alt='' className='w-5 h-5' />
-            </div>
-          }
-          autoClose={5000}
-        />
-      )}
     </MainOnboarding>
   );
 };

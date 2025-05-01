@@ -10,9 +10,9 @@ import Button from '../common/Button';
 import Main from './MainAuth';
 import { useState } from 'react';
 import { EyeClosedIcon, EyeOpenIcon, SubmittingIcon } from '../../assets/icons';
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useSetStaffPassword } from '../../hooks/reactQuery';
-import NotificationToast from '../common/NotificationToast';
+import { notifications } from '@mantine/notifications';
 
 interface FormData {
   password: string;
@@ -32,14 +32,8 @@ const SetPassword = () => {
   const togglePasswordVisibility = () => setShowPassword(!showPassword);
   const toggleConfirmPasswordVisibility = () =>
     setShowConfirmPassword(!showConfirmPassword);
-  const [notification, setNotification] = useState<{
-    show: boolean;
-    type: 'success' | 'error';
-    title: string;
-    description: string;
-  }>({ show: false, type: 'success', title: '', description: '' });
 
-  const { mutate: setStaffPassword, isPending } = useSetStaffPassword()
+  const { mutate: setStaffPassword, isPending } = useSetStaffPassword();
   const [searchParams] = useSearchParams();
   const token = searchParams.get('token');
   const uid = searchParams.get('uid');
@@ -52,15 +46,14 @@ const SetPassword = () => {
         token: token || '',
         email: email || '',
         password: data.password,
-        new_password: data.confirmPassword
+        new_password: data.confirmPassword,
       },
       {
         onSuccess: () => {
-          setNotification({
-            show: true,
-            type: 'success',
+          notifications.show({
+            color: 'green',
             title: 'Success!',
-            description: 'Password set successfully. Please log in to continue'
+            message: 'Password set successfully. Please log in to continue',
           });
           setTimeout(() => {
             navigate('/login');
@@ -68,20 +61,21 @@ const SetPassword = () => {
         },
         onError: (error: any) => {
           console.error('Login error:', error);
-          setNotification({
-            show: true,
-            type: 'error',
+          notifications.show({
+            color: 'red',
             title: 'Error',
-            description: error?.response?.data?.detail || 'Invalid credentials, please try again.'
+            message:
+              error?.response?.data?.detail ||
+              'Invalid credentials, please try again.',
           });
         },
       }
-    )
+    );
   };
 
   return (
     <Main title='Set Your Password'>
-      <p className="text-sm">Please set up you rpassword to proceed</p>
+      <p className='text-sm'>Please set up your password to proceed</p>
       <FormProvider {...methods}>
         <form onSubmit={methods.handleSubmit(onSubmit)}>
           <Controller
@@ -169,9 +163,7 @@ const SetPassword = () => {
           />
 
           <Button
-            leftSection={
-              <SubmittingIcon className='w-5 h-5' />
-            }
+            leftSection={<SubmittingIcon className='w-5 h-5' />}
             w={'100%'}
             type='submit'
             h={'50px'}
@@ -187,16 +179,6 @@ const SetPassword = () => {
           </Button>
         </form>
       </FormProvider>
-      {notification.show && (
-        <NotificationToast
-          type={notification.type}
-          title={notification.title}
-          description={notification.description}
-          onClose={() => setNotification(prev => ({ ...prev, show: false }))}
-
-          autoClose={5000}
-        />
-      )}
     </Main>
   );
 };
