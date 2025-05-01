@@ -277,11 +277,11 @@ const AllSessions = () => {
 
             if (repeat_on && repeat_on.length > 0) {
               return repeat_on
-                .map((day: number) => dayMap[day] || '')
+                .map((day: string) => dayMap[Number(day)] || '')
                 .join(', ');
             }
 
-            return '';
+            return 'No Repeats';
           },
         }
       ),
@@ -449,7 +449,7 @@ const AllSessions = () => {
         close();
         refetchSessions();
       },
-      onError: (_error: unknown) => {
+      onError: () => {
         notifications.show({
           title: 'Error',
           message: 'Failed to activate session. Please try again.',
@@ -491,7 +491,7 @@ const AllSessions = () => {
         close();
         refetchSessions();
       },
-      onError: (_error: unknown) => {
+      onError: () => {
         notifications.show({
           title: 'Error',
           message: 'Failed to deactivate session. Please try again.',

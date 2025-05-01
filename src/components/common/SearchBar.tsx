@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import useSearch, { SearchResult } from "../../hooks/useSearch";
 import { SearchIcon } from "../../assets/icons";
 import SearchInput from "./SearchInput";

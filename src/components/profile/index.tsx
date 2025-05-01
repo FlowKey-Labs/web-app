@@ -1,12 +1,12 @@
 import { JSX, useState } from 'react';
 
-import Button from '../common/Button';
 import Header from '../headers/Header';
 import Services from './Services';
 import Schedule from './Schedule';
 import BusinessInformation from './BusinessInformation';
+import { BusinessLocation } from './BusinessLocation';
 
-type TabType = 'business' | 'services' | 'schedule';
+type TabType = 'business' | 'services' | 'locations' | 'schedule';
 
 const Profile = () => {
   const [openedAccordion, setOpenedAccordion] = useState<string | null>(null);
@@ -20,12 +20,14 @@ const Profile = () => {
       />
     ),
     services: <Services />,
+    locations: <BusinessLocation />,
     schedule: <Schedule />,
   };
 
   const tabConfig = [
     { id: 'business', label: 'Business Information' },
     { id: 'services', label: 'Services' },
+    { id: 'locations', label: 'Locations' },
     { id: 'schedule', label: 'Schedule' },
   ];
 
@@ -37,14 +39,6 @@ const Profile = () => {
       <div className='flex-1 p-6'>
         <div className='flex justify-between items-center px-4'>
           <h2 className='text-primary text-[24px] font-[600]'>Profile</h2>
-          <div className='flex gap-6'>
-            <Button variant='outline' color='red' radius='md'>
-              Cancel
-            </Button>
-            <Button radius='md' color='#1D9B5E'>
-              Save Changes
-            </Button>
-          </div>
         </div>
 
         <div className='mt-6 flex gap-6 px-4'>

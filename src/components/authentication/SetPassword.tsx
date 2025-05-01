@@ -7,19 +7,20 @@ import {
 } from 'react-hook-form';
 import Input from '../common/Input';
 import Button from '../common/Button';
-import Main from '../authentication/MainAuth';
+import Main from './MainAuth';
 import { useState } from 'react';
 import { EyeClosedIcon, EyeOpenIcon, SubmittingIcon } from '../../assets/icons';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { useSetStaffPassword } from '../../hooks/reactQuery';
+import NotificationToast from '../common/NotificationToast';
 
 interface FormData {
   password: string;
   confirmPassword: string;
 }
 
-const ResetPassword = () => {
+const SetPassword = () => {
   const navigate = useNavigate();
-  const [isResetting, setIsResetting] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
 
   const methods = useForm<FormData>();
@@ -31,18 +32,56 @@ const ResetPassword = () => {
   const togglePasswordVisibility = () => setShowPassword(!showPassword);
   const toggleConfirmPasswordVisibility = () =>
     setShowConfirmPassword(!showConfirmPassword);
+  const [notification, setNotification] = useState<{
+    show: boolean;
+    type: 'success' | 'error';
+    title: string;
+    description: string;
+  }>({ show: false, type: 'success', title: '', description: '' });
+
+  const { mutate: setStaffPassword, isPending } = useSetStaffPassword()
+  const [searchParams] = useSearchParams();
+  const token = searchParams.get('token');
+  const uid = searchParams.get('uid');
+  const email = searchParams.get('email');
 
   const onSubmit: SubmitHandler<FormData> = async (data) => {
-    console.log(data);
-    setIsResetting(true);
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-
-    setIsResetting(false);
-    navigate('/successful-password-reset');
+    setStaffPassword(
+      {
+        uid: uid || '',
+        token: token || '',
+        email: email || '',
+        password: data.password,
+        new_password: data.confirmPassword
+      },
+      {
+        onSuccess: () => {
+          setNotification({
+            show: true,
+            type: 'success',
+            title: 'Success!',
+            description: 'Password set successfully. Please log in to continue'
+          });
+          setTimeout(() => {
+            navigate('/login');
+          }, 1500);
+        },
+        onError: (error: any) => {
+          console.error('Login error:', error);
+          setNotification({
+            show: true,
+            type: 'error',
+            title: 'Error',
+            description: error?.response?.data?.detail || 'Invalid credentials, please try again.'
+          });
+        },
+      }
+    )
   };
 
   return (
-    <Main title='Reset Password'>
+    <Main title='Set Your Password'>
+      <p className="text-sm">Please set up you rpassword to proceed</p>
       <FormProvider {...methods}>
         <form onSubmit={methods.handleSubmit(onSubmit)}>
           <Controller
@@ -128,20 +167,14 @@ const ResetPassword = () => {
               </div>
             )}
           />
-          <p className='text-sm text-gray-600 mt-4'>
-            Remembered your password?{' '}
-            <a className='underline text-[#1D9B5E] font-[500]' href='/login'>
-              Back to login
-            </a>
-          </p>
+
           <Button
             leftSection={
-              isResetting ? <SubmittingIcon className='w-5 h-5' /> : null
+              <SubmittingIcon className='w-5 h-5' />
             }
             w={'100%'}
             type='submit'
             h={'50px'}
-            disabled={isResetting}
             className='w-full mt-6 text-white py-3 rounded-lg'
             style={{
               backgroundColor: isHovered ? '#20aa67' : '#1D9B5E',
@@ -150,12 +183,22 @@ const ResetPassword = () => {
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
           >
-            {isResetting ? 'Resetting...' : 'Submit'}
+            {isPending ? 'Submitting...' : 'Submit'}
           </Button>
         </form>
       </FormProvider>
+      {notification.show && (
+        <NotificationToast
+          type={notification.type}
+          title={notification.title}
+          description={notification.description}
+          onClose={() => setNotification(prev => ({ ...prev, show: false }))}
+
+          autoClose={5000}
+        />
+      )}
     </Main>
   );
 };
 
-export default ResetPassword;
+export default SetPassword;

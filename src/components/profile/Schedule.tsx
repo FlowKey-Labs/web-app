@@ -1,5 +1,3 @@
-import DropDownMenu from '../common/DropdownMenu';
-import dropdownIcon from '../../assets/icons/dropIcon.svg';
 import { useMemo, useState } from 'react';
 import { rem, Switch } from '@mantine/core';
 import { TimeDropdown } from '../common/TimeDropdown';
@@ -32,16 +30,16 @@ type Exception = {
 const Schedule = () => {
   const timeOptions = useMemo(() => generateTimeOptions(), []);
 
-  const appointmentDurationOptions = Array.from({ length: 12 }, (_, i) => {
-    const value = (i + 1) * 5;
-    return {
-      value: value.toString(),
-      label: `${value} Min`,
-    };
-  });
+  // const appointmentDurationOptions = Array.from({ length: 12 }, (_, i) => {
+  //   const value = (i + 1) * 5;
+  //   return {
+  //     value: value.toString(),
+  //     label: `${value} Min`,
+  //   };
+  // });
 
-  const [selectedDuration, setSelectedDuration] = useState('30');
-  const [durationDropdownOpen, setDurationDropdownOpen] = useState(false);
+  // const [selectedDuration, setSelectedDuration] = useState('30');
+  // const [durationDropdownOpen, setDurationDropdownOpen] = useState(false);
   const [schedule, setSchedule] = useState<Record<string, DaySchedule>>(() => {
     const initialSchedule: Record<string, DaySchedule> = {};
     days.forEach((day) => {
@@ -62,10 +60,10 @@ const Schedule = () => {
   const [exceptions, setExceptions] = useState<Exception[]>([]);
 
   // Handlers
-  const handleDurationSelect = (value: string) => {
-    setSelectedDuration(value);
-    setDurationDropdownOpen(false);
-  };
+  // const handleDurationSelect = (value: string) => {
+  //   setSelectedDuration(value);
+  //   setDurationDropdownOpen(false);
+  // };
 
   const handleDayToggle = (day: string) => {
     setSchedule((prev) => ({

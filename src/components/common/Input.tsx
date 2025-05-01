@@ -5,12 +5,14 @@ import { DatePickerInput, TimeInput } from '@mantine/dates';
 import { rem } from '@mantine/core';
 import { IconClock, IconCalendar } from '@tabler/icons-react';
 
-interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+interface InputProps
+  extends React.InputHTMLAttributes<HTMLInputElement | HTMLTextAreaElement> {
   name: string;
   label?: string;
   validation?: RegisterOptions;
   focusColor?: string;
   containerClassName?: string;
+  rows?: number;
 }
 
 const Input: React.FC<InputProps> = ({
@@ -197,33 +199,46 @@ const Input: React.FC<InputProps> = ({
   }
 
   return (
-    <div className={`mt-4 relative w-full ${containerClassName || ''}`}>
-      <input
-        {...props}
-        id={name}
-        type={type}
-        placeholder={placeholder}
-        {...register(name, validation)}
-        className={`w-full py-3 px-4 pt-8 border text-xs ${className || ''} ${
-          errors[name] ? 'border-red-500' : 'border-gray-300'
-        } rounded-lg focus:outline-none focus:ring-1 ${
-          errors[name] ? 'focus:ring-red-500' : `focus:ring-${focusColor}`
-        }`}
-        style={{
-          fontSize: '12px',
-          fontWeight: '100',
-        }}
-      />
-      {label && (
-        <label
-          htmlFor={name}
-          className='absolute top-2 left-2 text-xs text-primary px-2 transition-all duration-300 pointer-events-none'
-        >
-          {label}
-        </label>
-      )}
+    <div className={`w-full mt-4 ${containerClassName || ''}`}>
+      <div className='relative w-full'>
+        {type === 'textarea' ? (
+          <textarea
+            {...register(name, validation)}
+            id={name}
+            placeholder={placeholder}
+            rows={props.rows || 4}
+            className={`w-full border border-gray-300 rounded-lg px-4 pt-6 pb-2 text-xs focus:outline-none  focus:ring-[1px] focus:border-none ${
+              errors[name]
+                ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
+                : `focus:ring-${focusColor} focus:border-${focusColor}`
+            }`}
+            {...props}
+          />
+        ) : (
+          <input
+            {...register(name, validation)}
+            type={type}
+            id={name}
+            placeholder={placeholder}
+            className={`w-full h-[58px] border border-gray-300 rounded-lg px-4 pt-6 pb-2 text-xs focus:outline-none focus:ring-[1px] focus:border-none ${
+              errors[name]
+                ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
+                : `focus:ring-${focusColor} focus:border-${focusColor}`
+            }`}
+            {...props}
+          />
+        )}
+        {label && (
+          <label
+            htmlFor={name}
+            className='absolute top-2 text-xs left-4 transition-all duration-200 text-primary'
+          >
+            {label}
+          </label>
+        )}
+      </div>
       {errors[name] && (
-        <p className='text-xs text-red-500'>
+        <p className='text-xs text-red-500 mt-1'>
           {errors[name]?.message as string}
         </p>
       )}

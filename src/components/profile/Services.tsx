@@ -1,3 +1,4 @@
+import { Key } from 'react';
 import plus from '../../assets/icons/servicesPlus.svg';
 import { useGetBusinessServices } from '../../hooks/reactQuery';
 
@@ -50,7 +51,7 @@ const Services = () => {
       </div>
 
       <div className='grid grid-cols-3 p-6 gap-5'>
-        {services.map((service) => (
+        {services.map((service: { id: Key; available_days: string[]; title: string; start_time: string ; end_time: string ; }) => (
           <div
             key={service.id}
             className='flex items-center border-[1px] border-[#BAA7CB] rounded-md px-2 py-3 gap-4 cursor-pointer'

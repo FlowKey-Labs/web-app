@@ -2,12 +2,34 @@ import { useState, useEffect } from "react";
 import { api } from "../lib/axios";
 import { mapSearchResult } from "../utils/mapSearchResult";
 
-export interface RawSearchResult {
-  id: number | string;
-  record_type: "session" | "staff" | "client";
-  matched_field?: string;
-  [key: string]: unknown;
-}
+export type RawSearchResult =
+  | {
+      record_type: "session";
+      id: string | number;
+      title?: string;
+      session_type?: string;
+      class_type?: string;
+      matched_field?: string;
+    }
+  | {
+      record_type: "staff";
+      id: string | number;
+      user?: {
+        first_name?: string;
+        last_name?: string;
+        email?: string;
+      };
+      matched_field?: string;
+    }
+  | {
+      record_type: "client";
+      id: string | number;
+      first_name?: string;
+      last_name?: string;
+      email?: string;
+      phone_number?: string;
+      matched_field?: string;
+    };
 
 export interface SearchResult {
   record_type: "client" | "staff" | "transaction" | "session";

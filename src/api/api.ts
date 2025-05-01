@@ -1,7 +1,8 @@
-import { api } from '../lib/axios';
-import axios from 'axios';
+import { api } from "../lib/axios";
+import axios from "axios";
 
-import { CreateSessionData, Session } from '../types/sessionTypes';
+import { CreateSessionData, Session } from "../types/sessionTypes";
+import { CreateLocationData } from "../types/location";
 
 const BASE_URL = import.meta.env.VITE_APP_BASEURL;
 
@@ -12,6 +13,7 @@ const END_POINTS = {
     REGISTER: `${BASE_URL}/api/auth/register/`,
     LOGIN: `${BASE_URL}/api/auth/login/`,
     REFRESH: `${BASE_URL}/api/auth/refresh/`,
+    STAFF_PASSWORD: `${BASE_URL}/api/auth/set-password/`,
   },
   USER: {
     PROFILE: `${BASE_URL}/api/auth/profile/`,
@@ -19,10 +21,19 @@ const END_POINTS = {
   PROFILE: {
     BUSINESS_PROFILE: `${BASE_URL}/api/business/profile/`,
     SERVICES: `${BASE_URL}/api/business/services/`,
+    LOCATIONS: `${BASE_URL}/api/business/locations/`,
   },
   CLIENTS: {
     CLIENTS_DATA: `${BASE_URL}/api/client/`,
     ATTENDANCE: `${BASE_URL}/api/client/attendance/manage/`,
+    GROUPS: `${BASE_URL}/api/client/groups/`,
+    GROUP_DETAIL: (id: string) => `${BASE_URL}/api/client/groups/${id}/`,
+    GROUP_MEMBERS: (id: string) =>
+      `${BASE_URL}/api/client/groups/${id}/members/`,
+    ADD_MEMBER: (id: string) =>
+      `${BASE_URL}/api/client/groups/${id}/add_member/`,
+    REMOVE_MEMBER: (id: string) =>
+      `${BASE_URL}/api/client/groups/${id}/remove_member/`,
   },
   STAFF: {
     STAFF_DATA: `${BASE_URL}/api/staff/`,
@@ -63,6 +74,20 @@ const registerUser = async (credentials: {
 
 const loginUser = async (credentials: { email: string; password: string }) => {
   const { data } = await axios.post(END_POINTS.AUTH.LOGIN, credentials);
+  return data;
+};
+
+const setStaffPassword = async (credentials: {
+  uid: string;
+  token: string;
+  email: string;
+  password: string;
+  new_password: string;
+}) => {
+  const { data } = await axios.post(
+    END_POINTS.AUTH.STAFF_PASSWORD,
+    credentials
+  );
   return data;
 };
 
@@ -111,7 +136,7 @@ const searchCities = async (query: string) => {
   const { data } = await axios.get(END_POINTS.GOOGLE.PLACES_AUTOCOMPLETE, {
     params: {
       input: query,
-      types: '(cities)',
+      types: "(cities)",
       key: GOOGLE_API_KEY,
     },
   });
@@ -144,6 +169,7 @@ const add_client = async (clientData: {
   location: string;
   dob?: string;
   gender: string;
+  group_id?: number | null;
   session_ids?: number[];
 }) => {
   const { data } = await api.post(END_POINTS.CLIENTS.CLIENTS_DATA, clientData);
@@ -183,14 +209,14 @@ const update_staff_member = async (
 
 const deactivate_staff = async (id: string) => {
   const { data } = await api.patch(`${END_POINTS.STAFF.STAFF_DATA}${id}/`, {
-    isActive: false
+    isActive: false,
   });
   return data;
 };
 
 const activate_staff = async (id: string) => {
   const { data } = await api.patch(`${END_POINTS.STAFF.STAFF_DATA}${id}/`, {
-    isActive: true
+    isActive: true,
   });
   return data;
 };
@@ -265,34 +291,34 @@ interface SessionFilters {
 
 const get_sessions = async (filters?: SessionFilters): Promise<Session[]> => {
   let url = END_POINTS.SESSION.SESSIONS_DATA;
-  
+
   if (filters) {
     const params = new URLSearchParams();
-    
+
     if (filters.sessionTypes && filters.sessionTypes.length > 0) {
       filters.sessionTypes.forEach((type: string) => {
-        params.append('session_type', type);
+        params.append("session_type", type);
       });
     }
-    
+
     if (filters.categories && filters.categories.length > 0) {
       filters.categories.forEach((category: string) => {
-        params.append('category', category);
+        params.append("category", category);
       });
     }
-    
+
     if (filters.dateRange && filters.dateRange[0] && filters.dateRange[1]) {
       const startDate = new Date(filters.dateRange[0]);
       const endDate = new Date(filters.dateRange[1]);
-      params.append('start_date', startDate.toISOString().split('T')[0]);
-      params.append('end_date', endDate.toISOString().split('T')[0]);
+      params.append("start_date", startDate.toISOString().split("T")[0]);
+      params.append("end_date", endDate.toISOString().split("T")[0]);
     }
-    
+
     if (params.toString()) {
       url += `?${params.toString()}`;
     }
   }
-  
+
   const { data } = await api.get<Session[]>(url);
   return data;
 };
@@ -313,21 +339,70 @@ const get_session_categories = async () => {
 };
 
 const create_session = async (sessionData: CreateSessionData) => {
-  const { data } = await api.post(END_POINTS.SESSION.SESSIONS_DATA, sessionData);
+  const { data } = await api.post(
+    END_POINTS.SESSION.SESSIONS_DATA,
+    sessionData
+  );
+  return data;
+};
+
+const mark_client_attended = async (clientId: string, sessionId: string) => {
+  const { data } = await api.post(END_POINTS.CLIENTS.ATTENDANCE, {
+    client: clientId,
+    session: sessionId,
+    attended: true,
+    status: "attended",
+  });
+  return data;
+};
+
+const mark_client_not_attended = async (
+  clientId: string,
+  sessionId: string
+) => {
+  const { data } = await api.post(END_POINTS.CLIENTS.ATTENDANCE, {
+    client: clientId,
+    session: sessionId,
+    attended: false,
+    status: "missed",
+  });
+  return data;
+};
+
+const update_attendance_status = async (
+  clientId: string,
+  sessionId: string,
+  status: string
+) => {
+  const { data } = await api.post(
+    `${END_POINTS.CLIENTS.ATTENDANCE}update_status/`,
+    {
+      client: clientId,
+      session: sessionId,
+      status: status,
+    }
+  );
+  console.log("Attendance status update response:", data);
   return data;
 };
 
 const activate_session = async (sessionId: string) => {
-  const { data } = await api.patch(END_POINTS.SESSION.SESSION_DETAIL(sessionId), {
-    is_active: true
-  });
+  const { data } = await api.patch(
+    END_POINTS.SESSION.SESSION_DETAIL(sessionId),
+    {
+      is_active: true,
+    }
+  );
   return data;
 };
 
 const deactivate_session = async (sessionId: string) => {
-  const { data } = await api.patch(END_POINTS.SESSION.SESSION_DETAIL(sessionId), {
-    is_active: false
-  });
+  const { data } = await api.patch(
+    END_POINTS.SESSION.SESSION_DETAIL(sessionId),
+    {
+      is_active: false,
+    }
+  );
   return data;
 };
 
@@ -344,25 +419,31 @@ const update_client = async (
     session_ids?: number[];
   }
 ) => {
-  const { data } = await api.patch(`${END_POINTS.CLIENTS.CLIENTS_DATA}${id}/`, updateData);
+  const { data } = await api.patch(
+    `${END_POINTS.CLIENTS.CLIENTS_DATA}${id}/`,
+    updateData
+  );
   return data;
 };
 
 const deactivate_client = async (id: string) => {
   const { data } = await api.patch(`${END_POINTS.CLIENTS.CLIENTS_DATA}${id}/`, {
-    active: false
+    active: false,
   });
   return data;
 };
 
 const activate_client = async (id: string) => {
   const { data } = await api.patch(`${END_POINTS.CLIENTS.CLIENTS_DATA}${id}/`, {
-    active: true
+    active: true,
   });
   return data;
 };
 
-const update_session = async (id: string, sessionData: Partial<CreateSessionData>) => {
+const update_session = async (
+  id: string,
+  sessionData: Partial<CreateSessionData>
+) => {
   const { data } = await api.patch(
     END_POINTS.SESSION.SESSION_DETAIL(id),
     sessionData
@@ -375,8 +456,13 @@ const get_session_clients = async (sessionId: string) => {
   return data;
 };
 
-const remove_client_from_session = async (clientId: string, sessionId: string) => {
-  const { data } = await api.delete(`${BASE_URL}/api/session/${sessionId}/clients/${clientId}/`);
+const remove_client_from_session = async (
+  clientId: string,
+  sessionId: string
+) => {
+  const { data } = await api.delete(
+    `${BASE_URL}/api/session/${sessionId}/clients/${clientId}/`
+  );
   return data;
 };
 
@@ -385,41 +471,119 @@ const get_places_autocomplete = async (input: string) => {
     params: {
       input,
       key: GOOGLE_API_KEY,
-      types: 'geocode',
+      types: "geocode",
     },
   });
   return data.predictions;
 };
 
-// Simplified API calls for attendance management
-const mark_client_attended = async (clientId: string, sessionId: string) => {
+// Location API functions
+const get_locations = async (): Promise<Location[]> => {
+  const { data } = await api.get(END_POINTS.PROFILE.LOCATIONS);
+  return data;
+};
+
+const get_location = async (id: number): Promise<Location> => {
+  const { data } = await api.get(`${END_POINTS.PROFILE.LOCATIONS}${id}/`);
+  return data;
+};
+
+const create_location = async (
+  locationData: CreateLocationData
+): Promise<Location> => {
+  const { data } = await api.post(END_POINTS.PROFILE.LOCATIONS, locationData);
+  return data;
+};
+
+const update_location = async (
+  id: number,
+  locationData: Partial<CreateLocationData>
+): Promise<Location> => {
+  const { data } = await api.put(
+    `${END_POINTS.PROFILE.LOCATIONS}${id}/`,
+    locationData
+  );
+  return data;
+};
+
+const delete_location = async (id: number): Promise<void> => {
+  await api.delete(`${END_POINTS.PROFILE.LOCATIONS}${id}/`);
+};
+
+const set_primary_location = async (id: number): Promise<Location> => {
+  const { data } = await api.patch(
+    `${END_POINTS.PROFILE.LOCATIONS}${id}/set_primary/`,
+    {}
+  );
+  return data;
+};
+
+// Group API functions
+const get_groups = async () => {
   try {
-    // Send integers instead of strings for client and session IDs
-    const { data } = await api.post(END_POINTS.CLIENTS.ATTENDANCE, {
-      client: parseInt(clientId),
-      session: parseInt(sessionId),
-      attended: true
-    });
+    const { data } = await api.get(`${BASE_URL}/api/client/list-groups/`);
     return data;
   } catch (error) {
-    console.error('Error marking client as attended:', error);
-    throw error;
+    console.error("Error fetching groups:", error);
+    return [];
   }
 };
 
-const mark_client_not_attended = async (clientId: string, sessionId: string) => {
-  try {
-    // Send integers instead of strings for client and session IDs
-    const { data } = await api.post(END_POINTS.CLIENTS.ATTENDANCE, {
-      client: parseInt(clientId),
-      session: parseInt(sessionId),
-      attended: false
-    });
-    return data;
-  } catch (error) {
-    console.error('Error marking client as not attended:', error);
-    throw error;
+const get_group = async (id: string) => {
+  const { data } = await api.get(END_POINTS.CLIENTS.GROUP_DETAIL(id));
+  return data;
+};
+
+const add_group = async (groupData: {
+  name: string;
+  description?: string;
+  location?: string;
+  active?: boolean;
+  client_ids?: number[];
+  session_ids?: number[];
+  contact_person_id?: number;
+}) => {
+  const { data } = await api.post(
+    `${BASE_URL}/api/client/create-group/`,
+    groupData
+  );
+  return data;
+};
+
+const update_group = async (
+  id: string,
+  updateData: {
+    name?: string;
+    description?: string;
+    size?: number;
+    location?: string;
+    active?: boolean;
   }
+) => {
+  const { data } = await api.patch(
+    END_POINTS.CLIENTS.GROUP_DETAIL(id),
+    updateData
+  );
+  return data;
+};
+
+const get_group_members = async (groupId: string) => {
+  const { data } = await api.get(END_POINTS.CLIENTS.GROUP_MEMBERS(groupId));
+  return data;
+};
+
+const add_member_to_group = async (groupId: string, clientId: string) => {
+  const { data } = await api.post(END_POINTS.CLIENTS.ADD_MEMBER(groupId), {
+    client_id: clientId,
+  });
+  return data;
+};
+
+const remove_member_from_group = async (groupId: string, clientId: string) => {
+  const { data } = await api.post(END_POINTS.CLIENTS.REMOVE_MEMBER(groupId), {
+    client_id: clientId,
+  });
+  return data;
 };
 
 export {
@@ -431,6 +595,12 @@ export {
   get_business_profile,
   searchCities,
   get_business_services,
+  get_locations,
+  get_location,
+  create_location,
+  update_location,
+  delete_location,
+  set_primary_location,
   get_clients,
   get_client,
   add_client,
@@ -457,10 +627,20 @@ export {
   get_session_clients,
   mark_client_attended,
   mark_client_not_attended,
+  update_attendance_status,
   activate_session,
   deactivate_session,
   remove_client_from_session,
   get_places_autocomplete,
   activate_staff,
   deactivate_staff,
+  setStaffPassword,
+  // Group exports
+  get_groups,
+  get_group,
+  add_group,
+  update_group,
+  get_group_members,
+  add_member_to_group,
+  remove_member_from_group,
 };

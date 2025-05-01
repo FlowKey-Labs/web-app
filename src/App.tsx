@@ -31,6 +31,7 @@ import Settings from './components/accountSettings';
 import ClientDetails from './components/clients/ClientDetails';
 import ComingSoon from './components/common/ComingSoon';
 import './App.css';
+import SetPassword from './components/authentication/SetPassword';
 
 function App() {
   return (
@@ -46,6 +47,7 @@ function App() {
           <Routes>
             <Route path='/signup' element={<Signup />} />
             <Route path='/login' element={<Login />} />
+            <Route path='/set-password' element={<SetPassword />} />
             <Route path='/forgot-password' element={<ForgotPassword />} />
             <Route path='/password-reset' element={<PasswordResetLink />} />
             <Route path='/reset-password' element={<ResetPassword />} />

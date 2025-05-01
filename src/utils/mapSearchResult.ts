@@ -7,17 +7,18 @@ export function mapSearchResult(item: RawSearchResult): SearchResult {
         id: item.id,
         record_type: "session",
         title: item.title || "Untitled Session",
-        subtitle: `${item.session_type || ""} • ${item.class_type || ""}`,
+        subtitle:
+          [item.session_type, item.class_type].filter(Boolean).join(" • ") ||
+          "No session details",
         matched_field: item.matched_field,
       };
     case "staff":
       return {
         id: item.id,
         record_type: "staff",
-        title:
-          `${item.user?.first_name || ""} ${
-            item.user?.last_name || ""
-          }`.trim() || "Unnamed Staff",
+        title: item.user
+          ? `${item.user.first_name || ""} ${item.user.last_name || ""}`.trim()
+          : "Unnamed Staff",
         subtitle: item.user?.email || "No email",
         matched_field: item.matched_field,
       };
@@ -28,15 +29,16 @@ export function mapSearchResult(item: RawSearchResult): SearchResult {
         title:
           `${item.first_name || ""} ${item.last_name || ""}`.trim() ||
           "Unnamed Client",
-        subtitle: item.email || item.phone_number || "No contact info",
+        subtitle:
+          [item.email, item.phone_number].filter(Boolean).join(" • ") ||
+          "No contact info",
         matched_field: item.matched_field,
       };
-    default:
-      return {
-        id: item.id,
-        record_type: item.record_type,
-        title: "Unknown Record",
-        subtitle: "",
-      };
+    default: {
+      const _exhaustiveCheck: never = item;
+      throw new Error(
+        `Unhandled record type: ${JSON.stringify(_exhaustiveCheck)}`
+      );
+    }
   }
 }

@@ -1,11 +1,9 @@
 import { Badge } from '@mantine/core';
-import SearchInput from '../common/SearchInput';
 import { useGetUserProfile } from '../../hooks/reactQuery';
 
 import {
   MessageNotificationIcon,
   NotificationBingIcon,
-  SearchIcon,
 } from '../../assets/icons';
 import DropdownComingSoon from '../common/DropdownComingSoon';
 import { HoverCard, Group } from '@mantine/core';
