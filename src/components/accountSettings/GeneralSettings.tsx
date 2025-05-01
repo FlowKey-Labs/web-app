@@ -7,7 +7,6 @@ import { useForm, Controller, FormProvider } from 'react-hook-form';
 import Input from '../common/Input';
 import DropdownSelectInput from '../common/Dropdown';
 
-
 interface SettingsFormData {
   companyName: string;
   font: string;
@@ -35,10 +34,11 @@ const GeneralSettings = () => {
   });
 
   const onSubmit = (data: SettingsFormData) => {
-    
+    console.log(data);
   };
 
   const handleFileUpload = (files: File[]) => {
+    console.log(files);
   };
 
   return (

@@ -10,7 +10,7 @@ import Button from '../common/Button';
 import Main from './MainAuth';
 import { useState } from 'react';
 import { EyeClosedIcon, EyeOpenIcon, SubmittingIcon } from '../../assets/icons';
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useSetStaffPassword } from '../../hooks/reactQuery';
 import { notifications } from '@mantine/notifications';
 
@@ -64,7 +64,9 @@ const SetPassword = () => {
           notifications.show({
             color: 'red',
             title: 'Error',
-            message: error?.response?.data?.detail || 'Invalid credentials, please try again.',
+            message:
+              error?.response?.data?.detail ||
+              'Invalid credentials, please try again.',
           });
         },
       }
@@ -73,7 +75,7 @@ const SetPassword = () => {
 
   return (
     <Main title='Set Your Password'>
-      <p className="text-sm">Please set up your password to proceed</p>
+      <p className='text-sm'>Please set up your password to proceed</p>
       <FormProvider {...methods}>
         <form onSubmit={methods.handleSubmit(onSubmit)}>
           <Controller
@@ -161,9 +163,7 @@ const SetPassword = () => {
           />
 
           <Button
-            leftSection={
-              <SubmittingIcon className='w-5 h-5' />
-            }
+            leftSection={<SubmittingIcon className='w-5 h-5' />}
             w={'100%'}
             type='submit'
             h={'50px'}
@@ -179,7 +179,6 @@ const SetPassword = () => {
           </Button>
         </form>
       </FormProvider>
-      
     </Main>
   );
 };

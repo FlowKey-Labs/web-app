@@ -35,7 +35,8 @@ const Notifications = ({
   const [isChecked, setIsChecked] = useState(false);
 
   const onSubmit = (data: NotificationsFormData) => {
-    
+    console.log(data);
+
   };
 
   return (

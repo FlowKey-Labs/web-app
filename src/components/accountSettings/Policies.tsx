@@ -42,7 +42,7 @@ import { notifications } from '@mantine/notifications';
 const Policies = () => {
   const [drawerOpened, setDrawerOpened] = useState(false);
   // Fetch policies from backend
-  const { data: policies = [], isLoading, isError } = useGetPolicies();
+  const { data: policies = [] } = useGetPolicies();
   const [selectedPolicy, setSelectedPolicy] = useState<Policy | null>(null);
 
   // Mutation for creating a policy
@@ -316,7 +316,7 @@ const Policies = () => {
                 <Controller
                   name='policyContent'
                   control={control}
-                  render={({ field }) => (
+                  render={() => (
                     <>
                       <div className='tiptap-toolbar mt-4'>
                         <button

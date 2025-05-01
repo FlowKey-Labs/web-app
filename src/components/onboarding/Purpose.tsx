@@ -9,7 +9,6 @@ import { useOnboardingStore } from '../../store/onboardingStore';
 import { useBusinessProfile } from '../../hooks/reactQuery';
 
 import arrowRightIcon from '../../assets/icons/arrowRight.svg';
-import checkIcon from '../../assets/icons/check.svg';
 
 import { businessPurpose } from '../../utils/dummyData';
 
@@ -164,7 +163,6 @@ const Purpose = () => {
           </Button>
         </div>
       </div>
-      
     </MainOnboarding>
   );
 };
