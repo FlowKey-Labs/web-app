@@ -384,7 +384,7 @@ const StaffDetails = () => {
                       className='w-full bg-gray-100 text-gray-500'
                       readOnly
                       style={{
-                        backgroundColor: '#000000',
+                        backgroundColor: '#80808052',
                         cursor: 'not-allowed',
                       }}
                       onFocus={(e) => {
