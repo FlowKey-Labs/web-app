@@ -1,4 +1,4 @@
-import { useForm, Controller, FormProvider } from 'react-hook-form';
+import { useForm, Controller, FormProvider } from "react-hook-form";
 import {
   Category,
   CreateSessionData,
@@ -43,12 +43,12 @@ const UpdateSession = ({
 }: SessionModalProps) => {
   const { data: sessionData } = useGetSessionDetail(sessionId || '');
   const updateSessionMutation = useUpdateSession();
-  type CustomSessionData = Omit<CreateSessionData, 'repetition'> & {
+  type CustomSessionData = Omit<CreateSessionData, "repetition"> & {
     repetition?: string;
   };
 
   const methods = useForm<Partial<CustomSessionData>>({
-    mode: 'onSubmit',
+    mode: "onSubmit",
     defaultValues: {
       title: '',
       description: '',
@@ -63,13 +63,13 @@ const UpdateSession = ({
       category: undefined,
       location_id: undefined,
       client_ids: [],
-      repeat_end_type: 'never',
+      repeat_end_type: "never",
       repeat_end_date: undefined,
       repeat_occurrences: undefined,
       spots: 0,
-      class_type: 'regular',
-      email: '',
-      phone_number: '',
+      class_type: "regular",
+      email: "",
+      phone_number: "",
       selected_class: undefined,
     },
   });
@@ -102,28 +102,28 @@ const UpdateSession = ({
     });
   };
 
-  const handleEndsOptionChange = (option: 'never' | 'on' | 'after') => {
+  const handleEndsOptionChange = (option: "never" | "on" | "after") => {
     setEndsOption(option);
-    methods.setValue('repeat_end_type', option);
+    methods.setValue("repeat_end_type", option);
 
-    if (option === 'never') {
-      methods.setValue('repeat_end_date', undefined);
-      methods.setValue('repeat_occurrences', undefined);
+    if (option === "never") {
+      methods.setValue("repeat_end_date", undefined);
+      methods.setValue("repeat_occurrences", undefined);
       setValue(null);
-    } else if (option === 'on') {
-      methods.setValue('repeat_occurrences', undefined);
-    } else if (option === 'after') {
-      methods.setValue('repeat_end_date', undefined);
+    } else if (option === "on") {
+      methods.setValue("repeat_occurrences", undefined);
+    } else if (option === "after") {
+      methods.setValue("repeat_end_date", undefined);
       setValue(null);
-      methods.setValue('repeat_occurrences', occurrences);
+      methods.setValue("repeat_occurrences", occurrences);
     }
   };
 
   const handleOccurrencesChange = (change: number) => {
     const newValue = Math.max(2, occurrences + change);
     setOccurrences(newValue);
-    if (endsOption === 'after') {
-      methods.setValue('repeat_occurrences', newValue);
+    if (endsOption === "after") {
+      methods.setValue("repeat_occurrences", newValue);
     }
   };
 
@@ -134,7 +134,7 @@ const UpdateSession = ({
       }
 
       if (sessionData.repeat_end_type) {
-        setEndsOption(sessionData.repeat_end_type as 'never' | 'on' | 'after');
+        setEndsOption(sessionData.repeat_end_type as "never" | "on" | "after");
       }
 
       if (sessionData.repeat_occurrences) {
@@ -195,10 +195,10 @@ const UpdateSession = ({
               repetitionValue += ` for ${sessionData.repeat_occurrences} occurrences`;
             }
           } else {
-            repetitionValue = 'weekly';
+            repetitionValue = "weekly";
           }
-        } else if (sessionData.repeat_unit === 'months') {
-          repetitionValue = 'monthly';
+        } else if (sessionData.repeat_unit === "months") {
+          repetitionValue = "monthly";
         }
       }
 
@@ -240,7 +240,7 @@ const UpdateSession = ({
       }
 
       if (sessionData.repeat_end_type) {
-        setEndsOption(sessionData.repeat_end_type as 'never' | 'on' | 'after');
+        setEndsOption(sessionData.repeat_end_type as "never" | "on" | "after");
       }
 
       if (sessionData.repeat_end_date) {
@@ -259,12 +259,12 @@ const UpdateSession = ({
     try {
       const extractValue = (field: any) => {
         if (field === null || field === undefined) return null;
-        if (typeof field === 'object' && 'value' in field) return field.value;
+        if (typeof field === "object" && "value" in field) return field.value;
         return field;
       };
 
       const dateOnly = data.date
-        ? moment(data.date).format('YYYY-MM-DD')
+        ? moment(data.date).format("YYYY-MM-DD")
         : undefined;
 
       let repeatUnit: RepeatUnit | undefined = undefined;
@@ -274,13 +274,13 @@ const UpdateSession = ({
       let repeatEndDate: string | undefined = undefined;
       let repeatOccurrences: number | undefined = undefined;
 
-      if (data.repetition && data.repetition !== 'none') {
+      if (data.repetition && data.repetition !== "none") {
         repeatEvery = 1;
 
-        if (data.repetition === 'daily') {
-          repeatUnit = 'days';
-        } else if (data.repetition === 'weekly') {
-          repeatUnit = 'weeks';
+        if (data.repetition === "daily") {
+          repeatUnit = "days";
+        } else if (data.repetition === "weekly") {
+          repeatUnit = "weeks";
           repeatOn = selectedWeekdays.length > 0 ? selectedWeekdays : undefined;
         } else if (data.repetition === 'monthly') {
           repeatUnit = 'months';
@@ -298,23 +298,23 @@ const UpdateSession = ({
         }
 
         repeatEndType = endsOption;
-        if (endsOption === 'on' && value) {
-          repeatEndDate = moment(value).format('YYYY-MM-DD');
-        } else if (endsOption === 'after') {
+        if (endsOption === "on" && value) {
+          repeatEndDate = moment(value).format("YYYY-MM-DD");
+        } else if (endsOption === "after") {
           repeatOccurrences = occurrences;
         }
       }
 
       let clientIds: any[] = [];
 
-      if (data.session_type === 'appointment') {
+      if (data.session_type === "appointment") {
         if (Array.isArray(data.client_ids) && data.client_ids.length > 0) {
           const clientId = data.client_ids[0];
           if (clientId !== null && clientId !== undefined) {
             if (
-              typeof clientId === 'object' &&
+              typeof clientId === "object" &&
               clientId !== null &&
-              'value' in clientId
+              "value" in clientId
             ) {
               clientIds = [(clientId as { value: string | number }).value];
             } else {
@@ -329,7 +329,7 @@ const UpdateSession = ({
           (id: any) => id !== null && id !== undefined
         );
         clientIds = clientIds.map((id: any) => {
-          if (typeof id === 'object' && id !== null && 'value' in id) {
+          if (typeof id === "object" && id !== null && "value" in id) {
             return (id as { value: string | number }).value;
           }
           return id;
@@ -381,60 +381,60 @@ const UpdateSession = ({
       onClose();
       methods.reset();
       notifications.show({
-        title: 'Success',
+        title: "Success",
         message:
-          data.session_type === 'class'
-            ? 'Class updated successfully!'
-            : 'Appointment updated successfully!',
-        color: 'green',
-        radius: 'md',
+          data.session_type === "class"
+            ? "Class updated successfully!"
+            : "Appointment updated successfully!",
+        color: "green",
+        radius: "md",
         icon: (
-          <span className='flex items-center justify-center w-6 h-6 rounded-full bg-green-200'>
-            <img src={successIcon} alt='Success' className='w-4 h-4' />
+          <span className="flex items-center justify-center w-6 h-6 rounded-full bg-green-200">
+            <img src={successIcon} alt="Success" className="w-4 h-4" />
           </span>
         ),
         withBorder: true,
         autoClose: 3000,
-        position: 'top-right',
+        position: "top-right",
       });
     } catch (error: any) {
-      console.error('Error:', error);
+      console.error("Error:", error);
 
       if (error.response) {
-        console.error('Error Response Data:', error.response.data);
-        console.error('Error Response Status:', error.response.status);
+        console.error("Error Response Data:", error.response.data);
+        console.error("Error Response Status:", error.response.status);
 
         const errorData = error.response.data;
         const errorMessages = Object.entries(errorData)
           .map(([field, errors]) => `${field}: ${errors}`)
-          .join('\n');
+          .join("\n");
 
         if (methods.formState.errors) {
           Object.keys(error.response.data).forEach((field) => {
             const safeField = field;
             methods.setError(safeField as any, {
-              type: 'manual',
+              type: "manual",
               message: error.response.data[field][0],
             });
           });
         }
 
         notifications.show({
-          title: 'Error',
+          title: "Error",
           message: `Failed to update session: ${errorMessages}`,
-          color: 'red',
-          radius: 'md',
+          color: "red",
+          radius: "md",
           icon: (
-            <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
-              <img src={errorIcon} alt='Error' className='w-4 h-4' />
+            <span className="flex items-center justify-center w-6 h-6 rounded-full bg-red-200">
+              <img src={errorIcon} alt="Error" className="w-4 h-4" />
             </span>
           ),
           withBorder: true,
           autoClose: 3000,
-          position: 'top-right',
+          position: "top-right",
         });
       } else if (error.request) {
-        console.error('Error Request:', error.request);
+        console.error("Error Request:", error.request);
         notifications.show({
           title: 'Connection Error',
           message:
@@ -442,29 +442,29 @@ const UpdateSession = ({
           color: 'red',
           radius: 'md',
           icon: (
-            <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
-              <img src={errorIcon} alt='Error' className='w-4 h-4' />
+            <span className="flex items-center justify-center w-6 h-6 rounded-full bg-red-200">
+              <img src={errorIcon} alt="Error" className="w-4 h-4" />
             </span>
           ),
           withBorder: true,
           autoClose: 3000,
-          position: 'top-right',
+          position: "top-right",
         });
       } else {
-        console.error('Error Message:', error.message || 'Unknown error');
+        console.error("Error Message:", error.message || "Unknown error");
         notifications.show({
-          title: 'Error',
-          message: 'Failed to update session. Please try again.',
-          color: 'red',
-          radius: 'md',
+          title: "Error",
+          message: "Failed to update session. Please try again.",
+          color: "red",
+          radius: "md",
           icon: (
-            <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
-              <img src={errorIcon} alt='Error' className='w-4 h-4' />
+            <span className="flex items-center justify-center w-6 h-6 rounded-full bg-red-200">
+              <img src={errorIcon} alt="Error" className="w-4 h-4" />
             </span>
           ),
           withBorder: true,
           autoClose: 3000,
-          position: 'top-right',
+          position: "top-right",
         });
       }
     }
@@ -475,7 +475,7 @@ const UpdateSession = ({
       <Drawer
         opened={isOpen}
         onClose={onClose}
-        size='lg'
+        size="lg"
         title={
           methods.watch('session_type') === 'class'
             ? 'Update Class'
@@ -483,43 +483,43 @@ const UpdateSession = ({
             ? 'Update Appointment'
             : 'Update Event'
         }
-        position='right'
+        position="right"
         styles={{
           header: {
-            padding: '1.5rem 2rem',
+            padding: "1.5rem 2rem",
             marginBottom: 0,
           },
           title: {
             fontWeight: 600,
-            fontSize: '1.25rem',
+            fontSize: "1.25rem",
           },
           close: {
-            color: '#374151',
+            color: "#374151",
           },
           body: {
             padding: 0,
           },
         }}
       >
-        <div className='flex flex-col'>
+        <div className="flex flex-col">
           <FormProvider {...methods}>
             <form
               onSubmit={(e) => {
                 e.preventDefault();
                 methods.handleSubmit((formData) => onSubmit(formData))(e);
               }}
-              className='flex-1 flex flex-col'
+              className="flex-1 flex flex-col"
             >
-              <div className='flex-1 p-8'>
-                <div className='space-y-6'>
-                  {methods.watch('session_type') === 'class' ? (
-                    <div className='space-y-4'>
-                      <div className='flex flex-col space-y-3'>
+              <div className="flex-1 p-8">
+                <div className="space-y-6">
+                  {methods.watch("session_type") === "class" ? (
+                    <div className="space-y-4">
+                      <div className="flex flex-col space-y-3">
                         <div>
-                          <h2 className='font-medium mb-2'>Class Details</h2>
+                          <h2 className="font-medium mb-2">Class Details</h2>
                         </div>
                         <Controller
-                          name='class_type'
+                          name="class_type"
                           control={methods.control}
                           rules={{ required: true }}
                           render={({ field }) => {
@@ -527,9 +527,9 @@ const UpdateSession = ({
 
                             if (field.value) {
                               if (
-                                typeof field.value === 'object' &&
+                                typeof field.value === "object" &&
                                 field.value !== null &&
-                                'value' in field.value
+                                "value" in field.value
                               ) {
                                 const dropdownItem = field.value as {
                                   value: string | number;
@@ -543,12 +543,12 @@ const UpdateSession = ({
                             return (
                               <DropdownSelectInput
                                 value={stringValue}
-                                label='Class Type'
-                                placeholder='Select Class Type'
+                                label="Class Type"
+                                placeholder="Select Class Type"
                                 options={[
-                                  { label: 'Regular', value: 'regular' },
-                                  { label: 'Private', value: 'private' },
-                                  { label: 'Workshop', value: 'workshop' },
+                                  { label: "Regular", value: "regular" },
+                                  { label: "Private", value: "private" },
+                                  { label: "Workshop", value: "workshop" },
                                 ]}
                                 onSelectItem={(selectedItem) =>
                                   field.onChange(selectedItem)
@@ -559,13 +559,13 @@ const UpdateSession = ({
                         />
 
                         <Controller
-                          name='title'
+                          name="title"
                           control={methods.control}
                           render={({ field }) => (
                             <Input
                               {...field}
-                              label='Class Name'
-                              placeholder='Enter Class Name'
+                              label="Class Name"
+                              placeholder="Enter Class Name"
                             />
                           )}
                         />
@@ -585,13 +585,13 @@ const UpdateSession = ({
                           )}
                         />
                         <Controller
-                          name='category'
+                          name="category"
                           control={methods.control}
                           render={({ field }) => {
                             return (
                               <DropdownSelectInput
-                                label='Class Category'
-                                placeholder='Select category'
+                                label="Class Category"
+                                placeholder="Select category"
                                 options={
                                   categoriesData?.map((category: Category) => ({
                                     label: category.name,
@@ -599,75 +599,78 @@ const UpdateSession = ({
                                   })) || []
                                 }
                                 value={
-                                  field.value ? field.value.toString() : ''
+                                  field.value ? field.value.toString() : ""
                                 }
                                 onSelectItem={(selectedItem) => {
                                   field.onChange(
-                                    selectedItem ? selectedItem.value : ''
+                                    selectedItem ? selectedItem.value : ""
                                   );
                                 }}
                               />
                             );
                           }}
                         />
-                        <div className='space-y-4'>
-                          <h3 className='text-lg font-bold text-gray-700'>
+                        <div className="space-y-4">
+                          <h3 className="text-lg font-bold text-gray-700">
                             Class Schedule
                           </h3>
                           <Controller
-                            name='date'
+                            name="date"
                             control={methods.control}
                             render={({ field }) => (
                               <Input
                                 {...field}
-                                label='Date'
-                                placeholder='YYYY-MM-DD'
-                                type='date'
+                                label="Date"
+                                placeholder="YYYY-MM-DD"
+                                type="date"
+                                value={field.value}
                               />
                             )}
                           />
-                          <div className='grid grid-cols-2 gap-4'>
+                          <div className="grid grid-cols-2 gap-4">
                             <Controller
-                              name='start_time'
+                              name="start_time"
                               control={methods.control}
                               render={({ field }) => (
                                 <Input
                                   {...field}
-                                  label='Start Time'
-                                  placeholder='HH:MM'
-                                  type='time'
+                                  label="Start Time"
+                                  placeholder="HH:MM"
+                                  type="time"
+                                  value={field.value}
                                 />
                               )}
                             />
                             <Controller
-                              name='end_time'
+                              name="end_time"
                               control={methods.control}
                               render={({ field }) => (
                                 <Input
                                   {...field}
-                                  label='End Time'
-                                  placeholder='HH:MM'
-                                  type='time'
+                                  label="End Time"
+                                  placeholder="HH:MM"
+                                  type="time"
+                                  value={field.value}
                                 />
                               )}
                             />
                           </div>
                         </div>
                         <Controller
-                          name='repetition'
+                          name="repetition"
                           control={methods.control}
                           render={({ field }) => (
                             <div>
                               <DropdownSelectInput
                                 value={field.value}
-                                label='Set Repetition'
-                                placeholder='Does not repeat'
+                                label="Set Repetition"
+                                placeholder="Does not repeat"
                                 options={[
-                                  { label: 'Does not repeat', value: 'none' },
-                                  { label: 'Daily', value: 'daily' },
-                                  { label: 'Weekly', value: 'weekly' },
-                                  { label: 'Monthly', value: 'monthly' },
-                                  { label: 'Custom', value: 'custom' },
+                                  { label: "Does not repeat", value: "none" },
+                                  { label: "Daily", value: "daily" },
+                                  { label: "Weekly", value: "weekly" },
+                                  { label: "Monthly", value: "monthly" },
+                                  { label: "Custom", value: "custom" },
                                   // Add a dynamic option for custom repetition if it exists
                                   ...(field.value &&
                                   ![
@@ -739,27 +742,27 @@ const UpdateSession = ({
                             </div>
                           )}
                         />
-                        <div className='flex justify-between items-center gap-4'>
+                        <div className="flex justify-between items-center gap-4">
                           <Controller
-                            name='spots'
+                            name="spots"
                             control={methods.control}
                             render={({ field }) => (
                               <Input
                                 {...field}
-                                label='Slots'
-                                placeholder='Enter number of slots'
-                                type='number'
+                                label="Slots"
+                                placeholder="Enter number of slots"
+                                type="number"
                               />
                             )}
                           />
 
-                          <div className='w-full mt-4'>
+                          <div className="w-full mt-4">
                             <Controller
-                              name='staff'
+                              name="staff"
                               control={methods.control}
                               render={({ field }) => {
                                 const staffId = field.value
-                                  ? typeof field.value === 'object' &&
+                                  ? typeof field.value === "object" &&
                                     field.value !== null
                                     ? (field.value as any).id
                                     : field.value
@@ -776,18 +779,18 @@ const UpdateSession = ({
 
                                 const staffValue = selectedStaff
                                   ? selectedStaff.id.toString()
-                                  : typeof field.value === 'string' ||
-                                    typeof field.value === 'number'
+                                  : typeof field.value === "string" ||
+                                    typeof field.value === "number"
                                   ? field.value.toString()
-                                  : '';
+                                  : "";
 
                                 return (
                                   <DropdownSelectInput
-                                    label='Assign Staff'
-                                    placeholder='Select Staff'
+                                    label="Assign Staff"
+                                    placeholder="Select Staff"
                                     options={
                                       isStaffLoading
-                                        ? [{ label: 'Loading...', value: '' }]
+                                        ? [{ label: "Loading...", value: "" }]
                                         : staffData?.map((staff: any) => ({
                                             label: `${staff.user?.first_name} ${staff.user?.last_name}`,
                                             value: staff.id.toString(),
@@ -796,7 +799,7 @@ const UpdateSession = ({
                                     value={staffValue}
                                     onSelectItem={(selectedItem) => {
                                       field.onChange(
-                                        selectedItem ? selectedItem.value : ''
+                                        selectedItem ? selectedItem.value : ""
                                       );
                                     }}
                                   />
@@ -807,17 +810,17 @@ const UpdateSession = ({
                         </div>
                       </div>
                       <Controller
-                        name='client_ids'
+                        name="client_ids"
                         control={methods.control}
                         render={({ field }) => {
                           return (
                             <DropdownSelectInput
-                              label='Clients'
-                              placeholder='Select clients'
+                              label="Clients"
+                              placeholder="Select clients"
                               singleSelect={false}
                               options={
                                 isClientsLoading
-                                  ? [{ label: 'Loading...', value: '' }]
+                                  ? [{ label: "Loading...", value: "" }]
                                   : clientsData?.map((client: any) => ({
                                       label: `${client.first_name} ${client.last_name}`,
                                       value: client.id.toString(),
@@ -894,7 +897,7 @@ const UpdateSession = ({
                   ) : methods.watch('session_type') === 'appointment' ? (
                     <div className='space-y-4'>
                       <div>
-                        <h2 className='font-medium mb-2'>
+                        <h2 className="font-medium mb-2">
                           Appointment Details
                         </h2>
                       </div>
@@ -926,16 +929,16 @@ const UpdateSession = ({
                         )}
                       />
                       <Controller
-                        name='client_ids'
+                        name="client_ids"
                         control={methods.control}
                         render={({ field }) => {
                           return (
                             <DropdownSelectInput
-                              label='Name'
-                              placeholder='Select client'
+                              label="Name"
+                              placeholder="Select client"
                               options={
                                 isClientsLoading
-                                  ? [{ label: 'Loading...', value: '' }]
+                                  ? [{ label: "Loading...", value: "" }]
                                   : clientsData?.map((client: any) => ({
                                       label: `${client.first_name} ${client.last_name}`,
                                       value: client.id.toString(),
@@ -1011,75 +1014,75 @@ const UpdateSession = ({
                       />
                       <div className='flex items-center gap-4'>
                         <Controller
-                          name='email'
+                          name="email"
                           control={methods.control}
                           render={({ field }) => (
                             <Input
                               {...field}
-                              label='Email'
-                              placeholder='Enter client email'
+                              label="Email"
+                              placeholder="Enter client email"
                             />
                           )}
                         />
                         <Controller
-                          name='phone_number'
+                          name="phone_number"
                           control={methods.control}
                           render={({ field }) => (
                             <Input
                               {...field}
-                              label='Phone'
-                              placeholder='Enter phone number'
+                              label="Phone"
+                              placeholder="Enter phone number"
                             />
                           )}
                         />
                       </div>
 
                       <Controller
-                        name='date'
+                        name="date"
                         control={methods.control}
                         render={({ field }) => (
                           <Input
                             {...field}
-                            label='Date'
-                            placeholder='YYYY-MM-DD'
-                            type='date'
+                            label="Date"
+                            placeholder="YYYY-MM-DD"
+                            type="date"
                           />
                         )}
                       />
 
-                      <div className='grid grid-cols-2 gap-4'>
+                      <div className="grid grid-cols-2 gap-4">
                         <Controller
-                          name='start_time'
+                          name="start_time"
                           control={methods.control}
                           render={({ field }) => (
                             <Input
                               {...field}
-                              label='Start Time'
-                              placeholder='HH:MM'
-                              type='time'
+                              label="Start Time"
+                              placeholder="HH:MM"
+                              type="time"
                             />
                           )}
                         />
                         <Controller
-                          name='end_time'
+                          name="end_time"
                           control={methods.control}
                           render={({ field }) => (
                             <Input
                               {...field}
-                              label='End Time'
-                              placeholder='HH:MM'
-                              type='time'
+                              label="End Time"
+                              placeholder="HH:MM"
+                              type="time"
                             />
                           )}
                         />
                       </div>
 
                       <Controller
-                        name='staff'
+                        name="staff"
                         control={methods.control}
                         render={({ field }) => {
                           const staffId = field.value
-                            ? typeof field.value === 'object' &&
+                            ? typeof field.value === "object" &&
                               field.value !== null
                               ? (field.value as any).id
                               : field.value
@@ -1095,18 +1098,18 @@ const UpdateSession = ({
 
                           const staffValue = selectedStaff
                             ? selectedStaff.id.toString()
-                            : typeof field.value === 'string' ||
-                              typeof field.value === 'number'
+                            : typeof field.value === "string" ||
+                              typeof field.value === "number"
                             ? field.value.toString()
-                            : '';
+                            : "";
 
                           return (
                             <DropdownSelectInput
-                              label='Assign Staff'
-                              placeholder='Select Staff'
+                              label="Assign Staff"
+                              placeholder="Select Staff"
                               options={
                                 isStaffLoading
-                                  ? [{ label: 'Loading...', value: '' }]
+                                  ? [{ label: "Loading...", value: "" }]
                                   : staffData?.map((staff: any) => ({
                                       label: `${staff.user?.first_name} ${staff.user?.last_name}`,
                                       value: staff.id.toString(),
@@ -1115,7 +1118,7 @@ const UpdateSession = ({
                               value={staffValue}
                               onSelectItem={(selectedItem) => {
                                 field.onChange(
-                                  selectedItem ? selectedItem.value : ''
+                                  selectedItem ? selectedItem.value : ""
                                 );
                               }}
                             />
@@ -1333,12 +1336,12 @@ const UpdateSession = ({
                 </div>
               </div>
 
-              <div className=' p-8'>
-                <div className='flex justify-end gap-4'>
+              <div className=" p-8">
+                <div className="flex justify-end gap-4">
                   <Button
-                    variant='filled'
-                    color='#1D9B5E'
-                    radius='8px'
+                    variant="filled"
+                    color="#1D9B5E"
+                    radius="8px"
                     disabled={
                       methods.formState.isSubmitting ||
                       updateSessionMutation.isPending
@@ -1367,34 +1370,34 @@ const UpdateSession = ({
       <Modal
         opened={isRepetitionModalOpen}
         onClose={closeRepetitionModal}
-        title='Set Repetition'
-        size='md'
+        title="Set Repetition"
+        size="md"
         centered
         styles={{
           header: {
-            padding: '1rem 1.5rem',
+            padding: "1rem 1.5rem",
           },
           body: {
-            padding: '1rem 1.5rem',
+            padding: "1rem 1.5rem",
           },
           overlay: {
-            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            backgroundColor: "rgba(0, 0, 0, 0.5)",
           },
           content: {
             boxShadow:
-              '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
-            borderRadius: '8px',
+              "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
+            borderRadius: "8px",
           },
         }}
       >
-        <div className='space-y-4'>
-          <div className='space-y-2'>
-            <p className='text-base font-medium text-gray-700'>Repeat On</p>
-            <div className='flex gap-2'>
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <p className="text-base font-medium text-gray-700">Repeat On</p>
+            <div className="flex gap-2">
               {repeatDays.map((dayNum) => (
                 <button
                   key={dayNum}
-                  type='button'
+                  type="button"
                   className={`h-10 w-10 rounded-full flex items-center justify-center text-sm font-medium transition-colors ${
                     selectedWeekdays.includes(days[dayNum])
                       ? 'bg-secondary text-white hover:bg-secondary/90'
@@ -1411,28 +1414,28 @@ const UpdateSession = ({
             </div>
           </div>
 
-          <div className='space-y-2'>
-            <p className='text-[16px] font-[400]'>Ends</p>
-            <div className='flex gap-8'>
-              {['never', 'on', 'after'].map((option) => (
-                <label key={option} className='flex items-center gap-2'>
-                  <div className='relative flex items-center'>
+          <div className="space-y-2">
+            <p className="text-[16px] font-[400]">Ends</p>
+            <div className="flex gap-8">
+              {["never", "on", "after"].map((option) => (
+                <label key={option} className="flex items-center gap-2">
+                  <div className="relative flex items-center">
                     <input
-                      type='checkbox'
+                      type="checkbox"
                       checked={endsOption === option}
                       onChange={() =>
                         handleEndsOptionChange(
-                          option as 'never' | 'on' | 'after'
+                          option as "never" | "on" | "after"
                         )
                       }
-                      className='w-4 h-4 border-2 p-2 border-secondary focus:ring-2 focus:border-none focus:ring-secondary appearance-none rounded-full cursor-pointer bg-white'
+                      className="w-4 h-4 border-2 p-2 border-secondary focus:ring-2 focus:border-none focus:ring-secondary appearance-none rounded-full cursor-pointer bg-white"
                     />
-                    <div className='absolute inset-0 flex items-center justify-center pointer-events-none'>
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                       <div
                         className={`w-3 h-3 rounded-full transition-colors ${
                           endsOption === option
-                            ? 'bg-secondary'
-                            : 'bg-transparent'
+                            ? "bg-secondary"
+                            : "bg-transparent"
                         }`}
                       ></div>
                     </div>
@@ -1445,56 +1448,56 @@ const UpdateSession = ({
             </div>
           </div>
 
-          {endsOption === 'on' && (
-            <div className='flex justify-between gap-4'>
-              <div className='flex justify-center items-center cursor-pointer w-[133px] h-[43px] bg-cardsBg text-center rounded-lg text-sm'>
+          {endsOption === "on" && (
+            <div className="flex justify-between gap-4">
+              <div className="flex justify-center items-center cursor-pointer w-[133px] h-[43px] bg-cardsBg text-center rounded-lg text-sm">
                 <DatePickerInput
-                  variant='unstyled'
+                  variant="unstyled"
                   value={value}
                   onChange={(newDate) => {
                     setValue(newDate);
                     if (newDate) {
-                      const formattedDate = newDate.toISOString().split('T')[0];
-                      methods.setValue('repeat_end_date', formattedDate);
+                      const formattedDate = newDate.toISOString().split("T")[0];
+                      methods.setValue("repeat_end_date", formattedDate);
                     } else {
-                      methods.setValue('repeat_end_date', undefined);
+                      methods.setValue("repeat_end_date", undefined);
                     }
                   }}
                   onClick={(e) => e.stopPropagation()}
-                  placeholder='Select date'
-                  valueFormat='MMM DD, YYYY'
+                  placeholder="Select date"
+                  valueFormat="MMM DD, YYYY"
                 />
               </div>
             </div>
           )}
-          {endsOption === 'after' && (
-            <div className='flex justify-between gap-4'>
-              <div className='flex items-center gap-2'>
-                <span className='flex justify-center items-center cursor-pointer w-[133px] h-[43px] bg-cardsBg text-center rounded-lg text-sm'>
+          {endsOption === "after" && (
+            <div className="flex justify-between gap-4">
+              <div className="flex items-center gap-2">
+                <span className="flex justify-center items-center cursor-pointer w-[133px] h-[43px] bg-cardsBg text-center rounded-lg text-sm">
                   {occurrences} occurrences
                 </span>
-                <div className='flex flex-col'>
+                <div className="flex flex-col">
                   <button
                     onClick={() => handleOccurrencesChange(1)}
-                    className='p-1 rounded-full hover:bg-gray-100'
+                    className="p-1 rounded-full hover:bg-gray-100"
                   >
-                    <img src={ChevronUp} alt='increase' className='w-4 h-4' />
+                    <img src={ChevronUp} alt="increase" className="w-4 h-4" />
                   </button>
                   <button
                     onClick={() => handleOccurrencesChange(-1)}
-                    className='p-1 rounded-full hover:bg-gray-100'
+                    className="p-1 rounded-full hover:bg-gray-100"
                   >
-                    <img src={ChevronDown} alt='decrease' className='w-4 h-4' />
+                    <img src={ChevronDown} alt="decrease" className="w-4 h-4" />
                   </button>
                 </div>
               </div>
             </div>
           )}
 
-          <div className='flex justify-end gap-3 mt-6 pt-4 border-t'>
+          <div className="flex justify-end gap-3 mt-6 pt-4 border-t">
             <button
-              type='button'
-              className='px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 '
+              type="button"
+              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 "
               onClick={() => {
                 closeRepetitionModal();
               }}
@@ -1502,8 +1505,8 @@ const UpdateSession = ({
               Cancel
             </button>
             <button
-              type='button'
-              className='px-4 py-2 text-sm font-medium text-white bg-secondary rounded-md hover:bg-secondary/90 '
+              type="button"
+              className="px-4 py-2 text-sm font-medium text-white bg-secondary rounded-md hover:bg-secondary/90 "
               onClick={() => {
                 let repetitionDescription = '';
 
@@ -1516,7 +1519,7 @@ const UpdateSession = ({
 
                   repetitionDescription = `Weekly on ${weekdayLabels}`;
                 } else {
-                  repetitionDescription = 'Weekly';
+                  repetitionDescription = "Weekly";
                 }
 
                 if (endsOption === 'on' && value) {
@@ -1530,8 +1533,8 @@ const UpdateSession = ({
                 methods.setValue('repetition', repetitionDescription as any);
 
                 setTimeout(() => {
-                  const currentValue = methods.getValues('repetition');
-                  methods.setValue('repetition', currentValue as any);
+                  const currentValue = methods.getValues("repetition");
+                  methods.setValue("repetition", currentValue as any);
                 }, 0);
 
                 methods.setValue('repeat_unit', 'weeks');
@@ -1547,13 +1550,13 @@ const UpdateSession = ({
                   methods.setValue('repeat_occurrences', undefined);
                 } else if (endsOption === 'on' && value) {
                   methods.setValue(
-                    'repeat_end_date',
-                    moment(value).format('YYYY-MM-DD')
+                    "repeat_end_date",
+                    moment(value).format("YYYY-MM-DD")
                   );
-                  methods.setValue('repeat_occurrences', undefined);
-                } else if (endsOption === 'after') {
-                  methods.setValue('repeat_end_date', undefined);
-                  methods.setValue('repeat_occurrences', occurrences);
+                  methods.setValue("repeat_occurrences", undefined);
+                } else if (endsOption === "after") {
+                  methods.setValue("repeat_end_date", undefined);
+                  methods.setValue("repeat_occurrences", occurrences);
                 }
 
                 closeRepetitionModal();

@@ -17,6 +17,7 @@ import { useGetSessions } from "../../hooks/reactQuery";
 import AddSession from "../sessions/AddSession";
 import "./index.css";
 import AddClients from "../clients/AddClient";
+import UpdateSession from "../sessions/UpdateSession";
 
 const headerToolbar = {
   start: "title",
@@ -119,6 +120,8 @@ function mapSessionToFullCalendarEvents(session: any): FullCalendarEvent[] {
   return events;
 }
 
+// ...existing code...
+
 const CalendarView = () => {
   const calendarRef = useRef<FullCalendar>(null);
   const [currentView, setCurrentView] = useState<CalendarView>(
@@ -127,6 +130,8 @@ const CalendarView = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [isSessionDrawerOpen, setIsSessionDrawerOpen] = useState(false);
+  const [sessionID, setSessionID] = useState<string>();
   const [popupData, setPopupData] = useState<{
     title: string;
     description: string;
@@ -206,6 +211,7 @@ const CalendarView = () => {
       event: {
         extendedProps: { session: { date: string } };
         title: string;
+        start: Date;
       };
     }) => {
       const time = parse(eventInfo.timeText, "HH:mm", new Date());
@@ -221,7 +227,7 @@ const CalendarView = () => {
             <div
               className={cn("rounded-full w-2 h-2 bg-green-400", {
                 "bg-gray-500": isPast(
-                  new Date(eventInfo.event.extendedProps.session.date)
+                  new Date(eventInfo.event.start)
                 ),
               })}
             />
@@ -353,9 +359,10 @@ const CalendarView = () => {
               onClose={() => setPopupData(null)}
               handleRemoveEvent={handleRemoveEvent}
               data={popupData.extendedProps}
-              handleAddClient={() => {
+              handleEditEvent={(id) => {
+                setSessionID(id);
                 setPopupData(null);
-                setIsModalOpen(true);
+                setIsSessionDrawerOpen(true);
               }}
             />
           </div>
@@ -365,6 +372,11 @@ const CalendarView = () => {
       <AddClients
         isOpen={isDrawerOpen}
         onClose={() => setIsDrawerOpen(false)}
+      />
+      <UpdateSession
+        isOpen={isSessionDrawerOpen}
+        onClose={() => setIsSessionDrawerOpen(false)}
+        sessionId={sessionID|| ''}
       />
     </div>
   );
