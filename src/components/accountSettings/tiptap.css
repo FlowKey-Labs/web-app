@@ -1,0 +1,55 @@
+.tiptap-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.tiptap-toolbar button,
+.tiptap-toolbar select,
+.tiptap-toolbar input[type='color'] {
+  border: 1px solid #e0e0e0;
+  background: #fff;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+.tiptap-toolbar button.is-active {
+  background: #1d9b5e;
+  color: #fff;
+  border-color: #1d9b5e;
+}
+.tiptap-toolbar select {
+  min-width: 60px;
+}
+.tiptap-editor {
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  padding: 12px;
+  background: #fafafa;
+  font-size: 16px;
+  display: flex;
+  flex-direction: column;
+}
+.tiptap-editor ul,
+.tiptap-editor ol {
+  list-style: initial;
+  padding-left: 2em;
+  margin: 0 0 1em 0;
+}
+.tiptap-editor ul {
+  list-style-type: disc;
+}
+.tiptap-editor ol {
+  list-style-type: decimal;
+}
+.tiptap-editor p {
+  flex: 1 1 auto;
+  height: 100%;
+  margin: 0;
+  box-sizing: border-box;
+}
+
+.ProseMirror-focused {
+  outline: none;
+}

@@ -1536,8 +1536,6 @@ const UpdateSession = ({
 
                 methods.setValue('repeat_unit', 'weeks');
 
-                console.log('Setting repeat_on to:', selectedWeekdays);
-
                 methods.setValue('repeat_on', selectedWeekdays);
 
                 methods.trigger('repeat_on');

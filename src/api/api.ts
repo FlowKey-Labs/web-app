@@ -1,14 +1,15 @@
-import { api } from "../lib/axios";
-import axios from "axios";
+import { api } from '../lib/axios';
+import axios from 'axios';
 
-import { CreateSessionData, Session } from "../types/sessionTypes";
-import { CreateLocationData } from "../types/location";
+import { CreateSessionData, Session } from '../types/sessionTypes';
+import { CreateLocationData } from '../types/location';
 
 const BASE_URL = import.meta.env.VITE_APP_BASEURL;
 
 const GOOGLE_API_KEY = import.meta.env.VITE_APP_GOOGLE_API_KEY;
 
 const END_POINTS = {
+  
   AUTH: {
     REGISTER: `${BASE_URL}/api/auth/register/`,
     LOGIN: `${BASE_URL}/api/auth/login/`,
@@ -54,6 +55,10 @@ const END_POINTS = {
       `${BASE_URL}/api/dashboard/clients/analytics/${id}/`,
     CANCEL_SESSION: (id: string) =>
       `${BASE_URL}/api/dashboard/upcoming-sessions/${id}/`,
+  },
+  POLICY: {
+    POLICIES: `${BASE_URL}/api/policy/policies/`,
+    POLICY_DETAIL: (id: number) => `${BASE_URL}/api/policy/policies/${id}/`,
   },
   GOOGLE: {
     PLACES_AUTOCOMPLETE: `https://maps.googleapis.com/maps/api/place/autocomplete/json`,
@@ -136,7 +141,7 @@ const searchCities = async (query: string) => {
   const { data } = await axios.get(END_POINTS.GOOGLE.PLACES_AUTOCOMPLETE, {
     params: {
       input: query,
-      types: "(cities)",
+      types: '(cities)',
       key: GOOGLE_API_KEY,
     },
   });
@@ -297,21 +302,21 @@ const get_sessions = async (filters?: SessionFilters): Promise<Session[]> => {
 
     if (filters.sessionTypes && filters.sessionTypes.length > 0) {
       filters.sessionTypes.forEach((type: string) => {
-        params.append("session_type", type);
+        params.append('session_type', type);
       });
     }
 
     if (filters.categories && filters.categories.length > 0) {
       filters.categories.forEach((category: string) => {
-        params.append("category", category);
+        params.append('category', category);
       });
     }
 
     if (filters.dateRange && filters.dateRange[0] && filters.dateRange[1]) {
       const startDate = new Date(filters.dateRange[0]);
       const endDate = new Date(filters.dateRange[1]);
-      params.append("start_date", startDate.toISOString().split("T")[0]);
-      params.append("end_date", endDate.toISOString().split("T")[0]);
+      params.append('start_date', startDate.toISOString().split('T')[0]);
+      params.append('end_date', endDate.toISOString().split('T')[0]);
     }
 
     if (params.toString()) {
@@ -338,13 +343,22 @@ const get_session_categories = async () => {
   return data;
 };
 
-const create_session_category = async (categoryData: { name: string; description?: string }) => {
+const create_session_category = async (categoryData: {
+  name: string;
+  description?: string;
+}) => {
   const { data } = await api.post(END_POINTS.SESSION.CATEGORIES, categoryData);
   return data;
 };
 
-const update_session_category = async (id: number, categoryData: { name: string; description?: string }) => {
-  const { data } = await api.patch(`${END_POINTS.SESSION.CATEGORIES}${id}/`, categoryData);
+const update_session_category = async (
+  id: number,
+  categoryData: { name: string; description?: string }
+) => {
+  const { data } = await api.patch(
+    `${END_POINTS.SESSION.CATEGORIES}${id}/`,
+    categoryData
+  );
   return data;
 };
 
@@ -366,7 +380,7 @@ const mark_client_attended = async (clientId: string, sessionId: string) => {
     client: clientId,
     session: sessionId,
     attended: true,
-    status: "attended",
+    status: 'attended',
   });
   return data;
 };
@@ -379,7 +393,7 @@ const mark_client_not_attended = async (
     client: clientId,
     session: sessionId,
     attended: false,
-    status: "missed",
+    status: 'missed',
   });
   return data;
 };
@@ -397,7 +411,6 @@ const update_attendance_status = async (
       status: status,
     }
   );
-  console.log("Attendance status update response:", data);
   return data;
 };
 
@@ -486,7 +499,7 @@ const get_places_autocomplete = async (input: string) => {
     params: {
       input,
       key: GOOGLE_API_KEY,
-      types: "geocode",
+      types: 'geocode',
     },
   });
   return data.predictions;
@@ -539,7 +552,7 @@ const get_groups = async () => {
     const { data } = await api.get(`${BASE_URL}/api/client/list-groups/`);
     return data;
   } catch (error) {
-    console.error("Error fetching groups:", error);
+    console.error('Error fetching groups:', error);
     return [];
   }
 };
@@ -598,6 +611,34 @@ const remove_member_from_group = async (groupId: string, clientId: string) => {
   const { data } = await api.post(END_POINTS.CLIENTS.REMOVE_MEMBER(groupId), {
     client_id: clientId,
   });
+  return data;
+};
+
+// Policy API functions
+
+const getPolicies = async () => {
+  const { data } = await api.get(END_POINTS.POLICY.POLICIES);
+  return data;
+};
+
+const createPolicy = async (policyData: { title: string; content: string }) => {
+  const { data } = await api.post(END_POINTS.POLICY.POLICIES, policyData);
+  return data;
+};
+
+const updatePolicy = async (
+  id: number,
+  policyData: { title?: string; content?: string }
+) => {
+  const { data } = await api.patch(
+    END_POINTS.POLICY.POLICY_DETAIL(id),
+    policyData
+  );
+  return data;
+};
+
+const deletePolicy = async (id: number) => {
+  const { data } = await api.delete(END_POINTS.POLICY.POLICY_DETAIL(id));
   return data;
 };
 
@@ -661,4 +702,8 @@ export {
   get_group_members,
   add_member_to_group,
   remove_member_from_group,
+  getPolicies,
+  createPolicy,
+  updatePolicy,
+  deletePolicy,
 };

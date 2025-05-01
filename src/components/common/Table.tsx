@@ -92,23 +92,13 @@ const Table = <T extends object>({
               key={row.id}
               className={`${rowHoverBg} hover:scale-[1.01] transition-all duration-200 ${
                 row.getIsSelected() ? 'bg-flowkeySecondary' : ''
-              }`}
+              } ${onRowClick ? 'cursor-pointer' : ''}`}
+              onClick={() => onRowClick?.(row.original)}
             >
               {row.getVisibleCells().map((cell) => (
                 <td
                   key={cell.id}
-                  className={`px-6 py-3 text-sm text-start text-primary ${
-                    onRowClick && cell.column.id !== 'select'
-                      ? 'cursor-pointer'
-                      : ''
-                  }`}
-                  onClick={(e) => {
-                    if (cell.column.id === 'select') {
-                      e.stopPropagation();
-                      return;
-                    }
-                    onRowClick?.(row.original);
-                  }}
+                  className={`px-6 py-3 text-sm text-start text-primary`}
                 >
                   {flexRender(cell.column.columnDef.cell, cell.getContext())}
                 </td>

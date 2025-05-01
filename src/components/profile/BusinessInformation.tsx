@@ -14,8 +14,6 @@ import {
 
 import profileGeneralIcon from '../../assets/icons/profileGeneral.svg';
 import greenProfileGeneralIcon from '../../assets/icons/greenProfileGeneral.svg';
-import grayPhoto from '../../assets/images/greyPhoto.png';
-import editIcon from '../../assets/icons/editWhite.svg';
 
 export interface ProfileFormData {
   business_name: string;
@@ -186,19 +184,21 @@ const BusinessInformation = ({
                         <div className='max-w-[100px] max-h-[100px]'>
                           <div className='flex items-center justify-center w-[80px] h-[80px] rounded-full bg-secondary text-white text-3xl font-bold select-none mx-auto'>
                             {(() => {
-                              const name = methods.getValues('business_name')?.trim() || '';
+                              const name =
+                                methods.getValues('business_name')?.trim() ||
+                                '';
                               if (!name) return 'BN';
                               const words = name.split(' ').filter(Boolean);
-                              if (words.length === 1) return words[0].substring(0, 2).toUpperCase();
-                              return (
-                                words[0][0] + words[1][0]
-                              ).toUpperCase();
+                              if (words.length === 1)
+                                return words[0].substring(0, 2).toUpperCase();
+                              return (words[0][0] + words[1][0]).toUpperCase();
                             })()}
                           </div>
                         </div>
                         <div>
                           <h3 className='text-[16px] font-[600] text-primary font-sans'>
-                            {methods.getValues('business_name') || 'Add Business Name'}
+                            {methods.getValues('business_name') ||
+                              'Add Business Name'}
                           </h3>
                           <p className='text-gray-500 text-sm font-sans'>
                             {methods.getValues('about') || 'Add About'}
