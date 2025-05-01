@@ -14,8 +14,6 @@ import {
 
 import profileGeneralIcon from '../../assets/icons/profileGeneral.svg';
 import greenProfileGeneralIcon from '../../assets/icons/greenProfileGeneral.svg';
-import locationIcon from '../../assets/icons/location.svg';
-import greenLocationIcon from '../../assets/icons/greenLocation.svg';
 import grayPhoto from '../../assets/images/greyPhoto.png';
 import editIcon from '../../assets/icons/editWhite.svg';
 
@@ -68,7 +66,7 @@ const BusinessInformation = ({
   const onSubmit = (data: ProfileFormData) => {
     if (!businessProfile?.[0]?.id) {
       console.error('No business profile ID found');
-      
+
       notifications.show({
         title: 'Error',
         message: 'Business profile not found. Please try again.',
@@ -96,7 +94,7 @@ const BusinessInformation = ({
           contact_phone: data.contact_phone,
           contact_email: data.contact_email,
           about: data.about,
-        }
+        },
       },
       {
         onSuccess: () => {
@@ -171,7 +169,7 @@ const BusinessInformation = ({
                 <h3 className='text-primary text-sm font-[600]'>
                   General Information
                 </h3>
-                <p className='text-gray-500 text-sm'>
+                <p className='text-gray-500 text-sm font-sans'>
                   Tell us more about your business
                 </p>
               </div>
@@ -183,36 +181,28 @@ const BusinessInformation = ({
                     onSubmit={methods.handleSubmit(onSubmit)}
                     className='w-full'
                   >
-                    <div className='flex items-center h-[160px]'>
-                      <div className='flex flex-col space-y-2 text-center mr-8'>
+                    <div className='flex items-center h-[160px] font-sans'>
+                      <div className='flex flex-col space-y-2 text-center mr-8 font-sans'>
                         <div className='max-w-[100px] max-h-[100px]'>
-                          <div className='relative items-center justify-center p-2 rounded-full'>
-                            <img
-                              src={grayPhoto}
-                              alt='grayPhoto'
-                              className='w-[80px] h-[80px] rounded-full object-cover'
-                            />
-                            <div
-                              className='absolute inset-0 rounded-full border-4 border-secondary'
-                              style={{
-                                clipPath:
-                                  'polygon(0% 0%, 50% 20%, 50% 100%, 0% 100%, 0% 75%)',
-                              }}
-                            ></div>
-                            <div className='absolute bg-secondary rounded-full p-2 -right-2 top-1 cursor-pointer'>
-                              <img
-                                src={editIcon}
-                                alt='editIcon'
-                                className='w-4 h-4'
-                              />
-                            </div>
+                          <div className='flex items-center justify-center w-[80px] h-[80px] rounded-full bg-secondary text-white text-3xl font-bold select-none mx-auto'>
+                            {(() => {
+                              const name = methods.getValues('business_name')?.trim() || '';
+                              if (!name) return 'BN';
+                              const words = name.split(' ').filter(Boolean);
+                              if (words.length === 1) return words[0].substring(0, 2).toUpperCase();
+                              return (
+                                words[0][0] + words[1][0]
+                              ).toUpperCase();
+                            })()}
                           </div>
                         </div>
                         <div>
-                          <h3 className='text-[16px] font-[600] text-primary'>
-                            RayFish School
+                          <h3 className='text-[16px] font-[600] text-primary font-sans'>
+                            {methods.getValues('business_name') || 'Add Business Name'}
                           </h3>
-                          <p className='text-gray-500 text-sm'>Swim</p>
+                          <p className='text-gray-500 text-sm font-sans'>
+                            {methods.getValues('about') || 'Add About'}
+                          </p>
                         </div>
                       </div>
                       <div className='h-[70%] w-[2px] bg-gray-300'></div>
@@ -298,8 +288,8 @@ const BusinessInformation = ({
                                 name='about'
                                 label='About'
                                 placeholder='Tell us about your business'
-                                type='text'
-                                className='h-32'
+                                type='textarea'
+                                rows={4}
                               />
                             )}
                           />
@@ -325,88 +315,6 @@ const BusinessInformation = ({
                           Save & Continue
                         </Button>
                       </div>
-                    </div>
-                  </form>
-                </div>
-              </div>
-            </Accordion.Panel>
-          </Accordion.Item>
-        </Accordion>
-
-        <Accordion
-          transitionDuration={300}
-          variant='contained'
-          chevronPosition='right'
-          radius='md'
-          value={openedAccordion}
-          onChange={setOpenedAccordion}
-        >
-          <Accordion.Item value='location'>
-            <Accordion.Control
-              icon={
-                <div className='rounded-full bg-cardsBg p-2 ml-4'>
-                  <img
-                    src={
-                      openedAccordion === 'location'
-                        ? greenLocationIcon
-                        : locationIcon
-                    }
-                    alt='locationIcon'
-                    className='w-6 h-6'
-                  />
-                </div>
-              }
-            >
-              <div className='flex flex-col gap-1 ml-6'>
-                <h3 className='text-primary text-sm font-[600]'>
-                  Set up your Location
-                </h3>
-                <p className='text-gray-500 text-sm'>
-                  Add your business Location, hours of operation, etc
-                </p>
-              </div>
-            </Accordion.Control>
-            <Accordion.Panel>
-              <div className='px-6 py-4'>
-                <div className='flex items-center'>
-                  <form
-                    onSubmit={methods.handleSubmit(onSubmit)}
-                    className='w-full'
-                  >
-                    <div className='flex items-center justify-center w-full gap-4'>
-                      <Controller
-                        name='address'
-                        control={methods.control}
-                        render={({ field }) => (
-                          <Input
-                            {...field}
-                            name='address'
-                            label='Address'
-                            placeholder='address'
-                            type='text'
-                          />
-                        )}
-                      />
-                    </div>
-                    <div className='flex py-4 mt-4 gap-6 justify-end'>
-                      <Button
-                        size='sm'
-                        radius='md'
-                        type='button'
-                        variant='outline'
-                        color='red'
-                        onClick={() => {}}
-                      >
-                        Cancel
-                      </Button>
-                      <Button
-                        size='sm'
-                        radius='md'
-                        type='submit'
-                        color='#1D9B5E'
-                      >
-                        Save & Continue
-                      </Button>
                     </div>
                   </form>
                 </div>

@@ -251,8 +251,9 @@ export const BusinessLocation = () => {
         <Button
           leftSection={<IconPlus size={16} />}
           onClick={handleAddLocation}
-          color='green'
+          color='#1D9B5E'
           radius='md'
+          size='sm'
         >
           Add Location
         </Button>
@@ -289,7 +290,8 @@ export const BusinessLocation = () => {
               p='lg'
               radius='md'
               withBorder
-              className='transition-all duration-200 hover:shadow-md flex flex-col h-full'
+              bg='#F8F7F7'
+              className='font-sans'
             >
               {location.is_primary && (
                 <div className='absolute top-2 right-2 bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-lg'>
@@ -297,18 +299,18 @@ export const BusinessLocation = () => {
                 </div>
               )}
               <div className='flex-grow'>
-                <Text fw={500} size='lg' className='mb-2'>
+                <Text fw={500} size='md' className='mb-2 font-sans'>
                   {location.name}
                 </Text>
                 <div className='flex items-start mb-3'>
                   <IconMapPin size={16} className='text-gray-500 mr-2 mt-1' />
-                  <Text size='sm' c='dimmed'>
+                  <Text size='sm' c='dimmed' className='font-sans'>
                     {location.address}, {location.city}, {location.state}{' '}
                     {location.zip_code}, {location.country}
                   </Text>
                 </div>
                 {location.notes && (
-                  <Text size='sm' className='mb-4 italic text-gray-600'>
+                  <Text size='sm' className='mb-4 text-gray-600 font-sans'>
                     {location.notes}
                   </Text>
                 )}
@@ -317,8 +319,8 @@ export const BusinessLocation = () => {
               <Group justify='space-between' mt='auto' pt='md'>
                 {!location.is_primary ? (
                   <Button
-                    variant='light'
-                    color='green'
+                    variant='outline'
+                    color='#1D9B5E'
                     size='xs'
                     radius='md'
                     onClick={() => handleSetPrimary(location.id)}
@@ -334,7 +336,7 @@ export const BusinessLocation = () => {
                   <ActionIcon
                     color='blue'
                     variant='light'
-                    radius='md'
+                    radius='xl'
                     onClick={() => handleEditLocation(location)}
                     className='hover:bg-blue-50'
                   >
@@ -343,7 +345,7 @@ export const BusinessLocation = () => {
                   <ActionIcon
                     color='red'
                     variant='light'
-                    radius='md'
+                    radius='xl'
                     onClick={() => handleDeleteClick(location.id)}
                     className='hover:bg-red-50'
                   >
@@ -398,7 +400,11 @@ export const BusinessLocation = () => {
                 control={methods.control}
                 rules={{ required: 'City is required' }}
                 render={({ field }) => (
-                  <Input {...field} label='City' placeholder='Nairobi' />
+                  <Input
+                    {...field}
+                    label='City'
+                    placeholder='Nairobi'
+                  />
                 )}
               />
               <Controller
@@ -432,7 +438,11 @@ export const BusinessLocation = () => {
                 control={methods.control}
                 rules={{ required: 'Country is required' }}
                 render={({ field }) => (
-                  <Input {...field} label='Country' placeholder='Kenya' />
+                  <Input
+                    {...field}
+                    label='Country'
+                    placeholder='Kenya'
+                  />
                 )}
               />
             </div>
@@ -461,14 +471,14 @@ export const BusinessLocation = () => {
                     checked={value}
                     onChange={(e) => onChange(e.currentTarget.checked)}
                     label='Set as primary location'
-                    color='green'
+                    color='#1D9B5E'
                   />
                 )}
               />
             </div>
 
             <Group justify='flex-end' mt='xl'>
-              <Button color='green' type='submit' radius='md'>
+              <Button color='#1D9B5E' type='submit' radius='md' size='sm'>
                 {editingId ? 'Update' : 'Add'} Location
               </Button>
             </Group>

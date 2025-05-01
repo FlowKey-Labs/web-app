@@ -9,10 +9,10 @@ import Button from '../common/Button';
 import Main from '../authentication/MainAuth';
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
-import NotificationToast from '../common/NotificationToast';
 
 import { EyeClosedIcon, EyeOpenIcon } from '../../assets/icons';
 import { useLoginUser } from '../../hooks/reactQuery';
+import { notifications } from '@mantine/notifications';
 
 interface FormData {
   email: string;
@@ -24,12 +24,6 @@ const Login = () => {
   const [isHovered, setIsHovered] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const togglePasswordVisibility = () => setShowPassword(!showPassword);
-  const [notification, setNotification] = useState<{
-    show: boolean;
-    type: 'success' | 'error';
-    title: string;
-    description: string;
-  }>({ show: false, type: 'success', title: '', description: '' });
 
   const methods = useForm<FormData>({
     defaultValues: {
@@ -48,11 +42,10 @@ const Login = () => {
       },
       {
         onSuccess: () => {
-          setNotification({
-            show: true,
-            type: 'success',
+          notifications.show({
+            color: 'green',
             title: 'Success!',
-            description: 'Login successful'
+            message: 'Login successful',
           });
           setTimeout(() => {
             navigate('/dashboard');
@@ -60,11 +53,10 @@ const Login = () => {
         },
         onError: (error: any) => {
           console.error('Login error:', error);
-          setNotification({
-            show: true,
-            type: 'error',
+          notifications.show({
+            color: 'red',
             title: 'Error',
-            description: error?.response?.data?.detail || 'Invalid credentials, please try again.'
+            message: error?.response?.data?.detail || 'Invalid credentials, please try again.',
           });
         },
       }
@@ -162,16 +154,7 @@ const Login = () => {
           </Button>
         </form>
       </FormProvider>
-      {notification.show && (
-        <NotificationToast
-          type={notification.type}
-          title={notification.title}
-          description={notification.description}
-          onClose={() => setNotification(prev => ({ ...prev, show: false }))}
-
-          autoClose={5000}
-        />
-      )}
+      
     </Main>
   );
 };
