@@ -1,8 +1,28 @@
 import { create } from "zustand";
 
+export interface Role {
+  id: string;
+  name: string;
+  description: string;
+  can_view_staff: boolean;
+  can_create_staff: boolean;
+  can_edit_staff: boolean;
+  can_view_clients: boolean;
+  can_create_clients: boolean;
+  can_edit_clients: boolean;
+  can_view_sessions: boolean;
+  can_create_sessions: boolean;
+  can_edit_sessions: boolean;
+  can_manage_attendance: boolean;
+  can_manage_profile: boolean;
+  can_manage_settings: boolean;
+  can_view_calendar: boolean;
+  business: boolean;
+}
+
 interface AuthState {
   accessToken: string | null;
-  user: { id: number; email: string; is_staff: boolean } | null;
+  user: { id: number; email: string; is_staff: boolean; role: Role } | null;
   setAuth: (
     token: string,
     refreshToken: string,
