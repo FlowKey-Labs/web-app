@@ -21,11 +21,13 @@ type Category = {
   id: number;
   name: string;
   description?: string;
+  subcategories?: string[] | string; // Allow string or string array
 };
 
 type CategoryFormData = {
   name: string;
   description: string;
+  subcategories: string; // Use string for comma-separated input initially
 };
 
 const Categories = () => {
@@ -41,6 +43,7 @@ const Categories = () => {
     defaultValues: {
       name: '',
       description: '',
+      subcategories: '', // Add default value for subcategories
     },
   });
 
@@ -50,6 +53,7 @@ const Categories = () => {
     try {
       setIsLoading(true);
       const data = await get_session_categories();
+      // Removed console.log from here
       setCategories(data);
     } catch (error) {
       console.error('Error fetching categories:', error);
@@ -80,6 +84,7 @@ const Categories = () => {
     reset({
       name: '',
       description: '',
+      subcategories: '', // Reset subcategories
     });
     setIsEditing(false);
     setCurrentCategory(null);
@@ -90,6 +95,12 @@ const Categories = () => {
     reset({
       name: category.name,
       description: category.description || '',
+      // Handle string or array for form population
+      subcategories: Array.isArray(category.subcategories)
+        ? category.subcategories.join(', ')
+        : typeof category.subcategories === 'string'
+        ? category.subcategories
+        : '',
     });
     setIsEditing(true);
     setCurrentCategory(category);
@@ -143,10 +154,16 @@ const Categories = () => {
     }
   };
 
-  const onSubmit = async (data: CategoryFormData) => {
+  const onSubmit = async (formData: CategoryFormData) => {
+    // Prepare data for API, splitting comma-separated string into an array
+    const apiData = {
+      ...formData,
+      subcategories: formData.subcategories.split(',').map(s => s.trim()).filter(s => s), // Split and clean
+    };
+
     try {
       if (isEditing && currentCategory) {
-        await update_session_category(currentCategory.id, data);
+        await update_session_category(currentCategory.id, apiData);
         notifications.show({
           color: 'green',
           title: 'Success',
@@ -162,7 +179,7 @@ const Categories = () => {
           position: 'top-right',
         });
       } else {
-        await create_session_category(data);
+        await create_session_category(apiData);
         notifications.show({
           color: 'green',
           title: 'Success',
@@ -230,6 +247,7 @@ const Categories = () => {
       ) : (
         <div className='bg-white rounded-lg p-4'>
           <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
+            {/* Removed console.log from here */}
             {categories.map((category) => (
               <div
                 key={category.id}
@@ -265,6 +283,34 @@ const Categories = () => {
                     {category.description}
                   </p>
                 )}
+                {/* Display Subcategories */}
+                {(() => {
+                  let subcategoriesToDisplay: string[] = [];
+                  if (typeof category.subcategories === 'string' && category.subcategories.length > 0) {
+                    // Split the string into an array
+                    subcategoriesToDisplay = category.subcategories.split(',').map(s => s.trim()).filter(s => s);
+                  } else if (Array.isArray(category.subcategories) && category.subcategories.length > 0) {
+                    // Use the array directly (assuming it contains strings based on API data)
+                    subcategoriesToDisplay = category.subcategories.filter(s => typeof s === 'string' && s.trim().length > 0);
+                  }
+                  // If it's an empty array or undefined/null, subcategoriesToDisplay remains []
+
+                  if (subcategoriesToDisplay.length > 0) {
+                    return (
+                      <div className='mt-3'>
+                        <p className='text-xs font-medium text-gray-500 mb-1'>Subcategories:</p>
+                        <ul className='list-disc list-inside pl-1 space-y-1'>
+                          {subcategoriesToDisplay.map((sub, index) => (
+                            <li key={index} className='text-gray-600 text-sm font-sans'>
+                              {sub}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    );
+                  }
+                  return null; // Return null if no subcategories to display
+                })()}
               </div>
             ))}
           </div>
@@ -303,6 +349,20 @@ const Categories = () => {
           placeholder='Enter category description'
           type='textarea'
           rows={4}
+        />
+      )}
+    />
+    {/* Subcategories Input */}
+    <Controller
+      name='subcategories'
+      control={methods.control}
+      render={({ field }) => (
+        <Input
+          {...field}
+          label='Subcategories (Optional)'
+          placeholder='Enter subcategories, separated by commas'
+          type='textarea'
+          rows={3}
         />
       )}
     />

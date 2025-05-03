@@ -36,7 +36,6 @@ const Notifications = ({
 
   const onSubmit = (data: NotificationsFormData) => {
     console.log(data);
-
   };
 
   return (
