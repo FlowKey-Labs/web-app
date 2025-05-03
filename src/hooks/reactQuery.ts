@@ -33,7 +33,21 @@ import {
   create_session,
   get_sessions,
   get_session_detail,
+  // Session Categories API functions
   get_session_categories,
+  create_session_category,
+  update_session_category,
+  delete_session_category,
+  // Session Subcategories API functions
+  get_session_subcategories,
+  create_session_subcategory,
+  update_session_subcategory,
+  delete_session_subcategory,
+  // Session Skills API functions
+  get_session_skills,
+  create_session_skill,
+  update_session_skill,
+  delete_session_skill,
   get_session_analytics,
   get_client_analytics,
   get_class_sessions,
@@ -517,12 +531,207 @@ export const useGetSessionDetail = (id: string) => {
   });
 };
 
+// Session related hooks
+
 export const useGetSessionCategories = () => {
   return useQuery({
     queryKey: ["session_categories"],
     queryFn: get_session_categories,
     staleTime: 1000 * 60 * 10,
     refetchOnWindowFocus: false,
+  });
+};
+
+export const useCreateSessionCategory = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      name,
+      description,
+    }: {
+      name: string;
+      description?: string;
+    }) => create_session_category({ name, description }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["session_categories"] });
+    },
+    onError: (error) => {
+      console.error("Failed to create session category:", error);
+    },
+  });
+};
+
+export const useUpdateSessionCategory = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      id,
+      name,
+      description,
+    }: {
+      id: number;
+      name: string;
+      description?: string;
+    }) => update_session_category(id, { name, description }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["session_categories"] });
+    },
+    onError: (error) => {
+      console.error("Failed to update session category:", error);
+    },
+  });
+};
+
+export const useDeleteSessionCategory = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      id,
+    }: {
+      id: number;
+    }) => delete_session_category(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["session_categories"] });
+    },
+    onError: (error) => {
+      console.error("Failed to delete session category:", error);
+    },
+  });
+};
+
+export const useGetSessionSubCategories = () => {
+  return useQuery({
+    queryKey: ["session_subcategories"],
+    queryFn: get_session_subcategories,
+    staleTime: 1000 * 60 * 10,
+    refetchOnWindowFocus: false,
+  });
+};
+
+export const useCreateSessionSubCategory = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      name,
+      description,
+      category_id,
+    }: {
+      name: string;
+      description?: string;
+      category_id: number;
+    }) => create_session_subcategory({ name, description, category_id }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["session_subcategories"] });
+    },
+    onError: (error) => {
+      console.error("Failed to create session subcategory:", error);
+    },
+  });
+};
+
+export const useUpdateSessionSubCategory = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      id,
+      name,
+      description,
+      category_id,
+    }: {
+      id: number;
+      name: string;
+      description?: string;
+      category_id: number;
+    }) => update_session_subcategory(id, { name, description, category_id }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["session_subcategories"] });
+    },
+    onError: (error) => {
+      console.error("Failed to update session subcategory:", error);
+    },
+  });
+};
+
+export const useDeleteSessionSubCategory = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      id,
+    }: {
+      id: number;
+    }) => delete_session_subcategory(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["session_subcategories"] });
+    },
+    onError: (error) => {
+      console.error("Failed to delete session subcategory:", error);
+    },
+  });
+};
+
+export const useGetSessionSkills = () => {
+  return useQuery({
+    queryKey: ["session_skills"],
+    queryFn: get_session_skills,
+    staleTime: 1000 * 60 * 10,
+    refetchOnWindowFocus: false,
+  });
+};
+
+export const useCreateSessionSkill = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      name,
+      description,
+    }: {
+      name: string;
+      description?: string;
+    }) => create_session_skill({ name, description }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["session_skills"] });
+    },
+    onError: (error) => {
+      console.error("Failed to create session skill:", error);
+    },
+  });
+};
+
+export const useUpdateSessionSkill = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      id,
+      name,
+      description,
+    }: {
+      id: number;
+      name: string;
+      description?: string;
+    }) => update_session_skill(id, { name, description }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["session_skills"] });
+    },
+    onError: (error) => {
+      console.error("Failed to update session skill:", error);
+    },
+  });
+};
+
+export const useDeleteSessionSkill = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      id,
+    }: {
+      id: number;
+    }) => delete_session_skill(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["session_skills"] });
+    },
+    onError: (error) => {
+      console.error("Failed to delete session skill:", error);
+    },
   });
 };
 
@@ -820,3 +1029,4 @@ export const useRemoveMemberFromGroup = () => {
     },
   });
 };
+
