@@ -1,8 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useForm, FormProvider, Controller } from 'react-hook-form';
 import { ActionIcon, Drawer, Group, Modal, Text } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
-import { useNavigate } from 'react-router-dom';
 import successIcon from '../../assets/icons/success.svg';
 import errorIcon from '../../assets/icons/error.svg';
 
@@ -17,6 +16,7 @@ import {
 import EmptyDataPage from '../common/EmptyDataPage';
 import Button from '../common/Button';
 import { IconEdit, IconPlus, IconTrash } from '@tabler/icons-react';
+import CategoryDetails from './CategoryDetails';
 
 type Category = {
   id: number;
@@ -30,7 +30,6 @@ type CategoryFormData = {
 };
 
 const Categories = () => {
-  const navigate = useNavigate();
   const [categoryToDelete, setCategoryToDelete] = useState<Category | null>(
     null
   );
@@ -39,8 +38,15 @@ const Categories = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [currentCategory, setCurrentCategory] = useState<Category | null>(null);
   const [emptyModalOpen, setEmptyModalOpen] = useState(true);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(
+    null
+  );
 
-  const { data: categoriesData, isLoading, refetch } = useGetSessionCategories();
+  const {
+    data: categoriesData,
+    isLoading,
+    refetch,
+  } = useGetSessionCategories();
   const { mutateAsync: createCategory } = useCreateSessionCategory();
   const { mutateAsync: updateCategory } = useUpdateSessionCategory();
   const { mutateAsync: deleteCategory } = useDeleteSessionCategory();
@@ -177,11 +183,12 @@ const Categories = () => {
     }
   };
 
-
   return (
     <div className='w-full bg-white rounded-lg p-6 shadow-sm'>
       <div className='flex justify-between items-center mb-6'>
-        <h2 className='text-xl font-semibold'>Session Categories</h2>
+        <h2 className='text-xl font-semibold'>
+          {selectedCategoryId ? 'Session Subcategories' : 'Session Categories'}
+        </h2>
         <Button
           onClick={handleAddCategory}
           variant='filled'
@@ -190,11 +197,16 @@ const Categories = () => {
           size='sm'
           leftSection={<IconPlus size={16} />}
         >
-          Add Category
+          {selectedCategoryId ? 'Add Subcategory' : 'Add Category'}
         </Button>
       </div>
 
-      {isLoading ? (
+      {selectedCategoryId ? (
+        <CategoryDetails
+          categoryId={selectedCategoryId}
+          onBack={() => setSelectedCategoryId(null)}
+        />
+      ) : isLoading ? (
         <div className='flex justify-center items-center h-64'>
           <p>Loading categories...</p>
         </div>
@@ -203,7 +215,7 @@ const Categories = () => {
           title='No Categories Found'
           description="You haven't created any categories yet. Categories help you organize your sessions."
           buttonText='Add Category'
-          onButtonClick= {() => {
+          onButtonClick={() => {
             handleAddCategory();
             setEmptyModalOpen(false);
           }}
@@ -217,7 +229,7 @@ const Categories = () => {
               <div
                 key={category.id}
                 className='border border-gray-200 bg-cardsBg rounded-lg p-4 shadow-sm transition-shadow font-sans cursor-pointer'
-                onClick={() => navigate(`/categories/${category.id}`)}
+                onClick={() => setSelectedCategoryId(category.id)}
               >
                 <div className='flex justify-between items-start'>
                   <h3 className='text-sm font-medium text-primary font-sans'>

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   useGetPolicies,
   useCreatePolicy,
@@ -38,6 +38,9 @@ import { truncateHtmlContent, getUserFullName } from '../../utils/policy';
 import { Modal } from '@mantine/core';
 import { format } from 'date-fns';
 import { notifications } from '@mantine/notifications';
+import { createColumnHelper } from '@tanstack/react-table';
+
+const columnHelper = createColumnHelper<Policy>();
 
 const Policies = () => {
   const [drawerOpened, setDrawerOpened] = useState(false);
@@ -80,98 +83,116 @@ const Policies = () => {
   const [policyToDelete, setPolicyToDelete] = useState<Policy | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
-  const columns = [
-    { accessorKey: 'title', header: 'Title' },
-    {
-      accessorKey: 'content',
-      header: 'Policy',
-      cell: (row: any) => (
-        <span>{truncateHtmlContent(row.getValue(), 80)}</span>
-      ),
-    },
-    {
-      accessorKey: 'sessions_count',
-      header: 'Sessions Accepted',
-      cell: (row: any) => row.getValue() ?? 0,
-    },
-    {
-      accessorKey: 'last_modified',
-      header: 'Last Modified',
-      cell: (row: any) => format(new Date(row.getValue()), 'yyyy-MM-dd'),
-    },
-    {
-      accessorKey: 'modified_by',
-      header: 'Modified By',
-      cell: (row: any) => getUserFullName(row.getValue()),
-    },
-    {
-      id: 'actions',
-      header: '',
-      cell: (row: any) => {
-        const currentPolicy = row.row.original;
-        return (
-          <div onClick={(e) => e.stopPropagation()}>
-            <Group justify='center'>
-              <Menu
-                width={120}
-                shadow='md'
-                position='bottom'
-                radius='md'
-                withArrow
-                offset={4}
-              >
-                <Menu.Target>
-                  <img
-                    src={actionOptionIcon}
-                    alt='Options'
-                    className='w-4 h-4 cursor-pointer'
-                  />
-                </Menu.Target>
-                <Menu.Dropdown>
-                  <Menu.Item
-                    color='#228be6'
-                    leftSection={
-                      <img src={editIcon} alt='Edit' className='w-4 h-4' />
-                    }
-                    onClick={() => {
-                      if (!currentPolicy) return;
-                      setSelectedPolicy(currentPolicy);
-                      methods.setValue(
-                        'policyTitle',
-                        currentPolicy.title ?? ''
-                      );
-                      methods.setValue(
-                        'policyContent',
-                        currentPolicy.content ?? ''
-                      );
-                      if (editor) {
-                        editor.commands.setContent(currentPolicy.content || '');
+  const columns = useMemo(
+    () => [
+      columnHelper.accessor('title', {
+        header: 'Title',
+      }),
+      columnHelper.accessor('content', {
+        header: 'Policy',
+        cell: (info) => <span>{truncateHtmlContent(info.getValue(), 80)}</span>,
+      }),
+      columnHelper.accessor('sessions_count', {
+        header: 'Sessions Accepted',
+        cell: (info) => info.getValue() ?? 0,
+      }),
+      columnHelper.accessor('last_modified', {
+        header: 'Last Modified',
+        cell: (info) => format(new Date(info.getValue()), 'yyyy-MM-dd'),
+      }),
+      columnHelper.accessor('modified_by', {
+        header: 'Modified By',
+        cell: (info) => getUserFullName(info.getValue()),
+      }),
+      columnHelper.display({
+        id: 'actions',
+        header: '',
+        cell: (info) => {
+          const currentPolicy = info.row.original;
+          return (
+            <div onClick={(e) => e.stopPropagation()}>
+              <Group justify='center'>
+                <Menu
+                  width={120}
+                  shadow='md'
+                  position='bottom'
+                  radius='md'
+                  withArrow
+                  offset={4}
+                >
+                  <Menu.Target>
+                    <img
+                      src={actionOptionIcon}
+                      alt='Options'
+                      className='w-4 h-4 cursor-pointer'
+                    />
+                  </Menu.Target>
+                  <Menu.Dropdown>
+                    <Menu.Item
+                      color='#228be6'
+                      leftSection={
+                        <img src={editIcon} alt='Edit' className='w-4 h-4' />
                       }
-                      setDrawerOpened(true);
-                    }}
-                  >
-                    Edit
-                  </Menu.Item>
-                  <Menu.Item
-                    color='red'
-                    leftSection={
-                      <img src={deleteIcon} alt='Delete' className='w-4 h-4' />
-                    }
-                    onClick={() => {
-                      setPolicyToDelete(currentPolicy);
-                      setIsDeleteModalOpen(true);
-                    }}
-                  >
-                    Delete
-                  </Menu.Item>
-                </Menu.Dropdown>
-              </Menu>
-            </Group>
-          </div>
-        );
-      },
-    },
-  ];
+                      onClick={() => {
+                        if (!currentPolicy) return;
+                        setSelectedPolicy(currentPolicy);
+                        methods.setValue(
+                          'policyTitle',
+                          currentPolicy.title ?? ''
+                        );
+                        methods.setValue(
+                          'policyContent',
+                          currentPolicy.content ?? ''
+                        );
+                        if (editor) {
+                          editor.commands.setContent(
+                            currentPolicy.content || ''
+                          );
+                        }
+                        setDrawerOpened(true);
+                      }}
+                    >
+                      Edit
+                    </Menu.Item>
+                    <Menu.Item
+                      color='red'
+                      leftSection={
+                        <img
+                          src={deleteIcon}
+                          alt='Delete'
+                          className='w-4 h-4'
+                        />
+                      }
+                      onClick={() => {
+                        setPolicyToDelete(currentPolicy);
+                        setIsDeleteModalOpen(true);
+                      }}
+                    >
+                      Delete
+                    </Menu.Item>
+                  </Menu.Dropdown>
+                </Menu>
+              </Group>
+            </div>
+          );
+        },
+      }),
+    ],
+    [
+      actionOptionIcon,
+      editIcon,
+      deleteIcon,
+      methods.setValue,
+      editor?.commands,
+      setSelectedPolicy,
+      setDrawerOpened,
+      setPolicyToDelete,
+      setIsDeleteModalOpen,
+      truncateHtmlContent,
+      getUserFullName,
+      format,
+    ]
+  );
 
   const onSubmit = (data: { policyTitle: string; policyContent: string }) => {
     if (selectedPolicy) {

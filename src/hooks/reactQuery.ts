@@ -614,12 +614,12 @@ export const useCreateSessionSubCategory = () => {
     mutationFn: ({
       name,
       description,
-      category_id,
+      category,
     }: {
       name: string;
       description?: string;
-      category_id: number;
-    }) => create_session_subcategory({ name, description, category_id }),
+      category: number;
+    }) => create_session_subcategory({ name, description, category }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["session_subcategories"] });
     },
@@ -636,13 +636,13 @@ export const useUpdateSessionSubCategory = () => {
       id,
       name,
       description,
-      category_id,
+      category,
     }: {
       id: number;
       name: string;
       description?: string;
-      category_id: number;
-    }) => update_session_subcategory(id, { name, description, category_id }),
+      category: number;
+    }) => update_session_subcategory(id, { name, description, category }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["session_subcategories"] });
     },
@@ -684,10 +684,12 @@ export const useCreateSessionSkill = () => {
     mutationFn: ({
       name,
       description,
+      subcategory,
     }: {
       name: string;
       description?: string;
-    }) => create_session_skill({ name, description }),
+      subcategory: number;
+    }) => create_session_skill({ name, description, subcategory }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["session_skills"] });
     },
@@ -704,11 +706,13 @@ export const useUpdateSessionSkill = () => {
       id,
       name,
       description,
+      subcategory,
     }: {
       id: number;
       name: string;
       description?: string;
-    }) => update_session_skill(id, { name, description }),
+      subcategory: number;
+    }) => update_session_skill(id, { name, description, subcategory }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["session_skills"] });
     },

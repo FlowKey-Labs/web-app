@@ -372,7 +372,7 @@ const delete_session_category = async (id: number) => {
 const create_session_subcategory = async (subcategoryData : {
   name: string;
   description?: string;
-  category_id: number;
+  category: number;
 }) => {
   const { data } = await api.post(END_POINTS.SESSION.SUBCATEGORIES, subcategoryData);
   return data;
@@ -385,7 +385,7 @@ const get_session_subcategories = async () => {
 
 const update_session_subcategory = async (
   id: number,
-  subcategoryData: { name: string; description?: string; category_id: number }
+  subcategoryData: { name: string; description?: string; category: number }
 ) => {
   const { data } = await api.patch(
     `${END_POINTS.SESSION.SUBCATEGORIES}${id}/`,
@@ -402,6 +402,7 @@ const delete_session_subcategory = async (id: number) => {
 const create_session_skill = async (skillData: {
   name: string;
   description?: string;
+  subcategory: number;
 }) => {
   const { data } = await api.post(END_POINTS.SESSION.SUBSKILLS, skillData);
   return data;
@@ -414,7 +415,7 @@ const get_session_skills = async () => {
 
 const update_session_skill = async (
   id: number,
-  skillData: { name: string; description?: string }
+  skillData: { name: string; description?: string; subcategory: number }
 ) => {
   const { data } = await api.patch(
     `${END_POINTS.SESSION.SUBSKILLS}${id}/`,
