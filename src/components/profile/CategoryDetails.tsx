@@ -46,6 +46,7 @@ type Category = {
 
 type SkillFormData = {
   skills: Array<{
+    id?: number;
     name: string;
     description: string;
   }>;
@@ -83,6 +84,11 @@ const CategoryDetails = ({
   const [isSkillModalOpen, setIsSkillModalOpen] = useState(false);
   const [currentSubcategoryForSkill, setCurrentSubcategoryForSkill] =
     useState<Subcategory | null>(null);
+
+  const [isSkillEditing, setIsSkillEditing] = useState(false);
+  const [currentSkill, setCurrentSkill] = useState<Skill | null>(null);
+  const [skillToDelete, setSkillToDelete] = useState<Skill | null>(null);
+  const [isSkillDeleteModalOpen, setIsSkillDeleteModalOpen] = useState(false);
 
   const methods = useForm<Subcategory>({
     defaultValues: {
@@ -281,6 +287,8 @@ const CategoryDetails = ({
 
   const handleAddSkill = (subcategory: Subcategory) => {
     setCurrentSubcategoryForSkill(subcategory);
+    setIsSkillEditing(false);
+    setCurrentSkill(null);
     addSkillMethods.reset({
       skills: [{ name: '', description: '' }],
       subcategory: subcategory.id,
@@ -288,22 +296,79 @@ const CategoryDetails = ({
     setIsSkillModalOpen(true);
   };
 
+  const handleEditSkill = (skills: Skill[]) => {
+    if (!skills.length) return;
+    setIsSkillEditing(true);
+    setCurrentSubcategoryForSkill(
+      allSubcategories?.find(
+        (sub: Subcategory) => sub.id === skills[0].subcategory
+      ) || null
+    );
+    addSkillMethods.reset({
+      skills: skills.map((skill: Skill) => ({
+        id: skill.id,
+        name: skill.name,
+        description: skill.description || '',
+      })),
+      subcategory: skills[0].subcategory,
+    });
+    setIsSkillModalOpen(true);
+  };
+
+  const handleDeleteSkill = (skill: Skill) => {
+    setSkillToDelete(skill);
+    setIsDeleteModalOpen(true);
+  };
+
   const onSubmitAddSkill = async (formData: SkillFormData) => {
     setIsSubmitting(true);
     try {
-      const createPromises = formData.skills.map((skill) =>
-        createSkill({
-          ...skill,
-          subcategory: formData.subcategory,
-        })
+      const updatePromises: Promise<any>[] = [];
+      const createPromises: Promise<any>[] = [];
+      const deletePromises: Promise<any>[] = [];
+
+      const currentSkills =
+        subcategorySkillsMap.get(formData.subcategory) || [];
+
+      formData.skills.forEach((skill) => {
+        if (skill.id) {
+          updatePromises.push(
+            updateSkill({
+              id: skill.id,
+              name: skill.name,
+              description: skill.description,
+              subcategory: formData.subcategory,
+            })
+          );
+        } else {
+          createPromises.push(
+            createSkill({
+              name: skill.name,
+              description: skill.description,
+              subcategory: formData.subcategory,
+            })
+          );
+        }
+      });
+
+      const skillsToDelete = currentSkills.filter(
+        (currentSkill) => !formData.skills.some((s) => s.id === currentSkill.id)
       );
 
-      await Promise.all(createPromises);
+      skillsToDelete.forEach((skill) => {
+        deletePromises.push(deleteSkill({ id: skill.id }));
+      });
+
+      await Promise.all([
+        ...updatePromises,
+        ...createPromises,
+        ...deletePromises,
+      ]);
 
       notifications.show({
         color: 'green',
         title: 'Success',
-        message: `${formData.skills.length} skill(s) created successfully`,
+        message: `Skills updated successfully`,
         radius: 'md',
         icon: (
           <span className='flex items-center justify-center w-6 h-6 rounded-full bg-green-200'>
@@ -318,11 +383,11 @@ const CategoryDetails = ({
       setIsSkillModalOpen(false);
       refetchSkills();
     } catch (error) {
-      console.error('Error creating skills:', error);
+      console.error('Error saving skills:', error);
       notifications.show({
         color: 'red',
         title: 'Error',
-        message: 'Failed to create some skills. Please try again.',
+        message: 'Failed to update skills. Please try again.',
         radius: 'md',
         icon: (
           <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
@@ -335,6 +400,7 @@ const CategoryDetails = ({
       });
     } finally {
       setIsSubmitting(false);
+      setIsSkillEditing(false);
     }
   };
 
@@ -423,6 +489,13 @@ const CategoryDetails = ({
                       leftSection={
                         <img src={editIcon} alt='Edit' className='w-4 h-4' />
                       }
+                      onClick={() => {
+                        const skills =
+                          subcategorySkillsMap.get(subcategory.id) || [];
+                        if (skills.length > 0) {
+                          handleEditSkill(skills);
+                        }
+                      }}
                     >
                       Edit Skills
                     </Menu.Item>
@@ -602,8 +675,12 @@ const CategoryDetails = ({
       {/* modal for creating skill  */}
       <Modal
         opened={isSkillModalOpen}
-        onClose={() => setIsSkillModalOpen(false)}
-        title='Add New Skills'
+        onClose={() => {
+          setIsSkillModalOpen(false);
+          setIsSkillEditing(false);
+          setCurrentSkill(null);
+        }}
+        title={isSkillEditing ? 'Edit Skill' : 'Add New Skills'}
         centered
         radius='md'
         size='lg'
@@ -621,7 +698,55 @@ const CategoryDetails = ({
                 {fields.length > 1 && (
                   <button
                     type='button'
-                    onClick={() => remove(index)}
+                    onClick={async () => {
+                      const skillId = fields[index]?.id;
+                      // Only call deleteSkill if skillId is a real backend id (not undefined or empty string)
+                      if (isSkillEditing && typeof skillId === 'number') {
+                        try {
+                          await deleteSkill({ id: skillId });
+                          notifications.show({
+                            color: 'green',
+                            title: 'Success',
+                            message: 'Skill deleted successfully',
+                            radius: 'md',
+                            icon: (
+                              <span className='flex items-center justify-center w-6 h-6 rounded-full bg-green-200'>
+                                <img
+                                  src={successIcon}
+                                  alt='Success'
+                                  className='w-4 h-4'
+                                />
+                              </span>
+                            ),
+                            withBorder: true,
+                            autoClose: 3000,
+                            position: 'top-right',
+                          });
+                        } catch (error) {
+                          notifications.show({
+                            color: 'red',
+                            title: 'Error',
+                            message:
+                              'Failed to delete skill. Please try again.',
+                            radius: 'md',
+                            icon: (
+                              <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+                                <img
+                                  src={errorIcon}
+                                  alt='Error'
+                                  className='w-4 h-4'
+                                />
+                              </span>
+                            ),
+                            withBorder: true,
+                            autoClose: 3000,
+                            position: 'top-right',
+                          });
+                          return;
+                        }
+                      }
+                      remove(index);
+                    }}
                     className='absolute top-2 right-2 text-red-500 hover:text-red-700 rounded-full p-1 border border-red-500 '
                   >
                     <svg
@@ -682,16 +807,18 @@ const CategoryDetails = ({
             />
 
             <div className='flex justify-between'>
-              <Button
-                type='button'
-                variant='outline'
-                color='blue'
-                radius='md'
-                size='sm'
-                onClick={() => append({ name: '', description: '' })}
-              >
-                Add Another Skill
-              </Button>
+              {!isSkillEditing && (
+                <Button
+                  type='button'
+                  variant='outline'
+                  color='blue'
+                  radius='md'
+                  size='sm'
+                  onClick={() => append({ name: '', description: '' })}
+                >
+                  Add Another Skill
+                </Button>
+              )}
 
               <div className='flex gap-4'>
                 <Button
@@ -702,8 +829,10 @@ const CategoryDetails = ({
                   size='sm'
                   disabled={isSubmitting}
                 >
-                  Create{' '}
-                  {fields.length > 1 ? `${fields.length} Skills` : 'Skill'}
+                  {isSkillEditing ? 'Update' : 'Create'}{' '}
+                  {!isSkillEditing && fields.length > 1
+                    ? `${fields.length} Skills`
+                    : 'Skill'}
                 </Button>
               </div>
             </div>
