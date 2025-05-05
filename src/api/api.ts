@@ -86,6 +86,8 @@ const setStaffPassword = async (credentials: {
   uid: string;
   token: string;
   email: string;
+  first_name: string;
+  last_name: string;
   password: string;
   new_password: string;
 }) => {
