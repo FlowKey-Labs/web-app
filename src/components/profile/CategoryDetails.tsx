@@ -23,6 +23,7 @@ import Input from '../common/Input';
 import { notifications } from '@mantine/notifications';
 import successIcon from '../../assets/icons/success.svg';
 import errorIcon from '../../assets/icons/error.svg';
+import { IconPlus } from '@tabler/icons-react';
 
 type Subcategory = {
   id: number;
@@ -544,7 +545,7 @@ const CategoryDetails = ({
         &larr; Back to Categories List
       </button>
 
-      <div className='w-[20%] border rounded-lg border-gray-200 p-6 pt-16 overflow-y-auto bg-white h-[20vh]'>
+      <div className='w-[20%] border rounded-lg border-gray-200 p-6 pt-16 overflow-y-auto bg-white h-[28vh]'>
         <h2 className='text-xl font-semibold mb-3 text-gray-800 font-sans'>
           {category?.name}
         </h2>
@@ -553,7 +554,7 @@ const CategoryDetails = ({
         </p>
       </div>
 
-      <div className='w-[80%] px-6 overflow-y-auto'>
+      <div className='w-[80%] px-6 pb-6 overflow-y-auto'>
         <div className='flex justify-between items-center mb-5'>
           <h3 className='text-lg font-semibold text-gray-700 font-sans'>
             Subcategories
@@ -564,6 +565,7 @@ const CategoryDetails = ({
             color='#1D9B5E'
             radius='md'
             size='sm'
+            leftSection={<IconPlus size={16} />}
           >
             Add Subcategory
           </Button>

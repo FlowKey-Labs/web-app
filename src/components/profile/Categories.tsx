@@ -187,18 +187,22 @@ const Categories = () => {
     <div className='w-full bg-white rounded-lg p-6 shadow-sm'>
       <div className='flex justify-between items-center mb-6'>
         <h2 className='text-xl font-semibold'>
-          {selectedCategoryId ? 'Session Subcategories' : 'Session Categories'}
+          {selectedCategoryId ? '' : 'Session Categories'}
         </h2>
-        <Button
-          onClick={handleAddCategory}
-          variant='filled'
-          color='#1D9B5E'
-          radius='md'
-          size='sm'
-          leftSection={<IconPlus size={16} />}
-        >
-          {selectedCategoryId ? 'Add Subcategory' : 'Add Category'}
-        </Button>
+        {selectedCategoryId ? (
+          ''
+        ) : (
+          <Button
+            onClick={handleAddCategory}
+            variant='filled'
+            color='#1D9B5E'
+            radius='md'
+            size='sm'
+            leftSection={<IconPlus size={16} />}
+          >
+            Add Category
+          </Button>
+        )}
       </div>
 
       {selectedCategoryId ? (
