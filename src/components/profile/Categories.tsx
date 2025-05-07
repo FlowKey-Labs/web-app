@@ -244,7 +244,11 @@ const Categories = () => {
                       color='blue'
                       variant='light'
                       radius='xl'
-                      onClick={() => handleEditCategory(category)}
+                      onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        handleEditCategory(category)
+                      }}
                       className='hover:bg-blue-50'
                     >
                       <IconEdit size={16} />
@@ -253,7 +257,11 @@ const Categories = () => {
                       color='red'
                       variant='light'
                       radius='xl'
-                      onClick={() => handleDeleteCategory(category)}
+                      onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        handleDeleteCategory(category)
+                      }}
                       className='hover:bg-red-50'
                     >
                       <IconTrash size={16} />
