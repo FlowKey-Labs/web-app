@@ -17,7 +17,7 @@ export interface Role {
   can_manage_profile: boolean;
   can_manage_settings: boolean;
   can_view_calendar: boolean;
-  business: boolean;
+  business: string;
 }
 
 interface AuthState {

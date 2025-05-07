@@ -48,7 +48,7 @@ const StaffDetails = () => {
   const { control, handleSubmit, reset } = methods;
 
   const staffDetails = staffMember;
-
+  
   useEffect(() => {
     if (staffDetails?.user) {
       reset({
@@ -431,7 +431,7 @@ const StaffDetails = () => {
                 <div>
                   <p className='text-sm text-gray-400'>Primary Role</p>
                   <p className='text-sm text-gray-500'>
-                    {staffDetails?.role || 'Not assigned'}
+                    {staffDetails?.user?.role || 'Not assigned'}
                   </p>
                 </div>
               )}
