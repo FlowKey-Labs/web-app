@@ -83,6 +83,11 @@ const CategoryDetails = ({
   const [isUpdateSkillModalOpen, setIsUpdateSkillModalOpen] = useState(false);
   const [currentSkills, setCurrentSkills] = useState<Skill[]>([]);
 
+  const [selectedRowData, setSelectedRowData] = useState<Subcategory | null>(
+    null
+  );
+  const [isRowDetailModalOpen, setIsRowDetailModalOpen] = useState(false);
+
   const [rowSelection, setRowSelection] = useState({});
 
   const getSelectedSubcategoryIds = useCallback(() => {
@@ -511,6 +516,203 @@ const CategoryDetails = ({
     }
   };
 
+  const RowDetailModal = () => (
+    <Modal
+      opened={isRowDetailModalOpen}
+      onClose={() => setIsRowDetailModalOpen(false)}
+      title={
+        <Text size='xl' fw={600} className='text-gray-800'>
+          Subcategory Details
+        </Text>
+      }
+      size='lg'
+      centered
+      radius='md'
+      overlayProps={{
+        backgroundOpacity: 0.55,
+        blur: 3,
+      }}
+      classNames={{
+        header: 'pb-4 mb-4',
+        body: 'pt-6',
+      }}
+    >
+      {selectedRowData && (
+        <div className='space-y-6'>
+          <div className='flex items-start gap-4'>
+            <div className='bg-[#F0FDF4] p-3 rounded-full'>
+              <svg
+                xmlns='http://www.w3.org/2000/svg'
+                className='h-6 w-6 text-[#1D9B5E]'
+                fill='none'
+                viewBox='0 0 24 24'
+                stroke='currentColor'
+              >
+                <path
+                  strokeLinecap='round'
+                  strokeLinejoin='round'
+                  strokeWidth={2}
+                  d='M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10'
+                />
+              </svg>
+            </div>
+            <div>
+              <Text size='lg' fw={600} className='text-gray-800'>
+                {selectedRowData.name}
+              </Text>
+            </div>
+          </div>
+
+          {/* Details in card layout */}
+          <div className='bg-cardsBg p-4 rounded-lg space-y-4'>
+            <div>
+              <Text
+                size='sm'
+                fw={500}
+                c='dimmed'
+                style={{ marginBottom: '4px' }}
+              >
+                Description
+              </Text>
+              <Text className='text-gray-800'>
+                {selectedRowData.description || (
+                  <span className='text-gray-400'>No description provided</span>
+                )}
+              </Text>
+            </div>
+
+            <div>
+              <Text
+                size='sm'
+                fw={500}
+                c='dimmed'
+                style={{ marginBottom: '4px' }}
+              >
+                Associated Skills
+              </Text>
+              {subcategorySkillsMap.get(selectedRowData.id)?.length ? (
+                <div className='flex flex-wrap gap-2'>
+                  {subcategorySkillsMap
+                    .get(selectedRowData.id)
+                    ?.map((skill) => (
+                      <Badge
+                        key={skill.id}
+                        variant='light'
+                        color='#1D9B5E'
+                        radius='sm'
+                        className='px-3 py-1'
+                      >
+                        <div className='flex items-center gap-1'>
+                          <svg
+                            xmlns='http://www.w3.org/2000/svg'
+                            className='h-4 w-4'
+                            fill='none'
+                            viewBox='0 0 24 24'
+                            stroke='currentColor'
+                          >
+                            <path
+                              strokeLinecap='round'
+                              strokeLinejoin='round'
+                              strokeWidth={2}
+                              d='M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z'
+                            />
+                          </svg>
+                          {skill.name}
+                        </div>
+                      </Badge>
+                    ))}
+                </div>
+              ) : (
+                <div className='flex items-center gap-2 text-gray-400'>
+                  <svg
+                    xmlns='http://www.w3.org/2000/svg'
+                    className='h-5 w-5'
+                    fill='none'
+                    viewBox='0 0 24 24'
+                    stroke='currentColor'
+                  >
+                    <path
+                      strokeLinecap='round'
+                      strokeLinejoin='round'
+                      strokeWidth={2}
+                      d='M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z'
+                    />
+                  </svg>
+                  <Text>No skills associated with this subcategory</Text>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Stats */}
+          <div className='grid grid-cols-2 gap-4'>
+            <div className='bg-cardsBg p-4 rounded-lg border border-gray-200'>
+              <Text size='sm' c='dimmed'>
+                Category
+              </Text>
+              <Text fw={600} className='mt-1'>
+                {category?.name || 'N/A'}
+              </Text>
+            </div>
+            <div className='bg-cardsBg p-4 rounded-lg border border-gray-200'>
+              <Text size='sm' c='dimmed'>
+                Skills Count
+              </Text>
+              <Text fw={600} className='mt-1'>
+                {subcategorySkillsMap.get(selectedRowData.id)?.length || 0}
+              </Text>
+            </div>
+          </div>
+
+          {/* Action buttons */}
+          <Group
+            justify='flex-end'
+            mt='xl'
+            className='border-t border-gray-200 pt-4'
+          >
+            <Button
+              variant='outline'
+              color='red'
+              radius='md'
+              size='md'
+              onClick={() => setIsRowDetailModalOpen(false)}
+            >
+              Close
+            </Button>
+            <Button
+              variant='filled'
+              color='#1D9B5E'
+              radius='md'
+              size='md'
+              leftSection={
+                <svg
+                  xmlns='http://www.w3.org/2000/svg'
+                  className='h-4 w-4'
+                  fill='none'
+                  viewBox='0 0 24 24'
+                  stroke='currentColor'
+                >
+                  <path
+                    strokeLinecap='round'
+                    strokeLinejoin='round'
+                    strokeWidth={2}
+                    d='M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z'
+                  />
+                </svg>
+              }
+              onClick={() => {
+                setIsRowDetailModalOpen(false);
+                handleEditSubcategory(selectedRowData);
+              }}
+            >
+              Edit
+            </Button>
+          </Group>
+        </div>
+      )}
+    </Modal>
+  );
+
   const columns = useMemo(
     () => [
       columnHelper.display({
@@ -748,6 +950,10 @@ const CategoryDetails = ({
             pageSize={8}
             rowSelection={rowSelection}
             onRowSelectionChange={setRowSelection}
+            onRowClick={(row) => {
+              setSelectedRowData(row);
+              setIsRowDetailModalOpen(true);
+            }}
           />
         )}
       </div>
@@ -916,6 +1122,7 @@ const CategoryDetails = ({
           </div>
         </div>
       </Modal>
+      <RowDetailModal />
     </div>
   );
 };
