@@ -735,7 +735,7 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
                               options={
                                 isClientsLoading
                                   ? [{ label: 'Loading...', value: '' }]
-                                  : clientsData?.map((client: any) => ({
+                                  : clientsData?.map((client: Client) => ({
                                       label: `${client.first_name} ${client.last_name}`,
                                       value: client.id.toString(),
                                     })) || []
