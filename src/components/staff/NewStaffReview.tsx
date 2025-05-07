@@ -100,47 +100,6 @@ const NewStaffReview = ({
         </div>
       ),
     },
-    {
-      title: 'Permissions',
-      description: 'Access and Permissions',
-      completed: formData.permissions !== undefined,
-      content: formData.permissions && (
-        <div className='space-y-4 px-2 py-2'>
-          <div className='space-y-3'>
-            <div className='flex items-center gap-2'>
-              <Checkbox
-                checked={formData.permissions.createEvents}
-                readOnly
-                radius='xl'
-                size='sm'
-                color='#32936F3D'
-              />
-              <span className='text-sm text-gray-700'>Create Events</span>
-            </div>
-            <div className='flex items-center gap-2'>
-              <Checkbox
-                checked={formData.permissions.addClients}
-                readOnly
-                radius='xl'
-                size='sm'
-                color='#32936F3D'
-              />
-              <span className='text-sm text-gray-700'>Add Clients</span>
-            </div>
-            <div className='flex items-center gap-2'>
-              <Checkbox
-                checked={formData.permissions.createInvoices}
-                readOnly
-                radius='xl'
-                size='sm'
-                color='#32936F3D'
-              />
-              <span className='text-sm text-gray-700'>Create Invoices</span>
-            </div>
-          </div>
-        </div>
-      ),
-    },
   ];
 
   const handleSubmit = () => {

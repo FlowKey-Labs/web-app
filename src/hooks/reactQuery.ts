@@ -64,9 +64,12 @@ import {
   createPolicy,
   updatePolicy,
   deletePolicy,
+  getRoles,
+  createRole,
+  updateRole,
+  deleteRole,
 } from "../api/api";
-import { useAuthStore } from "../store/auth";
-// import { BusinessServices } from "../types/business";
+import { Role, useAuthStore } from "../store/auth";
 import { AddClient, Client } from "../types/clientTypes";
 import { CreateStaffRequest, StaffResponse } from "../types/staffTypes";
 import {
@@ -146,7 +149,14 @@ export const useCreatePolicy = () => {
 export const useUpdatePolicy = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, ...data }: { id: number; title?: string; content?: string }) => updatePolicy(id, data),
+    mutationFn: ({
+      id,
+      ...data
+    }: {
+      id: number;
+      title?: string;
+      content?: string;
+    }) => updatePolicy(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["policies"] });
     },
@@ -159,6 +169,50 @@ export const useDeletePolicy = () => {
     mutationFn: (id: number) => deletePolicy(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["policies"] });
+    },
+  });
+};
+
+// Roles CRUD hooks
+
+export const useGetRoles = () => {
+  return useQuery({
+    queryKey: ["roles"],
+    queryFn: getRoles,
+  });
+};
+
+export const useCreateRole = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: createRole,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["roles"] });
+    },
+  });
+};
+
+export const useUpdateRole = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      id,
+      ...data
+    }: {
+      id: string;
+    } & Role) => updateRole(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["roles"] });
+    },
+  });
+};
+
+export const useDeleteRole = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => deleteRole(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["roles"] });
     },
   });
 };
