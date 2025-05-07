@@ -28,6 +28,7 @@ import { useNavigate } from 'react-router-dom';
 import { navigateToClientDetails } from '../../utils/navigationHelpers';
 import AddClients from './AddClient';
 import EmptyDataPage from '../common/EmptyDataPage';
+import { useAuthStore } from '../../store/auth';
 
 const columnHelper = createColumnHelper<Client>();
 
@@ -42,6 +43,8 @@ const AllClients = () => {
   const deactivateClientMutation = useDeactivateClient();
   const activateClientMutation = useActivateClient();
 
+  const permisions = useAuthStore((state) => state.role);
+  
   const {
     data: clients = [],
     isLoading,
@@ -345,17 +348,17 @@ const AllClients = () => {
           searchPlaceholder='Search by Name, Email or Phone Number'
           leftIcon={plusIcon}
           onButtonClick={openDrawer}
+          showButton={permisions?.can_create_clients}
         />
-        {!isDrawerOpen && (
-          <EmptyDataPage
-            title='No Clients Found'
-            description="You don't have any clients yet"
-            buttonText='Add New Client'
-            onButtonClick={openDrawer}
-            onClose={() => {}}
-            opened={clients.length === 0 && !isLoading}
-          />
-        )}
+        {!isDrawerOpen && <EmptyDataPage
+          title='No Clients Found'
+          description="You don't have any clients yet"
+          buttonText='Add New Client'
+          onButtonClick={openDrawer}
+          onClose={() => {}}
+          opened={clients.length === 0 && !isLoading}
+          showButton={permisions?.can_create_clients}
+        />}
         <div className='flex-1 px-6 py-3'>
           <Table
             data={clients}

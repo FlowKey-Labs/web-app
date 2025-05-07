@@ -78,9 +78,12 @@ import {
   createPolicy,
   updatePolicy,
   deletePolicy,
+  getRoles,
+  createRole,
+  updateRole,
+  deleteRole,
 } from "../api/api";
-import { useAuthStore } from "../store/auth";
-// import { BusinessServices } from "../types/business";
+import { Role, useAuthStore } from "../store/auth";
 import { AddClient, Client } from "../types/clientTypes";
 import { CreateStaffRequest, StaffResponse } from "../types/staffTypes";
 import {
@@ -160,7 +163,16 @@ export const useCreatePolicy = () => {
 export const useUpdatePolicy = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, ...data }: { id: number; title?: string; content?: string; policy_type?: string, file?: File }) => updatePolicy(id, data),
+    mutationFn: ({
+      id,
+      ...data
+    }: {
+      id: number;
+      title?: string;
+      content?: string;
+      policy_type?: string;
+      file?: File;
+    }) => updatePolicy(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["policies"] });
     },
@@ -173,6 +185,50 @@ export const useDeletePolicy = () => {
     mutationFn: (id: number) => deletePolicy(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["policies"] });
+    },
+  });
+};
+
+// Roles CRUD hooks
+
+export const useGetRoles = () => {
+  return useQuery({
+    queryKey: ["roles"],
+    queryFn: getRoles,
+  });
+};
+
+export const useCreateRole = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: createRole,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["roles"] });
+    },
+  });
+};
+
+export const useUpdateRole = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      id,
+      ...data
+    }: {
+      id: string;
+    } & Role) => updateRole(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["roles"] });
+    },
+  });
+};
+
+export const useDeleteRole = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => deleteRole(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["roles"] });
     },
   });
 };
@@ -585,11 +641,7 @@ export const useUpdateSessionCategory = () => {
 export const useDeleteSessionCategory = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({
-      id,
-    }: {
-      id: number;
-    }) => delete_session_category(id),
+    mutationFn: ({ id }: { id: number }) => delete_session_category(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["session_categories"] });
     },
@@ -655,11 +707,7 @@ export const useUpdateSessionSubCategory = () => {
 export const useDeleteSessionSubCategory = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({
-      id,
-    }: {
-      id: number;
-    }) => delete_session_subcategory(id),
+    mutationFn: ({ id }: { id: number }) => delete_session_subcategory(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["session_subcategories"] });
     },
@@ -725,11 +773,7 @@ export const useUpdateSessionSkill = () => {
 export const useDeleteSessionSkill = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({
-      id,
-    }: {
-      id: number;
-    }) => delete_session_skill(id),
+    mutationFn: ({ id }: { id: number }) => delete_session_skill(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["session_skills"] });
     },
@@ -1033,4 +1077,3 @@ export const useRemoveMemberFromGroup = () => {
     },
   });
 };
-

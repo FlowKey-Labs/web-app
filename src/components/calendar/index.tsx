@@ -18,6 +18,7 @@ import AddSession from "../sessions/AddSession";
 import "./index.css";
 import AddClients from "../clients/AddClient";
 import UpdateSession from "../sessions/UpdateSession";
+import { useAuthStore } from "../../store/auth";
 
 const headerToolbar = {
   start: "title",
@@ -120,8 +121,6 @@ function mapSessionToFullCalendarEvents(session: any): FullCalendarEvent[] {
   return events;
 }
 
-// ...existing code...
-
 const CalendarView = () => {
   const calendarRef = useRef<FullCalendar>(null);
   const [currentView, setCurrentView] = useState<CalendarView>(
@@ -142,6 +141,8 @@ const CalendarView = () => {
   const [selectedEvent, setSelectedEvent] = useState<EventImpl | null>(null);
   const popupRef = useRef<HTMLDivElement | null>(null);
   const { data: sessionsData } = useGetSessions();
+
+  const permisions = useAuthStore((state) => state.role);
 
   const handleEventClick = (clickInfo: EventClickArg) => {
     const { event, el } = clickInfo;
@@ -226,9 +227,7 @@ const CalendarView = () => {
           >
             <div
               className={cn("rounded-full w-2 h-2 bg-green-400", {
-                "bg-gray-500": isPast(
-                  new Date(eventInfo.event.start)
-                ),
+                "bg-gray-500": isPast(new Date(eventInfo.event.start)),
               })}
             />
             <i className="text-xs truncate">{eventInfo.event.title}</i>
@@ -301,23 +300,27 @@ const CalendarView = () => {
             ))}
           </DropDownMenu>
         </div>
-        <div className="absolute top-4 right-[20px]">
-          <Button
-            w={140}
-            h={52}
-            size="sm"
-            radius="md"
-            leftSection={<img src={plusIcon} alt="Icon" className="w-3 h-3" />}
-            style={{
-              backgroundColor: "#1D9B5E",
-              color: "#fff",
-              fontSize: "16px",
-            }}
-            onClick={handleAddEvent}
-          >
-            New Event
-          </Button>
-        </div>
+        {permisions?.can_create_sessions && (
+          <div className="absolute top-4 right-[20px]">
+            <Button
+              w={140}
+              h={52}
+              size="sm"
+              radius="md"
+              leftSection={
+                <img src={plusIcon} alt="Icon" className="w-3 h-3" />
+              }
+              style={{
+                backgroundColor: "#1D9B5E",
+                color: "#fff",
+                fontSize: "16px",
+              }}
+              onClick={handleAddEvent}
+            >
+              New Event
+            </Button>
+          </div>
+        )}
         <FullCalendar
           ref={calendarRef}
           plugins={[
@@ -327,7 +330,9 @@ const CalendarView = () => {
             interactionPlugin,
           ]}
           initialView={currentView.view}
-          events={sessionsData?.flatMap(mapSessionToFullCalendarEvents) as EventInput}
+          events={
+            sessionsData?.flatMap(mapSessionToFullCalendarEvents) as EventInput
+          }
           eventContent={renderEventContent}
           dayMaxEventRows={true}
           allDaySlot={false}
@@ -344,7 +349,7 @@ const CalendarView = () => {
             hour12: false,
           }}
           eventClick={handleEventClick}
-          dateClick={() => setIsModalOpen(true)}
+          dateClick={() => permisions?.can_create_sessions && setIsModalOpen(true)}
         />
         {popupData && (
           <div
@@ -376,7 +381,7 @@ const CalendarView = () => {
       <UpdateSession
         isOpen={isSessionDrawerOpen}
         onClose={() => setIsSessionDrawerOpen(false)}
-        sessionId={sessionID|| ''}
+        sessionId={sessionID || ""}
       />
     </div>
   );

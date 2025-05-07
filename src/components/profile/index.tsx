@@ -14,6 +14,14 @@ type TabType =
   | 'schedule'
   | 'categories';
 
+  const tabConfig = [
+    { id: 'business', label: 'Business Information' },
+    { id: 'categories', label: 'Categories' },
+    { id: 'services', label: 'Services' },
+    { id: 'locations', label: 'Locations' },
+    { id: 'schedule', label: 'Schedule' },
+  ];
+
 const Profile = () => {
   const [openedAccordion, setOpenedAccordion] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<TabType>('business');
@@ -30,14 +38,6 @@ const Profile = () => {
     schedule: <Schedule />,
     categories: <Categories />,
   };
-
-  const tabConfig = [
-    { id: 'business', label: 'Business Information' },
-    { id: 'categories', label: 'Categories' },
-    { id: 'services', label: 'Services' },
-    { id: 'locations', label: 'Locations' },
-    { id: 'schedule', label: 'Schedule' },
-  ];
 
   return (
     <div className='flex flex-col h-screen bg-cardsBg w-full overflow-y-auto'>

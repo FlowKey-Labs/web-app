@@ -27,6 +27,7 @@ import successIcon from '../../assets/icons/success.svg';
 import errorIcon from '../../assets/icons/error.svg';
 import { useExportStaff } from '../../hooks/useExport';
 import { navigateToStaffDetails } from '../../utils/navigationHelpers';
+import { useAuthStore } from '../../store/auth';
 
 const columnHelper = createColumnHelper<StaffResponse>();
 
@@ -39,6 +40,8 @@ const AllStaff = () => {
   );
   const [isActivating, setIsActivating] = useState(false);
   const [opened, { open, close }] = useDisclosure(false);
+
+  const permisions = useAuthStore((state) => state.role);
 
   const {
     data: staff = [],
@@ -341,6 +344,7 @@ const AllStaff = () => {
           searchPlaceholder='Search by Name, Email or Phone Number'
           leftIcon={plusIcon}
           onButtonClick={openDrawer}
+          showButton={permisions?.can_create_staff}
         />
         {!isDrawerOpen && (
           <EmptyDataPage
@@ -350,6 +354,7 @@ const AllStaff = () => {
             onButtonClick={openDrawer}
             onClose={() => {}}
             opened={staff.length === 0 && !isLoading && !isError}
+            showButton={permisions?.can_create_staff}
           />
         )}
         {staff.length > 0 && (
