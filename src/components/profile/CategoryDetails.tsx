@@ -87,9 +87,7 @@ const CategoryDetails = ({
     useState<Subcategory | null>(null);
 
   const [isSkillEditing, setIsSkillEditing] = useState(false);
-  const [currentSkill, setCurrentSkill] = useState<Skill | null>(null);
-  const [skillToDelete, setSkillToDelete] = useState<Skill | null>(null);
-  const [isSkillDeleteModalOpen, setIsSkillDeleteModalOpen] = useState(false);
+  const [, setCurrentSkill] = useState<Skill | null>(null);
 
   const methods = useForm<Subcategory>({
     defaultValues: {
@@ -316,10 +314,10 @@ const CategoryDetails = ({
     setIsSkillModalOpen(true);
   };
 
-  const handleDeleteSkill = (skill: Skill) => {
-    setSkillToDelete(skill);
-    setIsDeleteModalOpen(true);
-  };
+  // const handleDeleteSkill = (skill: Skill) => {
+  //   setSkillToDelete(skill);
+  //   setIsDeleteModalOpen(true);
+  // };
 
   const onSubmitAddSkill = async (formData: SkillFormData) => {
     setIsSubmitting(true);
