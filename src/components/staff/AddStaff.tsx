@@ -1,7 +1,6 @@
 import { FormProvider, useForm } from 'react-hook-form';
 import NewStaffProfile from './NewStaffProfile';
 import NewStaffRoles from './NewStaffRoles';
-import NewStaffPermissions from './NewStaffPermissions';
 import NewStaffReview from './NewStaffReview';
 import { useCreateStaffMember } from '../../hooks/reactQuery';
 import { useStaffFormStore } from '../../store/staffForm';
@@ -14,7 +13,7 @@ interface StaffModalProps {
   onClose: () => void;
 }
 
-type SectionType = 'Profile' | 'Roles' | 'Permissions' | 'Review';
+type SectionType = 'Profile' | 'Roles' | 'Review';
 type SectionTypes = { title: SectionType }[];
 
 type Section = {
@@ -24,7 +23,6 @@ type Section = {
 const sections: SectionTypes = [
   { title: 'Profile' },
   { title: 'Roles' },
-  { title: 'Permissions' },
   { title: 'Review' },
 ];
 
@@ -47,11 +45,6 @@ const AddStaff = ({ isOpen, onClose }: StaffModalProps) => {
 
   const handleRoleSubmit = (data: FormData['role']) => {
     setFormData({ role: data });
-    setActiveSection('Permissions');
-  };
-
-  const handlePermissionsSubmit = (data: FormData['permissions']) => {
-    setFormData({ permissions: data });
     setActiveSection('Review');
   };
 
@@ -77,13 +70,6 @@ const AddStaff = ({ isOpen, onClose }: StaffModalProps) => {
         initialData={formData.role}
       />
     ),
-    Permissions: (
-      <NewStaffPermissions
-        onNext={handlePermissionsSubmit}
-        onBack={handleBack}
-        initialData={formData.permissions}
-      />
-    ),
     Review: (
       <NewStaffReview
         formData={formData}
@@ -101,11 +87,6 @@ const AddStaff = ({ isOpen, onClose }: StaffModalProps) => {
               formData.role.payType === 'hourly'
                 ? formData.role.hourlyRate || '0'
                 : '0',
-            permissions: {
-              can_create_events: formData.permissions.createEvents,
-              can_add_clients: formData.permissions.addClients,
-              can_create_invoices: formData.permissions.createInvoices,
-            },
           });
           resetForm();
           onClose();

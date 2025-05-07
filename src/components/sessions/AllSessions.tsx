@@ -37,6 +37,7 @@ import { useDisclosure } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
 import successIcon from '../../assets/icons/success.svg';
 import errorIcon from '../../assets/icons/error.svg';
+import { useAuthStore } from '../../store/auth';
 
 const columnHelper = createColumnHelper<Session>();
 
@@ -67,6 +68,9 @@ const AllSessions = () => {
 
   const activateSessionMutation = useActivateSession();
   const deactivateSessionMutation = useDeactivateSession();
+
+    const user = useAuthStore((state) => state.user);
+    const permisions = useMemo(() => user?.role, [user]);
 
   const {
     data: allSessionsData,
@@ -520,6 +524,7 @@ const AllSessions = () => {
           searchPlaceholder='Search by Session, Staff Name or Session Type'
           leftIcon={plusIcon}
           onButtonClick={openDrawer}
+          showButton={permisions?.can_create_sessions}
         />
         <div className='flex h-[70px] w-[80%] ml-6 text-sm p-2 border rounded-md bg-white'>
           <div className='flex items-center justify-between w-full px-6 font-bold '>
@@ -752,6 +757,7 @@ const AllSessions = () => {
             description="You don't have any sessions yet"
             buttonText='Create New Session'
             onButtonClick={openDrawer}
+            showButton={permisions?.can_create_sessions}
             onClose={() => {
               if (
                 selectedTypes.length > 0 ||

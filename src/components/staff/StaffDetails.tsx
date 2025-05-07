@@ -48,7 +48,7 @@ const StaffDetails = () => {
   const { control, handleSubmit, reset } = methods;
 
   const staffDetails = staffMember;
-
+  
   useEffect(() => {
     if (staffDetails?.user) {
       reset({
@@ -384,7 +384,7 @@ const StaffDetails = () => {
                       className='w-full bg-gray-100 text-gray-500'
                       readOnly
                       style={{
-                        backgroundColor: '#000000',
+                        backgroundColor: '#80808052',
                         cursor: 'not-allowed',
                       }}
                       onFocus={(e) => {
@@ -431,7 +431,7 @@ const StaffDetails = () => {
                 <div>
                   <p className='text-sm text-gray-400'>Primary Role</p>
                   <p className='text-sm text-gray-500'>
-                    {staffDetails?.role || 'Not assigned'}
+                    {staffDetails?.user?.role || 'Not assigned'}
                   </p>
                 </div>
               )}
