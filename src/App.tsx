@@ -33,11 +33,10 @@ import ComingSoon from "./components/common/ComingSoon";
 import "./App.css";
 import SetPassword from "./components/authentication/SetPassword";
 import { useAuthStore } from "./store/auth";
-import { useMemo } from "react";
 
 function App() {
   const user = useAuthStore((state) => state.user);
-  const permisions = useMemo(() => user?.role, [user]);
+  const permisions = useAuthStore((state) => state.role);
   return (
     <MantineProvider
       theme={{

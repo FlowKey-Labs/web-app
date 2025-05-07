@@ -20,7 +20,7 @@ import sessionsIcon from '../../assets/icons/sessions.svg';
 import totalClientsIcon from '../../assets/icons/totalClients.svg';
 import totalStaffIcon from '../../assets/icons/totalStaff.svg';
 import rightIcon from '../../assets/icons/greenRight.svg';
-import { useState } from 'react';
+import { use, useEffect, useState } from 'react';
 import { BarGraph } from '../common/BarGraph';
 import rescheduleIcon from '../../assets/icons/reschedule.svg';
 import cancelIcon from '../../assets/icons/cancelRed.svg';
@@ -31,6 +31,7 @@ import Table from '../common/Table';
 import { createColumnHelper } from '@tanstack/react-table';
 import { useNavigate } from 'react-router-dom';
 import { DonutChart } from '@mantine/charts';
+import { useAuthStore } from '../../store/auth';
 
 const columnHelper = createColumnHelper<StaffDashboard>();
 

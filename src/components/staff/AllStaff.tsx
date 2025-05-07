@@ -41,8 +41,7 @@ const AllStaff = () => {
   const [isActivating, setIsActivating] = useState(false);
   const [opened, { open, close }] = useDisclosure(false);
 
-    const user = useAuthStore((state) => state.user);
-    const permisions = useMemo(() => user?.role, [user]);
+  const permisions = useAuthStore((state) => state.role);
 
   const {
     data: staff = [],

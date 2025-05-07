@@ -52,8 +52,7 @@ function filterMenuItemsByRole<T extends { name: string }>(
 
 const Sidebar = ({ activeItem }: SidebarProps) => {
   const navigate = useNavigate();
-  const user = useAuthStore((state) => state.user);
-  const role = useMemo(() => user?.role, [user]);
+  const role = useAuthStore((state) => state.role);
   const filteredMenuItems = useMemo(
     () => (role ? filterMenuItemsByRole(menuItems, role) : []),
     [role]

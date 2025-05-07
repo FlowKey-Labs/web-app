@@ -22,17 +22,21 @@ export interface Role {
 
 interface AuthState {
   accessToken: string | null;
+  refreshToken: string | null;
   user: { id: number; email: string; is_staff: boolean; role: Role } | null;
+  role: Role | null;
   setAuth: (
     token: string,
     refreshToken: string,
     user: AuthState["user"]
   ) => void;
+  setRole: (role: Role) => void;
   logout: () => void;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
   accessToken: localStorage.getItem("accessToken") || null,
+  refreshToken: localStorage.getItem("refresh") || null,
   user: (() => {
     try {
       const user = localStorage.getItem("user");
@@ -42,7 +46,8 @@ export const useAuthStore = create<AuthState>((set) => ({
       return null;
     }
   })(),
-
+  role: null,
+  setRole: (role) => set({ role }),
   setAuth: (token, refreshToken, user) => {
     localStorage.setItem("accessToken", token);
     localStorage.setItem("refresh", refreshToken);
