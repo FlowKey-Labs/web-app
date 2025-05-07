@@ -69,8 +69,7 @@ const AllSessions = () => {
   const activateSessionMutation = useActivateSession();
   const deactivateSessionMutation = useDeactivateSession();
 
-    const user = useAuthStore((state) => state.user);
-    const permisions = useMemo(() => user?.role, [user]);
+  const permisions = useAuthStore((state) => state.role);
 
   const {
     data: allSessionsData,

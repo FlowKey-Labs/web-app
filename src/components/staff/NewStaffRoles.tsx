@@ -71,7 +71,6 @@ const NewStaffRoles = ({ onNext, onBack, initialData }: NewStaffRolesProps) => {
       ],
     },
   });
-  console.log("methings", methods.formState);
 
   const onSubmit: SubmitHandler<RoleFormData> = (data) => {
     onNext(data.roles[0]);

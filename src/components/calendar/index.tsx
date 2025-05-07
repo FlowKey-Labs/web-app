@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import dayGridWeek from "@fullcalendar/daygrid";
@@ -144,8 +144,7 @@ const CalendarView = () => {
   const popupRef = useRef<HTMLDivElement | null>(null);
   const { data: sessionsData } = useGetSessions();
 
-  const user = useAuthStore((state) => state.user);
-  const permisions = useMemo(() => user?.role, [user]);
+  const permisions = useAuthStore((state) => state.role);
 
   const handleEventClick = (clickInfo: EventClickArg) => {
     const { event, el } = clickInfo;

@@ -12,7 +12,7 @@ import arrowRightIcon from '../../assets/icons/arrowRight.svg';
 
 import { businessPurpose } from '../../utils/dummyData';
 
-import { navigateToProfile } from '../../utils/navigationHelpers';
+import { navigateToDashboard } from '../../utils/navigationHelpers';
 import { notifications } from '@mantine/notifications';
 
 const Purpose = () => {
@@ -150,7 +150,7 @@ const Purpose = () => {
                         message: 'Onboarding completed successfully',
                       });
                       setTimeout(() => {
-                        navigateToProfile(navigate);
+                        navigateToDashboard(navigate);
                       }, 1500);
                     },
                   }
