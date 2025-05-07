@@ -6,12 +6,16 @@ import {
   useDeletePolicy,
 } from '../../hooks/reactQuery';
 import {
+  Box,
   Drawer,
   Group,
   Button as MantineButton,
   Menu,
   Stack,
+  Modal,
+  Image,
   Text,
+  Button,
 } from '@mantine/core';
 import actionOptionIcon from '../../assets/icons/actionOption.svg';
 import editIcon from '../../assets/icons/edit.svg';
@@ -30,33 +34,42 @@ import './tiptap.css';
 import Table from '../common/Table';
 import Input from '../common/Input';
 import DropdownSelectInput from '../common/Dropdown';
-import { IconPlus } from '@tabler/icons-react';
+import { IconFile, IconPlus } from '@tabler/icons-react';
+import { Dropzone } from '@mantine/dropzone';
+import dropZoneIcon from '../../assets/icons/dropZone.svg';
+import styles from './GeneralSettings.module.css';
 
 import { Policy } from '../../types/policy';
 import { truncateHtmlContent, getUserFullName } from '../../utils/policy';
 
-import { Modal } from '@mantine/core';
 import { format } from 'date-fns';
 import { notifications } from '@mantine/notifications';
 import { createColumnHelper } from '@tanstack/react-table';
+
+type PolicyFormData = {
+  policyTitle: string;
+  policyContent: string;
+  policyFile?: File;
+  policyType: { value: 'TEXT' | 'PDF'; label: string } | 'TEXT' | 'PDF';
+};
 
 const columnHelper = createColumnHelper<Policy>();
 
 const Policies = () => {
   const [drawerOpened, setDrawerOpened] = useState(false);
-  // Fetch policies from backend
   const { data: policies = [] } = useGetPolicies();
   const [selectedPolicy, setSelectedPolicy] = useState<Policy | null>(null);
 
-  // Mutation for creating a policy
   const createPolicyMutation = useCreatePolicy();
   const updatePolicyMutation = useUpdatePolicy();
   const deletePolicyMutation = useDeletePolicy();
 
-  const methods = useForm({
+  const methods = useForm<PolicyFormData>({
     defaultValues: {
       policyTitle: '',
       policyContent: '',
+      policyFile: undefined,
+      policyType: 'TEXT',
     },
   });
   const { control, handleSubmit, reset, watch } = methods;
@@ -88,9 +101,24 @@ const Policies = () => {
       columnHelper.accessor('title', {
         header: 'Title',
       }),
+      columnHelper.accessor('policy_type', {
+        header: 'Type',
+        cell: (info) => {
+          const type = info.getValue();
+          return type === 'TEXT' ? 'Text' : 'PDF';
+        },
+      }),
       columnHelper.accessor('content', {
         header: 'Policy',
-        cell: (info) => <span>{truncateHtmlContent(info.getValue(), 80)}</span>,
+        cell: (info) => {
+          const content = info.getValue();
+          const policyType = info.row.original.policy_type;
+
+          if (policyType === 'PDF') {
+            return <Text c='blue'>PDF Document</Text>;
+          }
+          return <span>{truncateHtmlContent(content ?? '', 80)}</span>;
+        },
       }),
       columnHelper.accessor('sessions_count', {
         header: 'Sessions Accepted',
@@ -144,6 +172,10 @@ const Policies = () => {
                           'policyContent',
                           currentPolicy.content ?? ''
                         );
+                        methods.setValue(
+                          'policyType',
+                          currentPolicy.policy_type ?? 'TEXT'
+                        );
                         if (editor) {
                           editor.commands.setContent(
                             currentPolicy.content || ''
@@ -194,14 +226,42 @@ const Policies = () => {
     ]
   );
 
-  const onSubmit = (data: { policyTitle: string; policyContent: string }) => {
+  const onSubmit = (data: PolicyFormData) => {
+    const policyType =
+      typeof data.policyType === 'object'
+        ? data.policyType.value
+        : data.policyType;
+
+    if (policyType === 'PDF' && !data.policyFile) {
+      notifications.show({
+        title: 'Error',
+        message: 'PDF file is required for PDF policy type',
+        color: 'red',
+      });
+      return;
+    }
+
+    if (policyType === 'TEXT' && !data.policyContent) {
+      notifications.show({
+        title: 'Error',
+        message: 'Content is required for TEXT policy type',
+        color: 'red',
+      });
+      return;
+    }
+
+    const payload = {
+      title: data.policyTitle,
+      content: policyType === 'TEXT' ? data.policyContent : '',
+      policy_type: policyType,
+      file: policyType === 'PDF' ? data.policyFile : undefined,
+    };
+
     if (selectedPolicy) {
-      // Update
       updatePolicyMutation.mutate(
         {
           id: selectedPolicy.id,
-          title: data.policyTitle,
-          content: data.policyContent,
+          ...payload,
         },
         {
           onSuccess: () => {
@@ -225,32 +285,25 @@ const Policies = () => {
         }
       );
     } else {
-      // Create
-      createPolicyMutation.mutate(
-        {
-          title: data.policyTitle,
-          content: data.policyContent,
+      createPolicyMutation.mutate(payload, {
+        onSuccess: () => {
+          notifications.show({
+            title: 'Success',
+            message: 'Policy created successfully!',
+            color: 'green',
+          });
+          setDrawerOpened(false);
+          reset();
+          if (editor) editor.commands.setContent('');
         },
-        {
-          onSuccess: () => {
-            notifications.show({
-              title: 'Success',
-              message: 'Policy created successfully!',
-              color: 'green',
-            });
-            setDrawerOpened(false);
-            reset();
-            if (editor) editor.commands.setContent('');
-          },
-          onError: () => {
-            notifications.show({
-              title: 'Error',
-              message: 'Failed to create policy.',
-              color: 'red',
-            });
-          },
-        }
-      );
+        onError: () => {
+          notifications.show({
+            title: 'Error',
+            message: 'Failed to create policy.',
+            color: 'red',
+          });
+        },
+      });
     }
   };
 
@@ -322,18 +375,46 @@ const Policies = () => {
         <FormProvider {...methods}>
           <form onSubmit={handleSubmit(onSubmit)}>
             <div className='mb-4'>
-              <Input
+              <Controller
                 name='policyTitle'
-                label='Policy Title'
-                type='text'
-                placeholder='Enter policy title'
-                value={watch('policyTitle')}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  methods.setValue('policyTitle', e.target.value)
-                }
-                className='mb-2'
+                control={control}
+                render={({ field }) => (
+                  <Input
+                    {...field}
+                    label='Policy Title'
+                    placeholder='Enter policy title'
+                  />
+                )}
               />
               <div className='relative w-full mt-4'>
+                <Controller
+                  name='policyType'
+                  control={control}
+                  rules={{ required: 'Policy type is required' }}
+                  render={({ field }) => (
+                    <DropdownSelectInput
+                      {...field}
+                      label='Policy Type'
+                      options={[
+                        { label: 'Text Content', value: 'TEXT' },
+                        { label: 'PDF Document', value: 'PDF' },
+                      ]}
+                      placeholder='Select policy type'
+                      singleSelect
+                      onSelectItem={(value) => {
+                        const selectedValue =
+                          typeof value === 'object' ? value.value : value;
+                        field.onChange(selectedValue);
+                        methods.setValue('policyType', selectedValue);
+                      }}
+                      value={
+                        typeof field.value === 'object'
+                          ? field.value.value
+                          : field.value
+                      }
+                    />
+                  )}
+                />
                 <Controller
                   name='policyContent'
                   control={control}
@@ -505,13 +586,85 @@ const Policies = () => {
                           Clear
                         </button>
                       </div>
-                      <EditorContent
-                        editor={editor}
-                        className='tiptap-editor'
-                      />
+                      {watch('policyType') !== 'PDF' && (
+                        <div className='relative w-full mt-4'>
+                          <EditorContent
+                            editor={editor}
+                            className='tiptap-editor'
+                          />
+                        </div>
+                      )}
                     </>
                   )}
                 />
+                {watch('policyType') !== 'TEXT' && (
+                  <div className='mt-4'>
+                    <Dropzone
+                      radius='8px'
+                      onDrop={(files) => {
+                        if (files.length > 0) {
+                          methods.setValue('policyFile', files[0], {
+                            shouldValidate: true,
+                          });
+                          notifications.show({
+                            title: 'File uploaded',
+                            message: `${files[0].name} has been selected`,
+                            color: 'green',
+                          });
+                        }
+                      }}
+                      maxSize={20 * 1024 ** 2}
+                      accept={['application/pdf']}
+                      className={styles.dropzoneRoot}
+                      multiple={false}
+                    >
+                      <Box style={{ pointerEvents: 'none' }}>
+                        <Group justify='center' gap='xl' mb='md' p='6'>
+                          <Group gap='sm'>
+                            <Image
+                              src={dropZoneIcon}
+                              width={24}
+                              height={24}
+                              alt='Upload icon'
+                            />
+                            <Text c='#1D9B5E'>
+                              {methods.getValues('policyFile')
+                                ? `Selected file: ${
+                                    methods.getValues('policyFile')?.name
+                                  }`
+                                : 'Drag and drop a policy file here, or Browse'}
+                            </Text>
+                          </Group>
+                        </Group>
+                        {!methods.getValues('policyFile') && (
+                          <Text c='#1D9B5E' ta='center' mt='auto' py='xs'>
+                            Max size: 20MB (PDF recommended)
+                          </Text>
+                        )}
+                        {methods.getValues('policyFile') && (
+                          <Button
+                            variant='subtle'
+                            color='red'
+                            size='sm'
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              methods.setValue('policyFile', undefined, {
+                                shouldValidate: true,
+                              });
+                            }}
+                          >
+                            Remove file
+                          </Button>
+                        )}
+                      </Box>{' '}
+                    </Dropzone>
+                    {methods.formState.errors.policyFile && (
+                      <Text c='red' size='sm' mt={4}>
+                        {methods.formState.errors.policyFile.message}
+                      </Text>
+                    )}
+                  </div>
+                )}
               </div>
               <Stack
                 justify='flex-end'
@@ -551,25 +704,47 @@ const Policies = () => {
         {selectedPolicy && (
           <div>
             <h2>{selectedPolicy.title}</h2>
-            <div>
-              <strong>Policy:</strong>
-              <div
-                style={{ marginBottom: 8 }}
-                dangerouslySetInnerHTML={{ __html: selectedPolicy.content }}
-              />
-            </div>
-            <div>
+            <Text c='dimmed' mb='sm'>
+              Type: {selectedPolicy.policy_type === 'TEXT' ? 'Text' : 'PDF'}
+            </Text>
+
+            {selectedPolicy.policy_type !== 'PDF' && selectedPolicy.content && (
+              <div style={{ marginBottom: 16 }}>
+                <Text fw={500}>Content:</Text>
+                <div
+                  dangerouslySetInnerHTML={{ __html: selectedPolicy.content }}
+                />
+              </div>
+            )}
+
+            {selectedPolicy.policy_type !== 'TEXT' &&
+              selectedPolicy.file_url && (
+                <div style={{ marginBottom: 16 }}>
+                  <Text fw={500}>Document:</Text>
+                  <Button
+                    component='a'
+                    href={selectedPolicy.file_url}
+                    target='_blank'
+                    variant='outline'
+                    leftSection={<IconFile />}
+                  >
+                    View PDF
+                  </Button>
+                </div>
+              )}
+
+            <Text>
               <strong>Sessions Accepted:</strong>{' '}
               {selectedPolicy.sessions_count}
-            </div>
-            <div>
+            </Text>
+            <Text>
               <strong>Last Modified:</strong>{' '}
               {format(new Date(selectedPolicy.last_modified), 'yyyy-MM-dd')}
-            </div>
-            <div>
+            </Text>
+            <Text>
               <strong>Modified By:</strong>{' '}
               {getUserFullName(selectedPolicy.modified_by)}
-            </div>
+            </Text>
           </div>
         )}
       </Modal>

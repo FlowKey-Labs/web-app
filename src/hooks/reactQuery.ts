@@ -160,7 +160,7 @@ export const useCreatePolicy = () => {
 export const useUpdatePolicy = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, ...data }: { id: number; title?: string; content?: string }) => updatePolicy(id, data),
+    mutationFn: ({ id, ...data }: { id: number; title?: string; content?: string; policy_type?: string, file?: File }) => updatePolicy(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["policies"] });
     },
