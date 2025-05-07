@@ -630,3 +630,125 @@ export const useExportSubcategories = (
     isExporting,
   };
 };
+
+export const useExportSessionClients = (clients: Client[]) => {
+  const [isExporting, setIsExporting] = useState(false);
+  const [
+    exportModalOpened,
+    { open: openExportModal, close: closeExportModal },
+  ] = useDisclosure(false);
+
+  const processClientsForExport = (selectedIds: number[]) => {
+    const clientsToExport = clients.filter((client) =>
+      selectedIds.includes(client.id)
+    );
+
+    return clientsToExport.map((client) => {
+      const attendance = client.attendances && client.attendances.length > 0 ? client.attendances[0] : null;
+      
+      return {
+        id: client.id,
+        first_name: client.first_name,
+        last_name: client.last_name,
+        email: client.email,
+        phone_number: client.phone_number || '',
+        attendance_status: attendance?.status_display || 'Not Recorded',
+        attendance_timestamp: attendance?.timestamp
+          ? new Date(attendance.timestamp).toLocaleString()
+          : 'N/A',
+        attended: attendance?.attended ? 'Yes' : 'No',
+      };
+    });
+  };
+
+  const handleExport = useCallback(
+    (type: 'csv' | 'excel', selectedIds: number[]) => {
+      if (selectedIds.length === 0) {
+        notifications.show({
+          title: 'No clients selected',
+          message: 'Please select at least one client to export',
+          color: 'red',
+          radius: 'md',
+          withBorder: true,
+          autoClose: 3000,
+          position: 'top-right',
+          icon: (
+            <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+              <img src={errorIcon} alt='Error' className='w-4 h-4' />
+            </span>
+          ),
+        });
+        return;
+      }
+
+      if (clients.length === 0) {
+        notifications.show({
+          title: 'No clients available',
+          message: 'There are no clients to export',
+          color: 'red',
+          radius: 'md',
+          withBorder: true,
+          autoClose: 3000,
+          position: 'top-right',
+          icon: (
+            <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+              <img src={errorIcon} alt='Error' className='w-4 h-4' />
+            </span>
+          ),
+        });
+        closeExportModal();
+        return;
+      }
+
+      setIsExporting(true);
+
+      try {
+        const dataToExport = processClientsForExport(selectedIds);
+
+        exportDataToFile(dataToExport, type, 'session_clients', ['id']);
+
+        notifications.show({
+          title: 'Export successful',
+          message: `${dataToExport.length} client(s) exported successfully as ${type.toUpperCase()}`,
+          color: 'green',
+          radius: 'md',
+          withBorder: true,
+          autoClose: 3000,
+          position: 'top-right',
+          icon: (
+            <span className='flex items-center justify-center w-6 h-6 rounded-full bg-green-200'>
+              <img src={successIcon} alt='Success' className='w-4 h-4' />
+            </span>
+          ),
+        });
+      } catch (error) {
+        notifications.show({
+          title: 'Export failed',
+          message: 'An error occurred while exporting clients',
+          color: 'red',
+          radius: 'md',
+          withBorder: true,
+          autoClose: 3000,
+          position: 'top-right',
+          icon: (
+            <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+              <img src={errorIcon} alt='Error' className='w-4 h-4' />
+            </span>
+          ),
+        });
+      } finally {
+        setIsExporting(false);
+        closeExportModal();
+      }
+    },
+    [clients, closeExportModal]
+  );
+
+  return {
+    exportModalOpened,
+    openExportModal,
+    closeExportModal,
+    handleExport,
+    isExporting,
+  };
+};

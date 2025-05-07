@@ -702,7 +702,7 @@ const CategoryDetails = ({
         &larr; Back to Categories List
       </button>
 
-      <div className='w-[20%] border rounded-lg border-gray-200 p-6 pt-16 overflow-y-auto bg-white h-[28vh]'>
+      <div className='w-[20%] border rounded-lg border-gray-200 p-6 pt-16 overflow-y-auto bg-cardsBg shadow-sm h-[28vh]'>
         <h2 className='text-xl font-semibold mb-3 text-gray-800 font-sans'>
           {category?.name}
         </h2>
