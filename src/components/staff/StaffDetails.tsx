@@ -16,13 +16,17 @@ import avatar from '../../assets/icons/newAvatar.svg';
 import editIcon from '../../assets/icons/edit.svg';
 import successIcon from '../../assets/icons/success.svg';
 import errorIcon from '../../assets/icons/error.svg';
+import DropdownSelectInput from '../common/Dropdown';
+import { roleOptions } from '../../utils/dummyData';
+import { StaffRole } from '../../types/staffTypes';
+
 
 interface PersonalFormData {
   firstName: string;
   lastName: string;
   mobile_number: string;
   email: string;
-  role: string;
+  role: StaffRole;
   staffNumber: string;
 }
 
@@ -157,7 +161,7 @@ const StaffDetails = () => {
     const permissionDisplayName = {
       can_add_clients: 'Add Clients',
       can_create_invoices: 'Create Invoices',
-      can_create_events: 'Create Events'
+      can_create_events: 'Create Events',
     }[name];
 
     updateStaff(
@@ -188,7 +192,9 @@ const StaffDetails = () => {
         onSuccess: () => {
           notifications.show({
             title: 'Permission Updated',
-            message: `${permissionDisplayName} permission ${checked ? 'granted' : 'revoked'} successfully!`,
+            message: `${permissionDisplayName} permission ${
+              checked ? 'granted' : 'revoked'
+            } successfully!`,
             color: 'green',
             radius: 'md',
             icon: (
@@ -219,7 +225,7 @@ const StaffDetails = () => {
           // Revert the UI state since the update failed
           setPermissions({
             ...updatedPermissions,
-            [name]: !checked
+            [name]: !checked,
           });
         },
       }
@@ -384,7 +390,6 @@ const StaffDetails = () => {
                       className='w-full bg-gray-100 text-gray-500'
                       readOnly
                       style={{
-                        backgroundColor: '#000000',
                         cursor: 'not-allowed',
                       }}
                       onFocus={(e) => {
@@ -424,7 +429,13 @@ const StaffDetails = () => {
                   name='role'
                   control={control}
                   render={({ field }) => (
-                    <Input {...field} label='Primary Role' className='w-full' />
+                    <DropdownSelectInput
+                      {...field}
+                      label='Primary Role'
+                      className='w-full'
+                      options={roleOptions}
+                      onSelectItem={(item) => field.onChange(item.value)}
+                    />
                   )}
                 />
               ) : (

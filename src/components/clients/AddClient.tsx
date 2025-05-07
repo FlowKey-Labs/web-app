@@ -78,43 +78,6 @@ const AddClients = ({ isOpen, onClose }: ClientsModalProps) => {
     }
   }, [isGroupSuccess, groupReset, onClose]);
 
-  // const handleCreateGroup = async (groupData: GroupData) => {
-  //   return new Promise<number>((resolve, reject) => {
-  //     addGroup(groupData, {
-  //       onSuccess: (response) => {
-  //         notifications.show({
-  //           title: 'Success',
-  //           message: 'Group created successfully',
-  //           color: 'green',
-  //           icon: (
-  //             <span className='flex items-center justify-center w-6 h-6 rounded-full bg-green-200'>
-  //               <img src={successIcon} alt='Success' className='w-4 h-4' />
-  //             </span>
-  //           ),
-  //           withBorder: true,
-  //           autoClose: 3000,
-  //         });
-  //         resolve(response.id);
-  //       },
-  //       onError: (error) => {
-  //         notifications.show({
-  //           title: 'Error',
-  //           message: 'Failed to create group. Please try again.',
-  //           color: 'red',
-  //           icon: (
-  //             <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
-  //               <img src={errorIcon} alt='Error' className='w-4 h-4' />
-  //             </span>
-  //           ),
-  //           withBorder: true,
-  //           autoClose: 3000,
-  //         });
-  //         reject(error);
-  //       }
-  //     });
-  //   });
-  // };
-
   const handleSubmitIndividual = individualHandleSubmit(async (data) => {
     try {
       const formattedDob = data.dob

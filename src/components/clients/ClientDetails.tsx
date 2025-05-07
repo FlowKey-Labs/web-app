@@ -1,6 +1,6 @@
 import { useParams } from 'react-router-dom';
 import MembersHeader from '../headers/MembersHeader';
-import { Progress } from '@mantine/core';
+import { Loader, Progress } from '@mantine/core';
 import rightIcon from '../../assets/icons/greenRight.svg';
 import { useMemo, useState } from 'react';
 import Table from '../common/Table';
@@ -103,8 +103,8 @@ const ClientDetails = () => {
 
   if (isLoading) {
     return (
-      <div className='w-full space-y-6 bg-white rounded-lg p-6'>
-        <p className='text-primary'>Loading client details...</p>
+      <div className='flex justify-center items-center h-screen p-6 pt-12'>
+        <Loader size='xl' color='#1D9B5E' />
       </div>
     );
   }

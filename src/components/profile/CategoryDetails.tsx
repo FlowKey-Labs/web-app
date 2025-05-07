@@ -8,6 +8,7 @@ import {
   Modal,
   Text,
   Stack,
+  Loader,
 } from '@mantine/core';
 import { createColumnHelper } from '@tanstack/react-table';
 import editIcon from '../../assets/icons/edit.svg';
@@ -887,7 +888,12 @@ const CategoryDetails = ({
     isLoadingCategories || isLoadingSubcategories || isLoadingSkills;
   const isError = !isLoading && !category;
 
-  if (isLoading) return <div className='p-6 pt-12'>Loading details...</div>;
+  if (isLoading)
+    return (
+      <div className='flex justify-center items-center h-screen p-6 pt-12'>
+        <Loader size='xl' color='#1D9B5E' />
+      </div>
+    );
   if (isError)
     return (
       <div className='p-6 pt-12'>

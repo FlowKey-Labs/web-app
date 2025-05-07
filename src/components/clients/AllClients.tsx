@@ -16,6 +16,7 @@ import {
   Button as MantineButton,
   Menu,
   Stack,
+  Loader,
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
@@ -312,8 +313,8 @@ const AllClients = () => {
 
   if (isLoading) {
     return (
-      <div className='w-full space-y-6 bg-white rounded-lg p-6'>
-        <p className='text-primary'>Loading clients...</p>
+      <div className='flex justify-center items-center h-screen p-6 pt-12'>
+        <Loader size='xl' color='#1D9B5E' />
       </div>
     );
   }

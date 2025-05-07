@@ -1,4 +1,4 @@
-import { Accordion } from '@mantine/core';
+import { Accordion, Loader } from '@mantine/core';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
 import { useEffect } from 'react';
 import { notifications } from '@mantine/notifications';
@@ -133,7 +133,11 @@ const BusinessInformation = ({
   };
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return (
+      <div className='flex justify-center items-center h-screen p-6 pt-12'>
+        <Loader size='xl' color='#1D9B5E' />
+      </div>
+    );
   }
 
   return (
