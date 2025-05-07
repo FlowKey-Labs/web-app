@@ -1,5 +1,14 @@
-import { useMemo, useState } from 'react';
-import { Button, Group, Badge, Menu, Drawer, Modal, Text } from '@mantine/core';
+import { useCallback, useMemo, useState } from 'react';
+import {
+  Button,
+  Group,
+  Badge,
+  Menu,
+  Drawer,
+  Modal,
+  Text,
+  Stack,
+} from '@mantine/core';
 import { createColumnHelper } from '@tanstack/react-table';
 import editIcon from '../../assets/icons/edit.svg';
 import deleteIcon from '../../assets/icons/delete.svg';
@@ -20,6 +29,7 @@ import Table from '../common/Table';
 import { Controller, FormProvider, useFieldArray } from 'react-hook-form';
 import { useForm } from 'react-hook-form';
 import Input from '../common/Input';
+import { useExportSubcategories } from '../../hooks/useExport';
 import { notifications } from '@mantine/notifications';
 import successIcon from '../../assets/icons/success.svg';
 import errorIcon from '../../assets/icons/error.svg';
@@ -72,6 +82,25 @@ const CategoryDetails = ({
   const [isCreateSkillModalOpen, setIsCreateSkillModalOpen] = useState(false);
   const [isUpdateSkillModalOpen, setIsUpdateSkillModalOpen] = useState(false);
   const [currentSkills, setCurrentSkills] = useState<Skill[]>([]);
+
+  const [rowSelection, setRowSelection] = useState({});
+
+  const getSelectedSubcategoryIds = useCallback(() => {
+    if (!allSubcategories) return [];
+
+    return Object.keys(rowSelection).map((index) => {
+      const subcategoryIndex = parseInt(index);
+      return allSubcategories[subcategoryIndex].id;
+    });
+  }, [rowSelection, allSubcategories]);
+
+  const {
+    exportModalOpened,
+    openExportModal,
+    closeExportModal,
+    handleExport,
+    isExporting,
+  } = useExportSubcategories(allSubcategories || [], allSkills || []);
 
   const methods = useForm<Subcategory>({
     defaultValues: {
@@ -484,6 +513,26 @@ const CategoryDetails = ({
 
   const columns = useMemo(
     () => [
+      columnHelper.display({
+        id: 'select',
+        header: ({ table }) => (
+          <input
+            type='checkbox'
+            checked={table.getIsAllRowsSelected()}
+            onChange={table.getToggleAllRowsSelectedHandler()}
+            className='w-4 h-4 rounded cursor-pointer bg-[#F7F8FA] accent-[#DBDEDF]'
+          />
+        ),
+        cell: ({ row }) => (
+          <input
+            type='checkbox'
+            checked={row.getIsSelected()}
+            onClick={(e) => e.stopPropagation()}
+            onChange={row.getToggleSelectedHandler()}
+            className='w-4 h-4 rounded cursor-pointer bg-[#F7F8FA] accent-[#DBDEDF]'
+          />
+        ),
+      }),
       columnHelper.accessor('name', {
         header: 'Subcategory',
         cell: (info) => info.getValue(),
@@ -522,11 +571,42 @@ const CategoryDetails = ({
       }),
       columnHelper.display({
         id: 'actions',
-        header: '',
+        header: () => (
+          <div className='flex space-x-2' onClick={(e) => e.stopPropagation()}>
+            <Group justify='center'>
+              <Menu
+                width={150}
+                shadow='md'
+                position='bottom'
+                radius='md'
+                withArrow
+                offset={4}
+              >
+                <Menu.Target>
+                  <img
+                    src={actionOptionIcon}
+                    alt='Options'
+                    className='w-4 h-4 cursor-pointer'
+                  />
+                </Menu.Target>
+                <Menu.Dropdown>
+                  <Menu.Item
+                    color='#162F3B'
+                    className='text-sm'
+                    style={{ textAlign: 'center' }}
+                    onClick={openExportModal}
+                  >
+                    Export Subcategories
+                  </Menu.Item>
+                </Menu.Dropdown>
+              </Menu>
+            </Group>
+          </div>
+        ),
         cell: ({ row }) => {
           const subcategory = row.original;
           return (
-            <div onClick={(e) => e.stopPropagation()}>
+            <div className='flex' onClick={(e) => e.stopPropagation()}>
               <Group justify='center'>
                 <Menu
                   width={120}
@@ -662,7 +742,13 @@ const CategoryDetails = ({
             </Button>
           </div>
         ) : (
-          <Table data={subcategories} columns={columns} pageSize={8} />
+          <Table
+            data={subcategories}
+            columns={columns}
+            pageSize={8}
+            rowSelection={rowSelection}
+            onRowSelectionChange={setRowSelection}
+          />
         )}
       </div>
 
@@ -769,6 +855,67 @@ const CategoryDetails = ({
         isLoading={isSubmitting}
         onDeleteSkill={handleDeleteSkill}
       />
+      <Modal
+        opened={exportModalOpened}
+        onClose={closeExportModal}
+        title={
+          <Text fw={600} size='lg'>
+            Export Subcategories
+          </Text>
+        }
+        centered
+        radius='md'
+        size='md'
+        withCloseButton={false}
+        overlayProps={{
+          backgroundOpacity: 0.55,
+          blur: 3,
+        }}
+        shadow='xl'
+      >
+        <div className='py-2'>
+          <Text size='sm' style={{ marginBottom: '2rem' }}>
+            Select a format to export {Object.keys(rowSelection).length}{' '}
+            selected subcategories
+          </Text>
+
+          <Stack gap='md'>
+            <Button
+              variant='outline'
+              color='#1D9B5E'
+              radius='md'
+              onClick={() => handleExport('excel', getSelectedSubcategoryIds())}
+              className='px-6'
+              loading={isExporting}
+            >
+              Export as Excel
+            </Button>
+
+            <Button
+              variant='outline'
+              color='#1D9B5E'
+              radius='md'
+              onClick={() => handleExport('csv', getSelectedSubcategoryIds())}
+              className='px-6'
+              loading={isExporting}
+            >
+              Export as CSV
+            </Button>
+          </Stack>
+
+          <div className='flex justify-end space-x-4 mt-8'>
+            <Button
+              variant='outline'
+              color='red'
+              radius='md'
+              onClick={closeExportModal}
+              className='px-6'
+            >
+              Cancel
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };

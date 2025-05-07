@@ -6,6 +6,11 @@ import { Client } from '../types/clientTypes';
 import { StaffResponse } from '../types/staffTypes';
 import { Policy } from '../types/policy';
 import { exportDataToFile } from '../utils/exportUtils';
+import { Subcategory } from '../types/profileCategories';
+import { Skill } from '../types/profileCategories';
+
+import successIcon from '../assets/icons/success.svg';
+import errorIcon from '../assets/icons/error.svg';
 
 /**
  * Hook for exporting sessions data
@@ -20,17 +25,20 @@ export const useExportSessions = (sessions: Session[]) => {
   ] = useDisclosure(false);
 
   const processSessionsForExport = (selectedIds: number[]) => {
-    const sessionsToExport = sessions.filter(session => selectedIds.includes(session.id));
+    const sessionsToExport = sessions.filter((session) =>
+      selectedIds.includes(session.id)
+    );
 
-    return sessionsToExport.map(session => ({
+    return sessionsToExport.map((session) => ({
       id: session.id,
       title: session.title || '',
       category: session.category?.name || '',
       date: new Date(session.date).toLocaleDateString(),
       start_time: session.start_time || '',
       end_time: session.end_time || '',
-      staff: session.assigned_staff?.user ? 
-        `${session.assigned_staff.user.first_name} ${session.assigned_staff.user.last_name}` : '',
+      staff: session.assigned_staff?.user
+        ? `${session.assigned_staff.user.first_name} ${session.assigned_staff.user.last_name}`
+        : '',
       status: session.is_active ? 'Active' : 'Inactive',
       spots: session.spots || 0,
       class_type: session.class_type || '',
@@ -49,10 +57,15 @@ export const useExportSessions = (sessions: Session[]) => {
           withBorder: true,
           autoClose: 3000,
           position: 'top-right',
+          icon: (
+            <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+              <img src={errorIcon} alt='Error' className='w-4 h-4' />
+            </span>
+          ),
         });
         return;
       }
-      
+
       if (sessions.length === 0) {
         notifications.show({
           title: 'No sessions available',
@@ -62,26 +75,38 @@ export const useExportSessions = (sessions: Session[]) => {
           withBorder: true,
           autoClose: 3000,
           position: 'top-right',
+          icon: (
+            <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+              <img src={errorIcon} alt='Error' className='w-4 h-4' />
+            </span>
+          ),
         });
         closeExportModal();
         return;
       }
 
       setIsExporting(true);
-      
+
       try {
         const dataToExport = processSessionsForExport(selectedIds);
-        
+
         exportDataToFile(dataToExport, type, 'sessions', ['id']);
-        
+
         notifications.show({
           title: 'Export successful',
-          message: `${dataToExport.length} session(s) exported successfully as ${type.toUpperCase()}`,
+          message: `${
+            dataToExport.length
+          } session(s) exported successfully as ${type.toUpperCase()}`,
           color: 'green',
           radius: 'md',
           withBorder: true,
           autoClose: 3000,
           position: 'top-right',
+          icon: (
+            <span className='flex items-center justify-center w-6 h-6 rounded-full bg-green-200'>
+              <img src={successIcon} alt='Success' className='w-4 h-4' />
+            </span>
+          ),
         });
       } catch (error) {
         console.error('Error exporting sessions:', error);
@@ -93,6 +118,11 @@ export const useExportSessions = (sessions: Session[]) => {
           withBorder: true,
           autoClose: 3000,
           position: 'top-right',
+          icon: (
+            <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+              <img src={errorIcon} alt='Error' className='w-4 h-4' />
+            </span>
+          ),
         });
       } finally {
         setIsExporting(false);
@@ -107,7 +137,7 @@ export const useExportSessions = (sessions: Session[]) => {
     openExportModal,
     closeExportModal,
     handleExport,
-    isExporting
+    isExporting,
   };
 };
 
@@ -124,16 +154,19 @@ export const useExportClients = (clients: Client[]) => {
   ] = useDisclosure(false);
 
   const processClientsForExport = (selectedIds: number[]) => {
-    const clientsToExport = clients.filter(client => selectedIds.includes(client.id));
+    const clientsToExport = clients.filter((client) =>
+      selectedIds.includes(client.id)
+    );
 
-    return clientsToExport.map(client => ({
+    return clientsToExport.map((client) => ({
       id: client.id,
       first_name: client.first_name || '',
       last_name: client.last_name || '',
       email: client.email || '',
       phone_number: client.phone_number || '',
       location: client.location || '',
-      gender: client.gender === 'M' ? 'Male' : client.gender === 'F' ? 'Female' : '',
+      gender:
+        client.gender === 'M' ? 'Male' : client.gender === 'F' ? 'Female' : '',
       dob: client.dob || '',
       assigned_classes: client.assigned_classes || 0,
       status: client.active ? 'Active' : 'Inactive',
@@ -152,10 +185,15 @@ export const useExportClients = (clients: Client[]) => {
           withBorder: true,
           autoClose: 3000,
           position: 'top-right',
+          icon: (
+            <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+              <img src={errorIcon} alt='Error' className='w-4 h-4' />
+            </span>
+          ),
         });
         return;
       }
-      
+
       if (clients.length === 0) {
         notifications.show({
           title: 'No clients available',
@@ -165,25 +203,37 @@ export const useExportClients = (clients: Client[]) => {
           withBorder: true,
           autoClose: 3000,
           position: 'top-right',
+          icon: (
+            <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+              <img src={errorIcon} alt='Error' className='w-4 h-4' />
+            </span>
+          ),
         });
         closeExportModal();
         return;
       }
 
       setIsExporting(true);
-      
+
       try {
         const dataToExport = processClientsForExport(selectedIds);
         exportDataToFile(dataToExport, type, 'clients', ['id']);
-        
+
         notifications.show({
           title: 'Export successful',
-          message: `${dataToExport.length} client(s) exported successfully as ${type.toUpperCase()}`,
+          message: `${
+            dataToExport.length
+          } client(s) exported successfully as ${type.toUpperCase()}`,
           color: 'green',
           radius: 'md',
           withBorder: true,
           autoClose: 3000,
           position: 'top-right',
+          icon: (
+            <span className='flex items-center justify-center w-6 h-6 rounded-full bg-green-200'>
+              <img src={successIcon} alt='Success' className='w-4 h-4' />
+            </span>
+          ),
         });
       } catch (error) {
         console.error('Error exporting clients:', error);
@@ -195,6 +245,11 @@ export const useExportClients = (clients: Client[]) => {
           withBorder: true,
           autoClose: 3000,
           position: 'top-right',
+          icon: (
+            <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+              <img src={errorIcon} alt='Error' className='w-4 h-4' />
+            </span>
+          ),
         });
       } finally {
         setIsExporting(false);
@@ -209,7 +264,7 @@ export const useExportClients = (clients: Client[]) => {
     openExportModal,
     closeExportModal,
     handleExport,
-    isExporting
+    isExporting,
   };
 };
 
@@ -226,9 +281,11 @@ export const useExportStaff = (staff: StaffResponse[]) => {
   ] = useDisclosure(false);
 
   const processStaffForExport = (selectedIds: number[]) => {
-    const staffToExport = staff.filter(member => selectedIds.includes(member.id));
+    const staffToExport = staff.filter((member) =>
+      selectedIds.includes(member.id)
+    );
 
-    return staffToExport.map(member => ({
+    return staffToExport.map((member) => ({
       id: member.id,
       first_name: member.user.first_name || '',
       last_name: member.user.last_name || '',
@@ -257,10 +314,15 @@ export const useExportStaff = (staff: StaffResponse[]) => {
           withBorder: true,
           autoClose: 3000,
           position: 'top-right',
+          icon: (
+            <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+              <img src={errorIcon} alt='Error' className='w-4 h-4' />
+            </span>
+          ),
         });
         return;
       }
-      
+
       if (staff.length === 0) {
         notifications.show({
           title: 'No staff available',
@@ -270,25 +332,37 @@ export const useExportStaff = (staff: StaffResponse[]) => {
           withBorder: true,
           autoClose: 3000,
           position: 'top-right',
+          icon: (
+            <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+              <img src={errorIcon} alt='Error' className='w-4 h-4' />
+            </span>
+          ),
         });
         closeExportModal();
         return;
       }
 
       setIsExporting(true);
-      
+
       try {
         const dataToExport = processStaffForExport(selectedIds);
         exportDataToFile(dataToExport, type, 'staff', ['id']);
-        
+
         notifications.show({
           title: 'Export successful',
-          message: `${dataToExport.length} staff member(s) exported successfully as ${type.toUpperCase()}`,
+          message: `${
+            dataToExport.length
+          } staff member(s) exported successfully as ${type.toUpperCase()}`,
           color: 'green',
           radius: 'md',
           withBorder: true,
           autoClose: 3000,
           position: 'top-right',
+          icon: (
+            <span className='flex items-center justify-center w-6 h-6 rounded-full bg-green-200'>
+              <img src={successIcon} alt='Success' className='w-4 h-4' />
+            </span>
+          ),
         });
       } catch (error) {
         console.error('Error exporting staff:', error);
@@ -300,6 +374,11 @@ export const useExportStaff = (staff: StaffResponse[]) => {
           withBorder: true,
           autoClose: 3000,
           position: 'top-right',
+          icon: (
+            <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+              <img src={errorIcon} alt='Error' className='w-4 h-4' />
+            </span>
+          ),
         });
       } finally {
         setIsExporting(false);
@@ -309,13 +388,12 @@ export const useExportStaff = (staff: StaffResponse[]) => {
     [staff, closeExportModal]
   );
 
-
   return {
     exportModalOpened,
     openExportModal,
     closeExportModal,
     handleExport,
-    isExporting
+    isExporting,
   };
 };
 
@@ -327,9 +405,11 @@ export const useExportPolicies = (policies: Policy[]) => {
   ] = useDisclosure(false);
 
   const processPoliciesForExport = (selectedIds: number[]) => {
-    const policiesToExport = policies.filter(policy => selectedIds.includes(policy.id));
+    const policiesToExport = policies.filter((policy) =>
+      selectedIds.includes(policy.id)
+    );
 
-    return policiesToExport.map(policy => ({
+    return policiesToExport.map((policy) => ({
       id: policy.id,
       title: policy.title || '',
       content: policy.content || '',
@@ -348,10 +428,15 @@ export const useExportPolicies = (policies: Policy[]) => {
           withBorder: true,
           autoClose: 3000,
           position: 'top-right',
+          icon: (
+            <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+              <img src={errorIcon} alt='Error' className='w-4 h-4' />
+            </span>
+          ),
         });
         return;
       }
-      
+
       if (policies.length === 0) {
         notifications.show({
           title: 'No policies available',
@@ -361,25 +446,37 @@ export const useExportPolicies = (policies: Policy[]) => {
           withBorder: true,
           autoClose: 3000,
           position: 'top-right',
+          icon: (
+            <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+              <img src={errorIcon} alt='Error' className='w-4 h-4' />
+            </span>
+          ),
         });
         closeExportModal();
         return;
       }
-      
+
       setIsExporting(true);
-      
+
       try {
         const dataToExport = processPoliciesForExport(selectedIds);
         exportDataToFile(dataToExport, type, 'policies', ['id']);
-        
+
         notifications.show({
           title: 'Export successful',
-          message: `${dataToExport.length} policy(ies) exported successfully as ${type.toUpperCase()}`,
+          message: `${
+            dataToExport.length
+          } policy(ies) exported successfully as ${type.toUpperCase()}`,
           color: 'green',
           radius: 'md',
           withBorder: true,
           autoClose: 3000,
           position: 'top-right',
+          icon: (
+            <span className='flex items-center justify-center w-6 h-6 rounded-full bg-green-200'>
+              <img src={successIcon} alt='Success' className='w-4 h-4' />
+            </span>
+          ),
         });
       } catch (error) {
         console.error('Error exporting policies:', error);
@@ -391,6 +488,11 @@ export const useExportPolicies = (policies: Policy[]) => {
           withBorder: true,
           autoClose: 3000,
           position: 'top-right',
+          icon: (
+            <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+              <img src={errorIcon} alt='Error' className='w-4 h-4' />
+            </span>
+          ),
         });
       } finally {
         setIsExporting(false);
@@ -405,6 +507,126 @@ export const useExportPolicies = (policies: Policy[]) => {
     openExportModal,
     closeExportModal,
     handleExport,
-    isExporting
-  }; 
+    isExporting,
+  };
+};
+
+export const useExportSubcategories = (
+  subcategories: Subcategory[],
+  skills: Skill[]
+) => {
+  const [isExporting, setIsExporting] = useState(false);
+  const [
+    exportModalOpened,
+    { open: openExportModal, close: closeExportModal },
+  ] = useDisclosure(false);
+
+  const processSubcategoriesForExport = (selectedIds: number[]) => {
+    const subcategoriesToExport = subcategories.filter((subcategory) =>
+      selectedIds.includes(subcategory.id)
+    );
+
+    return subcategoriesToExport.map((subcategory) => ({
+      id: subcategory.id,
+      name: subcategory.name || '',
+      description: subcategory.description || '',
+      skills:
+        skills
+          .filter((skill) => skill.subcategory === subcategory.id)
+          .map((skill) => skill.name) || [],
+    }));
+  };
+
+  const handleExport = useCallback(
+    (type: 'csv' | 'excel', selectedIds: number[]) => {
+      if (selectedIds.length === 0) {
+        notifications.show({
+          title: 'No subcategories selected',
+          message: 'Please select at least one subcategory to export',
+          color: 'red',
+          radius: 'md',
+          withBorder: true,
+          autoClose: 3000,
+          position: 'top-right',
+          icon: (
+            <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+              <img src={errorIcon} alt='Error' className='w-4 h-4' />
+            </span>
+          ),
+        });
+        return;
+      }
+
+      if (subcategories.length === 0) {
+        notifications.show({
+          title: 'No subcategories available',
+          message: 'There are no subcategories to export',
+          color: 'red',
+          radius: 'md',
+          withBorder: true,
+          autoClose: 3000,
+          position: 'top-right',
+          icon: (
+            <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+              <img src={errorIcon} alt='Error' className='w-4 h-4' />
+            </span>
+          ),
+        });
+        closeExportModal();
+        return;
+      }
+
+      setIsExporting(true);
+
+      try {
+        const dataToExport = processSubcategoriesForExport(selectedIds);
+        exportDataToFile(dataToExport, type, 'subcategories', ['id']);
+
+        notifications.show({
+          title: 'Export successful',
+          message: `${
+            dataToExport.length
+          } subcategory(ies) exported successfully as ${type.toUpperCase()}`,
+          color: 'green',
+          radius: 'md',
+          withBorder: true,
+          autoClose: 3000,
+          position: 'top-right',
+          icon: (
+            <span className='flex items-center justify-center w-6 h-6 rounded-full bg-green-200'>
+              <img src={successIcon} alt='Success' className='w-4 h-4' />
+            </span>
+          ),
+        });
+      } catch (error) {
+        console.error('Error exporting subcategories:', error);
+        notifications.show({
+          title: 'Export failed',
+          message: 'Failed to export subcategories. Please try again.',
+          color: 'red',
+          radius: 'md',
+          withBorder: true,
+          autoClose: 3000,
+          position: 'top-right',
+          icon: (
+            <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+              <img src={errorIcon} alt='Error' className='w-4 h-4' />
+            </span>
+          ),
+        });
+      } finally {
+        setIsExporting(false);
+        closeExportModal();
+      }
+    },
+    [subcategories, closeExportModal]
+  );
+
+  return {
+    exportModalOpened,
+    openExportModal,
+    closeExportModal,
+    handleExport,
+    isExporting,
+  };
 };
