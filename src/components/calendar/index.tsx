@@ -121,8 +121,6 @@ function mapSessionToFullCalendarEvents(session: any): FullCalendarEvent[] {
   return events;
 }
 
-// ...existing code...
-
 const CalendarView = () => {
   const calendarRef = useRef<FullCalendar>(null);
   const [currentView, setCurrentView] = useState<CalendarView>(
