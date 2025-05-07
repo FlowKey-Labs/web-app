@@ -24,8 +24,6 @@ import { useAuthStore } from '../../store/auth';
 
 const columnHelper = createColumnHelper<Client>();
 
-
-
 const AllClients = () => {
   const [rowSelection, setRowSelection] = useState({});
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
