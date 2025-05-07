@@ -25,7 +25,7 @@ import successIcon from '../../assets/icons/success.svg';
 import errorIcon from '../../assets/icons/error.svg';
 import { IconPlus } from '@tabler/icons-react';
 
-import CreateSkillModal from './createSkillModal';
+import CreateSkillModal from './CreateSkillModal';
 import UpdateSkillModal from './UpdateSkillModal';
 import { Subcategory, Skill, Category } from '../../types/profileCategories';
 

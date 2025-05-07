@@ -13,7 +13,6 @@ import {
   useDeleteSessionCategory,
 } from '../../hooks/reactQuery';
 
-import EmptyDataPage from '../common/EmptyDataPage';
 import Button from '../common/Button';
 import { IconEdit, IconPlus, IconTrash } from '@tabler/icons-react';
 import CategoryDetails from './CategoryDetails';
@@ -37,7 +36,6 @@ const Categories = () => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [currentCategory, setCurrentCategory] = useState<Category | null>(null);
-  const [emptyModalOpen, setEmptyModalOpen] = useState(true);
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(
     null
   );
