@@ -8,7 +8,15 @@ import {
   useActivateClient,
 } from '../../hooks/reactQuery';
 import { createColumnHelper } from '@tanstack/react-table';
-import { Progress, Group, Modal, Text, Button as MantineButton, Menu, Stack } from '@mantine/core';
+import {
+  Progress,
+  Group,
+  Modal,
+  Text,
+  Button as MantineButton,
+  Menu,
+  Stack,
+} from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
 import successIcon from '../../assets/icons/success.svg';
@@ -44,22 +52,22 @@ const AllClients = () => {
     error,
     refetch,
   } = useGetClients();
-  
+
   const getSelectedClientIds = useCallback(() => {
     if (!clients) return [];
-    
-    return Object.keys(rowSelection).map(index => {
+
+    return Object.keys(rowSelection).map((index) => {
       const clientIndex = parseInt(index);
       return clients[clientIndex].id;
     });
   }, [rowSelection, clients]);
-  
+
   const {
     exportModalOpened,
     openExportModal,
     closeExportModal,
     handleExport,
-    isExporting
+    isExporting,
   } = useExportClients(clients || []);
 
   const columns = useMemo(
@@ -78,6 +86,7 @@ const AllClients = () => {
           <input
             type='checkbox'
             checked={row.getIsSelected()}
+            onClick={(e) => e.stopPropagation()}
             onChange={row.getToggleSelectedHandler()}
             className='w-4 h-4 rounded cursor-pointer bg-[#F7F8FA] accent-[#DBDEDF]'
           />
@@ -219,8 +228,6 @@ const AllClients = () => {
     [setSelectedClient, open]
   );
 
-
-
   const handleDeactivateClient = () => {
     if (!selectedClient) return;
 
@@ -305,8 +312,6 @@ const AllClients = () => {
 
   const openDrawer = () => setIsDrawerOpen(true);
   const closeDrawer = () => setIsDrawerOpen(false);
-
-
 
   if (isLoading) {
     return (
@@ -451,10 +456,11 @@ const AllClients = () => {
       >
         <div className='py-2'>
           <Text size='sm' style={{ marginBottom: '2rem' }}>
-            Select a format to export {Object.keys(rowSelection).length} selected clients
+            Select a format to export {Object.keys(rowSelection).length}{' '}
+            selected clients
           </Text>
-          
-          <Stack gap="md">
+
+          <Stack gap='md'>
             <MantineButton
               variant='outline'
               color='#1D9B5E'
@@ -465,7 +471,7 @@ const AllClients = () => {
             >
               Export as Excel
             </MantineButton>
-            
+
             <MantineButton
               variant='outline'
               color='#1D9B5E'
@@ -477,7 +483,7 @@ const AllClients = () => {
               Export as CSV
             </MantineButton>
           </Stack>
-          
+
           <div className='flex justify-end space-x-4 mt-8'>
             <MantineButton
               variant='outline'

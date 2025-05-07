@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from 'react';
 import {
   useGetPolicies,
   useCreatePolicy,
@@ -16,28 +16,29 @@ import {
   Image,
   Text,
   Button,
-} from "@mantine/core";
-import actionOptionIcon from "../../assets/icons/actionOption.svg";
-import editIcon from "../../assets/icons/edit.svg";
-import deleteIcon from "../../assets/icons/delete.svg";
-import { useForm, Controller, FormProvider } from "react-hook-form";
-import { useEditor, EditorContent } from "@tiptap/react";
-import StarterKit from "@tiptap/starter-kit";
-import Underline from "@tiptap/extension-underline";
-import Link from "@tiptap/extension-link";
-import TextStyle from "@tiptap/extension-text-style";
-import Color from "@tiptap/extension-color";
-import TextAlign from "@tiptap/extension-text-align";
-import FontFamily from "@tiptap/extension-font-family";
-import FontSize from "@tiptap/extension-font-size";
-import "./tiptap.css";
-import Table from "../common/Table";
-import Input from "../common/Input";
-import DropdownSelectInput from "../common/Dropdown";
-import { IconFile, IconPlus } from "@tabler/icons-react";
-import { Dropzone } from "@mantine/dropzone";
-import dropZoneIcon from "../../assets/icons/dropZone.svg";
-import styles from "./GeneralSettings.module.css";
+} from '@mantine/core';
+import actionOptionIcon from '../../assets/icons/actionOption.svg';
+import editIcon from '../../assets/icons/edit.svg';
+import deleteIcon from '../../assets/icons/delete.svg';
+import { useForm, Controller, FormProvider } from 'react-hook-form';
+import { useEditor, EditorContent } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
+import Underline from '@tiptap/extension-underline';
+import Link from '@tiptap/extension-link';
+import TextStyle from '@tiptap/extension-text-style';
+import Color from '@tiptap/extension-color';
+import TextAlign from '@tiptap/extension-text-align';
+import FontFamily from '@tiptap/extension-font-family';
+import FontSize from '@tiptap/extension-font-size';
+import './tiptap.css';
+import Table from '../common/Table';
+import Input from '../common/Input';
+import DropdownSelectInput from '../common/Dropdown';
+import { IconFile, IconPlus } from '@tabler/icons-react';
+import { Dropzone } from '@mantine/dropzone';
+import dropZoneIcon from '../../assets/icons/dropZone.svg';
+import styles from './GeneralSettings.module.css';
+import { useExportPolicies } from '../../hooks/useExport';
 
 import { Policy } from "../../types/policy";
 import { truncateHtmlContent, getUserFullName } from "../../utils/policy";
@@ -45,6 +46,9 @@ import { truncateHtmlContent, getUserFullName } from "../../utils/policy";
 import { format } from "date-fns";
 import { notifications } from "@mantine/notifications";
 import { createColumnHelper } from "@tanstack/react-table";
+
+import successIcon from '../../assets/icons/success.svg';
+import errorIcon from '../../assets/icons/error.svg';
 
 type PolicyFormData = {
   policyTitle: string;
@@ -93,13 +97,51 @@ const Policies = () => {
     },
   });
 
+  const [rowSelection, setRowSelection] = useState({});
   const [policyToDelete, setPolicyToDelete] = useState<Policy | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
+  const getSelectedPolicyIds = useCallback(() => {
+    if (!policies) return [];
+    
+    return Object.keys(rowSelection).map(index => {
+      const policyIndex = parseInt(index);
+      return policies[policyIndex].id;
+    });
+  }, [rowSelection, policies]);
+
+  const {
+    exportModalOpened,
+    openExportModal,
+    closeExportModal,
+    handleExport,
+    isExporting,
+  } = useExportPolicies(policies || []);
+
   const columns = useMemo(
     () => [
-      columnHelper.accessor("title", {
-        header: "Title",
+      columnHelper.display({
+        id: 'select',
+        header: ({ table }) => (
+          <input
+            type='checkbox'
+            checked={table.getIsAllRowsSelected()}
+            onChange={table.getToggleAllRowsSelectedHandler()}
+            className='w-4 h-4 rounded cursor-pointer bg-[#F7F8FA] accent-[#DBDEDF]'
+          />
+        ),
+        cell: ({ row }) => (
+          <input
+            type='checkbox'
+            checked={row.getIsSelected()}
+            onChange={row.getToggleSelectedHandler()}
+            onClick={(e) => e.stopPropagation()}
+            className='w-4 h-4 rounded cursor-pointer bg-[#F7F8FA] accent-[#DBDEDF]'
+          />
+        ),
+      }),
+      columnHelper.accessor('title', {
+        header: 'Title',
       }),
       columnHelper.accessor("policy_type", {
         header: "Type",
@@ -133,8 +175,39 @@ const Policies = () => {
         cell: (info) => getUserFullName(info.getValue()),
       }),
       columnHelper.display({
-        id: "actions",
-        header: "",
+        id: 'actions',
+        header: () => (
+          <div className='flex space-x-2' onClick={(e) => e.stopPropagation()}>
+            <Group justify='center'>
+              <Menu
+                width={150}
+                shadow='md'
+                position='bottom'
+                radius='md'
+                withArrow
+                offset={4}
+              >
+                <Menu.Target>
+                  <img
+                    src={actionOptionIcon}
+                    alt='Options'
+                    className='w-4 h-4 cursor-pointer'
+                  />
+                </Menu.Target>
+                <Menu.Dropdown>
+                  <Menu.Item
+                    color='#162F3B'
+                    className='text-sm'
+                    style={{ textAlign: 'center' }}
+                    onClick={openExportModal}
+                  >
+                    Export Policies
+                  </Menu.Item>
+                </Menu.Dropdown>
+              </Menu>
+            </Group>
+          </div>
+        ),
         cell: (info) => {
           const currentPolicy = info.row.original;
           return (
@@ -157,7 +230,7 @@ const Policies = () => {
                   </Menu.Target>
                   <Menu.Dropdown>
                     <Menu.Item
-                      color="#228be6"
+                      color='#1D9B5E'
                       leftSection={
                         <img src={editIcon} alt="Edit" className="w-4 h-4" />
                       }
@@ -234,18 +307,36 @@ const Policies = () => {
 
     if (policyType === "PDF" && !data.policyFile) {
       notifications.show({
-        title: "Error",
-        message: "PDF file is required for PDF policy type",
-        color: "red",
+        title: 'Error',
+        message: 'PDF file is required for PDF policy type',
+        color: 'red',
+        radius: 'md',
+        icon: (
+          <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+            <img src={errorIcon} alt='Error' className='w-4 h-4' />
+          </span>
+        ),
+        withBorder: true,
+        autoClose: 3000,
+        position: 'top-right',
       });
       return;
     }
 
     if (policyType === "TEXT" && !data.policyContent) {
       notifications.show({
-        title: "Error",
-        message: "Content is required for TEXT policy type",
-        color: "red",
+        title: 'Error',
+        message: 'Content is required for TEXT policy type',
+        color: 'red',
+        radius: 'md',
+        icon: (
+          <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+            <img src={errorIcon} alt='Error' className='w-4 h-4' />
+          </span>
+        ),
+        withBorder: true,
+        autoClose: 3000,
+        position: 'top-right',
       });
       return;
     }
@@ -266,9 +357,18 @@ const Policies = () => {
         {
           onSuccess: () => {
             notifications.show({
-              title: "Success",
-              message: "Policy updated successfully!",
-              color: "green",
+              title: 'Success',
+              message: 'Policy updated successfully!',
+              color: 'green',
+              radius: 'md',
+              icon: (
+                <span className='flex items-center justify-center w-6 h-6 rounded-full bg-green-200'>
+                  <img src={successIcon} alt='Success' className='w-4 h-4' />
+                </span>
+              ),
+              withBorder: true,
+              autoClose: 3000,
+              position: 'top-right',
             });
             setDrawerOpened(false);
             setSelectedPolicy(null);
@@ -277,9 +377,18 @@ const Policies = () => {
           },
           onError: () => {
             notifications.show({
-              title: "Error",
-              message: "Failed to update policy.",
-              color: "red",
+              title: 'Error',
+              message: 'Failed to update policy.',
+              color: 'red',
+              radius: 'md',
+              icon: (
+                <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+                  <img src={errorIcon} alt='Error' className='w-4 h-4' />
+                </span>
+              ),
+              withBorder: true,
+              autoClose: 3000,
+              position: 'top-right',
             });
           },
         }
@@ -288,9 +397,18 @@ const Policies = () => {
       createPolicyMutation.mutate(payload, {
         onSuccess: () => {
           notifications.show({
-            title: "Success",
-            message: "Policy created successfully!",
-            color: "green",
+            title: 'Success',
+            message: 'Policy created successfully!',
+            color: 'green',
+            radius: 'md',
+            icon: (
+              <span className='flex items-center justify-center w-6 h-6 rounded-full bg-green-200'>
+                <img src={successIcon} alt='Success' className='w-4 h-4' />
+              </span>
+            ),
+            withBorder: true,
+            autoClose: 3000,
+            position: 'top-right',
           });
           setDrawerOpened(false);
           reset();
@@ -298,9 +416,18 @@ const Policies = () => {
         },
         onError: () => {
           notifications.show({
-            title: "Error",
-            message: "Failed to create policy.",
-            color: "red",
+            title: 'Error',
+            message: 'Failed to create policy.',
+            color: 'red',
+            radius: 'md',
+            icon: (
+              <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+                <img src={errorIcon} alt='Error' className='w-4 h-4' />
+              </span>
+            ),
+            withBorder: true,
+            autoClose: 3000,
+            position: 'top-right',
           });
         },
       });
@@ -312,9 +439,18 @@ const Policies = () => {
     deletePolicyMutation.mutate(policyToDelete.id, {
       onSuccess: () => {
         notifications.show({
-          title: "Success",
-          message: "Policy deleted successfully!",
-          color: "green",
+          title: 'Success',
+          message: 'Policy deleted successfully!',
+          color: 'green',
+          radius: 'md',
+          icon: (
+            <span className='flex items-center justify-center w-6 h-6 rounded-full bg-green-200'>
+              <img src={successIcon} alt='Success' className='w-4 h-4' />
+            </span>
+          ),
+          withBorder: true,
+          autoClose: 3000,
+          position: 'top-right',
         });
         setIsDeleteModalOpen(false);
         setPolicyToDelete(null);
@@ -324,9 +460,18 @@ const Policies = () => {
       },
       onError: () => {
         notifications.show({
-          title: "Error",
-          message: "Failed to delete policy.",
-          color: "red",
+          title: 'Error',
+          message: 'Failed to delete policy.',
+          color: 'red',
+          radius: 'md',
+          icon: (
+            <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+              <img src={errorIcon} alt='Error' className='w-4 h-4' />
+            </span>
+          ),
+          withBorder: true,
+          autoClose: 3000,
+          position: 'top-right',
         });
       },
     });
@@ -354,6 +499,8 @@ const Policies = () => {
       <Table
         data={policies}
         columns={columns}
+        rowSelection={rowSelection}
+        onRowSelectionChange={setRowSelection}
         onRowClick={(row: any) => {
           setSelectedPolicy(row);
         }}
@@ -366,10 +513,10 @@ const Policies = () => {
           reset();
           if (editor) editor.commands.setContent("");
         }}
-        title={selectedPolicy ? "Update Policy" : "Create Policy"}
-        position="right"
-        size="lg"
-        padding="xl"
+        title={selectedPolicy ? 'Update Policy' : 'Create Policy'}
+        position='right'
+        size='md'
+        padding='xl'
         overlayProps={{ opacity: 0.5, blur: 2 }}
       >
         <FormProvider {...methods}>
@@ -797,6 +944,67 @@ const Policies = () => {
           >
             Delete
           </MantineButton>
+        </div>
+      </Modal>
+      <Modal
+        opened={exportModalOpened}
+        onClose={closeExportModal}
+        title={
+          <Text fw={600} size='lg'>
+            Export Clients
+          </Text>
+        }
+        centered
+        radius='md'
+        size='md'
+        withCloseButton={false}
+        overlayProps={{
+          backgroundOpacity: 0.55,
+          blur: 3,
+        }}
+        shadow='xl'
+      >
+        <div className='py-2'>
+          <Text size='sm' style={{ marginBottom: '2rem' }}>
+            Select a format to export {Object.keys(rowSelection).length}{' '}
+            selected clients
+          </Text>
+
+          <Stack gap='md'>
+            <MantineButton
+              variant='outline'
+              color='#1D9B5E'
+              radius='md'
+              onClick={() => handleExport('excel', getSelectedPolicyIds())}
+              className='px-6'
+              loading={isExporting}
+            >
+              Export as Excel
+            </MantineButton>
+
+            <MantineButton
+              variant='outline'
+              color='#1D9B5E'
+              radius='md'
+              onClick={() => handleExport('csv', getSelectedPolicyIds())}
+              className='px-6'
+              loading={isExporting}
+            >
+              Export as CSV
+            </MantineButton>
+          </Stack>
+
+          <div className='flex justify-end space-x-4 mt-8'>
+            <MantineButton
+              variant='outline'
+              color='red'
+              radius='md'
+              onClick={closeExportModal}
+              className='px-6'
+            >
+              Cancel
+            </MantineButton>
+          </div>
         </div>
       </Modal>
     </div>

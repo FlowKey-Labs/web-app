@@ -1,11 +1,20 @@
 import { useParams } from 'react-router-dom';
 import MembersHeader from '../headers/MembersHeader';
-import { Progress, Menu, Modal, Text, Button } from '@mantine/core';
-import { useMemo, useState } from 'react';
+import {
+  Progress,
+  Menu,
+  Modal,
+  Text,
+  Button,
+  Stack,
+  Group,
+} from '@mantine/core';
+import { useCallback, useMemo, useState } from 'react';
 import { useDisclosure } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
 import Table from '../common/Table';
 import { createColumnHelper } from '@tanstack/react-table';
+import { useExportSessionClients } from '../../hooks/useExport';
 
 import {
   useGetSessionDetail,
@@ -35,207 +44,8 @@ const SessionDetails = () => {
   const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
   const [opened, { open, close }] = useDisclosure(false);
 
-  // const markAttendedMutation = useMarkClientAttended();
   const removeClientMutation = useRemoveClientFromSession();
   const updateStatusMutation = useUpdateAttendanceStatus();
-
-  const columns = useMemo(
-    () => [
-      columnHelper.display({
-        id: 'select',
-        header: ({ table }) => (
-          <input
-            type='checkbox'
-            checked={table.getIsAllRowsSelected()}
-            onChange={table.getToggleAllRowsSelectedHandler()}
-            className='w-4 h-4 rounded cursor-pointer bg-[#F7F8FA] accent-[#DBDEDF]'
-          />
-        ),
-        cell: ({ row }) => (
-          <input
-            type='checkbox'
-            checked={row.getIsSelected()}
-            onChange={row.getToggleSelectedHandler()}
-            className='w-4 h-4 rounded cursor-pointer bg-[#F7F8FA] accent-[#DBDEDF]'
-          />
-        ),
-      }),
-      columnHelper.accessor('first_name', {
-        header: 'Name',
-        cell: (info) => `${info.getValue()} ${info.row.original.last_name}`,
-      }),
-      columnHelper.accessor('phone_number', {
-        header: 'Phone',
-        cell: (info) => info.getValue(),
-      }),
-      columnHelper.accessor('active', {
-        header: 'Status',
-        cell: (info) => (
-          <span
-            className={`inline-block px-1 py-1 rounded-lg text-sm text-center min-w-[60px] ${
-              info.getValue()
-                ? 'bg-active text-green-700'
-                : 'bg-red-100 text-red-700'
-            }`}
-          >
-            {info.getValue() ? 'Active' : 'Inactive'}
-          </span>
-        ),
-      }),
-      columnHelper.display({
-        id: 'attendance',
-        header: 'Attendance',
-        cell: ({ row }) => {
-          const client = row.original;
-          
-          const sessionAttendance = client.sessions?.find(
-            (session) => session.session_id === currentSessionId
-          );
-
-          const getStatusColor = (status: string) => {
-            switch (status) {
-              case 'attended':
-                return 'bg-active text-green-700';
-              case 'not_yet':
-                return 'bg-yellow-100 text-yellow-700';
-              case 'make_up':
-                return 'bg-blue-100 text-blue-700';
-              case 'cancelled':
-                return 'bg-gray-100 text-gray-700';
-              default:
-                return 'bg-yellow-100 text-yellow-700';
-            }
-          };
-          
-          const status = sessionAttendance?.status || 'not_yet';
-          const statusDisplay = sessionAttendance?.status_display || (
-            status === 'attended' ? 'Attended' :
-            status === 'make_up' ? 'Make-up' :
-            status === 'cancelled' ? 'Cancelled' :
-            'Not Yet'
-          );
-
-          return (
-            <span
-              className={`inline-block px-2 py-1 rounded-lg text-sm text-center min-w-[80px] ${
-                getStatusColor(status)
-              }`}
-            >
-              {statusDisplay}
-            </span>
-          );
-        },
-      }),
-      columnHelper.display({
-        id: 'progress',
-        header: 'Progress',
-        cell: () => (
-          <Progress color='#FFAE0080' size='sm' radius='xl' value={50} />
-        ),
-      }),
-      columnHelper.display({
-        id: 'actions',
-        header: () => (
-          <img
-            src={actionOptionIcon}
-            alt='Options'
-            className='w-4 h-4 cursor-pointer'
-          />
-        ),
-        cell: ({ row }) => {
-          const client = row.original;
-
-          return (
-            <div
-              className='flex space-x-2'
-              onClick={(e) => e.stopPropagation()}
-            >
-              <Menu
-                width={150}
-                shadow='md'
-                position='bottom'
-                radius='md'
-                withArrow
-                offset={4}
-              >
-                <Menu.Target>
-                  <img
-                    src={actionOptionIcon}
-                    alt='Options'
-                    className='w-4 h-4 cursor-pointer'
-                  />
-                </Menu.Target>
-                <Menu.Dropdown>
-                  <Menu.Item
-                    color='green'
-                    onClick={() => {
-                      setSelectedClient(client);
-                      setSelectedStatus('attended');
-                      setIsRemovingClient(false);
-                      open();
-                    }}
-                    className='text-sm'
-                    style={{ textAlign: 'center' }}
-                  >
-                    Attended
-                  </Menu.Item>
-
-
-                  <Menu.Item
-                    color='blue'
-                    onClick={() => {
-                      setSelectedClient(client);
-                      setSelectedStatus('make_up');
-                      setIsRemovingClient(false);
-                      open();
-                    }}
-                    className='text-sm'
-                    style={{ textAlign: 'center' }}
-                  >
-                    Make-up
-                  </Menu.Item>
-                  <Menu.Item
-                    color='gray'
-                    onClick={() => {
-                      setSelectedClient(client);
-                      setSelectedStatus('cancelled');
-                      setIsRemovingClient(false);
-                      open();
-                    }}
-                    className='text-sm'
-                    style={{ textAlign: 'center' }}
-                  >
-                    Cancelled
-                  </Menu.Item>
-                  <Menu.Item
-                    color='red'
-                    onClick={() => {
-                      setSelectedClient(client);
-                      setIsRemovingClient(true);
-                      setSelectedStatus(null);
-                      open();
-                    }}
-                    className='text-sm'
-                    style={{ textAlign: 'center' }}
-                  >
-                    Remove
-                  </Menu.Item>
-                </Menu.Dropdown>
-              </Menu>
-            </div>
-          );
-        },
-      }),
-    ],
-    [
-      currentSessionId,
-      open,
-      setSelectedClient,
-      setIsMarkingAttended,
-      setIsRemovingClient,
-      setSelectedStatus,
-    ]
-  );
 
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'overview' | 'clients'>(
@@ -251,10 +61,10 @@ const SessionDetails = () => {
     refetch: refetchSession,
   } = useGetSessionDetail(sessionId || '');
 
-  const { 
-    data: sessionAnalytics, 
+  const {
+    data: sessionAnalytics,
     isLoading: analyticsLoading,
-    refetch: refetchAnalytics 
+    refetch: refetchAnalytics,
   } = useGetSessionAnalytics(sessionId || '');
 
   const {
@@ -264,6 +74,23 @@ const SessionDetails = () => {
     error: clientsErrorDetails,
     refetch: refetchClients,
   } = useGetSessionClients(sessionId || '');
+
+  const getSelectedClientIds = useCallback(() => {
+    if (!clients) return [];
+
+    return Object.keys(rowSelection).map((index) => {
+      const clientIndex = parseInt(index);
+      return clients[clientIndex].id;
+    });
+  }, [rowSelection, clients]);
+
+  const {
+    exportModalOpened,
+    openExportModal,
+    closeExportModal,
+    handleExport,
+    isExporting,
+  } = useExportSessionClients(clients || []);
 
   const openDrawer = () => setIsDrawerOpen(true);
   const closeDrawer = () => {
@@ -323,38 +150,50 @@ const SessionDetails = () => {
     if (!selectedClient || !sessionId || !selectedStatus) return;
 
     updateStatusMutation.mutate(
-      { clientId: selectedClient.id.toString(), sessionId, status: selectedStatus },
+      {
+        clientId: selectedClient.id.toString(),
+        sessionId,
+        status: selectedStatus,
+      },
       {
         onSuccess: () => {
           const statusMessages: Record<string, string> = {
-            'attended': 'Client marked as attended!',
-            'not_yet': 'Client marked as not yet attended!',
-            'make_up': 'Client marked for make-up class!',
-            'cancelled': 'Client attendance marked as cancelled!',
+            attended: 'Client marked as attended!',
+            not_yet: 'Client marked as not yet attended!',
+            make_up: 'Client marked for make-up class!',
+            cancelled: 'Client attendance marked as cancelled!',
           };
-          
+
           const statusColors: Record<string, string> = {
-            'attended': 'green',
-            'not_yet': 'yellow',
-            'make_up': 'blue',
-            'cancelled': 'gray',
+            attended: 'green',
+            not_yet: 'yellow',
+            make_up: 'blue',
+            cancelled: 'gray',
           };
-          
+
           const color = statusColors[selectedStatus] || 'green';
-          const message = statusMessages[selectedStatus] || 'Attendance status updated!';
-          
+          const message =
+            statusMessages[selectedStatus] || 'Attendance status updated!';
+
           notifications.show({
             title: 'Success',
             message,
             color,
             radius: 'md',
             icon: (
-              <span className={`flex items-center justify-center w-6 h-6 rounded-full ${
-                color === 'green' ? 'bg-green-200' : 
-                color === 'blue' ? 'bg-blue-200' : 
-                color === 'yellow' ? 'bg-yellow-200' : 
-                color === 'gray' ? 'bg-gray-200' : 'bg-green-200'
-              }`}>
+              <span
+                className={`flex items-center justify-center w-6 h-6 rounded-full ${
+                  color === 'green'
+                    ? 'bg-green-200'
+                    : color === 'blue'
+                    ? 'bg-blue-200'
+                    : color === 'yellow'
+                    ? 'bg-yellow-200'
+                    : color === 'gray'
+                    ? 'bg-gray-200'
+                    : 'bg-green-200'
+                }`}
+              >
                 <img src={successIcon} alt='Success' className='w-4 h-4' />
               </span>
             ),
@@ -384,7 +223,6 @@ const SessionDetails = () => {
       }
     );
   };
-
 
   const handleRemoveClient = () => {
     if (!selectedClient || !sessionId) return;
@@ -431,6 +269,231 @@ const SessionDetails = () => {
       }
     );
   };
+
+  const columns = useMemo(
+    () => [
+      columnHelper.display({
+        id: 'select',
+        header: ({ table }) => (
+          <input
+            type='checkbox'
+            checked={table.getIsAllRowsSelected()}
+            onChange={table.getToggleAllRowsSelectedHandler()}
+            className='w-4 h-4 rounded cursor-pointer bg-[#F7F8FA] accent-[#DBDEDF]'
+          />
+        ),
+        cell: ({ row }) => (
+          <input
+            type='checkbox'
+            checked={row.getIsSelected()}
+            onChange={row.getToggleSelectedHandler()}
+            className='w-4 h-4 rounded cursor-pointer bg-[#F7F8FA] accent-[#DBDEDF]'
+          />
+        ),
+      }),
+      columnHelper.accessor('first_name', {
+        header: 'Name',
+        cell: (info) => `${info.getValue()} ${info.row.original.last_name}`,
+      }),
+      columnHelper.accessor('phone_number', {
+        header: 'Phone',
+        cell: (info) => info.getValue(),
+      }),
+      columnHelper.accessor('active', {
+        header: 'Status',
+        cell: (info) => (
+          <span
+            className={`inline-block px-1 py-1 rounded-lg text-sm text-center min-w-[60px] ${
+              info.getValue()
+                ? 'bg-active text-green-700'
+                : 'bg-red-100 text-red-700'
+            }`}
+          >
+            {info.getValue() ? 'Active' : 'Inactive'}
+          </span>
+        ),
+      }),
+      columnHelper.display({
+        id: 'attendance',
+        header: 'Attendance',
+        cell: ({ row }) => {
+          const client = row.original;
+
+          const sessionAttendance = client.sessions?.find(
+            (session) => session.session_id === currentSessionId
+          );
+
+          const getStatusColor = (status: string) => {
+            switch (status) {
+              case 'attended':
+                return 'bg-active text-green-700';
+              case 'not_yet':
+                return 'bg-yellow-100 text-yellow-700';
+              case 'make_up':
+                return 'bg-blue-100 text-blue-700';
+              case 'cancelled':
+                return 'bg-gray-100 text-gray-700';
+              default:
+                return 'bg-yellow-100 text-yellow-700';
+            }
+          };
+
+          const status = sessionAttendance?.status || 'not_yet';
+          const statusDisplay =
+            sessionAttendance?.status_display ||
+            (status === 'attended'
+              ? 'Attended'
+              : status === 'make_up'
+              ? 'Make-up'
+              : status === 'cancelled'
+              ? 'Cancelled'
+              : 'Not Yet');
+
+          return (
+            <span
+              className={`inline-block px-2 py-1 rounded-lg text-sm text-center min-w-[80px] ${getStatusColor(
+                status
+              )}`}
+            >
+              {statusDisplay}
+            </span>
+          );
+        },
+      }),
+      columnHelper.display({
+        id: 'progress',
+        header: 'Progress',
+        cell: () => (
+          <Progress color='#FFAE0080' size='sm' radius='xl' value={50} />
+        ),
+      }),
+      columnHelper.display({
+        id: 'actions',
+        header: () => (
+          <div className='flex space-x-2' onClick={(e) => e.stopPropagation()}>
+            <Group justify='center'>
+              <Menu
+                width={150}
+                shadow='md'
+                position='bottom'
+                radius='md'
+                withArrow
+                offset={4}
+              >
+                <Menu.Target>
+                  <img
+                    src={actionOptionIcon}
+                    alt='Options'
+                    className='w-4 h-4 cursor-pointer'
+                  />
+                </Menu.Target>
+                <Menu.Dropdown>
+                  <Menu.Item
+                    color='#162F3B'
+                    className='text-sm'
+                    style={{ textAlign: 'center' }}
+                    onClick={openExportModal}
+                  >
+                    Export Clients
+                  </Menu.Item>
+                </Menu.Dropdown>
+              </Menu>
+            </Group>
+          </div>
+        ),
+        cell: ({ row }) => {
+          const client = row.original;
+
+          return (
+            <div
+              className='flex space-x-2'
+              onClick={(e) => e.stopPropagation()}
+            >
+              <Menu
+                width={150}
+                shadow='md'
+                position='bottom'
+                radius='md'
+                withArrow
+                offset={4}
+              >
+                <Menu.Target>
+                  <img
+                    src={actionOptionIcon}
+                    alt='Options'
+                    className='w-4 h-4 cursor-pointer'
+                  />
+                </Menu.Target>
+                <Menu.Dropdown>
+                  <Menu.Item
+                    color='green'
+                    onClick={() => {
+                      setSelectedClient(client);
+                      setSelectedStatus('attended');
+                      setIsRemovingClient(false);
+                      open();
+                    }}
+                    className='text-sm'
+                    style={{ textAlign: 'center' }}
+                  >
+                    Attended
+                  </Menu.Item>
+
+                  <Menu.Item
+                    color='blue'
+                    onClick={() => {
+                      setSelectedClient(client);
+                      setSelectedStatus('make_up');
+                      setIsRemovingClient(false);
+                      open();
+                    }}
+                    className='text-sm'
+                    style={{ textAlign: 'center' }}
+                  >
+                    Make-up
+                  </Menu.Item>
+                  <Menu.Item
+                    color='gray'
+                    onClick={() => {
+                      setSelectedClient(client);
+                      setSelectedStatus('cancelled');
+                      setIsRemovingClient(false);
+                      open();
+                    }}
+                    className='text-sm'
+                    style={{ textAlign: 'center' }}
+                  >
+                    Cancelled
+                  </Menu.Item>
+                  <Menu.Item
+                    color='red'
+                    onClick={() => {
+                      setSelectedClient(client);
+                      setIsRemovingClient(true);
+                      setSelectedStatus(null);
+                      open();
+                    }}
+                    className='text-sm'
+                    style={{ textAlign: 'center' }}
+                  >
+                    Remove
+                  </Menu.Item>
+                </Menu.Dropdown>
+              </Menu>
+            </div>
+          );
+        },
+      }),
+    ],
+    [
+      currentSessionId,
+      open,
+      setSelectedClient,
+      setIsMarkingAttended,
+      setIsRemovingClient,
+      setSelectedStatus,
+    ]
+  );
 
   const isLoading = sessionLoading || clientsLoading || analyticsLoading;
   const isError = sessionError || clientsError;
@@ -771,7 +834,7 @@ const SessionDetails = () => {
               : selectedStatus === 'make_up'
               ? 'Are you sure you want to request a make-up class for this client?'
               : selectedStatus === 'cancelled'
-              ? 'Are you sure you want to mark this client\'s attendance as cancelled for this session?'
+              ? "Are you sure you want to mark this client's attendance as cancelled for this session?"
               : 'Are you sure you want to update the attendance status for this client?'}
           </Text>
           <div className='flex justify-end space-x-3'>
@@ -803,6 +866,67 @@ const SessionDetails = () => {
               }
             >
               Confirm
+            </Button>
+          </div>
+        </div>
+      </Modal>
+      <Modal
+        opened={exportModalOpened}
+        onClose={closeExportModal}
+        title={
+          <Text fw={600} size='lg'>
+            Export Clients
+          </Text>
+        }
+        centered
+        radius='md'
+        size='md'
+        withCloseButton={false}
+        overlayProps={{
+          backgroundOpacity: 0.55,
+          blur: 3,
+        }}
+        shadow='xl'
+      >
+        <div className='py-2'>
+          <Text size='sm' style={{ marginBottom: '2rem' }}>
+            Select a format to export {Object.keys(rowSelection).length}{' '}
+            selected clients
+          </Text>
+
+          <Stack gap='md'>
+            <Button
+              variant='outline'
+              color='#1D9B5E'
+              radius='md'
+              onClick={() => handleExport('excel', getSelectedClientIds())}
+              className='px-6'
+              loading={isExporting}
+            >
+              Export as Excel
+            </Button>
+
+            <Button
+              variant='outline'
+              color='#1D9B5E'
+              radius='md'
+              onClick={() => handleExport('csv', getSelectedClientIds())}
+              className='px-6'
+              loading={isExporting}
+            >
+              Export as CSV
+            </Button>
+          </Stack>
+
+          <div className='flex justify-end space-x-4 mt-8'>
+            <Button
+              variant='outline'
+              color='red'
+              radius='md'
+              onClick={closeExportModal}
+              className='px-6'
+            >
+              Cancel
             </Button>
           </div>
         </div>

@@ -227,8 +227,8 @@ const Categories = () => {
                   </h3>
                   <Group gap={8} ml='auto'>
                     <ActionIcon
-                      color='blue'
-                      variant='light'
+                      color='#1D9B5E'
+                      variant='outline'
                       radius='xl'
                       onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
                         e.stopPropagation();
@@ -241,7 +241,7 @@ const Categories = () => {
                     </ActionIcon>
                     <ActionIcon
                       color='red'
-                      variant='light'
+                      variant='outline'
                       radius='xl'
                       onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
                         e.stopPropagation();

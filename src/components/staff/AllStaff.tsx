@@ -172,6 +172,7 @@ const AllStaff = () => {
           <input
             type='checkbox'
             checked={row.getIsSelected()}
+            onClick={(e) => e.stopPropagation()}
             onChange={row.getToggleSelectedHandler()}
             className='w-4 h-4 rounded cursor-pointer bg-[#F7F8FA] accent-[#DBDEDF]'
           />

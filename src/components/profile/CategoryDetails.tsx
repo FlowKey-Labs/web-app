@@ -1,5 +1,14 @@
-import { useMemo, useState } from 'react';
-import { Button, Group, Badge, Menu, Drawer, Modal, Text } from '@mantine/core';
+import { useCallback, useMemo, useState } from 'react';
+import {
+  Button,
+  Group,
+  Badge,
+  Menu,
+  Drawer,
+  Modal,
+  Text,
+  Stack,
+} from '@mantine/core';
 import { createColumnHelper } from '@tanstack/react-table';
 import editIcon from '../../assets/icons/edit.svg';
 import deleteIcon from '../../assets/icons/delete.svg';
@@ -20,6 +29,7 @@ import Table from '../common/Table';
 import { Controller, FormProvider, useFieldArray } from 'react-hook-form';
 import { useForm } from 'react-hook-form';
 import Input from '../common/Input';
+import { useExportSubcategories } from '../../hooks/useExport';
 import { notifications } from '@mantine/notifications';
 import successIcon from '../../assets/icons/success.svg';
 import errorIcon from '../../assets/icons/error.svg';
@@ -72,6 +82,30 @@ const CategoryDetails = ({
   const [isCreateSkillModalOpen, setIsCreateSkillModalOpen] = useState(false);
   const [isUpdateSkillModalOpen, setIsUpdateSkillModalOpen] = useState(false);
   const [currentSkills, setCurrentSkills] = useState<Skill[]>([]);
+
+  const [selectedRowData, setSelectedRowData] = useState<Subcategory | null>(
+    null
+  );
+  const [isRowDetailModalOpen, setIsRowDetailModalOpen] = useState(false);
+
+  const [rowSelection, setRowSelection] = useState({});
+
+  const getSelectedSubcategoryIds = useCallback(() => {
+    if (!allSubcategories) return [];
+
+    return Object.keys(rowSelection).map((index) => {
+      const subcategoryIndex = parseInt(index);
+      return allSubcategories[subcategoryIndex].id;
+    });
+  }, [rowSelection, allSubcategories]);
+
+  const {
+    exportModalOpened,
+    openExportModal,
+    closeExportModal,
+    handleExport,
+    isExporting,
+  } = useExportSubcategories(allSubcategories || [], allSkills || []);
 
   const methods = useForm<Subcategory>({
     defaultValues: {
@@ -482,8 +516,225 @@ const CategoryDetails = ({
     }
   };
 
+  const RowDetailModal = () => (
+    <Modal
+      opened={isRowDetailModalOpen}
+      onClose={() => setIsRowDetailModalOpen(false)}
+      title={
+        <Text size='xl' fw={600} className='text-gray-800'>
+          Subcategory Details
+        </Text>
+      }
+      size='lg'
+      centered
+      radius='md'
+      overlayProps={{
+        backgroundOpacity: 0.55,
+        blur: 3,
+      }}
+      classNames={{
+        header: 'pb-4 mb-4',
+        body: 'pt-6',
+      }}
+    >
+      {selectedRowData && (
+        <div className='space-y-6'>
+          <div className='flex items-start gap-4'>
+            <div className='bg-[#F0FDF4] p-3 rounded-full'>
+              <svg
+                xmlns='http://www.w3.org/2000/svg'
+                className='h-6 w-6 text-[#1D9B5E]'
+                fill='none'
+                viewBox='0 0 24 24'
+                stroke='currentColor'
+              >
+                <path
+                  strokeLinecap='round'
+                  strokeLinejoin='round'
+                  strokeWidth={2}
+                  d='M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10'
+                />
+              </svg>
+            </div>
+            <div>
+              <Text size='lg' fw={600} className='text-gray-800'>
+                {selectedRowData.name}
+              </Text>
+            </div>
+          </div>
+
+          {/* Details in card layout */}
+          <div className='bg-cardsBg p-4 rounded-lg space-y-4'>
+            <div>
+              <Text
+                size='sm'
+                fw={500}
+                c='dimmed'
+                style={{ marginBottom: '4px' }}
+              >
+                Description
+              </Text>
+              <Text className='text-gray-800'>
+                {selectedRowData.description || (
+                  <span className='text-gray-400'>No description provided</span>
+                )}
+              </Text>
+            </div>
+
+            <div>
+              <Text
+                size='sm'
+                fw={500}
+                c='dimmed'
+                style={{ marginBottom: '4px' }}
+              >
+                Associated Skills
+              </Text>
+              {subcategorySkillsMap.get(selectedRowData.id)?.length ? (
+                <div className='flex flex-wrap gap-2'>
+                  {subcategorySkillsMap
+                    .get(selectedRowData.id)
+                    ?.map((skill) => (
+                      <Badge
+                        key={skill.id}
+                        variant='light'
+                        color='#1D9B5E'
+                        radius='sm'
+                        className='px-3 py-1'
+                      >
+                        <div className='flex items-center gap-1'>
+                          <svg
+                            xmlns='http://www.w3.org/2000/svg'
+                            className='h-4 w-4'
+                            fill='none'
+                            viewBox='0 0 24 24'
+                            stroke='currentColor'
+                          >
+                            <path
+                              strokeLinecap='round'
+                              strokeLinejoin='round'
+                              strokeWidth={2}
+                              d='M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z'
+                            />
+                          </svg>
+                          {skill.name}
+                        </div>
+                      </Badge>
+                    ))}
+                </div>
+              ) : (
+                <div className='flex items-center gap-2 text-gray-400'>
+                  <svg
+                    xmlns='http://www.w3.org/2000/svg'
+                    className='h-5 w-5'
+                    fill='none'
+                    viewBox='0 0 24 24'
+                    stroke='currentColor'
+                  >
+                    <path
+                      strokeLinecap='round'
+                      strokeLinejoin='round'
+                      strokeWidth={2}
+                      d='M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z'
+                    />
+                  </svg>
+                  <Text>No skills associated with this subcategory</Text>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Stats */}
+          <div className='grid grid-cols-2 gap-4'>
+            <div className='bg-cardsBg p-4 rounded-lg border border-gray-200'>
+              <Text size='sm' c='dimmed'>
+                Category
+              </Text>
+              <Text fw={600} className='mt-1'>
+                {category?.name || 'N/A'}
+              </Text>
+            </div>
+            <div className='bg-cardsBg p-4 rounded-lg border border-gray-200'>
+              <Text size='sm' c='dimmed'>
+                Skills Count
+              </Text>
+              <Text fw={600} className='mt-1'>
+                {subcategorySkillsMap.get(selectedRowData.id)?.length || 0}
+              </Text>
+            </div>
+          </div>
+
+          {/* Action buttons */}
+          <Group
+            justify='flex-end'
+            mt='xl'
+            className='border-t border-gray-200 pt-4'
+          >
+            <Button
+              variant='outline'
+              color='red'
+              radius='md'
+              size='md'
+              onClick={() => setIsRowDetailModalOpen(false)}
+            >
+              Close
+            </Button>
+            <Button
+              variant='filled'
+              color='#1D9B5E'
+              radius='md'
+              size='md'
+              leftSection={
+                <svg
+                  xmlns='http://www.w3.org/2000/svg'
+                  className='h-4 w-4'
+                  fill='none'
+                  viewBox='0 0 24 24'
+                  stroke='currentColor'
+                >
+                  <path
+                    strokeLinecap='round'
+                    strokeLinejoin='round'
+                    strokeWidth={2}
+                    d='M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z'
+                  />
+                </svg>
+              }
+              onClick={() => {
+                setIsRowDetailModalOpen(false);
+                handleEditSubcategory(selectedRowData);
+              }}
+            >
+              Edit
+            </Button>
+          </Group>
+        </div>
+      )}
+    </Modal>
+  );
+
   const columns = useMemo(
     () => [
+      columnHelper.display({
+        id: 'select',
+        header: ({ table }) => (
+          <input
+            type='checkbox'
+            checked={table.getIsAllRowsSelected()}
+            onChange={table.getToggleAllRowsSelectedHandler()}
+            className='w-4 h-4 rounded cursor-pointer bg-[#F7F8FA] accent-[#DBDEDF]'
+          />
+        ),
+        cell: ({ row }) => (
+          <input
+            type='checkbox'
+            checked={row.getIsSelected()}
+            onClick={(e) => e.stopPropagation()}
+            onChange={row.getToggleSelectedHandler()}
+            className='w-4 h-4 rounded cursor-pointer bg-[#F7F8FA] accent-[#DBDEDF]'
+          />
+        ),
+      }),
       columnHelper.accessor('name', {
         header: 'Subcategory',
         cell: (info) => info.getValue(),
@@ -522,11 +773,42 @@ const CategoryDetails = ({
       }),
       columnHelper.display({
         id: 'actions',
-        header: '',
+        header: () => (
+          <div className='flex space-x-2' onClick={(e) => e.stopPropagation()}>
+            <Group justify='center'>
+              <Menu
+                width={150}
+                shadow='md'
+                position='bottom'
+                radius='md'
+                withArrow
+                offset={4}
+              >
+                <Menu.Target>
+                  <img
+                    src={actionOptionIcon}
+                    alt='Options'
+                    className='w-4 h-4 cursor-pointer'
+                  />
+                </Menu.Target>
+                <Menu.Dropdown>
+                  <Menu.Item
+                    color='#162F3B'
+                    className='text-sm'
+                    style={{ textAlign: 'center' }}
+                    onClick={openExportModal}
+                  >
+                    Export Subcategories
+                  </Menu.Item>
+                </Menu.Dropdown>
+              </Menu>
+            </Group>
+          </div>
+        ),
         cell: ({ row }) => {
           const subcategory = row.original;
           return (
-            <div onClick={(e) => e.stopPropagation()}>
+            <div className='flex' onClick={(e) => e.stopPropagation()}>
               <Group justify='center'>
                 <Menu
                   width={120}
@@ -622,7 +904,7 @@ const CategoryDetails = ({
         &larr; Back to Categories List
       </button>
 
-      <div className='w-[20%] border rounded-lg border-gray-200 p-6 pt-16 overflow-y-auto bg-white h-[28vh]'>
+      <div className='w-[20%] border rounded-lg border-gray-200 p-6 pt-16 overflow-y-auto bg-cardsBg shadow-sm h-[28vh]'>
         <h2 className='text-xl font-semibold mb-3 text-gray-800 font-sans'>
           {category?.name}
         </h2>
@@ -662,7 +944,17 @@ const CategoryDetails = ({
             </Button>
           </div>
         ) : (
-          <Table data={subcategories} columns={columns} pageSize={8} />
+          <Table
+            data={subcategories}
+            columns={columns}
+            pageSize={8}
+            rowSelection={rowSelection}
+            onRowSelectionChange={setRowSelection}
+            onRowClick={(row) => {
+              setSelectedRowData(row);
+              setIsRowDetailModalOpen(true);
+            }}
+          />
         )}
       </div>
 
@@ -769,6 +1061,68 @@ const CategoryDetails = ({
         isLoading={isSubmitting}
         onDeleteSkill={handleDeleteSkill}
       />
+      <Modal
+        opened={exportModalOpened}
+        onClose={closeExportModal}
+        title={
+          <Text fw={600} size='lg'>
+            Export Subcategories
+          </Text>
+        }
+        centered
+        radius='md'
+        size='md'
+        withCloseButton={false}
+        overlayProps={{
+          backgroundOpacity: 0.55,
+          blur: 3,
+        }}
+        shadow='xl'
+      >
+        <div className='py-2'>
+          <Text size='sm' style={{ marginBottom: '2rem' }}>
+            Select a format to export {Object.keys(rowSelection).length}{' '}
+            selected subcategories
+          </Text>
+
+          <Stack gap='md'>
+            <Button
+              variant='outline'
+              color='#1D9B5E'
+              radius='md'
+              onClick={() => handleExport('excel', getSelectedSubcategoryIds())}
+              className='px-6'
+              loading={isExporting}
+            >
+              Export as Excel
+            </Button>
+
+            <Button
+              variant='outline'
+              color='#1D9B5E'
+              radius='md'
+              onClick={() => handleExport('csv', getSelectedSubcategoryIds())}
+              className='px-6'
+              loading={isExporting}
+            >
+              Export as CSV
+            </Button>
+          </Stack>
+
+          <div className='flex justify-end space-x-4 mt-8'>
+            <Button
+              variant='outline'
+              color='red'
+              radius='md'
+              onClick={closeExportModal}
+              className='px-6'
+            >
+              Cancel
+            </Button>
+          </div>
+        </div>
+      </Modal>
+      <RowDetailModal />
     </div>
   );
 };
