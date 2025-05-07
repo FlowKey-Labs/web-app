@@ -45,6 +45,8 @@ const END_POINTS = {
     SESSION_CLIENTS: (id: string) => `${BASE_URL}/api/session/${id}/clients/`,
     CATEGORIES: `${BASE_URL}/api/session/categories/`,
     CLASS_SESSIONS: `${BASE_URL}/api/session/?session_type=class`,
+    SUBCATEGORIES: `${BASE_URL}/api/session/subcategories/`,
+    SUBSKILLS: `${BASE_URL}/api/session/subskills/`,
   },
   ANALYTICS: {
     ANALYTICS_DATA: `${BASE_URL}/api/dashboard/analytics/`,
@@ -365,6 +367,71 @@ const update_session_category = async (
 
 const delete_session_category = async (id: number) => {
   const { data } = await api.delete(`${END_POINTS.SESSION.CATEGORIES}${id}/`);
+  return data;
+};
+
+const create_session_subcategory = async (subcategoryData: {
+  name: string;
+  description?: string;
+  category: number;
+}) => {
+  const { data } = await api.post(
+    END_POINTS.SESSION.SUBCATEGORIES,
+    subcategoryData
+  );
+  return data;
+};
+
+const get_session_subcategories = async () => {
+  const { data } = await api.get(END_POINTS.SESSION.SUBCATEGORIES);
+  return data;
+};
+
+const update_session_subcategory = async (
+  id: number,
+  subcategoryData: { name: string; description?: string; category: number }
+) => {
+  const { data } = await api.patch(
+    `${END_POINTS.SESSION.SUBCATEGORIES}${id}/`,
+    subcategoryData
+  );
+  return data;
+};
+
+const delete_session_subcategory = async (id: number) => {
+  const { data } = await api.delete(
+    `${END_POINTS.SESSION.SUBCATEGORIES}${id}/`
+  );
+  return data;
+};
+
+const create_session_skill = async (skillData: {
+  name: string;
+  description?: string;
+  subcategory: number;
+}) => {
+  const { data } = await api.post(END_POINTS.SESSION.SUBSKILLS, skillData);
+  return data;
+};
+
+const get_session_skills = async () => {
+  const { data } = await api.get(END_POINTS.SESSION.SUBSKILLS);
+  return data;
+};
+
+const update_session_skill = async (
+  id: number,
+  skillData: { name: string; description?: string; subcategory: number }
+) => {
+  const { data } = await api.patch(
+    `${END_POINTS.SESSION.SUBSKILLS}${id}/`,
+    skillData
+  );
+  return data;
+};
+
+const delete_session_skill = async (id: number) => {
+  const { data } = await api.delete(`${END_POINTS.SESSION.SUBSKILLS}${id}/`);
   return data;
 };
 
@@ -699,6 +766,14 @@ export {
   create_session_category,
   update_session_category,
   delete_session_category,
+  get_session_subcategories,
+  create_session_subcategory,
+  update_session_subcategory,
+  delete_session_subcategory,
+  get_session_skills,
+  create_session_skill,
+  update_session_skill,
+  delete_session_skill,
   get_session_analytics,
   get_client_analytics,
   get_class_sessions,
