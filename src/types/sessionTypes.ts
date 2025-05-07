@@ -1,4 +1,5 @@
 import { Location } from './location';
+import { Policy } from './policy';
 
 export interface Category {
   id: number;
@@ -65,6 +66,7 @@ export interface CreateSessionData {
   location_id?: number; // optional location ID
   is_active?: boolean;
   client_ids?: number[]; // optional list of client IDs
+  policy_ids?: number[]; // optional list of policy IDs
   description?: string; // optional description for the session
   // Appointment specific fields
   email?: string; // optional, for appointments
@@ -89,6 +91,7 @@ export interface Session
   category: Category;
   location?: Location;
   attendances?: Attendance[];
+  policies?: Policy[]; // To hold policy details when fetching a session
 }
 
 // For the frontend table display
