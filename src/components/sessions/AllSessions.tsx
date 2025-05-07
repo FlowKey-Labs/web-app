@@ -32,6 +32,7 @@ import {
   Text,
   Button as MantineButton,
   Stack,
+  Loader,
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
@@ -680,7 +681,9 @@ const AllSessions = () => {
                   <div>
                     <div className='flex flex-col gap-2 mt-4 min-w-[160px]'>
                       {isLoadingCategories ? (
-                        <p>Loading categories...</p>
+                        <div className='flex items-center justify-center'>
+                          <Loader size='xl' color='#1D9B5E' />
+                        </div>
                       ) : categoriesData && categoriesData.length > 0 ? (
                         categoriesData.map(
                           (category: { id: number; name: string }) => (
@@ -783,8 +786,8 @@ const AllSessions = () => {
         )}
         <div className='flex-1 px-6 py-2'>
           {isLoadingSessions || isLoadingCategories ? (
-            <div className='flex justify-center items-center py-10'>
-              <p>Loading sessions data...</p>
+            <div className='flex justify-center items-center'>
+              <Loader size='xl' color='#1D9B5E' />
             </div>
           ) : (
             <Table

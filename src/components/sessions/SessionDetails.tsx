@@ -8,6 +8,7 @@ import {
   Button,
   Stack,
   Group,
+  Loader,
 } from '@mantine/core';
 import { useCallback, useMemo, useState } from 'react';
 import { useDisclosure } from '@mantine/hooks';
@@ -502,8 +503,8 @@ const SessionDetails = () => {
 
   if (isLoading) {
     return (
-      <div className='w-full space-y-6 bg-white rounded-lg p-6'>
-        <p className='text-primary'>Loading session details...</p>
+      <div className=' flex items-center justify-center h-screen'>
+        <Loader size='xl' color='#1D9B5E' />
       </div>
     );
   }

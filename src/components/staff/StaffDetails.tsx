@@ -2,7 +2,7 @@ import { useParams } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import MembersHeader from '../headers/MembersHeader';
 import Button from '../common/Button';
-import { Switch } from '@mantine/core';
+import { Loader, Switch } from '@mantine/core';
 import Input from '../common/Input';
 import { useForm, Controller, FormProvider } from 'react-hook-form';
 import { notifications } from '@mantine/notifications';
@@ -19,7 +19,6 @@ import errorIcon from '../../assets/icons/error.svg';
 import DropdownSelectInput from '../common/Dropdown';
 import { roleOptions } from '../../utils/dummyData';
 import { StaffRole } from '../../types/staffTypes';
-
 
 interface PersonalFormData {
   firstName: string;
@@ -53,16 +52,27 @@ const StaffDetails = () => {
 
   const staffDetails = staffMember;
 
+  const [formValues, setFormValues] = useState<PersonalFormData>({
+    firstName: '',
+    lastName: '',
+    mobile_number: '',
+    email: '',
+    role: 'staff' as StaffRole,
+    staffNumber: '',
+  });
+
   useEffect(() => {
     if (staffDetails?.user) {
-      reset({
+      const initialValues = {
         firstName: staffDetails.user.first_name || '',
         lastName: staffDetails.user.last_name || '',
         mobile_number: staffDetails.user.mobile_number || '',
         email: staffDetails.user.email || '',
-        role: staffDetails.role || '',
+        role: (staffDetails.role || 'staff') as StaffRole,
         staffNumber: staffDetails.member_id || '',
-      });
+      };
+      reset(initialValues);
+      setFormValues(initialValues);
 
       if (staffDetails.permissions) {
         setPermissions({
@@ -89,11 +99,6 @@ const StaffDetails = () => {
           last_name: data.lastName,
           mobile_number: data.mobile_number,
           role: data.role,
-          permissions: {
-            can_create_events: permissions.can_create_events,
-            can_add_clients: permissions.can_add_clients,
-            can_create_invoices: permissions.can_create_invoices,
-          },
         },
       },
       {
@@ -145,91 +150,75 @@ const StaffDetails = () => {
         staffNumber: staffDetails.member_id || '',
       });
     }
+    reset(formValues);
     setIsEditing(false);
   };
 
-  const handlePermissionChange = (
+  const handlePermissionChange = async (
     name: keyof typeof permissions,
     checked: boolean
   ) => {
+    if (!staffId) return;
+
     const updatedPermissions = { ...permissions, [name]: checked };
     setPermissions(updatedPermissions);
 
-    if (!staffId) return;
-
-    // Format permission name for display
     const permissionDisplayName = {
       can_add_clients: 'Add Clients',
       can_create_invoices: 'Create Invoices',
       can_create_events: 'Create Events',
     }[name];
 
-    updateStaff(
-      {
-        id: staffId,
-        updateStaffData: {
-          first_name: staffDetails?.user?.first_name || '',
-          last_name: staffDetails?.user?.last_name || '',
-          mobile_number: staffDetails?.user?.mobile_number || '',
-          role: staffDetails?.role || '',
-          permissions: {
-            can_create_events:
-              name === 'can_create_events'
-                ? checked
-                : updatedPermissions.can_create_events,
-            can_add_clients:
-              name === 'can_add_clients'
-                ? checked
-                : updatedPermissions.can_add_clients,
-            can_create_invoices:
-              name === 'can_create_invoices'
-                ? checked
-                : updatedPermissions.can_create_invoices,
+    try {
+      await updateStaff(
+        {
+          id: staffId,
+          updateStaffData: {
+            permissions: updatedPermissions,
           },
         },
-      },
-      {
-        onSuccess: () => {
-          notifications.show({
-            title: 'Permission Updated',
-            message: `${permissionDisplayName} permission ${
-              checked ? 'granted' : 'revoked'
-            } successfully!`,
-            color: 'green',
-            radius: 'md',
-            icon: (
-              <span className='flex items-center justify-center w-6 h-6 rounded-full bg-green-200'>
-                <img src={successIcon} alt='Success' className='w-4 h-4' />
-              </span>
-            ),
-            withBorder: true,
-            autoClose: 3000,
-            position: 'top-right',
-          });
-        },
-        onError: (_error) => {
-          notifications.show({
-            title: 'Error',
-            message: `Failed to update ${permissionDisplayName} permission. Please try again.`,
-            color: 'red',
-            radius: 'md',
-            icon: (
-              <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
-                <img src={errorIcon} alt='Error' className='w-4 h-4' />
-              </span>
-            ),
-            withBorder: true,
-            autoClose: 3000,
-            position: 'top-right',
-          });
-          // Revert the UI state since the update failed
-          setPermissions({
-            ...updatedPermissions,
-            [name]: !checked,
-          });
-        },
-      }
-    );
+        {
+          onSuccess: () => {
+            notifications.show({
+              title: 'Permission Updated',
+              message: `${permissionDisplayName} permission ${
+                checked ? 'granted' : 'revoked'
+              } successfully!`,
+              color: 'green',
+              radius: 'md',
+              icon: (
+                <span className='flex items-center justify-center w-6 h-6 rounded-full bg-green-200'>
+                  <img src={successIcon} alt='Success' className='w-4 h-4' />
+                </span>
+              ),
+              withBorder: true,
+              autoClose: 3000,
+              position: 'top-right',
+            });
+          },
+          onError: (_error) => {
+            notifications.show({
+              title: 'Error',
+              message: `Failed to update ${permissionDisplayName} permission. Please try again.`,
+              color: 'red',
+              radius: 'md',
+              icon: (
+                <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+                  <img src={errorIcon} alt='Error' className='w-4 h-4' />
+                </span>
+              ),
+              withBorder: true,
+              autoClose: 3000,
+              position: 'top-right',
+            });
+            setPermissions(permissions);
+          },
+        }
+      );
+    } catch (error) {
+      console.error('Error updating permission:', error);
+      setPermissions(permissions);
+    }
   };
 
   if (!staffDetails) {
@@ -242,15 +231,15 @@ const StaffDetails = () => {
 
   if (isLoading) {
     return (
-      <div className='w-full min-h-screen space-y-6 bg-white rounded-lg p-6'>
-        <p className='text-primary'>Loading staff details...</p>
+      <div className='flex justify-center items-center h-screen'>
+        <Loader size='xl' color='#1D9B5E' />
       </div>
     );
   }
 
   if (isError) {
     return (
-      <div className='w-full min-h-screen space-y-6 bg-white rounded-lg p-6'>
+      <div className='flex justify-center items-center h-screen'>
         <div className='space-y-4'>
           <p className='text-red-500'>
             Error loading staff details: {error?.message}
@@ -349,7 +338,18 @@ const StaffDetails = () => {
                   name='firstName'
                   control={control}
                   render={({ field }) => (
-                    <Input {...field} label='First Name' className='w-full' />
+                    <Input
+                      {...field}
+                      label='First Name'
+                      className='w-full'
+                      onChange={(e) => {
+                        field.onChange(e);
+                        setFormValues((prev) => ({
+                          ...prev,
+                          firstName: e.target.value,
+                        }));
+                      }}
+                    />
                   )}
                 />
               ) : (
@@ -367,7 +367,18 @@ const StaffDetails = () => {
                   name='lastName'
                   control={control}
                   render={({ field }) => (
-                    <Input {...field} label='Last Name' className='w-full' />
+                    <Input
+                      {...field}
+                      label='Last Name'
+                      className='w-full'
+                      onChange={(e) => {
+                        field.onChange(e);
+                        setFormValues((prev) => ({
+                          ...prev,
+                          lastName: e.target.value,
+                        }));
+                      }}
+                    />
                   )}
                 />
               ) : (
@@ -412,7 +423,18 @@ const StaffDetails = () => {
                   name='mobile_number'
                   control={control}
                   render={({ field }) => (
-                    <Input {...field} label='Phone Number' className='w-full' />
+                    <Input
+                      {...field}
+                      label='Phone Number'
+                      className='w-full'
+                      onChange={(e) => {
+                        field.onChange(e);
+                        setFormValues((prev) => ({
+                          ...prev,
+                          mobile_number: e.target.value,
+                        }));
+                      }}
+                    />
                   )}
                 />
               ) : (
@@ -434,7 +456,13 @@ const StaffDetails = () => {
                       label='Primary Role'
                       className='w-full'
                       options={roleOptions}
-                      onSelectItem={(item) => field.onChange(item.value)}
+                      onSelectItem={(item) => {
+                        field.onChange(item.value);
+                        setFormValues((prev) => ({
+                          ...prev,
+                          role: item.value,
+                        }));
+                      }}
                     />
                   )}
                 />
