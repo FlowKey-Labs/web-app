@@ -4,6 +4,7 @@ import { notifications } from '@mantine/notifications';
 import { Session } from '../types/sessionTypes';
 import { Client } from '../types/clientTypes';
 import { StaffResponse } from '../types/staffTypes';
+import { Policy } from '../types/policy';
 import { exportDataToFile } from '../utils/exportUtils';
 
 /**
@@ -308,6 +309,7 @@ export const useExportStaff = (staff: StaffResponse[]) => {
     [staff, closeExportModal]
   );
 
+
   return {
     exportModalOpened,
     openExportModal,
@@ -315,4 +317,94 @@ export const useExportStaff = (staff: StaffResponse[]) => {
     handleExport,
     isExporting
   };
+};
+
+export const useExportPolicies = (policies: Policy[]) => {
+  const [isExporting, setIsExporting] = useState(false);
+  const [
+    exportModalOpened,
+    { open: openExportModal, close: closeExportModal },
+  ] = useDisclosure(false);
+
+  const processPoliciesForExport = (selectedIds: number[]) => {
+    const policiesToExport = policies.filter(policy => selectedIds.includes(policy.id));
+
+    return policiesToExport.map(policy => ({
+      id: policy.id,
+      title: policy.title || '',
+      content: policy.content || '',
+      policy_type: policy.policy_type || '',
+      created_at: new Date(policy.last_modified).toLocaleDateString(),
+    }));
+  };
+  const handleExport = useCallback(
+    (type: 'csv' | 'excel', selectedIds: number[]) => {
+      if (selectedIds.length === 0) {
+        notifications.show({
+          title: 'No policies selected',
+          message: 'Please select at least one policy to export',
+          color: 'red',
+          radius: 'md',
+          withBorder: true,
+          autoClose: 3000,
+          position: 'top-right',
+        });
+        return;
+      }
+      
+      if (policies.length === 0) {
+        notifications.show({
+          title: 'No policies available',
+          message: 'There are no policies to export',
+          color: 'red',
+          radius: 'md',
+          withBorder: true,
+          autoClose: 3000,
+          position: 'top-right',
+        });
+        closeExportModal();
+        return;
+      }
+      
+      setIsExporting(true);
+      
+      try {
+        const dataToExport = processPoliciesForExport(selectedIds);
+        exportDataToFile(dataToExport, type, 'policies', ['id']);
+        
+        notifications.show({
+          title: 'Export successful',
+          message: `${dataToExport.length} policy(ies) exported successfully as ${type.toUpperCase()}`,
+          color: 'green',
+          radius: 'md',
+          withBorder: true,
+          autoClose: 3000,
+          position: 'top-right',
+        });
+      } catch (error) {
+        console.error('Error exporting policies:', error);
+        notifications.show({
+          title: 'Export failed',
+          message: 'Failed to export policies. Please try again.',
+          color: 'red',
+          radius: 'md',
+          withBorder: true,
+          autoClose: 3000,
+          position: 'top-right',
+        });
+      } finally {
+        setIsExporting(false);
+        closeExportModal();
+      }
+    },
+    [policies, closeExportModal]
+  );
+
+  return {
+    exportModalOpened,
+    openExportModal,
+    closeExportModal,
+    handleExport,
+    isExporting
+  }; 
 };
