@@ -689,18 +689,57 @@ const getPolicies = async () => {
   return data;
 };
 
-const createPolicy = async (policyData: { title: string; content: string }) => {
-  const { data } = await api.post(END_POINTS.POLICY.POLICIES, policyData);
+const createPolicy = async (policyData: {
+  title: string;
+  content: string;
+  policy_type: string;
+  file?: File;
+}) => {
+  const formData = new FormData();
+  formData.append("title", policyData.title);
+  formData.append("content", policyData.content);
+  formData.append("policy_type", policyData.policy_type);
+
+  if (policyData.file) {
+    formData.append("file", policyData.file);
+  }
+
+  const { data } = await api.post(END_POINTS.POLICY.POLICIES, formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
   return data;
 };
 
 const updatePolicy = async (
   id: number,
-  policyData: { title?: string; content?: string }
+  policyData: {
+    title?: string;
+    content?: string;
+    policy_type?: string;
+    file?: File;
+  }
 ) => {
+  const formData = new FormData();
+
+  if (policyData.title) formData.append("title", policyData.title);
+  if (policyData.content) formData.append("content", policyData.content);
+  if (policyData.policy_type)
+    formData.append("policy_type", policyData.policy_type);
+
+  if (policyData.file) {
+    formData.append("file", policyData.file);
+  }
+
   const { data } = await api.patch(
     END_POINTS.POLICY.POLICY_DETAIL(id),
-    policyData
+    formData,
+    {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    }
   );
   return data;
 };

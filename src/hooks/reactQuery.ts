@@ -170,6 +170,8 @@ export const useUpdatePolicy = () => {
       id: number;
       title?: string;
       content?: string;
+      policy_type?: string;
+      file?: File;
     }) => updatePolicy(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["policies"] });
@@ -639,11 +641,7 @@ export const useUpdateSessionCategory = () => {
 export const useDeleteSessionCategory = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({
-      id,
-    }: {
-      id: number;
-    }) => delete_session_category(id),
+    mutationFn: ({ id }: { id: number }) => delete_session_category(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["session_categories"] });
     },
@@ -709,11 +707,7 @@ export const useUpdateSessionSubCategory = () => {
 export const useDeleteSessionSubCategory = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({
-      id,
-    }: {
-      id: number;
-    }) => delete_session_subcategory(id),
+    mutationFn: ({ id }: { id: number }) => delete_session_subcategory(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["session_subcategories"] });
     },
@@ -779,11 +773,7 @@ export const useUpdateSessionSkill = () => {
 export const useDeleteSessionSkill = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({
-      id,
-    }: {
-      id: number;
-    }) => delete_session_skill(id),
+    mutationFn: ({ id }: { id: number }) => delete_session_skill(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["session_skills"] });
     },
@@ -1087,4 +1077,3 @@ export const useRemoveMemberFromGroup = () => {
     },
   });
 };
-
