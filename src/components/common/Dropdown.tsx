@@ -54,6 +54,7 @@ const Option = (props: OptionProps<DropDownItem>) => {
   );
 };
 
+
 export default function DropdownSelectInput({
   label,
   options,
@@ -81,10 +82,14 @@ export default function DropdownSelectInput({
   useEffect(() => {
     if (value) {
       if (Array.isArray(value)) {
-        const selectedOptions = options.filter(option => value.includes(option.value.toString()));
+        const selectedOptions = options.filter((option) =>
+          value.includes(option.value.toString())
+        );
         selectedOptions.length > 0 && setSelectedValue(selectedOptions);
       } else {
-        const selectedOption = options.find(option => option.value.toString() === value);
+        const selectedOption = options.find(
+          (option) => option.value.toString() === value
+        );
         selectedOption && setSelectedValue(selectedOption);
       }
     } else if (defaultValue) {
@@ -93,7 +98,7 @@ export default function DropdownSelectInput({
   }, [defaultValue, value, options]);
 
   const sortedOptions = useMemo(
-    () => options.sort((a, b) => a.label.localeCompare(b.label)),
+    () => options.sort((a, b) => a.label?.localeCompare(b.label)),
     [options]
   );
 

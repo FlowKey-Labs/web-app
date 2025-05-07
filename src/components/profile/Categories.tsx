@@ -13,7 +13,6 @@ import {
   useDeleteSessionCategory,
 } from '../../hooks/reactQuery';
 
-import EmptyDataPage from '../common/EmptyDataPage';
 import Button from '../common/Button';
 import { IconEdit, IconPlus, IconTrash } from '@tabler/icons-react';
 import CategoryDetails from './CategoryDetails';
@@ -37,7 +36,6 @@ const Categories = () => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [currentCategory, setCurrentCategory] = useState<Category | null>(null);
-  const [emptyModalOpen, setEmptyModalOpen] = useState(true);
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(
     null
   );
@@ -214,18 +212,6 @@ const Categories = () => {
         <div className='flex justify-center items-center h-64'>
           <p>Loading categories...</p>
         </div>
-      ) : categoriesData?.length === 0 ? (
-        <EmptyDataPage
-          title='No Categories Found'
-          description="You haven't created any categories yet. Categories help you organize your sessions."
-          buttonText='Add Category'
-          onButtonClick={() => {
-            handleAddCategory();
-            setEmptyModalOpen(false);
-          }}
-          opened={emptyModalOpen}
-          onClose={() => setEmptyModalOpen(false)}
-        />
       ) : (
         <div className='bg-white rounded-lg p-4'>
           <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>

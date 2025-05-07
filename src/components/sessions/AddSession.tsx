@@ -1,5 +1,6 @@
 import { useForm, Controller, FormProvider } from 'react-hook-form';
 import { Session, Category, ClassFields } from '../../types/sessionTypes';
+import { Policy } from '../../types/policy';
 
 import Button from '../common/Button';
 import DropdownSelectInput from '../common/Dropdown';
@@ -17,6 +18,7 @@ import {
   useGetClients,
   useGetSessionCategories,
   useGetLocations,
+  useGetPolicies,
 } from '../../hooks/reactQuery';
 import { useCreateSession } from '../../hooks/reactQuery';
 import moment from 'moment';
@@ -60,7 +62,8 @@ type FormData = Omit<
   staff?: DropDownItem | number;
   category_id?: DropDownItem | number;
   location_id?: DropDownItem | number;
-  client_ids: string[];
+  client_ids: number[];
+  policy_ids?: number[];
   description?: string;
 
   repeat_every?: number;
@@ -87,6 +90,7 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
       category_id: undefined,
       location_id: undefined,
       client_ids: [],
+      policy_ids: [],
       repeat_end_type: 'never',
       repeat_end_date: undefined,
       repeat_occurrences: undefined,
@@ -104,6 +108,7 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
   const { data: categoriesData } = useGetSessionCategories();
   const { data: locationsData, isLoading: isLocationsLoading } =
     useGetLocations();
+  const { data: policiesData, isLoading: isPoliciesLoading } = useGetPolicies();
 
   const createSession = useCreateSession();
 
@@ -224,10 +229,14 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
         phone_number: data.phone_number,
         selected_class: extractValue(data.selected_class),
         location_id: extractValue(data.location_id),
+        policy_ids: data.policy_ids || [],
       };
-      
+
       // Include class_type for class and appointment session types
-      if (data.session_type === 'class' || data.session_type === 'appointment') {
+      if (
+        data.session_type === 'class' ||
+        data.session_type === 'appointment'
+      ) {
         formattedData.class_type = extractValue(data.class_type);
       }
 
@@ -726,12 +735,12 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
                               options={
                                 isClientsLoading
                                   ? [{ label: 'Loading...', value: '' }]
-                                  : clientsData?.map((client: any) => ({
+                                  : clientsData?.map((client: Client) => ({
                                       label: `${client.first_name} ${client.last_name}`,
                                       value: client.id.toString(),
                                     })) || []
                               }
-                              value={field.value || []}
+                              value={field.value ? field.value.map(String) : []}
                               onSelectItem={(selectedItems) => {
                                 const values = Array.isArray(selectedItems)
                                   ? selectedItems.map((item) => item.value)
@@ -781,6 +790,42 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
                               }
                               onSelectItem={(selectedItem) => {
                                 field.onChange(selectedItem);
+                              }}
+                            />
+                          )}
+                        />
+                        <Controller
+                          name='policy_ids'
+                          control={methods.control}
+                          render={({ field }) => (
+                            <DropdownSelectInput
+                              label='Policies'
+                              placeholder='Select Policies'
+                              singleSelect={false}
+                              options={
+                                isPoliciesLoading
+                                  ? [{ label: 'Loading...', value: '' }]
+                                  : policiesData?.map((policy: Policy) => ({
+                                      label: policy.title,
+                                      value: policy.id.toString(),
+                                    })) || []
+                              }
+                              value={field.value ? field.value.map(String) : []}
+                              onSelectItem={(selectedItems) => {
+                                const values = (
+                                  Array.isArray(selectedItems)
+                                    ? selectedItems
+                                    : [selectedItems]
+                                )
+                                  .filter(Boolean)
+                                  .map((item) =>
+                                    Number(
+                                      typeof item === 'string'
+                                        ? item
+                                        : item.value
+                                    )
+                                  );
+                                field.onChange(values);
                               }}
                             />
                           )}
@@ -1052,6 +1097,44 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
                               />
                             )}
                           />
+                          <Controller
+                            name='policy_ids'
+                            control={methods.control}
+                            render={({ field }) => (
+                              <DropdownSelectInput
+                                label='Policies'
+                                placeholder='Select Policies'
+                                singleSelect={false}
+                                options={
+                                  isPoliciesLoading
+                                    ? [{ label: 'Loading...', value: '' }]
+                                    : policiesData?.map((policy: Policy) => ({
+                                        label: policy.title,
+                                        value: policy.id.toString(),
+                                      })) || []
+                                }
+                                value={
+                                  field.value ? field.value.map(String) : []
+                                }
+                                onSelectItem={(selectedItems) => {
+                                  const values = (
+                                    Array.isArray(selectedItems)
+                                      ? selectedItems
+                                      : [selectedItems]
+                                  )
+                                    .filter(Boolean)
+                                    .map((item) =>
+                                      Number(
+                                        typeof item === 'string'
+                                          ? item
+                                          : item.value
+                                      )
+                                    );
+                                  field.onChange(values);
+                                }}
+                              />
+                            )}
+                          />
                         </div>
                       </>
                     ) : (
@@ -1277,18 +1360,54 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
                               options={
                                 isClientsLoading
                                   ? [{ label: 'Loading...', value: '' }]
-                                  : clientsData?.map((client: any) => ({
+                                  : clientsData?.map((client: Client) => ({
                                       label: `${client.first_name} ${client.last_name}`,
                                       value: client.id.toString(),
                                     })) || []
                               }
-                              value={field.value || []}
+                              value={field.value ? field.value.map(String) : []}
                               onSelectItem={(selectedItems) => {
                                 const values = Array.isArray(selectedItems)
                                   ? selectedItems.map((item) => item.value)
                                   : selectedItems
                                   ? [selectedItems.value]
                                   : [];
+                                field.onChange(values);
+                              }}
+                            />
+                          )}
+                        />
+                        <Controller
+                          name='policy_ids'
+                          control={methods.control}
+                          render={({ field }) => (
+                            <DropdownSelectInput
+                              label='Policies'
+                              placeholder='Select Policies'
+                              singleSelect={false}
+                              options={
+                                isPoliciesLoading
+                                  ? [{ label: 'Loading...', value: '' }]
+                                  : policiesData?.map((policy: Policy) => ({
+                                      label: policy.title,
+                                      value: policy.id.toString(),
+                                    })) || []
+                              }
+                              value={field.value ? field.value.map(String) : []}
+                              onSelectItem={(selectedItems) => {
+                                const values = (
+                                  Array.isArray(selectedItems)
+                                    ? selectedItems
+                                    : [selectedItems]
+                                )
+                                  .filter(Boolean)
+                                  .map((item) =>
+                                    Number(
+                                      typeof item === 'string'
+                                        ? item
+                                        : item.value
+                                    )
+                                  );
                                 field.onChange(values);
                               }}
                             />
