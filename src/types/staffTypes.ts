@@ -1,5 +1,4 @@
 // Base types for enums
-export type StaffRole = "intern" | "manager" | "staff" | "supervisor";
 export type PayType = "hourly" | "salary" | "commission";
 
 export interface FormData {
@@ -8,7 +7,7 @@ export interface FormData {
     userId: string;
   };
   role?: {
-    role: StaffRole;
+    role: string;
     payType: PayType;
     hourlyRate?: string;
   };
@@ -51,7 +50,7 @@ export interface Staff {
   id: number;
   user: User;
   created_by: User | null;
-  role: StaffRole;
+  role: string;
   email: string;
   member_id: string | null;
   pay_type: PayType;
@@ -66,14 +65,9 @@ export interface Staff {
 export interface CreateStaffRequest {
   email: string;
   member_id?: string;
-  role: StaffRole;
+  role: string;
   pay_type: PayType;
   rate: string;
-  permissions: {
-    can_create_events: boolean;
-    can_add_clients: boolean;
-    can_create_invoices: boolean;
-  };
 }
 
 export interface UpdateStaffRequest {
@@ -81,7 +75,7 @@ export interface UpdateStaffRequest {
   first_name?: string;
   last_name?: string;
   mobile_number?: string;
-  role?: StaffRole;
+  role?: string;
   pay_type?: PayType;
   rate?: number | string;
   member_id?: string | null;
@@ -94,7 +88,7 @@ export interface StaffResponse {
   id: number;
   user: User;
   created_by: User | null;
-  role: StaffRole;
+  role: string;
   email: string;
   member_id: string | null;
   pay_type: PayType;

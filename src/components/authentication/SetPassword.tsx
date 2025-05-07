@@ -15,6 +15,8 @@ import { useSetStaffPassword } from '../../hooks/reactQuery';
 import { notifications } from '@mantine/notifications';
 
 interface FormData {
+  firstName: string;
+  lastName: string;
   password: string;
   confirmPassword: string;
 }
@@ -45,6 +47,8 @@ const SetPassword = () => {
         uid: uid || '',
         token: token || '',
         email: email || '',
+        first_name: data.firstName || '',
+        last_name: data.lastName || '',
         password: data.password,
         new_password: data.confirmPassword,
       },
@@ -78,6 +82,20 @@ const SetPassword = () => {
       <p className='text-sm'>Please set up your password to proceed</p>
       <FormProvider {...methods}>
         <form onSubmit={methods.handleSubmit(onSubmit)}>
+          <Controller
+            name='firstName'
+            control={control}
+            render={({ field }) => (
+              <Input {...field} label='First Name' className='w-full' placeholder='Enter first name' />
+            )}
+          />
+          <Controller
+            name='lastName'
+            control={control}
+            render={({ field }) => (
+              <Input {...field} label='Last Name' className='w-full' placeholder='Enter last name' />
+            )}
+          />
           <Controller
             name='password'
             control={control}
