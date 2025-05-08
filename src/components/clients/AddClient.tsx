@@ -12,7 +12,7 @@ import {
   useGetClients,
   useGetSessions,
 } from '../../hooks/reactQuery';
-import React from 'react';
+import React, { useEffect } from 'react';
 import moment from 'moment';
 import {
   AddClient,
@@ -82,11 +82,13 @@ const AddClients = ({ isOpen, onClose }: ClientsModalProps) => {
     mutate: addClient,
     isPending: isAddingClient,
     isSuccess: isClientSuccess,
+    reset: resetAddClient,
   } = useAddClient();
   const {
     mutate: addGroup,
     isPending: isAddingGroup,
     isSuccess: isGroupSuccess,
+    reset: resetAddGroup,
   } = useAddGroup();
   const { data: classSessionsData, isLoading: isClassSessionsLoading } =
     useGetClassSessions();
@@ -98,20 +100,21 @@ const AddClients = ({ isOpen, onClose }: ClientsModalProps) => {
     useGetSessions() as { data: any[] | undefined; isLoading: boolean };
   useGetGroups();
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (isClientSuccess) {
       individualReset();
-      groupReset();
+      resetAddClient();
       onClose();
     }
-  }, [isClientSuccess, individualReset, groupReset, onClose]);
+  }, [isClientSuccess, individualReset, resetAddClient, onClose]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (isGroupSuccess) {
       groupReset();
+      resetAddGroup();
       onClose();
     }
-  }, [isGroupSuccess, groupReset, onClose]);
+  }, [isGroupSuccess, groupReset, resetAddGroup, onClose]);
 
   const handleSubmitIndividual = individualHandleSubmit(async (data) => {
     try {

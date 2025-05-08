@@ -381,7 +381,7 @@ const AllClients = () => {
     // TODO: Add deactivateGroupMutation if groups can be deactivated
 
     const mutation = activeView === 'clients' ? deactivateClientMutation : null; // Replace null with deactivateGroupMutation
-    const entityId = selectedClient.id.toString();
+    const entityId = selectedClient.id?.toString();
     const entityType = activeView === 'clients' ? 'Client' : 'Group';
 
     if (!mutation) {
@@ -394,7 +394,7 @@ const AllClients = () => {
       return;
     }
 
-    mutation.mutate(entityId, {
+    mutation.mutate(entityId!, {
       onSuccess: () => {
         notifications.show({
           title: 'Success',
@@ -437,7 +437,7 @@ const AllClients = () => {
     if (!selectedClient) return;
     // TODO: Add activateGroupMutation if groups can be activated
     const mutation = activeView === 'clients' ? activateClientMutation : null; // Replace null with activateGroupMutation
-    const entityId = selectedClient.id.toString();
+    const entityId = selectedClient.id?.toString();
     const entityType = activeView === 'clients' ? 'Client' : 'Group';
 
     if (!mutation) {
@@ -449,7 +449,7 @@ const AllClients = () => {
       close();
       return;
     }
-    mutation.mutate(entityId, {
+    mutation.mutate(entityId!, {
       onSuccess: () => {
         notifications.show({
           title: 'Success',
@@ -492,7 +492,7 @@ const AllClients = () => {
     // setSelectedEntityType('client'); // If using a generic Add modal
     setIsDrawerOpen(true);
   };
-  
+
   const closeDrawer = () => setIsDrawerOpen(false);
 
   const isLoadingCurrent = activeView === 'clients' ? isLoading : groupsLoading;
@@ -594,7 +594,7 @@ const AllClients = () => {
               className='mt-4'
               pageSize={12}
               onRowClick={(row: Client) => {
-                navigateToClientDetails(navigate, row.id.toString());
+                  navigateToClientDetails(navigate, row.id.toString());
               }}
             />
           )}
@@ -607,7 +607,9 @@ const AllClients = () => {
               className='mt-4'
               pageSize={12}
               onRowClick={(row: GroupData) => {
-                navigateToGroupDetails(navigate, row.id.toString());
+                if (row.id) { 
+                  navigateToGroupDetails(navigate, row.id.toString());
+                }
               }}
             />
           )}
