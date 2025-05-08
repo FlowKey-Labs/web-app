@@ -454,7 +454,6 @@ const StaffDetails = () => {
                     <DropdownSelectInput
                       {...field}
                       label='Primary Role'
-                      className='w-full'
                       options={roleOptions}
                       onSelectItem={(item) => {
                         field.onChange(item.value);

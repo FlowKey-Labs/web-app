@@ -1,11 +1,12 @@
 import MembersHeader from '../headers/MembersHeader';
 import plusIcon from '../../assets/icons/plusWhite.svg';
-import { Client } from '../../types/clientTypes';
+import { Client, GroupData } from '../../types/clientTypes';
 import Table from '../common/Table';
 import {
   useGetClients,
   useDeactivateClient,
   useActivateClient,
+  useGetGroups,
 } from '../../hooks/reactQuery';
 import { createColumnHelper } from '@tanstack/react-table';
 import {
@@ -30,7 +31,7 @@ import { navigateToClientDetails } from '../../utils/navigationHelpers';
 import AddClients from './AddClient';
 import EmptyDataPage from '../common/EmptyDataPage';
 
-const columnHelper = createColumnHelper<Client>();
+const columnHelper = createColumnHelper<Client | GroupData>();
 
 const AllClients = () => {
   const [rowSelection, setRowSelection] = useState({});
@@ -50,6 +51,13 @@ const AllClients = () => {
     error,
     refetch,
   } = useGetClients();
+
+  const {
+    data: groups = [],
+    isLoading: groupsLoading,
+    isError: groupsError,
+    error: getGroupsError,
+  } = useGetGroups();
 
   const getSelectedClientIds = useCallback(() => {
     if (!clients) return [];
@@ -192,7 +200,7 @@ const AllClients = () => {
                       <Menu.Item
                         color='red'
                         onClick={() => {
-                          setSelectedClient(client);
+                          setSelectedClient(client as Client);
                           setIsActivating(false);
                           open();
                         }}
@@ -205,7 +213,7 @@ const AllClients = () => {
                       <Menu.Item
                         color='green'
                         onClick={() => {
-                          setSelectedClient(client);
+                          setSelectedClient(client as Client);
                           setIsActivating(true);
                           open();
                         }}
@@ -224,6 +232,57 @@ const AllClients = () => {
       }),
     ],
     [setSelectedClient, open]
+  );
+
+  const groupColumns = useMemo(
+    () => [
+      columnHelper.display({
+        id: 'select',
+        header: ({ table }) => (
+          <input
+            type='checkbox'
+            checked={table.getIsAllRowsSelected()}
+            onChange={table.getToggleAllRowsSelectedHandler()}
+            className='w-4 h-4 rounded cursor-pointer bg-[#F7F8FA] accent-[#DBDEDF]'
+          />
+        ),
+        cell: ({ row }) => (
+          <input
+            type='checkbox'
+            checked={row.getIsSelected()}
+            onClick={(e) => e.stopPropagation()}
+            onChange={row.getToggleSelectedHandler()}
+            className='w-4 h-4 rounded cursor-pointer bg-[#F7F8FA] accent-[#DBDEDF]'
+          />
+        ),
+      }),
+      columnHelper.accessor('name', {
+        id: 'name',
+        header: 'Name',
+        cell: (info) => info.getValue(),
+      }),
+      columnHelper.accessor('description', {
+        id: 'description',
+        header: 'Description',
+        cell: (info) => info.getValue(),
+      }),
+      columnHelper.accessor('location', {
+        id: 'location',
+        header: 'Location',
+        cell: (info) => info.getValue(),
+      }),
+      columnHelper.accessor('contact_person_id', {
+        id: 'contact_person_id',
+        header: 'Contact Person',
+        cell: (info) => info.getValue(),
+      }),
+      columnHelper.accessor('active', {
+        id: 'active',
+        header: 'Active',
+        cell: (info) => info.getValue(),
+      }),
+    ],
+    []
   );
 
   const handleDeactivateClient = () => {
@@ -359,13 +418,13 @@ const AllClients = () => {
         )}
         <div className='flex-1 px-6 py-3'>
           <Table
-            data={clients}
-            columns={columns}
+            data={clients || groups}
+            columns={columns || groupColumns}
             rowSelection={rowSelection}
             onRowSelectionChange={setRowSelection}
             className='mt-4'
             pageSize={12}
-            onRowClick={(row: Client) =>
+            onRowClick={(row: Client | GroupData) =>
               navigateToClientDetails(navigate, row.id.toString())
             }
           />

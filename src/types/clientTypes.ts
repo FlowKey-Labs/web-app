@@ -88,6 +88,7 @@ export interface Group {
 }
 
 export interface GroupData {
+  id: number;
   name: string;
   description?: string;
   location?: string;
