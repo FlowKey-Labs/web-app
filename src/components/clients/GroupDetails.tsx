@@ -1,6 +1,6 @@
 import { useParams } from 'react-router-dom';
 import MembersHeader from '../headers/MembersHeader';
-import { Loader } from '@mantine/core';
+import { Drawer, Loader } from '@mantine/core';
 import { useMemo, useState } from 'react';
 import Table from '../common/Table';
 import { createColumnHelper } from '@tanstack/react-table';
@@ -8,6 +8,7 @@ import { useGetGroup, useGetGroupMembers } from '../../hooks/reactQuery';
 import avatar from '../../assets/icons/newAvatar.svg';
 import { Client } from '../../types/clientTypes';
 import { useNavigate } from 'react-router-dom';
+import UpdateGroup from './updateGroup';
 
 const GroupDetails = () => {
   const { id: groupId } = useParams();
@@ -225,6 +226,24 @@ const GroupDetails = () => {
             </div>
           </div>
         </div>
+        <Drawer
+          opened={isDrawerOpen}
+          onClose={closeDrawer}
+          title="Update Group"
+          position="right"
+          size="md"
+          overlayProps={{ opacity: 0.5, blur: 4 }}
+        >
+          {groupDetails && (
+            <UpdateGroup 
+              groupData={groupDetails} 
+              onSuccess={() => {
+                closeDrawer();
+                refetchGroup();
+              }}
+            />
+          )}
+        </Drawer>
       </div>
     </>
   );
