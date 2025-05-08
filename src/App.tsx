@@ -29,6 +29,7 @@ import Profile from './components/profile';
 import LogoutSuccess from './components/authentication/Logout';
 import Settings from './components/accountSettings';
 import ClientDetails from './components/clients/ClientDetails';
+import GroupDetails from './components/clients/GroupDetails'; // Import GroupDetails
 import ComingSoon from './components/common/ComingSoon';
 import './App.css';
 import SetPassword from './components/authentication/SetPassword';
@@ -71,6 +72,7 @@ function App() {
               <Route path='calendar' element={<CalendarView />} />
               <Route path='clients' element={<AllClients />} />
               <Route path='clients/:id' element={<ClientDetails />} />
+              <Route path='groups/:id' element={<GroupDetails />} /> {/* Add GroupDetails route */}
               <Route path='profile' element={<Profile />} />
               <Route path='settings' element={<Settings />} />
               <Route path='*' element={<ComingSoon />} />

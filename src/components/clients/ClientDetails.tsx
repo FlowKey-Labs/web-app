@@ -1,7 +1,6 @@
 import { useParams } from 'react-router-dom';
 import MembersHeader from '../headers/MembersHeader';
 import { Loader, Progress } from '@mantine/core';
-import rightIcon from '../../assets/icons/greenRight.svg';
 import { useMemo, useState } from 'react';
 import Table from '../common/Table';
 import { createColumnHelper } from '@tanstack/react-table';

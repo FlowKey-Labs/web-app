@@ -27,7 +27,7 @@ import actionOptionIcon from '../../assets/icons/actionOption.svg';
 import { useState, useMemo, useCallback } from 'react';
 import { useExportClients } from '../../hooks/useExport';
 import { useNavigate } from 'react-router-dom';
-import { navigateToClientDetails, navigateToGroupDetails } from '../../utils/navigationHelpers'; 
+import { navigateToClientDetails, navigateToGroupDetails } from '../../utils/navigationHelpers';
 import AddClients from './AddClient';
 import EmptyDataPage from '../common/EmptyDataPage';
 
@@ -283,7 +283,12 @@ const AllClients = () => {
       groupColumnHelper.accessor('contact_person_id', {
         id: 'contact_person_id',
         header: 'Contact Person',
-        cell: (info) => info.getValue(), 
+        cell: (info) => {
+          const contactPersonId = info.getValue();
+          if (!contactPersonId) return 'N/A';
+          const contactPerson = clients.find((client: Client) => client.id === contactPersonId);
+          return contactPerson ? `${contactPerson.first_name} ${contactPerson.last_name}` : `ID: ${contactPersonId}`;
+        },
       }),
       groupColumnHelper.accessor('active', {
         id: 'active',
@@ -373,7 +378,7 @@ const AllClients = () => {
         ),
       }),
     ],
-    [setSelectedClient, open] 
+    [setSelectedClient, open, clients]
   );
 
   const handleDeactivateEntity = () => {

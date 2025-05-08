@@ -319,7 +319,7 @@ const AddClients = ({ isOpen, onClose }: ClientsModalProps) => {
                 : 'text-gray-500 bg-gray-100'
             }`}
           >
-            Individual Client
+            Client
           </button>
           <button
             type='button'
