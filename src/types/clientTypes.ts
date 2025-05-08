@@ -78,9 +78,9 @@ export interface AddClient {
 export interface Group {
   id: number;
   name: string;
-  description: string | null;
+  description: string;
   active: boolean;
-  location: string | null;
+  location: string;
   created_at: string;
   created_by: number;
   business: number;
@@ -90,7 +90,7 @@ export interface Group {
 export interface GroupData {
   id: number;
   name: string;
-  description?: string;
+  description?: string ;
   location?: string;
   active?: boolean;
   contact_person_id?: number;
