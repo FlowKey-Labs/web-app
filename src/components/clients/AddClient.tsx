@@ -2,7 +2,6 @@ import { useForm, Controller, FormProvider } from 'react-hook-form';
 import Input from '../common/Input';
 import DropdownSelectInput from '../common/Dropdown';
 import Button from '../common/Button';
-import clientlocationIcons from '../../assets/icons/clientLocation.svg';
 import {
   useAddClient,
   useGetClassSessions,
@@ -21,6 +20,13 @@ import {
   Client,
 } from '../../types/clientTypes';
 import { Location } from '../../types/location';
+
+// Define a specific type for the group form values
+interface GroupFormValues extends GroupData {
+  client_ids: number[];
+  session_ids: number[];
+  contact_person_id?: number;
+}
 import { Drawer } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import successIcon from '../../assets/icons/success.svg';
@@ -53,9 +59,7 @@ const AddClients = ({ isOpen, onClose }: ClientsModalProps) => {
     },
   });
 
-  const groupFormMethods = useForm<
-    GroupData & { client_ids: number[]; session_ids: number[] }
-  >({
+  const groupFormMethods = useForm<GroupFormValues>({
     defaultValues: {
       name: '',
       description: '',
