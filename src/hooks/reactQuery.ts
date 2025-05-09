@@ -81,7 +81,7 @@ import {
 } from "../api/api";
 import { useAuthStore } from "../store/auth";
 // import { BusinessServices } from "../types/business";
-import { AddClient, Client } from "../types/clientTypes";
+import { AddClient, Client, ClientData } from "../types/clientTypes";
 import { CreateStaffRequest, StaffResponse } from "../types/staffTypes";
 import {
   AnalyticsData,
@@ -782,7 +782,7 @@ export const useUpdateClient = () => {
       updateData,
     }: {
       id: string;
-      updateData: Partial<Client>;
+      updateData: Partial<ClientData>;
     }) => update_client(id, updateData),
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: ["clients"] });
