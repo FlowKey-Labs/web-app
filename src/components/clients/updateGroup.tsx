@@ -1,18 +1,18 @@
-import { FormProvider, useForm } from "react-hook-form";
-import { Client, GroupData } from "../../types/clientTypes";
-import Input from "../common/Input";
-import DropdownSelectInput from "../common/Dropdown";
-import Button from "../common/Button";
-import { useGetLocations } from "../../hooks/reactQuery";
-import { Controller } from "react-hook-form";
-import { useGetClients } from "../../hooks/reactQuery";
-import { useGetSessions } from "../../hooks/reactQuery";
-import { useUpdateGroup } from "../../hooks/reactQuery";
+import { FormProvider, useForm } from 'react-hook-form';
+import { Client, GroupData } from '../../types/clientTypes';
+import Input from '../common/Input';
+import DropdownSelectInput from '../common/Dropdown';
+import Button from '../common/Button';
+import { Controller } from 'react-hook-form';
+import { useGetClients } from '../../hooks/reactQuery';
+import { useGetSessions } from '../../hooks/reactQuery';
+import { useUpdateGroup } from '../../hooks/reactQuery';
 import { useEffect } from 'react';
+
 import { notifications } from '@mantine/notifications';
 import successIcon from '../../assets/icons/success.svg';
 import errorIcon from '../../assets/icons/error.svg';
-import { Location } from '../../types/location';
+import clientlocationIcons from '../../assets/icons/clientLocation.svg';
 
 interface UpdateGroupProps {
   groupData: GroupData;
@@ -20,12 +20,13 @@ interface UpdateGroupProps {
 }
 
 const UpdateGroup = ({ groupData, onSuccess }: UpdateGroupProps) => {
-  const { data: locationsData, isLoading: isLocationsLoading } = useGetLocations();
   const { data: clientsData, isLoading: isClientsLoading } = useGetClients();
   const { data: sessionsData, isLoading: isSessionsLoading } = useGetSessions();
-  const { mutate: updateGroupMutation, isPending: isUpdating } = useUpdateGroup();
 
-  const methods = useForm<GroupData & { client_ids: number[]; session_ids: number[] }>({
+  const { mutate: updateGroupMutation, isPending: isUpdating } =
+    useUpdateGroup();
+
+  const methods = useForm<GroupData>({
     defaultValues: {
       name: '',
       description: '',
@@ -36,7 +37,7 @@ const UpdateGroup = ({ groupData, onSuccess }: UpdateGroupProps) => {
     },
   });
 
-  const { control, handleSubmit, reset } = methods;
+  const { control, handleSubmit, reset, watch } = methods;
 
   // Pre-fill form with group data
   useEffect(() => {
@@ -62,16 +63,26 @@ const UpdateGroup = ({ groupData, onSuccess }: UpdateGroupProps) => {
       return;
     }
 
+    // Prepare the data for submission
+    const updateData = {
+      name: data.name,
+      description: data.description,
+      location: data.location,
+      client_ids: data.client_ids || [],
+      session_ids: data.session_ids || [],
+      contact_person_id: data.contact_person_id,
+    };
+
     updateGroupMutation(
-      { 
-        id: groupData.id.toString(), 
-        updateData: data 
+      {
+        id: groupData.id.toString(),
+        updateData,
       },
       {
         onSuccess: () => {
           notifications.show({
             title: 'Success',
-            message: 'Group updated successfully!',
+            message: 'Group updated successfully.',
             color: 'green',
             radius: 'md',
             icon: (
@@ -83,9 +94,11 @@ const UpdateGroup = ({ groupData, onSuccess }: UpdateGroupProps) => {
             autoClose: 3000,
             position: 'top-right',
           });
+          // Trigger a full data refresh
           onSuccess();
         },
-        onError: () => {
+        onError: (error) => {
+          console.error('Update error:', error);
           notifications.show({
             title: 'Error',
             message: 'Failed to update group. Please try again.',
@@ -106,13 +119,18 @@ const UpdateGroup = ({ groupData, onSuccess }: UpdateGroupProps) => {
   };
 
   // Get selected clients for contact person dropdown
-  const selectedClientIds = methods.watch('client_ids') || [];
-  const selectedClients = clientsData
-    ?.filter((client: Client) => selectedClientIds.includes(client.id)) || [];
+  const selectedClientIds = watch('client_ids') || [];
+  const selectedClients =
+    clientsData?.filter((client: Client) =>
+      selectedClientIds.includes(client.id)
+    ) || [];
 
   return (
     <FormProvider {...methods}>
-      <form onSubmit={handleSubmit(onSubmit)} className='flex-1 flex flex-col p-2'>
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        className='flex-1 flex flex-col p-2'
+      >
         <div className='space-y-4 mb-8'>
           <h4 className='text-lg font-semibold text-gray-700'>
             Update Group Information
@@ -149,30 +167,21 @@ const UpdateGroup = ({ groupData, onSuccess }: UpdateGroupProps) => {
             name='location'
             control={control}
             render={({ field }) => (
-              <DropdownSelectInput
-                label='Location'
-                placeholder={
-                  isLocationsLoading
-                    ? 'Loading locations...'
-                    : 'Select business location'
-                }
-                options={
-                  isLocationsLoading
-                    ? [{ label: 'Loading...', value: '' }]
-                    : locationsData
-                        ?.filter((location): location is Location => 'name' in location && 'id' in location)
-                        .map((location) => ({
-                          label: location.name,
-                          value: location.id.toString(),
-                        })) ?? []
-                }
-                value={field.value ? field.value.toString() : ''}
-                onSelectItem={(selected) => {
-                  field.onChange(
-                    selected.value ? parseInt(selected.value) : null
-                  );
-                }}
-              />
+              <div className='relative'>
+                <Input
+                  {...field}
+                  label='Location'
+                  placeholder='Enter location'
+                  className='pr-10'
+                />
+                <div className='absolute right-3 top-1/2 transform -translate-y-1/2'>
+                  <img
+                    src={clientlocationIcons}
+                    alt=''
+                    className='w-5 h-5 text-gray-400'
+                  />
+                </div>
+              </div>
             )}
           />
 
@@ -280,9 +289,9 @@ const UpdateGroup = ({ groupData, onSuccess }: UpdateGroupProps) => {
             color='#1D9B5E'
             radius='8px'
             className='w-full md:w-auto'
-            disabled={isUpdating}
+            loading={isUpdating}
           >
-            {isUpdating ? 'Updating...' : 'Update Group'}
+            Update Group
           </Button>
         </div>
       </form>

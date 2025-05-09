@@ -787,6 +787,7 @@ export const useUpdateClient = () => {
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: ["clients"] });
       queryClient.invalidateQueries({ queryKey: ["client", id] });
+      queryClient.invalidateQueries({ queryKey: ["client_members", id] });
     },
     onError: (error) => console.error("Update client error:", error),
   });
@@ -985,6 +986,7 @@ export const useUpdateGroup = () => {
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: ["groups"] });
       queryClient.invalidateQueries({ queryKey: ["group", id] });
+      queryClient.invalidateQueries({ queryKey: ["group_members", id] });
     },
     onError: (error) => {
       console.error("Failed to update group:", error);

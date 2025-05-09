@@ -8,10 +8,10 @@ import {
   useUpdateClient,
   useGetClient,
 } from '../../hooks/reactQuery';
-import React from 'react';
+import { useEffect } from 'react';
 import moment from 'moment';
 import { AddClient, ClientData } from '../../types/clientTypes';
-import { Drawer, Loader } from '@mantine/core';
+import { Drawer } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import successIcon from '../../assets/icons/success.svg';
 import errorIcon from '../../assets/icons/error.svg';
@@ -43,7 +43,7 @@ const UpdateClient = ({ isOpen, onClose, clientId }: UpdateClientProps) => {
   const { data: classSessionsData, isLoading: isClassSessionsLoading } =
     useGetClassSessions();
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (clientData && isOpen) {
       reset({
         first_name: clientData.first_name || '',
@@ -63,7 +63,7 @@ const UpdateClient = ({ isOpen, onClose, clientId }: UpdateClientProps) => {
     }
   }, [clientData, isOpen, reset]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (isSuccess) {
       onClose();
     }
@@ -150,9 +150,7 @@ const UpdateClient = ({ isOpen, onClose, clientId }: UpdateClientProps) => {
         size='lg'
         title='Update Client'
       >
-        <div className='flex justify-center items-center h-screen p-6 pt-12'>
-          <Loader size='xl' color='#1D9B5E' />
-        </div>
+        <div className='p-6'>Loading client data...</div>
       </Drawer>
     );
   }
