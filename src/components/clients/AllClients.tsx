@@ -26,10 +26,12 @@ import errorIcon from '../../assets/icons/error.svg';
 import actionOptionIcon from '../../assets/icons/actionOption.svg';
 import { useState, useMemo, useCallback } from 'react';
 import { useExportClients } from '../../hooks/useExport';
+import { useExportGroups } from '../../hooks/useExport';
 import { useNavigate } from 'react-router-dom';
 import { navigateToClientDetails, navigateToGroupDetails } from '../../utils/navigationHelpers';
 import AddClients from './AddClient';
 import EmptyDataPage from '../common/EmptyDataPage';
+
 
 const clientColumnHelper = createColumnHelper<Client>();
 const groupColumnHelper = createColumnHelper<GroupData>();
@@ -81,6 +83,14 @@ const AllClients = () => {
     handleExport,
     isExporting,
   } = useExportClients(activeView === 'clients' ? clients || [] : groups || []); // TODO: Adapt useExportClients for groups or create useExportGroups
+
+  const {
+    exportModalOpened: groupExportModalOpened,
+    openExportModal: openGroupExportModal,
+    closeExportModal: closeGroupExportModal,
+    handleExport: handleGroupExport,
+    isExporting: groupIsExporting,
+  } = useExportGroups(groups || []);
 
   const columns: ColumnDef<Client, any>[] = useMemo(
     () => [
@@ -336,6 +346,7 @@ const AllClients = () => {
                     color='#162F3B'
                     className='text-sm'
                     style={{ textAlign: 'center' }}
+                    onClick={openGroupExportModal}
                   >
                     Export Groups
                   </Menu.Item>
@@ -708,8 +719,8 @@ const AllClients = () => {
       </Modal>
 
       <Modal
-        opened={exportModalOpened}
-        onClose={closeExportModal}
+        opened={exportModalOpened || groupExportModalOpened}
+        onClose={activeView === 'clients' ? closeExportModal : closeGroupExportModal}
         title={
           <Text fw={600} size='lg'>
             Export {activeView === 'clients' ? 'Clients' : 'Groups'}
@@ -745,10 +756,10 @@ const AllClients = () => {
               variant='outline'
               color='#1D9B5E' // Or your primary color
               radius='md'
-              onClick={() => handleExport('excel', getSelectedIds())}
+              onClick={() => activeView === 'clients' ? handleExport ('excel', getSelectedIds()) : handleGroupExport('excel', getSelectedIds())}
               className='px-6' // Consider if fullWidth is better
-              loading={isExporting}
-              disabled={isExporting} // Add disabled state
+              loading={activeView === 'clients' ? isExporting : groupIsExporting}
+              disabled={activeView === 'clients' ? isExporting : groupIsExporting} // Add disabled state
             >
               Export as Excel (.xlsx)
             </MantineButton>
@@ -757,10 +768,10 @@ const AllClients = () => {
               variant='outline'
               color='#1D9B5E' // Or your primary color
               radius='md'
-              onClick={() => handleExport('csv', getSelectedIds())}
+              onClick={() => activeView === 'clients' ? handleExport('csv', getSelectedIds()) : handleGroupExport('csv', getSelectedIds())}
               className='px-6' // Consider if fullWidth is better
-              loading={isExporting}
-              disabled={isExporting} // Add disabled state
+              loading={activeView === 'clients' ? isExporting : groupIsExporting}
+              disabled={activeView === 'clients' ? isExporting : groupIsExporting} // Add disabled state
             >
               Export as CSV (.csv)
             </MantineButton>
@@ -771,7 +782,7 @@ const AllClients = () => {
               variant='outline'
               color='red'
               radius='md'
-              onClick={closeExportModal}
+              onClick={activeView === 'clients' ? closeExportModal : closeGroupExportModal}
               className='px-6'
             >
               Cancel
