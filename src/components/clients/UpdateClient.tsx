@@ -91,9 +91,6 @@ const UpdateClient = ({ isOpen, onClose, clientId }: UpdateClientProps) => {
         gender: data.gender,
       };
 
-      // Always include session_ids in the payload.
-      // If no sessions are selected, an empty array will be sent,
-      // signaling the backend to clear existing session associations.
       const selectedSessions = data.sessions || [];
       const sessionIds = selectedSessions
         .map((session) => parseInt(session.value))
