@@ -280,16 +280,20 @@ const AllClients = () => {
         header: 'Location',
         cell: (info) => info.getValue(),
       }),
-      groupColumnHelper.accessor('contact_person_id', {
-        id: 'contact_person_id',
-        header: 'Contact Person',
-        cell: (info) => {
-          const contactPersonId = info.getValue();
-          if (!contactPersonId) return 'N/A';
-          const contactPerson = clients.find((client: Client) => client.id === contactPersonId);
-          return contactPerson ? `${contactPerson.first_name} ${contactPerson.last_name}` : `ID: ${contactPersonId}`;
-        },
-      }),
+      groupColumnHelper.accessor(
+        (row) => row.contact_person, // Access the nested object
+        {
+          id: 'contact_person', // Updated ID
+          header: 'Contact Person',
+          cell: (info) => {
+            const contactPerson = info.getValue(); // This is the contact_person object
+            if (contactPerson && contactPerson.first_name && contactPerson.last_name) {
+              return `${contactPerson.first_name} ${contactPerson.last_name}`;
+            }
+            return 'N/A'; // Handle cases where contact_person or names are missing
+          },
+        }
+      ),
       groupColumnHelper.accessor('active', {
         id: 'active',
         header: 'Status', 

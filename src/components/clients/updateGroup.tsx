@@ -36,7 +36,7 @@ const UpdateGroup = ({ groupData, onSuccess }: UpdateGroupProps) => {
       location: '',
       client_ids: [],
       session_ids: [],
-      contact_person_id: undefined,
+      contact_person: { id: undefined },
     },
   });
 
@@ -51,7 +51,7 @@ const UpdateGroup = ({ groupData, onSuccess }: UpdateGroupProps) => {
         location: groupData.location || '',
         client_ids: groupData.client_ids || [],
         session_ids: groupData.session_ids || [],
-        contact_person_id: groupData.contact_person_id || undefined,
+        contact_person: groupData.contact_person ? { id: groupData.contact_person.id } : undefined,
       });
     }
   }, [groupData, reset]);
@@ -73,7 +73,7 @@ const UpdateGroup = ({ groupData, onSuccess }: UpdateGroupProps) => {
       location: data.location,
       client_ids: data.client_ids || [],
       session_ids: data.session_ids || [],
-      contact_person_id: data.contact_person_id,
+      contact_person_id: data.contact_person?.id,
     };
 
     updateGroupMutation(
@@ -261,7 +261,7 @@ const UpdateGroup = ({ groupData, onSuccess }: UpdateGroupProps) => {
           />
 
           <Controller
-            name='contact_person_id'
+            name='contact_person.id' // Use dot notation for nested field
             control={control}
             rules={{ required: 'Contact person is required' }}
             render={({ field }) => (
@@ -280,10 +280,12 @@ const UpdateGroup = ({ groupData, onSuccess }: UpdateGroupProps) => {
                         value: client.id.toString(),
                       }))
                 }
+                // field.value is now the id itself (number | undefined)
                 value={field.value ? field.value.toString() : ''}
                 onSelectItem={(selected) => {
+                  // field.onChange expects the id value directly
                   field.onChange(
-                    selected.value ? parseInt(selected.value) : null
+                    selected.value ? parseInt(selected.value) : undefined
                   );
                 }}
               />

@@ -93,7 +93,14 @@ export interface GroupData {
   description?: string ;
   location?: string;
   active?: boolean;
-  contact_person_id?: number;
+  contact_person?: {
+    id: number;
+    first_name: string;
+    last_name: string;
+    email?: string;
+  };
+  member_count?: number;
+  created_at?: string;
   client_ids?: number[];
   session_ids?: number[];
 }

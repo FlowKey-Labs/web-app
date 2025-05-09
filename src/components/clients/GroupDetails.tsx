@@ -6,7 +6,7 @@ import Table from '../common/Table';
 import { createColumnHelper } from '@tanstack/react-table';
 import { useGetGroup, useGetGroupMembers } from '../../hooks/reactQuery';
 import avatar from '../../assets/icons/newAvatar.svg';
-import { Client } from '../../types/clientTypes';
+import { Client, GroupData } from '../../types/clientTypes'; // Added GroupData
 import { useNavigate } from 'react-router-dom';
 import UpdateGroup from './updateGroup';
 
@@ -23,12 +23,12 @@ const GroupDetails = () => {
 
   // Fetch Group Details - Assuming useGetGroup hook exists and returns GroupData or similar
   const {
-    data: groupDetails,
+    data: groupDetails, // Explicitly type groupDetails if needed, e.g., data: groupDetails as GroupData,
     isLoading,
     isError,
     error,
     refetch: refetchGroup,
-  } = useGetGroup(groupId || '');
+  } = useGetGroup(groupId || '') as { data: GroupData | undefined, isLoading: boolean, isError: boolean, error: any, refetch: () => void };
 
   // Fetch Group Members
   const {
@@ -173,6 +173,16 @@ const GroupDetails = () => {
                       {groupDetails.location || 'N/A'}
                     </span>
                   </div>
+                  {groupDetails.contact_person && (
+                  <div className='flex justify-between items-center w-full text-sm'>
+                    <span className='text-gray-400 font-bold text-xs'>
+                      CONTACT PERSON
+                    </span>
+                    <span className='text-gray-400 text-xs'>
+                      {groupDetails.contact_person.first_name} {groupDetails.contact_person.last_name}
+                    </span>
+                  </div>
+                  )}
                 </div>
                 {groupDetails.created_at && (
                   <>
