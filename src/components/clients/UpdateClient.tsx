@@ -87,14 +87,14 @@ const UpdateClient = ({ isOpen, onClose, clientId }: UpdateClientProps) => {
         gender: data.gender,
       };
 
-      if (data.sessions?.length) {
-        const sessionIds = data.sessions.map((session) =>
-          parseInt(session.value)
-        );
-        if (sessionIds.every((id) => !isNaN(id))) {
-          updateData.session_ids = sessionIds;
-        }
-      }
+      // Always include session_ids in the payload.
+      // If no sessions are selected, an empty array will be sent,
+      // signaling the backend to clear existing session associations.
+      const selectedSessions = data.sessions || [];
+      const sessionIds = selectedSessions
+        .map((session) => parseInt(session.value))
+        .filter((id) => !isNaN(id));
+      updateData.session_ids = sessionIds;
 
       updateClient(
         { id: clientId, updateData },

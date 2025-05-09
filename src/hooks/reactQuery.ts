@@ -788,6 +788,9 @@ export const useUpdateClient = () => {
       queryClient.invalidateQueries({ queryKey: ["clients"] });
       queryClient.invalidateQueries({ queryKey: ["client", id] });
       queryClient.invalidateQueries({ queryKey: ["client_members", id] });
+      queryClient.invalidateQueries({ queryKey: ["sessions"] });
+      queryClient.invalidateQueries({ queryKey: ["class_sessions"] });
+      queryClient.invalidateQueries({ queryKey: ["upcoming_sessions"] });
     },
     onError: (error) => console.error("Update client error:", error),
   });
