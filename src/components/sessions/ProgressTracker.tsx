@@ -32,7 +32,7 @@ const ProgressTracker = () => {
               sections={[{ value: 60, color: '#1D9B5E' }]}
               label={
                 <Flex direction='column' justify='center' align='center'>
-                  <Text size='xs' c='black'>
+                  <Text size='10px' c='black'>
                     Completion
                   </Text>
                   <Text c='#1D9B5E' fw={700} ta='center' size='xl'>
