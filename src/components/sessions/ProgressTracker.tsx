@@ -99,7 +99,7 @@ const ProgressTracker = () => {
                 <Text size='xs' c='#8A8D8E'>
                   Level 2
                 </Text>
-                <Progress value={50} color='orange' radius='sm' mt='sm' />
+                <Progress value={50} color='#FF9500' radius='sm' mt='sm' />
                 <Button
                   variant='transparent'
                   color='#0F2028'
@@ -154,7 +154,7 @@ const ProgressTracker = () => {
             style={{
               backgroundColor: 'var(--mantine-color-green-5)',
               flex: 1.5,
-              borderRadius: 'var(--mantine-radius-md)',
+              borderRadius: 'var(--mantine-radius-lg)',
             }} 
           >
             <Box ta='center' pr='md' w='30%'>
