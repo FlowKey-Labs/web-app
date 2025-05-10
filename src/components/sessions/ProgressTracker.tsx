@@ -95,7 +95,9 @@ const ProgressTracker = () => {
           <Card shadow='sm' padding='xl' radius='lg' withBorder mb='md'>
             <Flex justify='space-between' align='center'>
               <Box w='70%'>
-                <Text fw={600} c='#8A8D8E'>Jump right back</Text>
+                <Text fw={600} c='#8A8D8E'>
+                  Jump right back
+                </Text>
                 <Text size='xs' c='#8A8D8E'>
                   Level 2
                 </Text>
@@ -121,7 +123,9 @@ const ProgressTracker = () => {
           <Card shadow='sm' padding='lg' radius='lg' withBorder>
             <Flex justify='space-between' align='center'>
               <Box w='70%'>
-                <Text fw={600} c='#8A8D8E'>Average Assessment Score</Text>
+                <Text fw={600} c='#8A8D8E'>
+                  Average Assessment Score
+                </Text>
                 <Text size='xs' c='#8A8D8E'>
                   Based on validated Checkpoints
                 </Text>
@@ -137,7 +141,7 @@ const ProgressTracker = () => {
                 </Button>
               </Box>
               <Divider orientation='vertical' size='xs' />
-              <Text size='2rem' fw={600} c="#8A8D8E">
+              <Text size='2rem' fw={600} c='#8A8D8E'>
                 0%
               </Text>
             </Flex>
@@ -155,7 +159,7 @@ const ProgressTracker = () => {
               backgroundColor: 'var(--mantine-color-green-5)',
               flex: 1.5,
               borderRadius: 'var(--mantine-radius-lg)',
-            }} 
+            }}
           >
             <Box ta='center' pr='md' w='30%'>
               <Text size='2rem' fw={600} c='white'>
@@ -167,7 +171,7 @@ const ProgressTracker = () => {
             </Box>
             <Divider orientation='vertical' color='rgba(255,255,255,0.5)' />
             <Flex direction='column' align='center' pl='md' gap='sm'>
-              <IconUserBolt size={14} color='white' className='self-start'/>
+              <IconUserBolt size={14} color='white' className='self-start' />
               <Text size='xs' c='white'>
                 Excellent presence and engagement. A dedicated student worth
                 acknowledging!
@@ -208,10 +212,10 @@ const ProgressTracker = () => {
             </Text>
             <Button
               variant='transparent'
-              color='#1D9B5E' 
+              color='#1D9B5E'
               rightSection={<IconChevronRight size={14} />}
               p={0}
-              pos='absolute' 
+              pos='absolute'
               top={10}
               right={10}
               styles={{ label: { fontSize: 'var(--mantine-font-size-xs)' } }}
