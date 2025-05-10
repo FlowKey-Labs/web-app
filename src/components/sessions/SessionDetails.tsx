@@ -11,6 +11,7 @@ import {
   Loader,
 } from '@mantine/core';
 import { useCallback, useMemo, useState } from 'react';
+import ProgressTracker from './ProgressTracker'; // Import the new component
 import { useDisclosure } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
 import Table from '../common/Table';
@@ -32,6 +33,7 @@ import avatar from '../../assets/icons/newAvatar.svg';
 import UpdateSession from './UpdateSession';
 import successIcon from '../../assets/icons/success.svg';
 import errorIcon from '../../assets/icons/error.svg';
+import DropdownComingSoon from '../common/DropdownComingSoon';
 
 const columnHelper = createColumnHelper<Client>();
 
@@ -49,9 +51,9 @@ const SessionDetails = () => {
   const updateStatusMutation = useUpdateAttendanceStatus();
 
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<'overview' | 'clients'>(
-    'overview'
-  );
+  const [activeTab, setActiveTab] = useState<
+    'overview' | 'attendance' | 'progress'
+  >('overview');
   const [rowSelection, setRowSelection] = useState({});
 
   const {
@@ -725,7 +727,7 @@ const SessionDetails = () => {
                     role='tab'
                     aria-selected={activeTab === 'overview'}
                     aria-controls='overview-panel'
-                    className={`font-semibold text-xl relative cursor-pointer transition-all duration-200 hover:text-secondary  ${
+                    className={`font-semibold text-xl relative cursor-pointer transition-all duration-200 hover:text-secondary ${
                       activeTab === 'overview'
                         ? 'text-secondary'
                         : 'text-gray-500'
@@ -734,60 +736,99 @@ const SessionDetails = () => {
                   >
                     Overview
                   </button>
-                  <h3 className='font-semibold text-xl relative cursor-pointer transition-all duration-200 hover:text-secondary '>
+                  <button
+                    role='tab'
+                    aria-selected={activeTab === 'attendance'}
+                    aria-controls='attendance-panel'
+                    className={`font-semibold text-xl relative cursor-pointer transition-all duration-200 hover:text-secondary ${
+                      activeTab === 'attendance'
+                        ? 'text-secondary'
+                        : 'text-gray-500'
+                    }`}
+                    onClick={() => setActiveTab('attendance')}
+                  >
                     Attendance
-                  </h3>
-                  <h3 className='font-semibold text-xl relative cursor-pointer transition-all duration-200 hover:text-secondary '>
+                  </button>
+                  <button
+                    role='tab'
+                    aria-selected={activeTab === 'progress'}
+                    aria-controls='progress-panel'
+                    className={`font-semibold text-xl relative cursor-pointer transition-all duration-200 hover:text-secondary ${
+                      activeTab === 'progress'
+                        ? 'text-secondary'
+                        : 'text-gray-500'
+                    }`}
+                    onClick={() => setActiveTab('progress')}
+                  >
                     Progress Tracker
-                  </h3>
+                  </button>
                 </div>
                 <div className='h-[1px] bg-gray-300 w-full opacity-60'></div>
               </div>
-              <div className='flex space-x-16 mt-6'>
-                {analyticsLoading ? (
-                  <p>Loading analytics data...</p>
-                ) : (
-                  <>
-                    <div className='flex flex-col items-center border bg-white rounded-xl p-6 space-y-4'>
-                      <p className='text-4xl'>
-                        {sessionAnalytics?.total_clients || 0}
-                        <span className='text-lg text-gray-500'>
-                          /{session.spots || '∞'}
-                        </span>
-                      </p>
-                      <p className='text-sm'>Total Clients</p>
+              {activeTab === 'overview' && (
+                <div className='flex space-x-16 mt-6' id='overview-panel'>
+                  {analyticsLoading ? (
+                    <div className=' flex items-center justify-center h-full w-full'>
+                      <Loader size='xl' color='#1D9B5E' />
                     </div>
-
-                    <div className='flex items-center border bg-white py-6 px-10 rounded-xl'>
-                      <div className='flex flex-col items-center rounded-xl space-y-4'>
-                        <p className='text-2xl font-semibold text-primary'>
-                          {sessionAnalytics?.average_attendance || 0}%
+                  ) : (
+                    <>
+                      <div className='flex flex-col items-center border bg-white rounded-xl p-6 space-y-4'>
+                        <p className='text-4xl'>
+                          {sessionAnalytics?.total_clients || 0}
+                          <span className='text-lg text-gray-500'>
+                            /{session.spots || '∞'}
+                          </span>
                         </p>
-                        <p className='text-sm'>Average Attendance</p>
+                        <p className='text-sm'>Total Clients</p>
                       </div>
+
+                      <div className='flex items-center border bg-white py-6 px-10 rounded-xl'>
+                        <div className='flex flex-col items-center rounded-xl space-y-4'>
+                          <p className='text-2xl font-semibold text-primary'>
+                            {sessionAnalytics?.average_attendance || 0}%
+                          </p>
+                          <p className='text-sm'>Average Attendance</p>
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
+
+              {activeTab === 'progress' && (
+                <div className='p-4 md:p-6' id='progress-panel'>
+                  <ProgressTracker />
+                </div>
+              )}
+
+              {activeTab === 'overview' && (
+                <div className='flex-1 mt-6' id='overview-clients-panel'>
+                  <div className=''>
+                    <div>
+                      <h3 className='text-primary text-xl font-semibold'>
+                        Client Overview
+                      </h3>
                     </div>
-                  </>
-                )}
-              </div>
-              <div className='flex-1 mt-6'>
-                <div className=''>
-                  <div>
-                    <h3 className='text-primary text-xl font-semibold'>
-                      Clients
-                    </h3>
-                  </div>
-                  <div className='flex-1 py-2'>
-                    <Table
-                      data={clients}
-                      columns={columns}
-                      rowSelection={rowSelection}
-                      onRowSelectionChange={setRowSelection}
-                      className='mt-4'
-                      pageSize={5}
-                    />
+                    <div className='flex-1 py-2'>
+                      <Table
+                        data={clients}
+                        columns={columns}
+                        rowSelection={rowSelection}
+                        onRowSelectionChange={setRowSelection}
+                        className='mt-4'
+                        pageSize={5}
+                      />
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
+
+              {activeTab === 'attendance' && (
+                <div className='flex-1 mt-6 p-4 md:p-6' id='attendance-panel'>
+                  <DropdownComingSoon />
+                </div>
+              )}
             </div>
           </div>
         </div>
