@@ -82,6 +82,7 @@ import {
   createRole,
   updateRole,
   deleteRole,
+  get_staff_sessions,
 } from "../api/api";
 import { Role, useAuthStore } from "../store/auth";
 import { AddClient, Client } from "../types/clientTypes";
@@ -560,6 +561,18 @@ export const useGetSessions = (
   return useQuery<Session[], Error>({
     queryKey: ["sessions", filters],
     queryFn: () => get_sessions(filters),
+    staleTime: 1000 * 60 * 5,
+    refetchOnWindowFocus: false,
+    retry: 2,
+  });
+};
+
+export const useGetStaffSessions = (
+  id: string
+): UseQueryResult<Session[], Error> => {
+  return useQuery<Session[], Error>({
+    queryKey: ["sessions", id],
+    queryFn: () => get_staff_sessions(id),
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
     retry: 2,

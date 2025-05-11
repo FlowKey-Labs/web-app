@@ -1,5 +1,5 @@
-import { useParams } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { useState, useEffect, useMemo } from "react";
 import MembersHeader from "../headers/MembersHeader";
 import Button from "../common/Button";
 import Input from "../common/Input";
@@ -9,6 +9,7 @@ import { notifications } from "@mantine/notifications";
 import {
   useGetRoles,
   useGetStaffMember,
+  useGetStaffSessions,
   useUpdateStaffMember,
 } from "../../hooks/reactQuery";
 
@@ -18,6 +19,10 @@ import successIcon from "../../assets/icons/success.svg";
 import errorIcon from "../../assets/icons/error.svg";
 import DropdownSelectInput from "../common/Dropdown";
 import { Role } from "../../store/auth";
+import Table from "../common/Table";
+import { navigateToSessionDetails } from "../../utils/navigationHelpers";
+import { Session } from "../../types/sessionTypes";
+import { createColumnHelper } from "@tanstack/react-table";
 
 interface PersonalFormData {
   firstName: string;
@@ -28,6 +33,8 @@ interface PersonalFormData {
   staffNumber: string;
 }
 
+const columnHelper = createColumnHelper<Session>();
+
 const StaffDetails = () => {
   const { id: staffId } = useParams();
   const {
@@ -37,9 +44,11 @@ const StaffDetails = () => {
     error,
     refetch,
   } = useGetStaffMember(staffId || "");
+  const navigate = useNavigate();
   const { data: roles = [] } = useGetRoles();
   const [isEditing, setIsEditing] = useState(false);
   const [selectedRoleId, setSelectedRoleId] = useState("");
+  const [rowSelection, setRowSelection] = useState({});
 
   const methods = useForm<PersonalFormData>();
   const { control, handleSubmit, reset } = methods;
@@ -63,6 +72,169 @@ const StaffDetails = () => {
   }, [staffDetails, reset]);
 
   const { mutate: updateStaff } = useUpdateStaffMember();
+
+  const sessionColumns = useMemo(
+    () => [
+      columnHelper.display({
+        id: 'select',
+        header: ({ table }) => (
+          <input
+            type='checkbox'
+            checked={table.getIsAllRowsSelected()}
+            onChange={table.getToggleAllRowsSelectedHandler()}
+            className='w-4 h-4 rounded cursor-pointer bg-[#F7F8FA] accent-[#DBDEDF]'
+          />
+        ),
+        cell: ({ row }) => (
+          <input
+            type='checkbox'
+            checked={row.getIsSelected()}
+            onClick={(e) => e.stopPropagation()}
+            onChange={row.getToggleSelectedHandler()}
+            className='w-4 h-4 rounded cursor-pointer bg-[#F7F8FA] accent-[#DBDEDF]'
+          />
+        ),
+      }),
+      columnHelper.accessor('title', {
+        header: 'Session',
+        cell: (info) => (
+          <div className='text-start'>
+            <p className='font-medium text-gray-900 text-sm'>
+              {info.getValue()}
+            </p>
+            <p className='text-xs text-gray-500'>
+              {info.row.original.category?.name || ''}
+            </p>
+          </div>
+        ),
+      }),
+      columnHelper.accessor('class_type', {
+        header: 'Session Type',
+        cell: (info) => {
+          const SessionType = info.getValue();
+          return SessionType
+            ? SessionType.charAt(0).toUpperCase() + SessionType.slice(1)
+            : '';
+        },
+      }),
+      columnHelper.accessor('spots', {
+        header: 'Slots',
+        cell: (info) => info.getValue(),
+      }),
+      columnHelper.accessor('date', {
+        header: 'Date',
+        cell: (info) => {
+          const dateValue = info.getValue();
+          const date = new Date(dateValue);
+          return date.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+          });
+        },
+      }),
+      columnHelper.accessor(
+        (row) => ({ start: row.start_time, end: row.end_time }),
+        {
+          id: 'duration',
+          header: 'Duration',
+          cell: (info) => {
+            const { start, end } = info.getValue();
+
+            const formatTo12Hour = (isoDateTimeStr: string) => {
+              if (!isoDateTimeStr || typeof isoDateTimeStr !== 'string')
+                return isoDateTimeStr;
+
+              try {
+                const timePart = isoDateTimeStr.split('T')[1];
+                if (!timePart) {
+                  return isoDateTimeStr;
+                }
+
+                const timeComponents = timePart.split(':');
+                let hours = parseInt(timeComponents[0], 10);
+                const minutes = timeComponents[1].padStart(2, '0');
+
+                const ampm = hours >= 12 ? 'PM' : 'AM';
+
+                hours = hours % 12;
+                hours = hours ? hours : 12;
+
+                return `${hours}:${minutes} ${ampm}`;
+              } catch (e) {
+                console.error('Error formatting time:', isoDateTimeStr, e);
+                return isoDateTimeStr;
+              }
+            };
+
+            return `${formatTo12Hour(start)} - ${formatTo12Hour(end)}`;
+          },
+        }
+      ),
+      columnHelper.accessor(
+        (row) => ({
+          repeat_on: row.repeat_on,
+          repeat_unit: row.repeat_unit,
+          repeat_every: row.repeat_every,
+        }),
+        {
+          id: 'repeats',
+          header: 'Repeats',
+          cell: (info) => {
+            const { repeat_on, repeat_unit, repeat_every } = info.getValue();
+
+            const dayMap: Record<number, string> = {
+              1: 'Mon',
+              2: 'Tue',
+              3: 'Wed',
+              4: 'Thu',
+              5: 'Fri',
+              6: 'Sat',
+              0: 'Sun',
+            };
+
+            if (repeat_unit === 'days' && repeat_every) {
+              return `Daily`;
+            }
+
+            if (repeat_unit === 'weeks') {
+              return `Weekly`;
+            }
+            if (repeat_unit === 'months' && repeat_every) {
+              return `Monthly`;
+            }
+
+            if (repeat_on && repeat_on.length > 0) {
+              return repeat_on
+                .map((day: string) => dayMap[Number(day)] || '')
+                .join(', ');
+            }
+
+            return 'No Repeats';
+          },
+        }
+      ),
+      columnHelper.accessor('is_active', {
+        header: 'Status',
+        cell: (info) => (
+          <span
+            className={`inline-block px-2 py-1 rounded-lg text-sm text-center min-w-[70px] ${
+              info.getValue()
+                ? 'bg-active text-green-700'
+                : 'bg-red-100 text-red-700'
+            }`}
+          >
+            {info.getValue() ? 'Active' : 'Inactive'}
+          </span>
+        ),
+      }),
+    ],
+    [open]
+  );
+
+  const {
+    data: staffSessionsData,
+  } = useGetStaffSessions(staffDetails?.id);
 
   const onSubmit = (data: PersonalFormData) => {
     if (!staffId) return;
@@ -354,25 +526,26 @@ const StaffDetails = () => {
             </div>
           </div>
 
-          {staffDetails.assignedClasses && (
-            <div className="border rounded-xl w-[95%] p-8 bg-white">
-              <div className="flex justify-between items-start">
-                <h3 className="text-primary text-sm font-semibold mb-4">
-                  Assigned Classes
-                </h3>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                {staffDetails.assignedClasses
-                  .split(", ")
-                  .map((className: string, index: number) => (
-                    <div key={index} className="flex items-center gap-2">
-                      <div className="w-2 h-2 bg-secondary rounded-full"></div>
-                      <p className="text-sm text-gray-500">{className}</p>
-                    </div>
-                  ))}
-              </div>
+          <div className="border rounded-xl w-[95%] p-8 bg-white">
+            <div className="flex justify-between items-start">
+              <h3 className="text-primary text-md font-semibold mb-4">
+                Assigned Sessions
+              </h3>
             </div>
-          )}
+            <div className="w-full">
+            <Table
+              data={staffSessionsData || []}
+              columns={sessionColumns}
+              rowSelection={rowSelection}
+              onRowSelectionChange={setRowSelection}
+              className='mt-4'
+              pageSize={7}
+              onRowClick={(row: Session) =>
+                navigateToSessionDetails(navigate, row.id.toString())
+              }
+            />
+            </div>
+          </div>
         </div>
       </div>
     </FormProvider>
