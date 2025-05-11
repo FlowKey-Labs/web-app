@@ -7,7 +7,6 @@ import { createColumnHelper } from '@tanstack/react-table';
 import { useGetClient, useGetClientAnalytics } from '../../hooks/reactQuery';
 import avatar from '../../assets/icons/newAvatar.svg';
 import UpdateClient from './UpdateClient';
-import { Session } from '../../types/sessionTypes';
 import { navigateToSessionDetails } from '../../utils/navigationHelpers';
 
 const ClientDetails = () => {

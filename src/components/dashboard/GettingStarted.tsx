@@ -5,7 +5,6 @@ import {
   navigateToCalendar,
   navigateToClientDetails,
   navigateToClients,
-  navigateToStaff,
 } from '../../utils/navigationHelpers';
 import './index.css';
 import {
@@ -93,7 +92,6 @@ const GettingStarted = () => {
   const { data: upcomingSessions } = useGetUpcomingSessions();
   const {
     data: clients = [],
-    isLoading,
   } = useGetClients();
 
   const handleTimeRangeSelect = (range: string) => {

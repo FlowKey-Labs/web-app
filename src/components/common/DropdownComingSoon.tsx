@@ -7,7 +7,7 @@ const DropdownComingSoon = () => {
         <p className='text-sm font-medium text-gray-500'>This feature is</p>
       <p className='text-2xl font-bold text-secondary'>Coming Soon</p>
       <img src={comingSoonIcon} alt='coming soon' className='w-18 h-18' />
-      <p className='text-sm font-medium text-gray-500'>support@flowkeys.com</p>
+      <p className='text-sm font-medium text-gray-500'>info@flowkeylabs.com</p>
     </div>
   );
 };

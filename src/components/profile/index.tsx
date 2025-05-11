@@ -16,7 +16,7 @@ type TabType =
 
   const tabConfig = [
     { id: 'business', label: 'Business Information' },
-    { id: 'categories', label: 'Categories' },
+    { id: 'categories', label: 'Session Categories' },
     { id: 'services', label: 'Services' },
     { id: 'locations', label: 'Locations' },
     { id: 'schedule', label: 'Schedule' },
