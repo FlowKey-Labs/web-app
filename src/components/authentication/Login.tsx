@@ -3,16 +3,16 @@ import {
   SubmitHandler,
   FormProvider,
   Controller,
-} from 'react-hook-form';
-import Input from '../common/Input';
-import Button from '../common/Button';
-import Main from '../authentication/MainAuth';
-import { useNavigate } from 'react-router-dom';
-import { useState } from 'react';
+} from "react-hook-form";
+import Input from "../common/Input";
+import Button from "../common/Button";
+import Main from "../authentication/MainAuth";
+import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 
-import { EyeClosedIcon, EyeOpenIcon } from '../../assets/icons';
-import { useLoginUser } from '../../hooks/reactQuery';
-import { notifications } from '@mantine/notifications';
+import { EyeClosedIcon, EyeOpenIcon } from "../../assets/icons";
+import { useLoginUser } from "../../hooks/reactQuery";
+import { notifications } from "@mantine/notifications";
 
 interface FormData {
   email: string;
@@ -27,8 +27,8 @@ const Login = () => {
 
   const methods = useForm<FormData>({
     defaultValues: {
-      email: '',
-      password: '',
+      email: "",
+      password: "",
     },
   });
 
@@ -43,20 +43,22 @@ const Login = () => {
       {
         onSuccess: () => {
           notifications.show({
-            color: 'green',
-            title: 'Success!',
-            message: 'Login successful',
+            color: "green",
+            title: "Success!",
+            message: "Login successful",
           });
           setTimeout(() => {
-            navigate('/dashboard');
+            navigate("/dashboard");
           }, 1500);
         },
         onError: (error: any) => {
-          console.error('Login error:', error);
+          console.error("Login error:", error);
           notifications.show({
-            color: 'red',
-            title: 'Error',
-            message: error?.response?.data?.detail || 'Invalid credentials, please try again.',
+            color: "red",
+            title: "Error",
+            message:
+              error?.response?.data?.detail ||
+              "Invalid credentials, please try again.",
           });
         },
       }
@@ -65,96 +67,97 @@ const Login = () => {
 
   return (
     <Main
-      title='Log In to FlowKey'
-      subtitle='Welcome Back!'
+      title="Log In to FlowKey"
+      subtitle="Welcome Back!"
       footer={
-        <p className='w-full text-xs text-gray-600 mt-4'>
-          Don't have an account?{' '}
-          <a href='/signup' className='underline text-[#1D9B5E]'>
-            Sign Up Here
-          </a>
-        </p>
+        import.meta.env.VITE_APP_ENVIRONMENT === "development" && (
+          <p className="w-full text-xs text-gray-600 mt-4">
+            Don't have an account?{" "}
+            <a href="/signup" className="underline text-[#1D9B5E]">
+              Sign Up Here
+            </a>
+          </p>
+        )
       }
     >
       <FormProvider {...methods}>
         <form onSubmit={methods.handleSubmit(onSubmit)}>
           <Controller
-            name='email'
+            name="email"
             control={methods.control}
             rules={{
-              required: 'Email is required',
+              required: "Email is required",
               pattern: {
                 value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                message: 'Invalid email address',
+                message: "Invalid email address",
               },
             }}
             render={({ field }) => (
               <Input
                 {...field}
-                name='email'
-                label='Email address'
-                type='email'
-                placeholder='Enter your email'
+                name="email"
+                label="Email address"
+                type="email"
+                placeholder="Enter your email"
               />
             )}
           />
           <Controller
-            name='password'
+            name="password"
             control={methods.control}
             rules={{
-              required: 'Password is required',
+              required: "Password is required",
             }}
             render={({ field }) => (
-              <div className='relative pb-6'>
+              <div className="relative pb-6">
                 <Input
                   {...field}
-                  name='password'
-                  label='Password'
-                  type={showPassword ? 'text' : 'password'}
-                  placeholder='Enter your password'
+                  name="password"
+                  label="Password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Enter your password"
                 />
                 <button
-                  type='button'
-                  className='absolute right-3 top-[20px]'
+                  type="button"
+                  className="absolute right-3 top-[20px]"
                   onClick={togglePasswordVisibility}
-                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
                 >
                   {showPassword ? (
-                    <EyeClosedIcon className='w-5 h-5 text-gray-500' />
+                    <EyeClosedIcon className="w-5 h-5 text-gray-500" />
                   ) : (
-                    <EyeOpenIcon className='w-5 h-5 text-gray-500' />
+                    <EyeOpenIcon className="w-5 h-5 text-gray-500" />
                   )}
                 </button>
               </div>
             )}
           />
 
-          <p className='text-sm text-gray-600 mt-4'>
+          <p className="text-sm text-gray-600 mt-4">
             <a
-              className='underline text-[#1D9B5E] font-[500]'
-              href='/forgot-password'
+              className="underline text-[#1D9B5E] font-[500]"
+              href="/forgot-password"
             >
               Forgot Password?
             </a>
           </p>
           <Button
-            w={'100%'}
-            type='submit'
-            h={'50px'}
-            className='w-full mt-6 text-white py-3 rounded-lg'
+            w={"100%"}
+            type="submit"
+            h={"50px"}
+            className="w-full mt-6 text-white py-3 rounded-lg"
             style={{
-              backgroundColor: isHovered ? '#20aa67' : '#1D9B5E',
-              transition: 'background-color 200ms ease-in-out',
+              backgroundColor: isHovered ? "#20aa67" : "#1D9B5E",
+              transition: "background-color 200ms ease-in-out",
             }}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
             disabled={isPending}
           >
-            {isPending ? 'Logging in...' : 'Log In'}
+            {isPending ? "Logging in..." : "Log In"}
           </Button>
         </form>
       </FormProvider>
-      
     </Main>
   );
 };

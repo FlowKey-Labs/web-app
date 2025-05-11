@@ -897,16 +897,6 @@ export const menuItems = [
     icon: CalendarIcon,
     iconWhite: CalendarIconWhite,
   },
-  {
-    name: "Transactions",
-    icon: TransactionsIcon,
-    iconWhite: TransactionsIconWhite,
-  },
-  {
-    name: "Chats",
-    icon: ChatsIcon,
-    iconWhite: ChatsIconWhite,
-  },
 ];
 
 export const bottomMenuItems = [
