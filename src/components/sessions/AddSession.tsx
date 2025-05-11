@@ -171,6 +171,7 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
   };
 
   const onSubmit = async (data: FormData) => {
+    console.log('here==>');
     try {
       let dateObj = null;
       if (data.date) {
@@ -180,6 +181,8 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
           dateObj = data.date;
         }
       }
+
+      
 
       const dateOnly = moment(dateObj).format('YYYY-MM-DD');
       const timeOnly = moment(data.start_time).format('HH:mm:ss');
@@ -504,6 +507,7 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
                           <Controller
                             name='title'
                             control={methods.control}
+                            rules={{ required: 'Class name is required' }}
                             render={({ field }) => (
                               <Input
                                 {...field}
@@ -568,6 +572,7 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
                             <Controller
                               name='date'
                               control={methods.control}
+                              rules={{ required: 'Date is required' }}
                               render={({ field }) => (
                                 <Input
                                   {...field}
@@ -576,7 +581,7 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
                                     field.value ? field.value.toString() : ''
                                   }
                                   label='Date'
-                                  placeholder='2020/12/12'
+                                  placeholder='Select Date'
                                   containerClassName='mb-4'
                                 />
                               )}
@@ -585,6 +590,7 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
                               <Controller
                                 name='start_time'
                                 control={methods.control}
+                                rules={{ required: 'Start time is required' }}
                                 render={({ field }) => (
                                   <Input
                                     {...field}
@@ -597,6 +603,7 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
                               <Controller
                                 name='end_time'
                                 control={methods.control}
+                                rules={{ required: 'End time is required' }}
                                 render={({ field }) => (
                                   <Input
                                     {...field}
@@ -910,6 +917,7 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
                             <Controller
                               name='title'
                               control={methods.control}
+                              rules={{ required: 'Appointment name is required' }}
                               render={({ field }) => (
                                 <Input
                                   {...field}
@@ -984,7 +992,7 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
                                     field.value ? field.value.toString() : ''
                                   }
                                   label='Date'
-                                  placeholder='2020/12/12'
+                                  placeholder='Select Date'
                                   containerClassName='mb-4'
                                 />
                               )}
@@ -1143,7 +1151,7 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
                           <Controller
                             name='title'
                             control={methods.control}
-                            rules={{ required: true }}
+                            rules={{ required: 'Event name is required' }}
                             render={({ field }) => (
                               <Input
                                 {...field}
@@ -1258,7 +1266,7 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
                                     field.value ? field.value.toString() : ''
                                   }
                                   label='Date'
-                                  placeholder='2020/12/12'
+                                  placeholder='Select Date'
                                   containerClassName='mb-4'
                                 />
                               )}

@@ -15,6 +15,9 @@ interface InputProps
   rows?: number;
 }
 
+const eighteenYearsAgo = new Date();
+eighteenYearsAgo.setFullYear(eighteenYearsAgo.getFullYear() - 18);
+
 const Input: React.FC<InputProps> = ({
   name,
   label,
@@ -123,6 +126,8 @@ const Input: React.FC<InputProps> = ({
           {type === 'date' ? (
             <DatePickerInput
               value={selectedDate}
+              defaultDate={label?.includes('birth') ? eighteenYearsAgo : undefined}
+              minDate={label?.includes('birth') ? undefined : new Date()}
               onChange={handleDateChange}
               valueFormat='YYYY/MM/DD'
               placeholder={placeholder}

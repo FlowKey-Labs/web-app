@@ -31,6 +31,7 @@ import { useNavigate } from 'react-router-dom';
 import { navigateToClientDetails, navigateToGroupDetails } from '../../utils/navigationHelpers';
 import AddClients from './AddClient';
 import EmptyDataPage from '../common/EmptyDataPage';
+import { useAuthStore } from '../../store/auth';
 
 
 const clientColumnHelper = createColumnHelper<Client>();
@@ -50,6 +51,8 @@ const AllClients = () => {
   const deactivateClientMutation = useDeactivateClient();
   const activateClientMutation = useActivateClient();
 
+  const permisions = useAuthStore((state) => state.role);
+  
   const {
     data: clients = [],
     isLoading,
@@ -558,6 +561,7 @@ const AllClients = () => {
               : 'Search by Group Name or Description'
           }
           leftIcon={plusIcon}
+          showButton={permisions?.can_create_clients}
           onButtonClick={
             activeView === 'clients' ? openClientDrawer : openClientDrawer 
           }
@@ -597,6 +601,7 @@ const AllClients = () => {
               activeView === 'clients' ? openClientDrawer : openClientDrawer
             }
             onClose={() => {}}
+            showButton={permisions?.can_create_clients}
             opened={
               (activeView === 'clients'
                 ? clients.length === 0

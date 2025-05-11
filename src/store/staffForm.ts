@@ -1,25 +1,23 @@
-import { create } from 'zustand';
-import { FormData } from '../types/staffTypes';
+import { create } from "zustand";
+import { FormData } from "../types/staffTypes";
 
 interface StaffFormState {
   formData: FormData;
-  activeSection: 'Profile' | 'Roles' | 'Permissions' | 'Review';
+  activeSection: "Profile" | "Roles" | "Review";
   setFormData: (data: Partial<FormData>) => void;
-  setActiveSection: (
-    section: 'Profile' | 'Roles' | 'Permissions' | 'Review'
-  ) => void;
+  setActiveSection: (section: "Profile" | "Roles" | "Review") => void;
   resetForm: () => void;
 }
 
 const initialFormData: FormData = {
   profile: {
-    email: '',
-    userId: '',
+    email: "",
+    userId: "",
   },
   role: {
-    role: 'staff',
-    payType: 'hourly',
-    hourlyRate: '0',
+    role: "staff",
+    payType: "hourly",
+    hourlyRate: "0",
   },
   permissions: {
     createEvents: false,
@@ -30,7 +28,7 @@ const initialFormData: FormData = {
 
 export const useStaffFormStore = create<StaffFormState>((set) => ({
   formData: initialFormData,
-  activeSection: 'Profile',
+  activeSection: "Profile",
   setFormData: (data) =>
     set((state) => ({
       formData: { ...state.formData, ...data },
@@ -42,6 +40,6 @@ export const useStaffFormStore = create<StaffFormState>((set) => ({
   resetForm: () =>
     set(() => ({
       formData: initialFormData,
-      activeSection: 'Profile',
+      activeSection: "Profile",
     })),
 }));

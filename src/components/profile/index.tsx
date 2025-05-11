@@ -4,8 +4,17 @@ import Schedule from './Schedule';
 import BusinessInformation from './BusinessInformation';
 import { BusinessLocation } from './BusinessLocation';
 import Categories from './Categories';
+import Services from './Services';
 
-type TabType = 'business' | 'locations' | 'schedule' | 'categories';
+type TabType = 'business' | 'locations' | 'services' | 'schedule' | 'categories';
+
+  const tabConfig = [
+    { id: 'business', label: 'Business Information' },
+    { id: 'categories', label: 'Categories' },
+    { id: 'services', label: 'Services' },
+    { id: 'locations', label: 'Locations' },
+    { id: 'schedule', label: 'Schedule' },
+  ];
 
 const Profile = () => {
   const [openedAccordion, setOpenedAccordion] = useState<string | null>(null);
@@ -20,15 +29,9 @@ const Profile = () => {
     ),
     locations: <BusinessLocation />,
     schedule: <Schedule />,
+    services: <Services />,
     categories: <Categories />,
   };
-
-  const tabConfig = [
-    { id: 'business', label: 'Business Information' },
-    { id: 'categories', label: 'Categories' },
-    { id: 'locations', label: 'Locations' },
-    { id: 'schedule', label: 'Schedule' },
-  ];
 
   return (
     <div className='flex flex-col h-screen bg-cardsBg w-full overflow-y-auto'>
