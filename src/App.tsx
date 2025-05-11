@@ -48,7 +48,9 @@ function App() {
         <ReactQueryDevtools initialIsOpen={false} />
         <Router>
           <Routes>
-            <Route path="/signup" element={<Signup />} />
+            {import.meta.env.VITE_APP_ENVIRONMENT === "development" && (
+              <Route path="/signup" element={<Signup />} />
+            )}
             <Route path="/login" element={<Login />} />
             <Route path="/set-password" element={<SetPassword />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />

@@ -16,10 +16,6 @@ import {
   ClientsIconWhite,
   ClassesIcon,
   ClassesIconWhite,
-  ChatsIcon,
-  ChatsIconWhite,
-  TransactionsIcon,
-  TransactionsIconWhite,
   CalendarIcon,
   CalendarIconWhite,
   SettingsIcon,
@@ -896,16 +892,6 @@ export const menuItems = [
     name: "Calendar",
     icon: CalendarIcon,
     iconWhite: CalendarIconWhite,
-  },
-  {
-    name: "Transactions",
-    icon: TransactionsIcon,
-    iconWhite: TransactionsIconWhite,
-  },
-  {
-    name: "Chats",
-    icon: ChatsIcon,
-    iconWhite: ChatsIconWhite,
   },
 ];
 

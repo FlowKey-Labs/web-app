@@ -45,6 +45,7 @@ const END_POINTS = {
     SESSION_CLIENTS: (id: string) => `${BASE_URL}/api/session/${id}/clients/`,
     CATEGORIES: `${BASE_URL}/api/session/categories/`,
     CLASS_SESSIONS: `${BASE_URL}/api/session/?session_type=class`,
+    STAFF_SESSIONS: (id: string) => `${BASE_URL}/api/staff/sessions/${id}`,
     SUBCATEGORIES: `${BASE_URL}/api/session/subcategories/`,
     SUBSKILLS: `${BASE_URL}/api/session/subskills/`,
   },
@@ -334,6 +335,11 @@ const get_sessions = async (filters?: SessionFilters): Promise<Session[]> => {
 
 const get_class_sessions = async () => {
   const { data } = await api.get(END_POINTS.SESSION.CLASS_SESSIONS);
+  return data;
+};
+
+const get_staff_sessions = async (id: string) => {
+  const { data } = await api.get(END_POINTS.SESSION.STAFF_SESSIONS(id));
   return data;
 };
 
@@ -801,6 +807,7 @@ export {
   cancel_session,
   reschedule_session,
   get_sessions,
+  get_staff_sessions,
   get_session_detail,
   get_session_categories,
   create_session_category,

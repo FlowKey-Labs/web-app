@@ -1,16 +1,17 @@
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import MembersHeader from '../headers/MembersHeader';
 import { Progress } from '@mantine/core';
-import rightIcon from '../../assets/icons/greenRight.svg';
 import { useMemo, useState } from 'react';
 import Table from '../common/Table';
 import { createColumnHelper } from '@tanstack/react-table';
 import { useGetClient, useGetClientAnalytics } from '../../hooks/reactQuery';
 import avatar from '../../assets/icons/newAvatar.svg';
 import UpdateClient from './UpdateClient';
+import { navigateToSessionDetails } from '../../utils/navigationHelpers';
 
 const ClientDetails = () => {
   const { id: clientId } = useParams();
+  const navigate = useNavigate();
 
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'overview' | 'clients'>(
@@ -292,14 +293,6 @@ const ClientDetails = () => {
                     <h3 className='text-primary text-xl font-semibold'>
                       Client Sessions
                     </h3>
-                    <div className='flex item-center justify-center gap-2 cursor-pointer'>
-                      <h3 className='text-secondary font-medium'>View All</h3>
-                      <img
-                        src={rightIcon}
-                        alt='right side icon'
-                        className='w-6 h-6'
-                      />
-                    </div>
                   </div>
                   <div className='flex-1 py-2'>
                     <Table
@@ -307,6 +300,9 @@ const ClientDetails = () => {
                       columns={columns}
                       rowSelection={rowSelection}
                       onRowSelectionChange={setRowSelection}
+                      onRowClick={(row: ClientSession) =>
+                        navigateToSessionDetails(navigate, row.session_id.toString())
+                      }
                       className='mt-4'
                       pageSize={5}
                     />

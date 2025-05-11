@@ -118,24 +118,22 @@ const AllSessions = () => {
     });
   }, [allSessionsData, selectedTypes, selectedCategories, dateRange]);
 
-  const sessionsData = filteredSessions;
-
   const {
     exportModalOpened,
     openExportModal,
     closeExportModal,
     handleExport,
     isExporting,
-  } = useExportSessions(sessionsData || []);
+  } = useExportSessions(filteredSessions || []);
 
   const getSelectedSessionIds = useCallback(() => {
-    if (!sessionsData) return [];
+    if (!filteredSessions) return [];
 
     return Object.keys(rowSelection).map((index) => {
       const sessionIndex = parseInt(index);
-      return sessionsData[sessionIndex].id;
+      return filteredSessions[sessionIndex].id;
     });
-  }, [rowSelection, sessionsData]);
+  }, [rowSelection, filteredSessions]);
   const { data: categoriesData, isLoading: isLoadingCategories } =
     useGetSessionCategories();
 
@@ -768,7 +766,7 @@ const AllSessions = () => {
               }
             }}
             opened={
-              (!sessionsData || sessionsData.length === 0) && !isLoadingSessions
+              (!filteredSessions || filteredSessions.length === 0) && !isLoadingSessions
             }
             filterType={
               selectedTypes.length === 1
@@ -793,7 +791,7 @@ const AllSessions = () => {
             </div>
           ) : (
             <Table
-              data={sessionsData || []}
+              data={filteredSessions || []}
               columns={columns}
               rowSelection={rowSelection}
               onRowSelectionChange={setRowSelection}
