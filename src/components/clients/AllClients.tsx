@@ -16,6 +16,7 @@ import {
   Button as MantineButton,
   Menu,
   Stack,
+  Loader,
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
@@ -44,7 +45,7 @@ const AllClients = () => {
   const activateClientMutation = useActivateClient();
 
   const permisions = useAuthStore((state) => state.role);
-  
+
   const {
     data: clients = [],
     isLoading,
@@ -315,8 +316,8 @@ const AllClients = () => {
 
   if (isLoading) {
     return (
-      <div className='w-full space-y-6 bg-white rounded-lg p-6'>
-        <p className='text-primary'>Loading clients...</p>
+      <div className='flex justify-center items-center h-screen'>
+        <Loader color='#1D9B5E' size='xl' />
       </div>
     );
   }
@@ -350,15 +351,17 @@ const AllClients = () => {
           onButtonClick={openDrawer}
           showButton={permisions?.can_create_clients}
         />
-        {!isDrawerOpen && <EmptyDataPage
-          title='No Clients Found'
-          description="You don't have any clients yet"
-          buttonText='Add New Client'
-          onButtonClick={openDrawer}
-          onClose={() => {}}
-          opened={clients.length === 0 && !isLoading}
-          showButton={permisions?.can_create_clients}
-        />}
+        {!isDrawerOpen && (
+          <EmptyDataPage
+            title='No Clients Found'
+            description="You don't have any clients yet"
+            buttonText='Add New Client'
+            onButtonClick={openDrawer}
+            onClose={() => {}}
+            opened={clients.length === 0 && !isLoading}
+            showButton={permisions?.can_create_clients}
+          />
+        )}
         <div className='flex-1 px-6 py-3'>
           <Table
             data={clients}

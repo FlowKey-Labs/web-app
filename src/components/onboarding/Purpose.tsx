@@ -14,6 +14,8 @@ import { businessPurpose } from '../../utils/dummyData';
 
 import { navigateToDashboard } from '../../utils/navigationHelpers';
 import { notifications } from '@mantine/notifications';
+import successIcon from '../../assets/icons/success.svg';
+import errorIcon from '../../assets/icons/error.svg';
 
 const Purpose = () => {
   const navigate = useNavigate();
@@ -148,10 +150,42 @@ const Purpose = () => {
                         color: 'green',
                         title: 'Success!',
                         message: 'Onboarding completed successfully',
+                        icon: (
+                          <span className='flex items-center justify-center w-6 h-6 rounded-full bg-green-200'>
+                            <img
+                              src={successIcon}
+                              alt='Success'
+                              className='w-4 h-4'
+                            />
+                          </span>
+                        ),
+                        withBorder: true,
+                        autoClose: 3000,
+                        position: 'top-right',
                       });
                       setTimeout(() => {
                         navigateToDashboard(navigate);
                       }, 1500);
+                    },
+                    onError: () => {
+                      notifications.show({
+                        color: 'red',
+                        title: 'Error',
+                        message:
+                          'Failed to complete onboarding. Please try again.',
+                        icon: (
+                          <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+                            <img
+                              src={errorIcon}
+                              alt='Error'
+                              className='w-4 h-4'
+                            />
+                          </span>
+                        ),
+                        withBorder: true,
+                        autoClose: 3000,
+                        position: 'top-right',
+                      });
                     },
                   }
                 );

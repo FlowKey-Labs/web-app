@@ -1,6 +1,6 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import MembersHeader from '../headers/MembersHeader';
-import { Progress } from '@mantine/core';
+import { Loader, Progress } from '@mantine/core';
 import { useMemo, useState } from 'react';
 import Table from '../common/Table';
 import { createColumnHelper } from '@tanstack/react-table';
@@ -104,15 +104,15 @@ const ClientDetails = () => {
 
   if (isLoading) {
     return (
-      <div className='w-full space-y-6 bg-white rounded-lg p-6'>
-        <p className='text-primary'>Loading client details...</p>
+      <div className='flex justify-center items-center h-screen'>
+        <Loader color="#1D9B5E" size="xl" />
       </div>
     );
   }
 
   if (isError) {
     return (
-      <div className='w-full space-y-6 bg-white rounded-lg p-6'>
+      <div className='flex justify-center items-center h-screen'>
         <div className='space-y-4'>
           <p className='text-red-500'>
             Error loading client details: {error?.message}
@@ -124,7 +124,7 @@ const ClientDetails = () => {
 
   if (!clientDetails) {
     return (
-      <div className='w-full min-h-screen space-y-6 bg-white rounded-lg p-6'>
+      <div className='flex justify-center items-center h-screen'>
         <p className='text-primary'>Client not found</p>
       </div>
     );
@@ -132,7 +132,7 @@ const ClientDetails = () => {
 
   if (!clientSessions || clientSessions.length === 0) {
     return (
-      <div className='p-8 min-h-screen'>
+      <div className='flex justify-center items-center h-screen'>
         <h2 className='text-[40px] font-bold text-primary'>
           No sessions found for this client
         </h2>
@@ -192,7 +192,11 @@ const ClientDetails = () => {
                       SESSIONS
                     </span>
                     <span className='text-gray-400  text-xs'>
-                      {analyticsLoading ? 'Loading...' : (clientAnalytics?.total_sessions || 0)}
+                      {analyticsLoading ? (
+                        <Loader color="#1D9B5E" size="md" />
+                      ) : (
+                        clientAnalytics?.total_sessions || 0
+                      )}
                     </span>
                   </div>
                   <div className='flex justify-between items-center w-full text-sm'>
@@ -263,7 +267,7 @@ const ClientDetails = () => {
                   <div className='flex flex-col items-center rounded-xl  space-y-4'>
                     <p className='text-4xl'>
                       {analyticsLoading ? (
-                        <span className='text-lg text-gray-500'>Loading...</span>
+                        <Loader color="#1D9B5E" size="md" />
                       ) : (
                         <>
                           {clientAnalytics?.attended_sessions}
@@ -278,7 +282,7 @@ const ClientDetails = () => {
                   <div className='flex flex-col items-center rounded-xl  space-y-4'>
                     <p className='text-2xl font-semibold  test-primary'>
                       {analyticsLoading ? (
-                        <span className='text-lg text-gray-500'>Loading...</span>
+                        <Loader color="#1D9B5E" size="md" />
                       ) : (
                         `${clientAnalytics?.average_attendance || 0}%`
                       )}

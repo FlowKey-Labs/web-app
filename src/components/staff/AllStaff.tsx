@@ -20,6 +20,7 @@ import {
   Text,
   Button as MantineButton,
   Stack,
+  Loader,
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
@@ -313,15 +314,15 @@ const AllStaff = () => {
 
   if (isLoading) {
     return (
-      <div className='w-full space-y-6 bg-white rounded-lg p-6'>
-        <p className='text-primary'>Loading staff...</p>
+      <div className='flex justify-center items-center h-screen'>
+        <Loader color='#1D9B5E' size='xl' />
       </div>
     );
   }
 
   if (isError) {
     return (
-      <div className='w-full space-y-6 bg-white rounded-lg p-6'>
+      <div className='flex justify-center items-center h-screen'>
         <div className='space-y-4'>
           <p className='text-red-500'>Error loading staff: {error?.message}</p>
           <button
