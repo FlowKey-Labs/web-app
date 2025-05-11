@@ -9,8 +9,8 @@ import Roles from './Roles';
 type TabType = 'general' | 'notifications' | 'policies' | 'roles';
 
 const tabConfig = [
-  { id: 'roles', label: 'Roles' },
   { id: 'policies', label: 'Policies' },
+  { id: 'roles', label: 'Roles' },
 ];
 
 const Settings = () => {
