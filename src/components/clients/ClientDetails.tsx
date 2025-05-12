@@ -253,14 +253,27 @@ const ClientDetails = () => {
                     role='tab'
                     aria-selected={activeTab === 'overview'}
                     aria-controls='overview-panel'
-                    className={`font-bold text-xl relative cursor-pointer transition-all duration-200 hover:text-gray-700  ${
+                    className={`font-bold text-xl relative cursor-pointer transition-all duration-200  ${
                       activeTab === 'overview'
-                        ? 'text-primary'
-                        : 'text-gray-500'
+                        ? 'text-secondary'
+                        : ''
                     }`}
                     onClick={() => setActiveTab('overview')}
                   >
-                    {activeTab === 'overview' ? 'Overview' : 'Progress Tracker'} 
+                    Overview
+                  </button>
+                  <button
+                    role='tab'
+                    aria-selected={activeTab === 'Progress Tracker'}
+                    aria-controls='progress-tracker-panel'
+                    className={`font-bold text-xl relative cursor-pointer transition-all duration-200 ${
+                      activeTab === 'Progress Tracker'
+                        ? 'text-secondary'
+                        : ''
+                    }`}
+                    onClick={() => setActiveTab('Progress Tracker')}
+                  >
+                    Progress Tracker
                   </button>
                 </div>
                 <div className='h-[1px] bg-gray-300 w-full opacity-60'></div>
