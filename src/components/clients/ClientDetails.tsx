@@ -5,11 +5,11 @@ import { useMemo, useState } from 'react';
 import Table from '../common/Table';
 import { createColumnHelper } from '@tanstack/react-table';
 import { useGetClient, useGetClientAnalytics } from '../../hooks/reactQuery';
-import { IconChevronDown, IconLock } from '@tabler/icons-react'; // Assuming you use Tabler icons
 import avatar from '../../assets/icons/newAvatar.svg';
 import UpdateClient from './UpdateClient';
 import { navigateToSessionDetails } from '../../utils/navigationHelpers';
 import ProgressTracker from './ProgressTracker';
+import ProgressSeriesTracker from './ProgressSeriesTracker';
 
 const ClientDetails = () => {
   const { id: clientId } = useParams();
@@ -18,7 +18,7 @@ const ClientDetails = () => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'overview' | 'Progress Tracker'>(
     'overview'
-  );  
+  );
 
   const [viewMode, setViewMode] = useState<'details' | 'levels'>('details'); // State for left panel view
   // const [selectedLevel, setSelectedLevel] = useState<any>(null); // No longer needed here
@@ -63,57 +63,112 @@ const ClientDetails = () => {
 
   const columnHelper = createColumnHelper<ClientSession>();
 
-  const columns = useMemo(() => [
-    columnHelper.accessor('session_title', {
-      header: 'Session',
-      cell: (info) => info.getValue(),
-    }),
-    columnHelper.accessor('staff', {
-      header: 'Assigned To',
-      cell: (info) => {
-        const staff = info.getValue();
-        return staff && staff.user
-          ? `${staff.user.first_name} ${staff.user.last_name}`
-          : 'Not Assigned';
-      },
-    }),
-    columnHelper.accessor('class_type', {
-      header: 'Session Type',
-      cell: (info) => {
-        const type = info.getValue();
-        return type ? type.charAt(0).toUpperCase() + type.slice(1) : 'N/A';
-      },
-    }),
-    columnHelper.accessor('start_time', {
-      header: 'Date',
-      cell: (info) => {
-        const date = new Date(info.getValue());
-        return date.toLocaleDateString();
-      },
-    }),
-    columnHelper.accessor('attended', {
-      header: 'Status',
-      cell: (info) => (
-        <span
-          className={`inline-block px-2 py-1 rounded-lg text-sm text-center min-w-[100px] ${
-            info.getValue()
-              ? 'bg-active text-secondary'
-              : 'bg-[#FFCFCC] text-[#FF3B30]'
-          }`}
-        >
-          {info.getValue() ? 'Attended' : 'Not Attended'}
-        </span>
-      ),
-    }),
-  ], [clientDetails]);
+  const columns = useMemo(
+    () => [
+      columnHelper.accessor('session_title', {
+        header: 'Session',
+        cell: (info) => info.getValue(),
+      }),
+      columnHelper.accessor('staff', {
+        header: 'Assigned To',
+        cell: (info) => {
+          const staff = info.getValue();
+          return staff && staff.user
+            ? `${staff.user.first_name} ${staff.user.last_name}`
+            : 'Not Assigned';
+        },
+      }),
+      columnHelper.accessor('class_type', {
+        header: 'Session Type',
+        cell: (info) => {
+          const type = info.getValue();
+          return type ? type.charAt(0).toUpperCase() + type.slice(1) : 'N/A';
+        },
+      }),
+      columnHelper.accessor('start_time', {
+        header: 'Date',
+        cell: (info) => {
+          const date = new Date(info.getValue());
+          return date.toLocaleDateString();
+        },
+      }),
+      columnHelper.accessor('attended', {
+        header: 'Status',
+        cell: (info) => (
+          <span
+            className={`inline-block px-2 py-1 rounded-lg text-sm text-center min-w-[100px] ${
+              info.getValue()
+                ? 'bg-active text-secondary'
+                : 'bg-[#FFCFCC] text-[#FF3B30]'
+            }`}
+          >
+            {info.getValue() ? 'Attended' : 'Not Attended'}
+          </span>
+        ),
+      }),
+    ],
+    [clientDetails]
+  );
 
   // --- Placeholder Data for Progress Levels ---
   // TODO: Replace with actual data fetching/structure
   const progressLevels = [
-    { id: 1, name: 'STArfish Series', completed: true, locked: false, progress: 20, details: { title: 'Level 1', outcomes: ['Outcome A', 'Outcome B'], assessedOn: 'May 1, 2025', dueDate: 'May 10, 2025' } },
-    { id: 2, name: 'STAnley Series', completed: true, locked: false, details: { title: 'Level 2', outcomes: ['Enter the pool safely with adult support', 'Familiarize child with the water using swing dips', 'Move freely around the pool on the front with adult support', 'Move freely around the pool on the back with adult support', 'Child to face adult and view them blowing bubbles', 'Leave the pool safely with adult support'], assessedOn: 'May 3, 2025', dueDate: 'May 3, 2025' } },
-    { id: 3, name: 'Octopus Series', completed: false, locked: true, details: { title: 'Level 3', outcomes: ['Outcome E', 'Outcome F'], assessedOn: 'N/A', dueDate: 'N/A' } },
-    { id: 4, name: 'Jellyfish Series', completed: false, locked: true, details: { title: 'Level 4', outcomes: ['Outcome G', 'Outcome H'], assessedOn: 'N/A', dueDate: 'N/A' } },
+    {
+      id: 1,
+      name: 'STArfish Series',
+      completed: true,
+      locked: false,
+      progress: 20,
+      details: {
+        title: 'Level 1',
+        outcomes: ['Outcome A', 'Outcome B'],
+        assessedOn: 'May 1, 2025',
+        dueDate: 'May 10, 2025',
+      },
+    },
+    {
+      id: 2,
+      name: 'STAnley Series',
+      completed: true,
+      locked: false,
+      details: {
+        title: 'Level 2',
+        outcomes: [
+          'Enter the pool safely with adult support',
+          'Familiarize child with the water using swing dips',
+          'Move freely around the pool on the front with adult support',
+          'Move freely around the pool on the back with adult support',
+          'Child to face adult and view them blowing bubbles',
+          'Leave the pool safely with adult support',
+        ],
+        assessedOn: 'May 3, 2025',
+        dueDate: 'May 3, 2025',
+      },
+    },
+    {
+      id: 3,
+      name: 'Octopus Series',
+      completed: false,
+      locked: true,
+      details: {
+        title: 'Level 3',
+        outcomes: ['Outcome E', 'Outcome F'],
+        assessedOn: 'N/A',
+        dueDate: 'N/A',
+      },
+    },
+    {
+      id: 4,
+      name: 'Jellyfish Series',
+      completed: false,
+      locked: true,
+      details: {
+        title: 'Level 4',
+        outcomes: ['Outcome G', 'Outcome H'],
+        assessedOn: 'N/A',
+        dueDate: 'N/A',
+      },
+    },
   ];
   // --- End Placeholder Data ---
 
@@ -124,7 +179,6 @@ const ClientDetails = () => {
       setViewMode('levels'); // Keep the levels view active
     }
   };
-
 
   if (isLoading) {
     return (
@@ -180,7 +234,9 @@ const ClientDetails = () => {
                     <p className='font-medium text-gray-900 text-sm'>
                       {`${clientDetails.first_name} ${clientDetails.last_name}`}
                     </p>
-                    <p className='text-sm text-gray-500'>{clientDetails.email}</p>
+                    <p className='text-sm text-gray-500'>
+                      {clientDetails.email}
+                    </p>
                   </div>
                   <div className='flex space-x-2 mt-4'>
                     <div
@@ -199,7 +255,9 @@ const ClientDetails = () => {
                       ></div>
                       <p
                         className={`text-xs font-medium ${
-                          clientDetails.active ? 'text-green-700' : 'text-red-700'
+                          clientDetails.active
+                            ? 'text-green-700'
+                            : 'text-red-700'
                         }`}
                       >
                         {clientDetails.active ? 'Active' : 'Inactive'}
@@ -244,7 +302,9 @@ const ClientDetails = () => {
                         DATE CREATED
                       </span>
                       <span className='text-gray-400  text-xs'>
-                        {new Date(clientDetails.created_at).toLocaleDateString()}
+                        {new Date(
+                          clientDetails.created_at
+                        ).toLocaleDateString()}
                       </span>
                     </div>
                     <div className='flex justify-between items-center w-full text-sm'>
@@ -270,56 +330,10 @@ const ClientDetails = () => {
                       value={50} // TODO: Use actual progress
                     />
                   </div>
-                   {/* Button to switch view */}
-                   <button
-                      onClick={() => setViewMode('levels')}
-                      className='mt-4 text-secondary font-medium text-sm hover:underline'
-                    >
-                      View Progress Levels
-                    </button>
                 </div>
               ) : (
                 // Progress Levels View
-                <div className='flex flex-col border bg-white rounded-xl w-[290px] p-4 space-y-2'>
-                   {/* Header for the levels section */}
-                   <div className='flex justify-between items-center mb-2 p-2 border rounded-lg cursor-pointer' onClick={() => setViewMode('details')}>
-                      <div>
-                        <p className='font-semibold text-sm'>STArfish Series</p> {/* Make dynamic */}
-                        <Progress color="green" value={20} size="sm" className='mt-1'/>
-                        <p className='text-xs text-gray-500 mt-1'>20% complete</p>
-                      </div>
-                      <IconChevronDown size={20} />
-                   </div>
-
-                  {progressLevels.map((level) => (
-                    <div
-                      key={level.id}
-                      onClick={() => handleLevelClick(level)}
-                      className={`flex justify-between items-center p-3 rounded-lg cursor-pointer ${
-                        !level.locked
-                          ? 'bg-green-50 hover:bg-green-100'
-                          : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                      } ${/* selectedLevel?.title === level.details.title && */ !level.locked ? 'hover:bg-green-100' : 'bg-gray-100 text-gray-400 cursor-not-allowed'}`} // Remove selected highlight, keep hover/locked styles
-                    >
-                      <div>
-                        <p className={`font-medium text-sm ${level.locked ? 'text-gray-400' : 'text-gray-900'}`}>
-                          {level.name}
-                        </p>
-                        <p className='text-xs text-gray-500'>
-                          {level.completed ? 'Completed' : level.locked ? '' : 'In Progress'}
-                        </p>
-                      </div>
-                      {level.locked && <IconLock size={16} className='text-gray-400'/>}
-                    </div>
-                  ))}
-                   {/* Optionally add a button to switch back if needed, or rely on clicking the header */}
-                   {/* <button
-                      onClick={() => setViewMode('details')}
-                      className='mt-4 text-secondary font-medium text-sm hover:underline'
-                    >
-                      View Client Details
-                    </button> */}
-                </div>
+                <ProgressSeriesTracker />
               )}
               {/* End Conditional Rendering */}
             </div>
@@ -331,11 +345,12 @@ const ClientDetails = () => {
                     aria-selected={activeTab === 'overview'}
                     aria-controls='overview-panel'
                     className={`font-bold text-xl relative cursor-pointer transition-all duration-200  ${
-                      activeTab === 'overview'
-                        ? 'text-secondary'
-                        : ''
+                      activeTab === 'overview' ? 'text-secondary' : ''
                     }`}
-                    onClick={() => setActiveTab('overview')}
+                    onClick={() => {
+                      setActiveTab('overview');
+                      setViewMode('details');
+                    }}
                   >
                     Overview
                   </button>
@@ -344,9 +359,7 @@ const ClientDetails = () => {
                     aria-selected={activeTab === 'Progress Tracker'}
                     aria-controls='progress-tracker-panel'
                     className={`font-bold text-xl relative cursor-pointer transition-all duration-200 ${
-                      activeTab === 'Progress Tracker'
-                        ? 'text-secondary'
-                        : ''
+                      activeTab === 'Progress Tracker' ? 'text-secondary' : ''
                     }`}
                     onClick={() => setActiveTab('Progress Tracker')}
                   >
@@ -357,76 +370,75 @@ const ClientDetails = () => {
               </div>
               {activeTab === 'overview' ? (
                 <>
-                <div className='flex space-x-16 mt-6'>
-                <div className='flex items-center border py-6 px-10 bg-white rounded-xl'>
-                  <div className='flex flex-col items-center rounded-xl  space-y-4'>
-                    <p className='text-4xl'>
-                      {analyticsLoading ? (
-                        <Loader color='#1D9B5E' size='md' />
-                      ) : (
-                        <>
-                          {clientAnalytics?.attended_sessions}
-                          <span className='text-lg text-gray-500'>
-                            /{clientAnalytics?.total_sessions || 0}
-                          </span>
-                        </>
-                      )}
-                    </p>
-                    <p className='text-sm'>Sessions</p>
-                  </div>
-                </div>
-                <div className='flex items-center border py-6 px-10 bg-white rounded-xl'>
-                  <div className='flex flex-col items-center rounded-xl  space-y-4'>
-                    <p className='text-2xl font-semibold  test-primary'>
-                      {analyticsLoading ? (
-                        <Loader color='#1D9B5E' size='md' />
-                      ) : (
-                        `${clientAnalytics?.average_attendance || 0}%`
-                      )}
-                    </p>
-                    <p className='text-sm'>Average Attendance</p>
-                  </div>
-                </div>
-              </div>
-              <div className='flex-1 mt-6'>
-                <div className=''>
-                  <div className='flex justify-between'>
-                    <h3 className='text-primary text-xl font-semibold'>
-                      Client Sessions
-                    </h3>
-                  </div>
-                  {clientSessions && clientSessions.length > 0 ? (
-                    <div className='flex-1 py-2'>
-                      <Table
-                        data={clientSessions}
-                        columns={columns}
-                        rowSelection={rowSelection}
-                        onRowSelectionChange={setRowSelection}
-                        onRowClick={(row: ClientSession) =>
-                          navigateToSessionDetails(
-                            navigate,
-                            row.session_id.toString()
-                          )
-                        }
-                        className='mt-4'
-                        pageSize={5}
-                      />
+                  <div className='flex space-x-16 mt-6'>
+                    <div className='flex items-center border py-6 px-10 bg-white rounded-xl'>
+                      <div className='flex flex-col items-center rounded-xl  space-y-4'>
+                        <p className='text-4xl'>
+                          {analyticsLoading ? (
+                            <Loader color='#1D9B5E' size='md' />
+                          ) : (
+                            <>
+                              {clientAnalytics?.attended_sessions}
+                              <span className='text-lg text-gray-500'>
+                                /{clientAnalytics?.total_sessions || 0}
+                              </span>
+                            </>
+                          )}
+                        </p>
+                        <p className='text-sm'>Sessions</p>
+                      </div>
                     </div>
-                  ) : (
-                    <div className='flex justify-center items-center p-8'>
-                      <h2 className='text-xl font-bold text-primary'>
-                        No sessions found for this client
-                      </h2>
+                    <div className='flex items-center border py-6 px-10 bg-white rounded-xl'>
+                      <div className='flex flex-col items-center rounded-xl  space-y-4'>
+                        <p className='text-2xl font-semibold  test-primary'>
+                          {analyticsLoading ? (
+                            <Loader color='#1D9B5E' size='md' />
+                          ) : (
+                            `${clientAnalytics?.average_attendance || 0}%`
+                          )}
+                        </p>
+                        <p className='text-sm'>Average Attendance</p>
+                      </div>
                     </div>
-                  
-                  )}  
-                </div>
-              </div>
-              </>
+                  </div>
+                  <div className='flex-1 mt-6'>
+                    <div className=''>
+                      <div className='flex justify-between'>
+                        <h3 className='text-primary text-xl font-semibold'>
+                          Client Sessions
+                        </h3>
+                      </div>
+                      {clientSessions && clientSessions.length > 0 ? (
+                        <div className='flex-1 py-2'>
+                          <Table
+                            data={clientSessions}
+                            columns={columns}
+                            rowSelection={rowSelection}
+                            onRowSelectionChange={setRowSelection}
+                            onRowClick={(row: ClientSession) =>
+                              navigateToSessionDetails(
+                                navigate,
+                                row.session_id.toString()
+                              )
+                            }
+                            className='mt-4'
+                            pageSize={5}
+                          />
+                        </div>
+                      ) : (
+                        <div className='flex justify-center items-center p-8'>
+                          <h2 className='text-xl font-bold text-primary'>
+                            No sessions found for this client
+                          </h2>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </>
               ) : activeTab === 'Progress Tracker' ? (
                 <div className='flex justify-center items-center p-8'>
                   {/* Pass selectedLevel to ProgressTracker */}
-                  <ProgressTracker />
+                  <ProgressTracker setViewMode={setViewMode} />
                 </div>
               ) : null}
             </div>

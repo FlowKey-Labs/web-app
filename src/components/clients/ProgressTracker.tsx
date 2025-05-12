@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { FormProvider, useForm, Controller } from 'react-hook-form';
 import CustomRingProgress from '../common/CustomRingProgress';
 import {
@@ -12,12 +12,10 @@ import {
   Divider,
   Badge,
   Checkbox,
-  Textarea,
 } from '@mantine/core';
 import {
   IconChevronRight,
   IconCheck,
-  IconUpload,
   IconMoodSmile,
   IconUserBolt,
 } from '@tabler/icons-react';
@@ -27,7 +25,11 @@ import styles from '../accountSettings/GeneralSettings.module.css';
 import previewEyeIcon from '../../assets/icons/previewEye.svg';
 import Input from '../common/Input';
 
-const ProgressTracker = () => {
+interface ProgressTrackerProps {
+  setViewMode: (mode: 'details' | 'levels') => void;
+}
+
+const ProgressTracker = ({ setViewMode }: ProgressTrackerProps) => {
   const methods = useForm({
     defaultValues: {
       feedback: '',
@@ -35,6 +37,13 @@ const ProgressTracker = () => {
     },
   });
   const [isPreviewMode, setIsPreviewMode] = useState(false);
+
+  // Sync preview mode with view mode
+  useEffect(() => {
+    if (!isPreviewMode) {
+      setViewMode('details');
+    }
+  }, [isPreviewMode, setViewMode]);
 
   const onSubmit = (data: any) => {
     console.log('Form submitted:', data);
@@ -246,7 +255,10 @@ const ProgressTracker = () => {
             color='#1D9B5E'
             radius='md'
             size='md'
-            onClick={() => setIsPreviewMode(true)}
+            onClick={() => {
+              setIsPreviewMode(true);
+              setViewMode('levels');
+            }}
           >
             Preview
           </Button>
