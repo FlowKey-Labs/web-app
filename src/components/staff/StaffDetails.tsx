@@ -419,7 +419,7 @@ const StaffDetails = () => {
                   name="firstName"
                   control={control}
                   render={({ field }) => (
-                    <Input {...field} label="First Name" className="w-full" />
+                    <Input {...field} label="First Name" className="w-full" placeholder="Enter First Name"/>
                   )}
                 />
               ) : (
@@ -437,7 +437,7 @@ const StaffDetails = () => {
                   name="lastName"
                   control={control}
                   render={({ field }) => (
-                    <Input {...field} label="Last Name" className="w-full" />
+                    <Input {...field} label="Last Name" className="w-full" placeholder="Enter Last Name" />
                   )}
                 />
               ) : (

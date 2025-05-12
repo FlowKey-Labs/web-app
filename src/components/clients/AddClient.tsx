@@ -418,21 +418,19 @@ const AddClients = ({ isOpen, onClose }: ClientsModalProps) => {
                   name='location'
                   control={individualControl}
                   render={({ field }) => (
-                    <div className='relative'>
-                      <Input
-                        {...field}
-                        label='Location'
-                        placeholder='Enter location'
-                        className='pr-10'
-                      />
-                      <div className='absolute right-3 top-1/2 transform -translate-y-1/2'>
-                        <img
-                          src={clientlocationIcons}
-                          alt=''
-                          className='w-5 h-5 text-gray-400'
-                        />
-                      </div>
-                    </div>
+                    <DropdownSelectInput
+                      {...field}
+                      label='Location'
+                      placeholder='Select location'
+                      options={locationsData?.map((location: any) => ({
+                        label: location.name,
+                        value: location.id,
+                      })) || []}
+                      onSelectItem={(item) => {
+                        field.onChange(item.value);
+                      }}
+                      value={field.value}
+                    />
                   )}
                 />
 

@@ -29,10 +29,8 @@ const ClientDetails = () => {
     error,
   } = useGetClient(clientId || '');
 
-  const {
-    data: clientAnalytics,
-    isLoading: analyticsLoading,
-  } = useGetClientAnalytics(clientId || '');
+  const { data: clientAnalytics, isLoading: analyticsLoading } =
+    useGetClientAnalytics(clientId || '');
 
   // Define the type for client sessions
   type ClientSession = {
@@ -68,7 +66,9 @@ const ClientDetails = () => {
       header: 'Assigned To',
       cell: (info) => {
         const staff = info.getValue();
-        return staff && staff.user ? `${staff.user.first_name} ${staff.user.last_name}` : 'Not Assigned';
+        return staff && staff.user
+          ? `${staff.user.first_name} ${staff.user.last_name}`
+          : 'Not Assigned';
       },
     }),
     columnHelper.accessor('class_type', {
@@ -99,13 +99,12 @@ const ClientDetails = () => {
         </span>
       ),
     }),
-    
   ];
 
   if (isLoading) {
     return (
       <div className='flex justify-center items-center h-screen'>
-        <Loader color="#1D9B5E" size="xl" />
+        <Loader color='#1D9B5E' size='xl' />
       </div>
     );
   }
@@ -126,16 +125,6 @@ const ClientDetails = () => {
     return (
       <div className='flex justify-center items-center h-screen'>
         <p className='text-primary'>Client not found</p>
-      </div>
-    );
-  }
-
-  if (!clientSessions || clientSessions.length === 0) {
-    return (
-      <div className='flex justify-center items-center h-screen'>
-        <h2 className='text-[40px] font-bold text-primary'>
-          No sessions found for this client
-        </h2>
       </div>
     );
   }
@@ -166,12 +155,24 @@ const ClientDetails = () => {
                   <p className='text-sm text-gray-500'>{clientDetails.email}</p>
                 </div>
                 <div className='flex space-x-2 mt-4'>
-                  <div 
-                    className={`flex justify-center items-center py-1.5 px-3 rounded-full gap-1.5 ${clientDetails.active ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}`}
+                  <div
+                    className={`flex justify-center items-center py-1.5 px-3 rounded-full gap-1.5 ${
+                      clientDetails.active
+                        ? 'bg-green-50 border border-green-200'
+                        : 'bg-red-50 border border-red-200'
+                    }`}
                   >
-                    <div className={`w-2 h-2 rounded-full ${clientDetails.active ? 'bg-secondary animate-pulse' : 'bg-red-500'}`}></div>
+                    <div
+                      className={`w-2 h-2 rounded-full ${
+                        clientDetails.active
+                          ? 'bg-secondary animate-pulse'
+                          : 'bg-red-500'
+                      }`}
+                    ></div>
                     <p
-                      className={`text-xs font-medium ${clientDetails.active ? 'text-green-700' : 'text-red-700'}`}
+                      className={`text-xs font-medium ${
+                        clientDetails.active ? 'text-green-700' : 'text-red-700'
+                      }`}
                     >
                       {clientDetails.active ? 'Active' : 'Inactive'}
                     </p>
@@ -193,7 +194,7 @@ const ClientDetails = () => {
                     </span>
                     <span className='text-gray-400  text-xs'>
                       {analyticsLoading ? (
-                        <Loader color="#1D9B5E" size="md" />
+                        <Loader color='#1D9B5E' size='md' />
                       ) : (
                         clientAnalytics?.total_sessions || 0
                       )}
@@ -267,11 +268,13 @@ const ClientDetails = () => {
                   <div className='flex flex-col items-center rounded-xl  space-y-4'>
                     <p className='text-4xl'>
                       {analyticsLoading ? (
-                        <Loader color="#1D9B5E" size="md" />
+                        <Loader color='#1D9B5E' size='md' />
                       ) : (
                         <>
                           {clientAnalytics?.attended_sessions}
-                          <span className='text-lg text-gray-500'>/{clientAnalytics?.total_sessions || 0}</span>
+                          <span className='text-lg text-gray-500'>
+                            /{clientAnalytics?.total_sessions || 0}
+                          </span>
                         </>
                       )}
                     </p>
@@ -282,7 +285,7 @@ const ClientDetails = () => {
                   <div className='flex flex-col items-center rounded-xl  space-y-4'>
                     <p className='text-2xl font-semibold  test-primary'>
                       {analyticsLoading ? (
-                        <Loader color="#1D9B5E" size="md" />
+                        <Loader color='#1D9B5E' size='md' />
                       ) : (
                         `${clientAnalytics?.average_attendance || 0}%`
                       )}
@@ -298,19 +301,30 @@ const ClientDetails = () => {
                       Client Sessions
                     </h3>
                   </div>
-                  <div className='flex-1 py-2'>
-                    <Table
-                      data={clientSessions}
-                      columns={columns}
-                      rowSelection={rowSelection}
-                      onRowSelectionChange={setRowSelection}
-                      onRowClick={(row: ClientSession) =>
-                        navigateToSessionDetails(navigate, row.session_id.toString())
-                      }
-                      className='mt-4'
-                      pageSize={5}
-                    />
-                  </div>
+                  {clientSessions && clientSessions.length > 0 ? (
+                    <div className='flex-1 py-2'>
+                      <Table
+                        data={clientSessions}
+                        columns={columns}
+                        rowSelection={rowSelection}
+                        onRowSelectionChange={setRowSelection}
+                        onRowClick={(row: ClientSession) =>
+                          navigateToSessionDetails(
+                            navigate,
+                            row.session_id.toString()
+                          )
+                        }
+                        className='mt-4'
+                        pageSize={5}
+                      />
+                    </div>
+                  ) : (
+                    <div className='flex justify-center items-center p-8'>
+                      <h2 className='text-xl font-bold text-primary'>
+                        No sessions found for this client
+                      </h2>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
