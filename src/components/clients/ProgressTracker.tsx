@@ -1,3 +1,5 @@
+import React, { useState } from 'react';
+import { FormProvider, useForm, Controller } from 'react-hook-form';
 import CustomRingProgress from '../common/CustomRingProgress';
 import {
   Progress,
@@ -9,18 +11,208 @@ import {
   Flex,
   Divider,
   Badge,
+  Checkbox,
+  Textarea,
 } from '@mantine/core';
 import {
   IconChevronRight,
+  IconCheck,
+  IconUpload,
   IconMoodSmile,
   IconUserBolt,
 } from '@tabler/icons-react';
-
+import { Dropzone, IMAGE_MIME_TYPE } from '@mantine/dropzone';
+import dropZoneIcon from '../../assets/icons/dropZone.svg';
+import styles from '../accountSettings/GeneralSettings.module.css';
 import previewEyeIcon from '../../assets/icons/previewEye.svg';
+import Input from '../common/Input';
 
 const ProgressTracker = () => {
+  const methods = useForm({
+    defaultValues: {
+      feedback: '',
+      attachments: [] as File[],
+    },
+  });
+  const [isPreviewMode, setIsPreviewMode] = useState(false);
+
+  const onSubmit = (data: any) => {
+    console.log('Form submitted:', data);
+  };
+
+  // Preview mode data
+  const previewLevelData = {
+    title: 'Level 2',
+    outcomes: [
+      'Enter the pool safely with adult support',
+      'Familiarize child with the water using swing dips',
+      'Move freely around the pool on the front with adult support',
+      'Move freely around the pool on the back with adult support',
+      'Child to face adult and view them blowing bubbles',
+      'Leave the pool safely with adult support',
+    ],
+    assessedOn: 'May 3, 2025',
+    dueDate: 'May 3, 2025',
+  };
+
+  const outcomeStatus: { [key: string]: boolean } = {
+    'Enter the pool safely with adult support': true,
+  };
+
+  if (isPreviewMode) {
+    return (
+      <FormProvider {...methods}>
+        <Box className='w-full'>
+          <Flex justify='space-between' align='center' mb='md'>
+            <Text size='2rem' fw={700}>
+              {previewLevelData.title}
+            </Text>
+            <Text size='sm' c='dimmed'>
+              Due Date: {previewLevelData.dueDate}
+            </Text>
+          </Flex>
+          <Text size='lg' fw={600} mb='xs'>
+            Learning Outcomes
+          </Text>
+          <Text size='sm' c='dimmed' mb='lg'>
+            Assessed on: {previewLevelData.assessedOn}
+          </Text>
+          <div className='space-y-3 mb-6'>
+            {previewLevelData.outcomes.map((outcome, index) => {
+              const isCompleted = outcomeStatus[outcome] || false;
+              return (
+                <Card
+                  key={index}
+                  padding='md'
+                  radius='md'
+                  withBorder
+                  bg='#DEDEDE66'
+                  className={`flex items-start space-x-3 ${
+                    isCompleted ? 'bg-green-50' : 'bg-white'
+                  }`}
+                >
+                  <Flex justify='space-between' align='center' gap='md'>
+                    <Checkbox
+                      checked={isCompleted}
+                      readOnly
+                      color='green'
+                      radius='xl'
+                      icon={IconCheck}
+                      size='md'
+                    />
+                    <Box>
+                      <Text size='sm' fw={500} c={isCompleted ? 'dimmed' : 'black'}>
+                        {outcome}
+                      </Text>
+                      {isCompleted && (
+                        <Text size='xs' c='green'>
+                          Completed
+                        </Text>
+                      )}
+                    </Box>
+                  </Flex>
+                </Card>
+              );
+            })}
+          </div>
+
+          <Controller
+            name='feedback'
+            control={methods.control}
+            render={({ field }) => (
+              <Input
+                label='Feedback'
+                type='textarea'
+                placeholder='Enter your feedback'
+                rows={4}
+                {...field}
+              />
+            )}
+          />
+
+          <Text size='sm' fw={500} mb='xs'>
+            Attach Photos or videos
+          </Text>
+          <Controller
+            name='attachments'
+            control={methods.control}
+            render={({ field: { onChange, value } }) => (
+              <Dropzone
+                onDrop={(files) => onChange([...(value || []), ...files])}
+                onReject={(files) => console.log('rejected files', files)}
+                maxSize={20 * 1024 ** 2}
+                className={styles.dropzoneRoot}
+                accept={IMAGE_MIME_TYPE}
+              >
+                <Flex justify='center' align='center' gap='md'>
+                  <img src={dropZoneIcon} className='text-gray-500 w-8 h-8' />
+                  <Box>
+                    <Text size='sm' c='dimmed'>
+                      Drag and drop a file here, or{' '}
+                      <Text component='span' c='secondary' fw={500}>
+                        Browse
+                      </Text>
+                    </Text>
+                    <Text size='xs' c='dimmed'>
+                      Max size: 20MB
+                    </Text>
+                  </Box>
+                </Flex>
+              </Dropzone>
+            )}
+          />
+          <Controller
+            name='attachments'
+            control={methods.control}
+            render={({ field: { value } }) => (
+              <div className='mb-4'>
+                {value?.map((file: File, index: number) => (
+                  <div key={index} className='flex items-center mb-2'>
+                    <Text size='sm'>{file.name}</Text>
+                    <Button
+                      variant='subtle'
+                      color='red'
+                      size='xs'
+                      ml='sm'
+                      onClick={() => {
+                        const newFiles = [...(value || [])];
+                        newFiles.splice(index, 1);
+                        methods.setValue('attachments', newFiles);
+                      }}
+                    >
+                      Remove
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+          />
+          <Flex justify='space-between' mt='xl'>
+            <Button
+              variant='outline'
+              color='#1D9B5E'
+              radius='md'
+              size='sm'
+              onClick={() => setIsPreviewMode(false)}
+            >
+              Back
+            </Button>
+            <Button 
+              color='#1D9B5E' 
+              radius='md' 
+              size='sm'
+              onClick={methods.handleSubmit(onSubmit)}
+            >
+              Next
+            </Button>
+          </Flex>
+        </Box>
+      </FormProvider>
+    );
+  }
+
   return (
-    <Box>
+    <Box className='w-full'>
       <Card shadow='sm' padding='md' radius='lg' withBorder mb='md'>
         <Flex justify='space-between' align='center'>
           <Flex align='center' gap='lg'>
@@ -54,6 +246,7 @@ const ProgressTracker = () => {
             color='#1D9B5E'
             radius='md'
             size='md'
+            onClick={() => setIsPreviewMode(true)}
           >
             Preview
           </Button>
@@ -75,7 +268,6 @@ const ProgressTracker = () => {
             Jakes Muli has made a steady strides in their learning journey. A
             testament to both their dedication and your effective instruction
           </Text>
-
           <Flex justify='space-between' align='center' mb='xs'>
             <Text size='xs' c='#0F2028'>
               Progress
@@ -147,7 +339,6 @@ const ProgressTracker = () => {
           </Card>
         </Box>
       </SimpleGrid>
-
       <Card shadow='sm' radius='lg' withBorder p='0rem'>
         <Flex align='stretch' gap='md'>
           <Flex

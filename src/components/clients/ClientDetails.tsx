@@ -5,6 +5,7 @@ import { useMemo, useState } from 'react';
 import Table from '../common/Table';
 import { createColumnHelper } from '@tanstack/react-table';
 import { useGetClient, useGetClientAnalytics } from '../../hooks/reactQuery';
+import { IconChevronDown, IconLock } from '@tabler/icons-react'; // Assuming you use Tabler icons
 import avatar from '../../assets/icons/newAvatar.svg';
 import UpdateClient from './UpdateClient';
 import { navigateToSessionDetails } from '../../utils/navigationHelpers';
@@ -18,6 +19,9 @@ const ClientDetails = () => {
   const [activeTab, setActiveTab] = useState<'overview' | 'Progress Tracker'>(
     'overview'
   );  
+
+  const [viewMode, setViewMode] = useState<'details' | 'levels'>('details'); // State for left panel view
+  // const [selectedLevel, setSelectedLevel] = useState<any>(null); // No longer needed here
 
   const [rowSelection, setRowSelection] = useState({});
 
@@ -101,7 +105,26 @@ const ClientDetails = () => {
         </span>
       ),
     }),
-  ], [ clientDetails]);
+  ], [clientDetails]);
+
+  // --- Placeholder Data for Progress Levels ---
+  // TODO: Replace with actual data fetching/structure
+  const progressLevels = [
+    { id: 1, name: 'STArfish Series', completed: true, locked: false, progress: 20, details: { title: 'Level 1', outcomes: ['Outcome A', 'Outcome B'], assessedOn: 'May 1, 2025', dueDate: 'May 10, 2025' } },
+    { id: 2, name: 'STAnley Series', completed: true, locked: false, details: { title: 'Level 2', outcomes: ['Enter the pool safely with adult support', 'Familiarize child with the water using swing dips', 'Move freely around the pool on the front with adult support', 'Move freely around the pool on the back with adult support', 'Child to face adult and view them blowing bubbles', 'Leave the pool safely with adult support'], assessedOn: 'May 3, 2025', dueDate: 'May 3, 2025' } },
+    { id: 3, name: 'Octopus Series', completed: false, locked: true, details: { title: 'Level 3', outcomes: ['Outcome E', 'Outcome F'], assessedOn: 'N/A', dueDate: 'N/A' } },
+    { id: 4, name: 'Jellyfish Series', completed: false, locked: true, details: { title: 'Level 4', outcomes: ['Outcome G', 'Outcome H'], assessedOn: 'N/A', dueDate: 'N/A' } },
+  ];
+  // --- End Placeholder Data ---
+
+  const handleLevelClick = (level: any) => {
+    if (!level.locked) {
+      // setSelectedLevel(level.details); // No longer setting level here
+      setActiveTab('Progress Tracker'); // Switch tab
+      setViewMode('levels'); // Keep the levels view active
+    }
+  };
+
 
   if (isLoading) {
     return (
@@ -144,107 +167,161 @@ const ClientDetails = () => {
         <div className='items-center gap-4 p-6'>
           <div className='flex w-full'>
             <div className='flex flex-col w-[30%] items-center mt-6'>
-              <div className='flex flex-col px-4 py-8 items-center justify-center border bg-white rounded-xl w-[290px]'>
-                <img
-                  src={clientDetails.profileImage || avatar}
-                  alt='Profile'
-                  className='w-12 h-12 rounded-full'
-                />
-                <div className='mt-2 text-center space-y-1'>
-                  <p className='font-medium text-gray-900 text-sm'>
-                    {`${clientDetails.first_name} ${clientDetails.last_name}`}
-                  </p>
-                  <p className='text-sm text-gray-500'>{clientDetails.email}</p>
-                </div>
-                <div className='flex space-x-2 mt-4'>
-                  <div
-                    className={`flex justify-center items-center py-1.5 px-3 rounded-full gap-1.5 ${
-                      clientDetails.active
-                        ? 'bg-green-50 border border-green-200'
-                        : 'bg-red-50 border border-red-200'
-                    }`}
-                  >
+              {/* Conditional Rendering for Left Panel */}
+              {viewMode === 'details' ? (
+                // Client Details View
+                <div className='flex flex-col px-4 py-8 items-center justify-center border bg-white rounded-xl w-[290px]'>
+                  <img
+                    src={clientDetails.profileImage || avatar}
+                    alt='Profile'
+                    className='w-12 h-12 rounded-full'
+                  />
+                  <div className='mt-2 text-center space-y-1'>
+                    <p className='font-medium text-gray-900 text-sm'>
+                      {`${clientDetails.first_name} ${clientDetails.last_name}`}
+                    </p>
+                    <p className='text-sm text-gray-500'>{clientDetails.email}</p>
+                  </div>
+                  <div className='flex space-x-2 mt-4'>
                     <div
-                      className={`w-2 h-2 rounded-full ${
+                      className={`flex justify-center items-center py-1.5 px-3 rounded-full gap-1.5 ${
                         clientDetails.active
-                          ? 'bg-secondary animate-pulse'
-                          : 'bg-red-500'
-                      }`}
-                    ></div>
-                    <p
-                      className={`text-xs font-medium ${
-                        clientDetails.active ? 'text-green-700' : 'text-red-700'
+                          ? 'bg-green-50 border border-green-200'
+                          : 'bg-red-50 border border-red-200'
                       }`}
                     >
-                      {clientDetails.active ? 'Active' : 'Inactive'}
-                    </p>
+                      <div
+                        className={`w-2 h-2 rounded-full ${
+                          clientDetails.active
+                            ? 'bg-secondary animate-pulse'
+                            : 'bg-red-500'
+                        }`}
+                      ></div>
+                      <p
+                        className={`text-xs font-medium ${
+                          clientDetails.active ? 'text-green-700' : 'text-red-700'
+                        }`}
+                      >
+                        {clientDetails.active ? 'Active' : 'Inactive'}
+                      </p>
+                    </div>
                   </div>
-                </div>
-                <div className='h-[1px] bg-gray-300 w-full my-6'></div>
-                <div className='w-full px-4 space-y-4'>
-                  <div className='flex justify-between items-center w-full text-sm'>
-                    <span className='text-gray-400 font-bold text-xs'>
-                      CLIENT ID
-                    </span>
-                    <span className='text-gray-400  text-xs'>
-                      {clientDetails.id || 'N/A'}
-                    </span>
+                  <div className='h-[1px] bg-gray-300 w-full my-6'></div>
+                  <div className='w-full px-4 space-y-4'>
+                    <div className='flex justify-between items-center w-full text-sm'>
+                      <span className='text-gray-400 font-bold text-xs'>
+                        CLIENT ID
+                      </span>
+                      <span className='text-gray-400  text-xs'>
+                        {clientDetails.id || 'N/A'}
+                      </span>
+                    </div>
+                    <div className='flex justify-between items-center w-full text-sm'>
+                      <span className='text-gray-400 font-bold text-xs'>
+                        SESSIONS
+                      </span>
+                      <span className='text-gray-400  text-xs'>
+                        {analyticsLoading ? (
+                          <Loader color='#1D9B5E' size='md' />
+                        ) : (
+                          clientAnalytics?.total_sessions || 0
+                        )}
+                      </span>
+                    </div>
+                    <div className='flex justify-between items-center w-full text-sm'>
+                      <span className='text-gray-400 font-bold text-xs'>
+                        CATEGORY
+                      </span>
+                      <span className='text-gray-400  text-xs'>
+                        {clientDetails.classCategory || 'N/A'}
+                      </span>
+                    </div>
                   </div>
-                  <div className='flex justify-between items-center w-full text-sm'>
-                    <span className='text-gray-400 font-bold text-xs'>
-                      SESSIONS
-                    </span>
-                    <span className='text-gray-400  text-xs'>
-                      {analyticsLoading ? (
-                        <Loader color='#1D9B5E' size='md' />
-                      ) : (
-                        clientAnalytics?.total_sessions || 0
-                      )}
-                    </span>
+                  <div className='h-[1px] bg-gray-300 w-[80%] mx-auto my-6'></div>
+                  <div className='w-full px-4 space-y-4'>
+                    <div className='flex justify-between items-center w-full text-sm'>
+                      <span className='text-gray-400 font-bold text-xs'>
+                        DATE CREATED
+                      </span>
+                      <span className='text-gray-400  text-xs'>
+                        {new Date(clientDetails.created_at).toLocaleDateString()}
+                      </span>
+                    </div>
+                    <div className='flex justify-between items-center w-full text-sm'>
+                      <span className='text-gray-400 font-bold text-xs'>
+                        ASSIGNED TO
+                      </span>
+                      <span className='text-gray-400  text-xs'>
+                        {clientDetails.assignedTo || 'Not Assigned'}
+                      </span>
+                    </div>
                   </div>
-                  <div className='flex justify-between items-center w-full text-sm'>
-                    <span className='text-gray-400 font-bold text-xs'>
-                      CATEGORY
-                    </span>
-                    <span className='text-gray-400  text-xs'>
-                      {clientDetails.classCategory || 'N/A'}
-                    </span>
-                  </div>
-                </div>
-                <div className='h-[1px] bg-gray-300 w-[80%] mx-auto my-6'></div>
-                <div className='w-full px-4 space-y-4'>
-                  <div className='flex justify-between items-center w-full text-sm'>
-                    <span className='text-gray-400 font-bold text-xs'>
-                      DATE CREATED
-                    </span>
-                    <span className='text-gray-400  text-xs'>
-                      {new Date(clientDetails.created_at).toLocaleDateString()}
-                    </span>
-                  </div>
-                  <div className='flex justify-between items-center w-full text-sm'>
-                    <span className='text-gray-400 font-bold text-xs'>
-                      ASSIGNED TO
-                    </span>
-                    <span className='text-gray-400  text-xs'>
-                      {clientDetails.assignedTo || 'Not Assigned'}
-                    </span>
-                  </div>
-                </div>
-                <div className='h-[1px] bg-gray-300 w-full my-6'></div>
-                <div className='w-full pb-6'>
-                  <div className='flex justify-between text-xs pb-2'>
-                    <p className=''>Learning Progress</p>
-                    <p className=''>50%</p>
-                  </div>
+                  <div className='h-[1px] bg-gray-300 w-full my-6'></div>
+                  <div className='w-full pb-6'>
+                    <div className='flex justify-between text-xs pb-2'>
+                      <p className=''>Learning Progress</p>
+                      <p className=''>50%</p> {/* TODO: Use actual progress */}
+                    </div>
 
-                  <Progress
-                    color='#FFAE0080'
-                    size='md'
-                    radius='xl'
-                    value={50}
-                  />
+                    <Progress
+                      color='#FFAE0080' // Consider making color dynamic based on progress/status
+                      size='md'
+                      radius='xl'
+                      value={50} // TODO: Use actual progress
+                    />
+                  </div>
+                   {/* Button to switch view */}
+                   <button
+                      onClick={() => setViewMode('levels')}
+                      className='mt-4 text-secondary font-medium text-sm hover:underline'
+                    >
+                      View Progress Levels
+                    </button>
                 </div>
-              </div>
+              ) : (
+                // Progress Levels View
+                <div className='flex flex-col border bg-white rounded-xl w-[290px] p-4 space-y-2'>
+                   {/* Header for the levels section */}
+                   <div className='flex justify-between items-center mb-2 p-2 border rounded-lg cursor-pointer' onClick={() => setViewMode('details')}>
+                      <div>
+                        <p className='font-semibold text-sm'>STArfish Series</p> {/* Make dynamic */}
+                        <Progress color="green" value={20} size="sm" className='mt-1'/>
+                        <p className='text-xs text-gray-500 mt-1'>20% complete</p>
+                      </div>
+                      <IconChevronDown size={20} />
+                   </div>
+
+                  {progressLevels.map((level) => (
+                    <div
+                      key={level.id}
+                      onClick={() => handleLevelClick(level)}
+                      className={`flex justify-between items-center p-3 rounded-lg cursor-pointer ${
+                        !level.locked
+                          ? 'bg-green-50 hover:bg-green-100'
+                          : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                      } ${/* selectedLevel?.title === level.details.title && */ !level.locked ? 'hover:bg-green-100' : 'bg-gray-100 text-gray-400 cursor-not-allowed'}`} // Remove selected highlight, keep hover/locked styles
+                    >
+                      <div>
+                        <p className={`font-medium text-sm ${level.locked ? 'text-gray-400' : 'text-gray-900'}`}>
+                          {level.name}
+                        </p>
+                        <p className='text-xs text-gray-500'>
+                          {level.completed ? 'Completed' : level.locked ? '' : 'In Progress'}
+                        </p>
+                      </div>
+                      {level.locked && <IconLock size={16} className='text-gray-400'/>}
+                    </div>
+                  ))}
+                   {/* Optionally add a button to switch back if needed, or rely on clicking the header */}
+                   {/* <button
+                      onClick={() => setViewMode('details')}
+                      className='mt-4 text-secondary font-medium text-sm hover:underline'
+                    >
+                      View Client Details
+                    </button> */}
+                </div>
+              )}
+              {/* End Conditional Rendering */}
             </div>
             <div className=' w-[70%] p-4'>
               <div className='space-y-4'>
@@ -348,9 +425,10 @@ const ClientDetails = () => {
               </>
               ) : activeTab === 'Progress Tracker' ? (
                 <div className='flex justify-center items-center p-8'>
-                  <ProgressTracker/>
+                  {/* Pass selectedLevel to ProgressTracker */}
+                  <ProgressTracker />
                 </div>
-              ) : null} 
+              ) : null}
             </div>
           </div>
         </div>
