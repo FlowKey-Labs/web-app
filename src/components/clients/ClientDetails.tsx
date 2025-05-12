@@ -8,15 +8,17 @@ import { useGetClient, useGetClientAnalytics } from '../../hooks/reactQuery';
 import avatar from '../../assets/icons/newAvatar.svg';
 import UpdateClient from './UpdateClient';
 import { navigateToSessionDetails } from '../../utils/navigationHelpers';
+import ProgressTracker from './ProgressTracker';
 
 const ClientDetails = () => {
   const { id: clientId } = useParams();
   const navigate = useNavigate();
 
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<'overview' | 'clients'>(
+  const [activeTab, setActiveTab] = useState<'overview' | 'Progress Tracker'>(
     'overview'
-  );
+  );  
+
   const [rowSelection, setRowSelection] = useState({});
 
   const openDrawer = () => setIsDrawerOpen(true);
@@ -57,7 +59,7 @@ const ClientDetails = () => {
 
   const columnHelper = createColumnHelper<ClientSession>();
 
-  const columns = [
+  const columns = useMemo(() => [
     columnHelper.accessor('session_title', {
       header: 'Session',
       cell: (info) => info.getValue(),
@@ -99,7 +101,7 @@ const ClientDetails = () => {
         </span>
       ),
     }),
-  ];
+  ], [ clientDetails]);
 
   if (isLoading) {
     return (
@@ -258,12 +260,14 @@ const ClientDetails = () => {
                     }`}
                     onClick={() => setActiveTab('overview')}
                   >
-                    Overall View
+                    {activeTab === 'overview' ? 'Overview' : 'Progress Tracker'} 
                   </button>
                 </div>
                 <div className='h-[1px] bg-gray-300 w-full opacity-60'></div>
               </div>
-              <div className='flex space-x-16 mt-6'>
+              {activeTab === 'overview' ? (
+                <>
+                <div className='flex space-x-16 mt-6'>
                 <div className='flex items-center border py-6 px-10 bg-white rounded-xl'>
                   <div className='flex flex-col items-center rounded-xl  space-y-4'>
                     <p className='text-4xl'>
@@ -324,9 +328,16 @@ const ClientDetails = () => {
                         No sessions found for this client
                       </h2>
                     </div>
-                  )}
+                  
+                  )}  
                 </div>
               </div>
+              </>
+              ) : activeTab === 'Progress Tracker' ? (
+                <div className='flex justify-center items-center p-8'>
+                  <ProgressTracker/>
+                </div>
+              ) : null} 
             </div>
           </div>
         </div>
