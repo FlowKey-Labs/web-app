@@ -398,6 +398,29 @@ const ClientDetails = () => {
                         [levelId]: progress,
                       }));
                     }}
+                    levelProgress={levelProgress}
+                    seriesData={[
+                      {
+                        title: 'STARFISH Series',
+                        levels: [
+                          {
+                            label: 'Level 1',
+                            value: 'starfish-1',
+                            progress: levelProgress['starfish-1'] || 0,
+                          },
+                          {
+                            label: 'Level 2',
+                            value: 'starfish-2',
+                            progress: levelProgress['starfish-2'] || 0,
+                          },
+                          {
+                            label: 'Level 3',
+                            value: 'starfish-3',
+                            progress: levelProgress['starfish-3'] || 0,
+                          },
+                        ],
+                      },
+                    ]}
                   />
                 </div>
               ) : null}

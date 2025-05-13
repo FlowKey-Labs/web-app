@@ -31,6 +31,12 @@ interface SeriesLevel {
   progress?: number;
 }
 
+interface Series {
+  title: string;
+  progress?: number;
+  levels?: SeriesLevel[];
+}
+
 interface ProgressTrackerProps {
   setViewMode: (mode: 'details' | 'levels') => void;
   selectedLevel: {
@@ -38,13 +44,26 @@ interface ProgressTrackerProps {
     level: SeriesLevel;
   } | null;
   onProgressUpdate?: (levelId: string, progress: number) => void;
+  levelProgress?: { [key: string]: number };
+  seriesData?: Series[];
 }
 
 const ProgressTracker = ({
   setViewMode,
   selectedLevel,
   onProgressUpdate,
+  levelProgress = {},
+  seriesData = [],
 }: ProgressTrackerProps) => {
+  const calculateSeriesProgress = (series: Series) => {
+    if (!series.levels || series.levels.length === 0) {
+      return 0;
+    }
+    const totalProgress = series.levels.reduce((sum, level) => {
+      return sum + (levelProgress[level.value] || 0);
+    }, 0);
+    return Math.round(totalProgress / series.levels.length);
+  };
   const methods = useForm({
     defaultValues: {
       feedback: '',
@@ -332,8 +351,20 @@ const ProgressTracker = ({
                   <Text size='10px' c='black'>
                     Completion
                   </Text>
-                  <Text c='#1D9B5E' fw={700} ta='center' size='xl'>
-                    {completionPercentage}%
+                  <Text size='16px' fw={600} c='#1D9B5E' mt='xs'>
+                    {selectedLevel && seriesData.length > 0
+                      ? calculateSeriesProgress(
+                          seriesData.find(
+                            (s) => s.title === selectedLevel.series
+                          ) || seriesData[0]
+                        ) === 100
+                        ? '100%'
+                        : `${calculateSeriesProgress(
+                            seriesData.find(
+                              (s) => s.title === selectedLevel.series
+                            ) || seriesData[0]
+                          )}%`
+                      : '0%'}
                   </Text>
                 </Flex>
               }
@@ -382,17 +413,21 @@ const ProgressTracker = ({
               Progress
             </Text>
             <Badge size='md' c='#1D9B5E' fw={500} bg='#ECFDF3'>
-              {isPreviewMode
-                ? previewLevelOutcomePercentage
-                : completionPercentage}
+              {calculateSeriesProgress(
+                seriesData.find((s) => s.title === selectedLevel?.series) ||
+                  seriesData[0]
+              )}
               % ↑
             </Badge>
           </Flex>
           <Progress
             value={
-              isPreviewMode
-                ? previewLevelOutcomePercentage
-                : completionPercentage
+              selectedLevel && seriesData.length > 0
+                ? calculateSeriesProgress(
+                    seriesData.find((s) => s.title === selectedLevel.series) ||
+                      seriesData[0]
+                  )
+                : 0
             }
             color='#1D9B5E'
             radius='sm'
@@ -404,7 +439,7 @@ const ProgressTracker = ({
         </Card>
 
         <Box>
-          {previewLevelData && (
+          {previewLevelData && !isPreviewMode ? (
             <Card shadow='sm' padding='xl' radius='lg' withBorder mb='md'>
               <Flex justify='space-between' align='center'>
                 <Box w='70%'>
@@ -441,8 +476,44 @@ const ProgressTracker = ({
                 </Text>
               </Flex>
             </Card>
+          ) : (
+            <Card shadow='sm' padding='xl' radius='lg' withBorder mb='md'>
+              <Flex justify='space-between' align='center'>
+                <Box w='70%'>
+                  <Text fw={600} c='#8A8D8E'>
+                    Jump right back
+                  </Text>
+                  <Text size='xs' c='#8A8D8E'>
+                    {selectedLevel?.series}
+                  </Text>
+                  <Progress
+                    value={completionPercentage}
+                    color='#FF9500'
+                    radius='sm'
+                    mt='sm'
+                  />
+                  <Button
+                    variant='transparent'
+                    color='#0F2028'
+                    rightSection={<IconChevronRight size={14} />}
+                    p={0}
+                    mt='sm'
+                    size='sm'
+                    onClick={() => {
+                      setIsPreviewMode(true);
+                      setViewMode('levels');
+                    }}
+                  >
+                    Continue Learning
+                  </Button>
+                </Box>
+                <Divider orientation='vertical' size='xs' />
+                <Text size='2rem' fw={600} c='#8A8D8E'>
+                  {previewLevelOutcomePercentage}%
+                </Text>
+              </Flex>
+            </Card>
           )}
-
           <Card shadow='sm' padding='lg' radius='lg' withBorder>
             <Flex justify='space-between' align='center'>
               <Box w='70%'>
