@@ -16,12 +16,19 @@ const ClientDetails = () => {
   const navigate = useNavigate();
 
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<'overview' | 'Progress Tracker'>(
-    'overview'
-  );
+  const [activeTab, setActiveTab] = useState<
+    'overview' | 'Progress Tracker' | 'Attendance' | 'Assessments'
+  >('overview');
 
-  const [viewMode, setViewMode] = useState<'details' | 'levels'>('details'); // State for left panel view
-  // const [selectedLevel, setSelectedLevel] = useState<any>(null); // No longer needed here
+  const [viewMode, setViewMode] = useState<'details' | 'levels'>('details');
+  const [selectedLevel, setSelectedLevel] = useState<{
+    seriesTitle: string;
+    level: {
+      label: string;
+      value: string;
+      progress?: number;
+    };
+  } | null>(null);
 
   const [rowSelection, setRowSelection] = useState({});
 
@@ -111,74 +118,7 @@ const ClientDetails = () => {
   );
 
   // --- Placeholder Data for Progress Levels ---
-  // TODO: Replace with actual data fetching/structure
-  const progressLevels = [
-    {
-      id: 1,
-      name: 'STArfish Series',
-      completed: true,
-      locked: false,
-      progress: 20,
-      details: {
-        title: 'Level 1',
-        outcomes: ['Outcome A', 'Outcome B'],
-        assessedOn: 'May 1, 2025',
-        dueDate: 'May 10, 2025',
-      },
-    },
-    {
-      id: 2,
-      name: 'STAnley Series',
-      completed: true,
-      locked: false,
-      details: {
-        title: 'Level 2',
-        outcomes: [
-          'Enter the pool safely with adult support',
-          'Familiarize child with the water using swing dips',
-          'Move freely around the pool on the front with adult support',
-          'Move freely around the pool on the back with adult support',
-          'Child to face adult and view them blowing bubbles',
-          'Leave the pool safely with adult support',
-        ],
-        assessedOn: 'May 3, 2025',
-        dueDate: 'May 3, 2025',
-      },
-    },
-    {
-      id: 3,
-      name: 'Octopus Series',
-      completed: false,
-      locked: true,
-      details: {
-        title: 'Level 3',
-        outcomes: ['Outcome E', 'Outcome F'],
-        assessedOn: 'N/A',
-        dueDate: 'N/A',
-      },
-    },
-    {
-      id: 4,
-      name: 'Jellyfish Series',
-      completed: false,
-      locked: true,
-      details: {
-        title: 'Level 4',
-        outcomes: ['Outcome G', 'Outcome H'],
-        assessedOn: 'N/A',
-        dueDate: 'N/A',
-      },
-    },
-  ];
-  // --- End Placeholder Data ---
 
-  const handleLevelClick = (level: any) => {
-    if (!level.locked) {
-      // setSelectedLevel(level.details); // No longer setting level here
-      setActiveTab('Progress Tracker'); // Switch tab
-      setViewMode('levels'); // Keep the levels view active
-    }
-  };
 
   if (isLoading) {
     return (
@@ -333,7 +273,12 @@ const ClientDetails = () => {
                 </div>
               ) : (
                 // Progress Levels View
-                <ProgressSeriesTracker />
+                <ProgressSeriesTracker 
+                  onLevelSelect={(seriesTitle, level) => {
+                    setSelectedLevel({ seriesTitle, level });
+                    setActiveTab('Progress Tracker');
+                  }}
+                />
               )}
               {/* End Conditional Rendering */}
             </div>
@@ -437,8 +382,10 @@ const ClientDetails = () => {
                 </>
               ) : activeTab === 'Progress Tracker' ? (
                 <div className='flex justify-center items-center p-8'>
-                  {/* Pass selectedLevel to ProgressTracker */}
-                  <ProgressTracker setViewMode={setViewMode} />
+                  <ProgressTracker 
+                    setViewMode={setViewMode} 
+                    selectedLevel={selectedLevel}
+                  />
                 </div>
               ) : null}
             </div>

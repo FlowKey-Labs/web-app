@@ -27,38 +27,19 @@ import Input from '../common/Input';
 
 interface ProgressTrackerProps {
   setViewMode: (mode: 'details' | 'levels') => void;
+  selectedLevel: {
+    seriesTitle: string;
+    level: {
+      label: string;
+      value: string;
+      progress?: number;
+    };
+  } | null;
 }
 
-// START: Data and interfaces from ProgressSeriesTracker (temporary for this component)
-interface SeriesLevel {
-  label: string;
-  value: string;
-  progress?: number;
-}
 
-interface Series {
-  title: string;
-  progress?: number; // Overall progress of the series, if available
-  levels?: SeriesLevel[];
-}
 
-const seriesData: Series[] = [
-  {
-    title: 'STARFISH Series',
-    levels: [
-      { label: 'Level 1', value: 'starfish-1', progress: 20 },
-      { label: 'Level 2', value: 'starfish-2', progress: 50 },
-      { label: 'Level 3', value: 'starfish-3', progress: 70 },
-      { label: 'Level 4', value: 'starfish-4', progress: 90 },
-      { label: 'Level 5', value: 'starfish-5', progress: 100 },
-      { label: 'Level 6', value: 'starfish-6', progress: 100 },
-    ],
-  },
-  // Other series could be added here if needed by ProgressTracker directly
-];
-// END: Data and interfaces
-
-const ProgressTracker = ({ setViewMode }: ProgressTrackerProps) => {
+const ProgressTracker = ({ setViewMode, selectedLevel }: ProgressTrackerProps) => {
   const methods = useForm({
     defaultValues: {
       feedback: '',
@@ -78,30 +59,18 @@ const ProgressTracker = ({ setViewMode }: ProgressTrackerProps) => {
   }, [isPreviewMode, setViewMode]);
 
   useEffect(() => {
-    // Calculate completion percentage for STARFISH Series
-    const targetSeries = seriesData.find((s) => s.title === 'STARFISH Series');
-    if (targetSeries && targetSeries.levels) {
-      const totalLevels = targetSeries.levels.length;
-      if (totalLevels > 0) {
-        const completedLevels = targetSeries.levels.filter(
-          (level) => level.progress === 100
-        ).length;
-        const percentage = Math.round((completedLevels / totalLevels) * 100);
-        setCompletionPercentage(percentage);
-      } else {
-        setCompletionPercentage(0);
-      }
+    if (selectedLevel) {
+      setCompletionPercentage(selectedLevel.level.progress || 0);
     }
-  }, []); // Calculate once on mount, assuming seriesData is static here
+  }, [selectedLevel]);
 
   const onSubmit = (data: any) => {
     console.log('Form submitted:', data);
   };
 
-  // Preview mode data
-  const previewLevelData = {
-    title: 'Level 2',
-    outcomes: [
+  // Level outcomes data
+  const levelOutcomes: { [key: string]: string[] } = {
+    'starfish-1': [
       'Enter the pool safely with adult support',
       'Familiarize child with the water using swing dips',
       'Move freely around the pool on the front with adult support',
@@ -109,9 +78,39 @@ const ProgressTracker = ({ setViewMode }: ProgressTrackerProps) => {
       'Child to face adult and view them blowing bubbles',
       'Leave the pool safely with adult support',
     ],
-    assessedOn: 'May 3, 2025',
-    dueDate: 'May 3, 2025',
+    'starfish-2': [
+      'Submerge face in the water with confidence',
+      'Float on back independently for 5 seconds',
+      'Kick legs while holding pool edge',
+      'Blow bubbles underwater for 3 seconds',
+      'Push and glide from wall with assistance',
+      'Retrieve object from pool bottom in chest-deep water',
+    ],
+    'starfish-3': [
+      'Swim 5 meters using any stroke',
+      'Tread water for 10 seconds',
+      'Perform basic freestyle arm movements',
+      'Jump into deep water with confidence',
+      'Float transition from front to back',
+      'Demonstrate basic water safety skills',
+    ],
+    'stanley-1': [
+      'Enter and exit pool safely using steps',
+      'Blow bubbles with mouth and nose submerged',
+      'Front float with support for 3 seconds',
+      'Back float with support for 3 seconds',
+      'Push and glide on front with face in water',
+      'Kick with a float board for 5 meters',
+    ],
   };
+
+  // Preview mode data
+  const previewLevelData = selectedLevel ? {
+    title: selectedLevel.level.label,
+    outcomes: levelOutcomes[selectedLevel.level.value] || [],
+    assessedOn: new Date().toLocaleDateString(),
+    dueDate: new Date().toLocaleDateString(),
+  } : null;
 
   const [outcomeStatus, setOutcomeStatus] = useState<{
     [key: string]: boolean;
@@ -128,7 +127,7 @@ const ProgressTracker = ({ setViewMode }: ProgressTrackerProps) => {
   };
 
   useEffect(() => {
-    if (previewLevelData && previewLevelData.outcomes) {
+    if (previewLevelData?.outcomes) {
       const totalOutcomes = previewLevelData.outcomes.length;
       if (totalOutcomes > 0) {
         const completedOutcomes = previewLevelData.outcomes.filter(
@@ -142,9 +141,9 @@ const ProgressTracker = ({ setViewMode }: ProgressTrackerProps) => {
         setPreviewLevelOutcomePercentage(0);
       }
     }
-  }, [outcomeStatus, previewLevelData.outcomes]);
+  }, [outcomeStatus, previewLevelData?.outcomes]);
 
-  if (isPreviewMode) {
+  if (isPreviewMode && previewLevelData) {
     return (
       <FormProvider {...methods}>
         <Box className='w-full'>
@@ -323,10 +322,10 @@ const ProgressTracker = ({ setViewMode }: ProgressTrackerProps) => {
             />
             <Box>
               <Text size='lg' fw={600} c='#8A8D8E'>
-                STARFISH Series
+                {selectedLevel?.seriesTitle || 'No Series Selected'}
               </Text>
               <Text size='sm' c='#8A8D8E'>
-                Current track progress
+                {selectedLevel?.level.label || 'No Level Selected'}
               </Text>
             </Box>
           </Flex>
@@ -387,42 +386,44 @@ const ProgressTracker = ({ setViewMode }: ProgressTrackerProps) => {
         </Card>
 
         <Box>
-          <Card shadow='sm' padding='xl' radius='lg' withBorder mb='md'>
-            <Flex justify='space-between' align='center'>
-              <Box w='70%'>
-                <Text fw={600} c='#8A8D8E'>
-                  Jump right back
+          {previewLevelData && (
+            <Card shadow='sm' padding='xl' radius='lg' withBorder mb='md'>
+              <Flex justify='space-between' align='center'>
+                <Box w='70%'>
+                  <Text fw={600} c='#8A8D8E'>
+                    Jump right back
+                  </Text>
+                  <Text size='xs' c='#8A8D8E'>
+                    {previewLevelData.title}
+                  </Text>
+                  <Progress
+                    value={previewLevelOutcomePercentage}
+                    color='#FF9500'
+                    radius='sm'
+                    mt='sm'
+                  />
+                  <Button
+                    variant='transparent'
+                    color='#0F2028'
+                    rightSection={<IconChevronRight size={14} />}
+                    p={0}
+                    mt='sm'
+                    size='sm'
+                    onClick={() => {
+                      setIsPreviewMode(true);
+                      setViewMode('levels');
+                    }}
+                  >
+                    Continue Learning
+                  </Button>
+                </Box>
+                <Divider orientation='vertical' size='xs' />
+                <Text size='2rem' fw={600} c='#8A8D8E'>
+                  {previewLevelOutcomePercentage}%
                 </Text>
-                <Text size='xs' c='#8A8D8E'>
-                  {previewLevelData.title}
-                </Text>
-                <Progress
-                  value={previewLevelOutcomePercentage}
-                  color='#FF9500'
-                  radius='sm'
-                  mt='sm'
-                />
-                <Button
-                  variant='transparent'
-                  color='#0F2028'
-                  rightSection={<IconChevronRight size={14} />}
-                  p={0}
-                  mt='sm'
-                  size='sm'
-                  onClick={() => {
-                    setIsPreviewMode(true);
-                    setViewMode('levels');
-                  }}
-                >
-                  Continue Learning
-                </Button>
-              </Box>
-              <Divider orientation='vertical' size='xs' />
-              <Text size='2rem' fw={600} c='#8A8D8E'>
-                {previewLevelOutcomePercentage}%
-              </Text>
-            </Flex>
-          </Card>
+              </Flex>
+            </Card>
+          )}
 
           <Card shadow='sm' padding='lg' radius='lg' withBorder>
             <Flex justify='space-between' align='center'>

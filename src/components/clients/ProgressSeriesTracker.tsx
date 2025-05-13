@@ -1,12 +1,5 @@
 import { useState } from 'react';
-import {
-  Card,
-  Text,
-  Flex,
-  Box,
-  Accordion,
-  Progress,
-} from '@mantine/core';
+import { Card, Text, Flex, Box, Accordion, Progress } from '@mantine/core';
 import CustomRingProgress from '../common/CustomRingProgress';
 import lockIcon from '../../assets/icons/Lock.svg';
 import { IconChevronUp, IconChevronDown } from '@tabler/icons-react';
@@ -23,7 +16,11 @@ interface Series {
   levels?: SeriesLevel[];
 }
 
-const ProgressSeriesTracker = () => {
+interface ProgressSeriesTrackerProps {
+  onLevelSelect: (seriesTitle: string, level: SeriesLevel) => void;
+}
+
+const ProgressSeriesTracker = ({ onLevelSelect }: ProgressSeriesTrackerProps) => {
   const [selectedLevel, setSelectedLevel] = useState<{
     series: string;
     level: string;
@@ -35,34 +32,106 @@ const ProgressSeriesTracker = () => {
     {
       title: 'STARFISH Series',
       levels: [
-        { label: 'Level 1', value: 'starfish-1', progress: 20 },
-        { label: 'Level 2', value: 'starfish-2', progress: 50 },
-        { label: 'Level 3', value: 'starfish-3', progress: 70 },
-        { label: 'Level 4', value: 'starfish-4', progress: 100 },
-        { label: 'Level 5', value: 'starfish-5', progress: 100 },
-        { label: 'Level 6', value: 'starfish-6', progress: 100 },
+        { 
+          label: 'Level 1', 
+          value: 'starfish-1', 
+          progress: 20,
+        },
+        { 
+          label: 'Level 2', 
+          value: 'starfish-2', 
+          progress: 50,
+        },
+        { 
+          label: 'Level 3', 
+          value: 'starfish-3', 
+          progress: 70,
+        },
+        { 
+          label: 'Level 4', 
+          value: 'starfish-4', 
+          progress: 100,
+        },
+        { 
+          label: 'Level 5', 
+          value: 'starfish-5', 
+          progress: 100,
+        },
+        { 
+          label: 'Level 6', 
+          value: 'starfish-6', 
+          progress: 100,
+        },
       ],
     },
     {
       title: 'STANLEY Series',
       levels: [
-        { label: 'Level 1', value: 'stanley-1', progress: 0 },
-        { label: 'Level 2', value: 'stanley-2', progress: 0 },
-        { label: 'Level 3', value: 'stanley-3', progress: 0 },
-        { label: 'Level 4', value: 'stanley-4', progress: 0 },
-        { label: 'Level 5', value: 'stanley-5', progress: 0 },
-        { label: 'Level 6', value: 'stanley-6', progress: 0 },
+        { 
+          label: 'Level 1', 
+          value: 'stanley-1', 
+          progress: 0,
+        },
+        { 
+          label: 'Level 2', 
+          value: 'stanley-2', 
+          progress: 0,
+        },
+        { 
+          label: 'Level 3', 
+          value: 'stanley-3', 
+          progress: 0,
+        },
+        { 
+          label: 'Level 4', 
+          value: 'stanley-4', 
+          progress: 0,
+        },
+        { 
+          label: 'Level 5', 
+          value: 'stanley-5', 
+          progress: 0,
+        },
+        { 
+          label: 'Level 6', 
+          value: 'stanley-6', 
+          progress: 0,
+        },
       ],
     },
     {
       title: 'Octopus Series',
       levels: [
-        { label: 'Level 1', value: 'octopus-1', progress: 0 },
-        { label: 'Level 2', value: 'octopus-2', progress: 0 },
-        { label: 'Level 3', value: 'octopus-3', progress: 0 },
-        { label: 'Level 4', value: 'octopus-4', progress: 0 },
-        { label: 'Level 5', value: 'octopus-5', progress: 0 },
-        { label: 'Level 6', value: 'octopus-6', progress: 0 },
+        { 
+          label: 'Level 1', 
+          value: 'octopus-1', 
+          progress: 0,
+        },
+        { 
+          label: 'Level 2', 
+          value: 'octopus-2', 
+          progress: 0,
+        },
+        { 
+          label: 'Level 3', 
+          value: 'octopus-3', 
+          progress: 0,
+        },
+        { 
+          label: 'Level 4', 
+          value: 'octopus-4', 
+          progress: 0,
+        },
+        { 
+          label: 'Level 5', 
+          value: 'octopus-5', 
+          progress: 0,
+        },
+        { 
+          label: 'Level 6', 
+          value: 'octopus-6', 
+          progress: 0,
+        },
       ],
     },
     {
@@ -92,6 +161,9 @@ const ProgressSeriesTracker = () => {
       series: seriesTitle,
       level: level.label,
     });
+    setExpandedSeries(seriesTitle);
+    setIsActive(true);
+    onLevelSelect(seriesTitle, level);
   };
 
   const calculateSeriesProgress = (series: Series) => {
@@ -168,24 +240,26 @@ const ProgressSeriesTracker = () => {
                       <Text fw={500} size='sm'>
                         {series.title}
                       </Text>
-                      {series.levels && series.levels.length > 0 && seriesProgress > 0 && (
-                        <>
-                          <Progress
-                            value={seriesProgress}
-                            color='#1D9B5E'
-                            size='sm'
-                            radius='xl'
-                            style={{ width: '70%', marginTop: '8px' }}
-                          />
-                          <Text size='14px' c='dimmed' mt='xs'>
-                            {seriesProgress === 100 ? (
-                              <Text color='#1D9B5E'>Completed</Text>
-                            ) : (
-                              `${Math.round(seriesProgress)}% Completed`
-                            )}
-                          </Text>
-                        </>
-                      )}
+                      {series.levels &&
+                        series.levels.length > 0 &&
+                        seriesProgress > 0 && (
+                          <>
+                            <Progress
+                              value={seriesProgress}
+                              color='#1D9B5E'
+                              size='sm'
+                              radius='xl'
+                              style={{ width: '70%', marginTop: '8px' }}
+                            />
+                            <Text size='14px' c='dimmed' mt='xs'>
+                              {seriesProgress === 100 ? (
+                                <Text color='#1D9B5E'>Completed</Text>
+                              ) : (
+                                `${Math.round(seriesProgress)}% Completed`
+                              )}
+                            </Text>
+                          </>
+                        )}
                     </Flex>
                     {canExpand ? (
                       isExpanded ? (
