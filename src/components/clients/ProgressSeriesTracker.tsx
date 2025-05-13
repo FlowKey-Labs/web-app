@@ -183,10 +183,10 @@ const ProgressSeriesTracker = ({
     if (!series.levels || series.levels.length === 0) {
       return 0;
     }
-    const completedLevels = series.levels.filter(
-      (level) => level.progress === 100
-    ).length;
-    return (completedLevels / series.levels.length) * 100;
+    const totalProgress = series.levels.reduce((sum, level) => {
+      return sum + (levelProgress[level.value] || 0);
+    }, 0);
+    return Math.round(totalProgress / series.levels.length);
   };
 
   const handleAccordionChange = (value: string) => {
