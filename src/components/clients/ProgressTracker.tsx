@@ -29,6 +29,35 @@ interface ProgressTrackerProps {
   setViewMode: (mode: 'details' | 'levels') => void;
 }
 
+// START: Data and interfaces from ProgressSeriesTracker (temporary for this component)
+interface SeriesLevel {
+  label: string;
+  value: string;
+  progress?: number;
+}
+
+interface Series {
+  title: string;
+  progress?: number; // Overall progress of the series, if available
+  levels?: SeriesLevel[];
+}
+
+const seriesData: Series[] = [
+  {
+    title: 'STARFISH Series',
+    levels: [
+      { label: 'Level 1', value: 'starfish-1', progress: 20 },
+      { label: 'Level 2', value: 'starfish-2', progress: 50 },
+      { label: 'Level 3', value: 'starfish-3', progress: 70 },
+      { label: 'Level 4', value: 'starfish-4', progress: 90 },
+      { label: 'Level 5', value: 'starfish-5', progress: 100 },
+      { label: 'Level 6', value: 'starfish-6', progress: 100 },
+    ],
+  },
+  // Other series could be added here if needed by ProgressTracker directly
+];
+// END: Data and interfaces
+
 const ProgressTracker = ({ setViewMode }: ProgressTrackerProps) => {
   const methods = useForm({
     defaultValues: {
@@ -37,6 +66,9 @@ const ProgressTracker = ({ setViewMode }: ProgressTrackerProps) => {
     },
   });
   const [isPreviewMode, setIsPreviewMode] = useState(false);
+  const [completionPercentage, setCompletionPercentage] = useState(0);
+  const [previewLevelOutcomePercentage, setPreviewLevelOutcomePercentage] =
+    useState(0);
 
   // Sync preview mode with view mode
   useEffect(() => {
@@ -44,6 +76,23 @@ const ProgressTracker = ({ setViewMode }: ProgressTrackerProps) => {
       setViewMode('details');
     }
   }, [isPreviewMode, setViewMode]);
+
+  useEffect(() => {
+    // Calculate completion percentage for STARFISH Series
+    const targetSeries = seriesData.find((s) => s.title === 'STARFISH Series');
+    if (targetSeries && targetSeries.levels) {
+      const totalLevels = targetSeries.levels.length;
+      if (totalLevels > 0) {
+        const completedLevels = targetSeries.levels.filter(
+          (level) => level.progress === 100
+        ).length;
+        const percentage = Math.round((completedLevels / totalLevels) * 100);
+        setCompletionPercentage(percentage);
+      } else {
+        setCompletionPercentage(0);
+      }
+    }
+  }, []); // Calculate once on mount, assuming seriesData is static here
 
   const onSubmit = (data: any) => {
     console.log('Form submitted:', data);
@@ -64,9 +113,36 @@ const ProgressTracker = ({ setViewMode }: ProgressTrackerProps) => {
     dueDate: 'May 3, 2025',
   };
 
-  const outcomeStatus: { [key: string]: boolean } = {
+  const [outcomeStatus, setOutcomeStatus] = useState<{
+    [key: string]: boolean;
+  }>({
     'Enter the pool safely with adult support': true,
+    // Initialize other outcomes as false or based on actual data if available
+  });
+
+  const handleOutcomeToggle = (outcome: string) => {
+    setOutcomeStatus((prevStatus) => ({
+      ...prevStatus,
+      [outcome]: !prevStatus[outcome],
+    }));
   };
+
+  useEffect(() => {
+    if (previewLevelData && previewLevelData.outcomes) {
+      const totalOutcomes = previewLevelData.outcomes.length;
+      if (totalOutcomes > 0) {
+        const completedOutcomes = previewLevelData.outcomes.filter(
+          (outcome) => outcomeStatus[outcome]
+        ).length;
+        const percentage = Math.round(
+          (completedOutcomes / totalOutcomes) * 100
+        );
+        setPreviewLevelOutcomePercentage(percentage);
+      } else {
+        setPreviewLevelOutcomePercentage(0);
+      }
+    }
+  }, [outcomeStatus, previewLevelData.outcomes]);
 
   if (isPreviewMode) {
     return (
@@ -103,14 +179,18 @@ const ProgressTracker = ({ setViewMode }: ProgressTrackerProps) => {
                   <Flex justify='space-between' align='center' gap='md'>
                     <Checkbox
                       checked={isCompleted}
-                      readOnly
+                      onChange={() => handleOutcomeToggle(outcome)}
                       color='green'
                       radius='xl'
                       icon={IconCheck}
                       size='md'
                     />
                     <Box>
-                      <Text size='sm' fw={500} c={isCompleted ? 'dimmed' : 'black'}>
+                      <Text
+                        size='sm'
+                        fw={500}
+                        c={isCompleted ? 'dimmed' : 'black'}
+                      >
                         {outcome}
                       </Text>
                       {isCompleted && (
@@ -206,9 +286,9 @@ const ProgressTracker = ({ setViewMode }: ProgressTrackerProps) => {
             >
               Back
             </Button>
-            <Button 
-              color='#1D9B5E' 
-              radius='md' 
+            <Button
+              color='#1D9B5E'
+              radius='md'
               size='sm'
               onClick={methods.handleSubmit(onSubmit)}
             >
@@ -229,14 +309,14 @@ const ProgressTracker = ({ setViewMode }: ProgressTrackerProps) => {
               size={150}
               thickness={10}
               roundCaps
-              sections={[{ value: 60, color: '#1D9B5E' }]}
+              sections={[{ value: completionPercentage, color: '#1D9B5E' }]}
               label={
                 <Flex direction='column' justify='center' align='center'>
                   <Text size='10px' c='black'>
                     Completion
                   </Text>
                   <Text c='#1D9B5E' fw={700} ta='center' size='xl'>
-                    60%
+                    {completionPercentage}%
                   </Text>
                 </Flex>
               }
@@ -285,10 +365,22 @@ const ProgressTracker = ({ setViewMode }: ProgressTrackerProps) => {
               Progress
             </Text>
             <Badge size='md' c='#1D9B5E' fw={500} bg='#ECFDF3'>
-              60% ↑
+              {isPreviewMode
+                ? previewLevelOutcomePercentage
+                : completionPercentage}
+              % ↑
             </Badge>
           </Flex>
-          <Progress value={60} color='#1D9B5E' radius='sm' mb='sm' />
+          <Progress
+            value={
+              isPreviewMode
+                ? previewLevelOutcomePercentage
+                : completionPercentage
+            }
+            color='#1D9B5E'
+            radius='sm'
+            mb='sm'
+          />
           <Text size='sm' fw={500} c='#8A8D8E'>
             Current Learning Progress
           </Text>
@@ -302,9 +394,14 @@ const ProgressTracker = ({ setViewMode }: ProgressTrackerProps) => {
                   Jump right back
                 </Text>
                 <Text size='xs' c='#8A8D8E'>
-                  Level 2
+                  {previewLevelData.title}
                 </Text>
-                <Progress value={50} color='#FF9500' radius='sm' mt='sm' />
+                <Progress
+                  value={previewLevelOutcomePercentage}
+                  color='#FF9500'
+                  radius='sm'
+                  mt='sm'
+                />
                 <Button
                   variant='transparent'
                   color='#0F2028'
@@ -312,13 +409,17 @@ const ProgressTracker = ({ setViewMode }: ProgressTrackerProps) => {
                   p={0}
                   mt='sm'
                   size='sm'
+                  onClick={() => {
+                    setIsPreviewMode(true);
+                    setViewMode('levels');
+                  }}
                 >
                   Continue Learning
                 </Button>
               </Box>
               <Divider orientation='vertical' size='xs' />
               <Text size='2rem' fw={600} c='#8A8D8E'>
-                0%
+                {previewLevelOutcomePercentage}%
               </Text>
             </Flex>
           </Card>

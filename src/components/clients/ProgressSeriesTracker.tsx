@@ -6,7 +6,6 @@ import {
   Box,
   Accordion,
   Progress,
-  Badge,
 } from '@mantine/core';
 import CustomRingProgress from '../common/CustomRingProgress';
 import lockIcon from '../../assets/icons/Lock.svg';
@@ -171,9 +170,7 @@ const ProgressSeriesTracker = () => {
                             />
                             <Text size='14px' c='dimmed' mt='xs'>
                               {series.progress === 100 ? (
-                                <Text color='#1D9B5E'>
-                                  Completed
-                                </Text>
+                                <Text color='#1D9B5E'>Completed</Text>
                               ) : (
                                 `${series.progress}% Completed`
                               )}
@@ -233,7 +230,9 @@ const ProgressSeriesTracker = () => {
                               <Text size='md'>{level.label}</Text>
                               <Text
                                 size='xs'
-                                c={level.progress === 100 ? '#1D9B5E' : 'dimmed'}
+                                c={
+                                  level.progress === 100 ? '#1D9B5E' : 'dimmed'
+                                }
                               >
                                 {renderProgressText(level.progress)}
                               </Text>
