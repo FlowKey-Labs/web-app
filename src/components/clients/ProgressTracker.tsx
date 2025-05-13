@@ -25,21 +25,26 @@ import styles from '../accountSettings/GeneralSettings.module.css';
 import previewEyeIcon from '../../assets/icons/previewEye.svg';
 import Input from '../common/Input';
 
+interface SeriesLevel {
+  label: string;
+  value: string;
+  progress?: number;
+}
+
 interface ProgressTrackerProps {
   setViewMode: (mode: 'details' | 'levels') => void;
   selectedLevel: {
-    seriesTitle: string;
-    level: {
-      label: string;
-      value: string;
-      progress?: number;
-    };
+    series: string;
+    level: SeriesLevel;
   } | null;
+  onProgressUpdate?: (levelId: string, progress: number) => void;
 }
 
-
-
-const ProgressTracker = ({ setViewMode, selectedLevel }: ProgressTrackerProps) => {
+const ProgressTracker = ({
+  setViewMode,
+  selectedLevel,
+  onProgressUpdate,
+}: ProgressTrackerProps) => {
   const methods = useForm({
     defaultValues: {
       feedback: '',
@@ -105,12 +110,14 @@ const ProgressTracker = ({ setViewMode, selectedLevel }: ProgressTrackerProps) =
   };
 
   // Preview mode data
-  const previewLevelData = selectedLevel ? {
-    title: selectedLevel.level.label,
-    outcomes: levelOutcomes[selectedLevel.level.value] || [],
-    assessedOn: new Date().toLocaleDateString(),
-    dueDate: new Date().toLocaleDateString(),
-  } : null;
+  const previewLevelData = selectedLevel
+    ? {
+        title: selectedLevel.level.label,
+        outcomes: levelOutcomes[selectedLevel.level.value] || [],
+        assessedOn: new Date().toLocaleDateString(),
+        dueDate: new Date().toLocaleDateString(),
+      }
+    : null;
 
   const [outcomeStatus, setOutcomeStatus] = useState<{
     [key: string]: boolean;
@@ -137,11 +144,22 @@ const ProgressTracker = ({ setViewMode, selectedLevel }: ProgressTrackerProps) =
           (completedOutcomes / totalOutcomes) * 100
         );
         setPreviewLevelOutcomePercentage(percentage);
+        if (selectedLevel && onProgressUpdate) {
+          onProgressUpdate(selectedLevel.level.value, percentage);
+        }
       } else {
         setPreviewLevelOutcomePercentage(0);
+        if (selectedLevel && onProgressUpdate) {
+          onProgressUpdate(selectedLevel.level.value, 0);
+        }
       }
     }
-  }, [outcomeStatus, previewLevelData?.outcomes]);
+  }, [
+    outcomeStatus,
+    previewLevelData?.outcomes,
+    selectedLevel,
+    onProgressUpdate,
+  ]);
 
   if (isPreviewMode && previewLevelData) {
     return (
@@ -322,10 +340,10 @@ const ProgressTracker = ({ setViewMode, selectedLevel }: ProgressTrackerProps) =
             />
             <Box>
               <Text size='lg' fw={600} c='#8A8D8E'>
-                {selectedLevel?.seriesTitle || 'No Series Selected'}
+                {selectedLevel?.series || 'No Series Selected'}
               </Text>
-              <Text size='sm' c='#8A8D8E'>
-                {selectedLevel?.level.label || 'No Level Selected'}
+              <Text size='xs' c='#8A8D8E'>
+                Current Track Progress
               </Text>
             </Box>
           </Flex>
@@ -394,7 +412,7 @@ const ProgressTracker = ({ setViewMode, selectedLevel }: ProgressTrackerProps) =
                     Jump right back
                   </Text>
                   <Text size='xs' c='#8A8D8E'>
-                    {previewLevelData.title}
+                    {selectedLevel?.series}
                   </Text>
                   <Progress
                     value={previewLevelOutcomePercentage}

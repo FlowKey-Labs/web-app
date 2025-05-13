@@ -11,6 +11,12 @@ import { navigateToSessionDetails } from '../../utils/navigationHelpers';
 import ProgressTracker from './ProgressTracker';
 import ProgressSeriesTracker from './ProgressSeriesTracker';
 
+interface SeriesLevel {
+  label: string;
+  value: string;
+  progress?: number;
+}
+
 const ClientDetails = () => {
   const { id: clientId } = useParams();
   const navigate = useNavigate();
@@ -22,13 +28,13 @@ const ClientDetails = () => {
 
   const [viewMode, setViewMode] = useState<'details' | 'levels'>('details');
   const [selectedLevel, setSelectedLevel] = useState<{
-    seriesTitle: string;
-    level: {
-      label: string;
-      value: string;
-      progress?: number;
-    };
+    series: string;
+    level: SeriesLevel;
   } | null>(null);
+
+  const [levelProgress, setLevelProgress] = useState<{ [key: string]: number }>(
+    {}
+  );
 
   const [rowSelection, setRowSelection] = useState({});
 
@@ -116,9 +122,6 @@ const ClientDetails = () => {
     ],
     [clientDetails]
   );
-
-  // --- Placeholder Data for Progress Levels ---
-
 
   if (isLoading) {
     return (
@@ -273,11 +276,15 @@ const ClientDetails = () => {
                 </div>
               ) : (
                 // Progress Levels View
-                <ProgressSeriesTracker 
-                  onLevelSelect={(seriesTitle, level) => {
-                    setSelectedLevel({ seriesTitle, level });
+                <ProgressSeriesTracker
+                  onLevelSelect={(series, level) => {
+                    setSelectedLevel({
+                      series,
+                      level,
+                    });
                     setActiveTab('Progress Tracker');
                   }}
+                  levelProgress={levelProgress}
                 />
               )}
               {/* End Conditional Rendering */}
@@ -382,9 +389,15 @@ const ClientDetails = () => {
                 </>
               ) : activeTab === 'Progress Tracker' ? (
                 <div className='flex justify-center items-center p-8'>
-                  <ProgressTracker 
-                    setViewMode={setViewMode} 
+                  <ProgressTracker
+                    setViewMode={setViewMode}
                     selectedLevel={selectedLevel}
+                    onProgressUpdate={(levelId, progress) => {
+                      setLevelProgress((prev) => ({
+                        ...prev,
+                        [levelId]: progress,
+                      }));
+                    }}
                   />
                 </div>
               ) : null}

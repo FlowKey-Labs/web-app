@@ -18,9 +18,13 @@ interface Series {
 
 interface ProgressSeriesTrackerProps {
   onLevelSelect: (seriesTitle: string, level: SeriesLevel) => void;
+  levelProgress?: { [key: string]: number };
 }
 
-const ProgressSeriesTracker = ({ onLevelSelect }: ProgressSeriesTrackerProps) => {
+const ProgressSeriesTracker = ({
+  onLevelSelect,
+  levelProgress = {},
+}: ProgressSeriesTrackerProps) => {
   const [selectedLevel, setSelectedLevel] = useState<{
     series: string;
     level: string;
@@ -32,117 +36,126 @@ const ProgressSeriesTracker = ({ onLevelSelect }: ProgressSeriesTrackerProps) =>
     {
       title: 'STARFISH Series',
       levels: [
-        { 
-          label: 'Level 1', 
-          value: 'starfish-1', 
-          progress: 20,
+        {
+          label: 'Level 1',
+          value: 'starfish-1',
+          progress: levelProgress['starfish-1'] || 0,
         },
-        { 
-          label: 'Level 2', 
-          value: 'starfish-2', 
-          progress: 50,
+        {
+          label: 'Level 2',
+          value: 'starfish-2',
+          progress: levelProgress['starfish-2'] || 0,
         },
-        { 
-          label: 'Level 3', 
-          value: 'starfish-3', 
-          progress: 70,
-        },
-        { 
-          label: 'Level 4', 
-          value: 'starfish-4', 
-          progress: 100,
-        },
-        { 
-          label: 'Level 5', 
-          value: 'starfish-5', 
-          progress: 100,
-        },
-        { 
-          label: 'Level 6', 
-          value: 'starfish-6', 
-          progress: 100,
+        {
+          label: 'Level 3',
+          value: 'starfish-3',
+          progress: levelProgress['starfish-3'] || 0,
         },
       ],
     },
     {
       title: 'STANLEY Series',
       levels: [
-        { 
-          label: 'Level 1', 
-          value: 'stanley-1', 
-          progress: 0,
+        {
+          label: 'Level 1',
+          value: 'stanley-1',
+          progress: levelProgress['stanley-1'] || 0,
         },
-        { 
-          label: 'Level 2', 
-          value: 'stanley-2', 
-          progress: 0,
+        {
+          label: 'Level 2',
+          value: 'stanley-2',
+          progress: levelProgress['stanley-2'] || 0,
         },
-        { 
-          label: 'Level 3', 
-          value: 'stanley-3', 
-          progress: 0,
+        {
+          label: 'Level 3',
+          value: 'stanley-3',
+          progress: levelProgress['stanley-3'] || 0,
         },
-        { 
-          label: 'Level 4', 
-          value: 'stanley-4', 
-          progress: 0,
+        {
+          label: 'Level 4',
+          value: 'stanley-4',
+          progress: levelProgress['stanley-4'] || 0,
         },
-        { 
-          label: 'Level 5', 
-          value: 'stanley-5', 
-          progress: 0,
+        {
+          label: 'Level 5',
+          value: 'stanley-5',
+          progress: levelProgress['stanley-5'] || 0,
         },
-        { 
-          label: 'Level 6', 
-          value: 'stanley-6', 
-          progress: 0,
+        {
+          label: 'Level 6',
+          value: 'stanley-6',
+          progress: levelProgress['stanley-6'] || 0,
         },
       ],
     },
     {
       title: 'Octopus Series',
       levels: [
-        { 
-          label: 'Level 1', 
-          value: 'octopus-1', 
-          progress: 0,
+        {
+          label: 'Level 1',
+          value: 'octopus-1',
+          progress: levelProgress['octopus-1'] || 0,
         },
-        { 
-          label: 'Level 2', 
-          value: 'octopus-2', 
-          progress: 0,
+        {
+          label: 'Level 2',
+          value: 'octopus-2',
+          progress: levelProgress['octopus-2'] || 0,
         },
-        { 
-          label: 'Level 3', 
-          value: 'octopus-3', 
-          progress: 0,
+        {
+          label: 'Level 3',
+          value: 'octopus-3',
+          progress: levelProgress['octopus-3'] || 0,
         },
-        { 
-          label: 'Level 4', 
-          value: 'octopus-4', 
-          progress: 0,
+        {
+          label: 'Level 4',
+          value: 'octopus-4',
+          progress: levelProgress['octopus-4'] || 0,
         },
-        { 
-          label: 'Level 5', 
-          value: 'octopus-5', 
-          progress: 0,
+        {
+          label: 'Level 5',
+          value: 'octopus-5',
+          progress: levelProgress['octopus-5'] || 0,
         },
-        { 
-          label: 'Level 6', 
-          value: 'octopus-6', 
-          progress: 0,
+        {
+          label: 'Level 6',
+          value: 'octopus-6',
+          progress: levelProgress['octopus-6'] || 0,
         },
       ],
     },
     {
       title: 'Jellyfish Series',
       levels: [
-        { label: 'Level 1', value: 'jellyfish-1', progress: 0 },
-        { label: 'Level 2', value: 'jellyfish-2', progress: 0 },
-        { label: 'Level 3', value: 'jellyfish-3', progress: 0 },
-        { label: 'Level 4', value: 'jellyfish-4', progress: 0 },
-        { label: 'Level 5', value: 'jellyfish-5', progress: 0 },
-        { label: 'Level 6', value: 'jellyfish-6', progress: 0 },
+        {
+          label: 'Level 1',
+          value: 'jellyfish-1',
+          progress: levelProgress['jellyfish-1'] || 0,
+        },
+        {
+          label: 'Level 2',
+          value: 'jellyfish-2',
+          progress: levelProgress['jellyfish-2'] || 0,
+        },
+        {
+          label: 'Level 3',
+          value: 'jellyfish-3',
+          progress: levelProgress['jellyfish-3'] || 0,
+        },
+        {
+          label: 'Level 4',
+          value: 'jellyfish-4',
+          progress: levelProgress['jellyfish-4'] || 0,
+        },
+        {
+          label: 'Level 5',
+          value: 'jellyfish-5',
+          progress: levelProgress['jellyfish-5'] || 0,
+        },
+        {
+          label: 'Level 6',
+          value: 'jellyfish-6',
+          progress: levelProgress['jellyfish-6'] || 0,
+        },
       ],
     },
   ];
@@ -302,9 +315,13 @@ const ProgressSeriesTracker = ({ onLevelSelect }: ProgressSeriesTrackerProps) =>
                             <CustomRingProgress
                               size={40}
                               thickness={2}
+                              roundCaps
                               sections={[
                                 {
-                                  value: level.progress || 0,
+                                  value:
+                                    levelProgress[level.value] ||
+                                    level.progress ||
+                                    0,
                                   color: '#1D9B5E',
                                 },
                               ]}
