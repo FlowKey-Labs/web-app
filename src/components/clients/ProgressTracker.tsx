@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { FormProvider, useForm, Controller } from 'react-hook-form';
 import CustomRingProgress from '../common/CustomRingProgress';
 import {
@@ -48,6 +48,49 @@ interface ProgressTrackerProps {
   seriesData?: Series[];
 }
 
+type PreviewLevelData = {
+  title: string;
+  outcomes: string[];
+  assessedOn: string;
+  dueDate: string;
+};
+
+// Level outcomes data
+const levelOutcomes: { [key: string]: string[] } = {
+  'starfish-1': [
+    'Enter the pool safely with adult support',
+    'Familiarize child with the water using swing dips',
+    'Move freely around the pool on the front with adult support',
+    'Move freely around the pool on the back with adult support',
+    'Child to face adult and view them blowing bubbles',
+    'Leave the pool safely with adult support',
+  ],
+  'starfish-2': [
+    'Submerge face in the water with confidence',
+    'Float on back independently for 5 seconds',
+    'Kick legs while holding pool edge',
+    'Blow bubbles underwater for 3 seconds',
+    'Push and glide from wall with assistance',
+    'Retrieve object from pool bottom in chest-deep water',
+  ],
+  'starfish-3': [
+    'Swim 5 meters using any stroke',
+    'Tread water for 10 seconds',
+    'Perform basic freestyle arm movements',
+    'Jump into deep water with confidence',
+    'Float transition from front to back',
+    'Demonstrate basic water safety skills',
+  ],
+  'stanley-1': [
+    'Enter and exit pool safely using steps',
+    'Blow bubbles with mouth and nose submerged',
+    'Front float with support for 3 seconds',
+    'Back float with support for 3 seconds',
+    'Push and glide on front with face in water',
+    'Kick with a float board for 5 meters',
+  ],
+};
+
 const ProgressTracker = ({
   setViewMode,
   selectedLevel,
@@ -92,51 +135,19 @@ const ProgressTracker = ({
     console.log('Form submitted:', data);
   };
 
-  // Level outcomes data
-  const levelOutcomes: { [key: string]: string[] } = {
-    'starfish-1': [
-      'Enter the pool safely with adult support',
-      'Familiarize child with the water using swing dips',
-      'Move freely around the pool on the front with adult support',
-      'Move freely around the pool on the back with adult support',
-      'Child to face adult and view them blowing bubbles',
-      'Leave the pool safely with adult support',
-    ],
-    'starfish-2': [
-      'Submerge face in the water with confidence',
-      'Float on back independently for 5 seconds',
-      'Kick legs while holding pool edge',
-      'Blow bubbles underwater for 3 seconds',
-      'Push and glide from wall with assistance',
-      'Retrieve object from pool bottom in chest-deep water',
-    ],
-    'starfish-3': [
-      'Swim 5 meters using any stroke',
-      'Tread water for 10 seconds',
-      'Perform basic freestyle arm movements',
-      'Jump into deep water with confidence',
-      'Float transition from front to back',
-      'Demonstrate basic water safety skills',
-    ],
-    'stanley-1': [
-      'Enter and exit pool safely using steps',
-      'Blow bubbles with mouth and nose submerged',
-      'Front float with support for 3 seconds',
-      'Back float with support for 3 seconds',
-      'Push and glide on front with face in water',
-      'Kick with a float board for 5 meters',
-    ],
-  };
-
   // Preview mode data
-  const previewLevelData = selectedLevel
-    ? {
-        title: selectedLevel.level.label,
-        outcomes: levelOutcomes[selectedLevel.level.value] || [],
-        assessedOn: new Date().toLocaleDateString(),
-        dueDate: new Date().toLocaleDateString(),
-      }
-    : null;
+  const previewLevelData: PreviewLevelData | null = useMemo(
+    () =>
+      selectedLevel
+        ? {
+            title: selectedLevel.level.label,
+            outcomes: levelOutcomes[selectedLevel.level.value] || [],
+            assessedOn: new Date().toLocaleDateString(),
+            dueDate: new Date().toLocaleDateString(),
+          }
+        : null,
+    [selectedLevel]
+  );
 
   const [outcomeStatus, setOutcomeStatus] = useState<{
     [key: string]: boolean;
@@ -153,32 +164,22 @@ const ProgressTracker = ({
   };
 
   useEffect(() => {
-    if (previewLevelData?.outcomes) {
-      const totalOutcomes = previewLevelData.outcomes.length;
-      if (totalOutcomes > 0) {
-        const completedOutcomes = previewLevelData.outcomes.filter(
-          (outcome) => outcomeStatus[outcome]
-        ).length;
-        const percentage = Math.round(
-          (completedOutcomes / totalOutcomes) * 100
-        );
-        setPreviewLevelOutcomePercentage(percentage);
-        if (selectedLevel && onProgressUpdate) {
-          onProgressUpdate(selectedLevel.level.value, percentage);
-        }
-      } else {
-        setPreviewLevelOutcomePercentage(0);
-        if (selectedLevel && onProgressUpdate) {
-          onProgressUpdate(selectedLevel.level.value, 0);
-        }
+    if (!previewLevelData?.outcomes) return;
+    const totalOutcomes = previewLevelData.outcomes.length;
+    if (totalOutcomes > 0) {
+      const completedOutcomes = previewLevelData.outcomes.filter(
+        (outcome) => outcomeStatus[outcome]
+      ).length;
+      const percentage = Math.round((completedOutcomes / totalOutcomes) * 100);
+      setPreviewLevelOutcomePercentage(percentage);
+      onProgressUpdate?.(selectedLevel?.level?.value || '', percentage);
+    } else {
+      setPreviewLevelOutcomePercentage(0);
+      if (selectedLevel && onProgressUpdate) {
+        onProgressUpdate(selectedLevel.level.value, 0);
       }
     }
-  }, [
-    outcomeStatus,
-    previewLevelData?.outcomes,
-    selectedLevel,
-    onProgressUpdate,
-  ]);
+  }, [outcomeStatus, previewLevelData?.outcomes, selectedLevel]);
 
   if (isPreviewMode && previewLevelData) {
     return (
