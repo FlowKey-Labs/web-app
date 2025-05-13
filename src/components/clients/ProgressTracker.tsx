@@ -26,6 +26,10 @@ import previewEyeIcon from '../../assets/icons/previewEye.svg';
 import Input from '../common/Input';
 import { useProgressStore } from '../../store/progressStore';
 
+import sucessIcon from '../../assets/icons/success.svg';
+import errorIcon from '../../assets/icons/error.svg';
+import { notifications } from '@mantine/notifications';
+
 const levelOutcomes: { [key: string]: string[] } = {
   'starfish-1': [
     'Enter the pool safely with adult support',
@@ -297,10 +301,21 @@ const ProgressTracker = () => {
               size='sm'
               onClick={() => {
                 if (previewLevelOutcomePercentage < 100) {
-                  // Show a notification or alert to the user
-                  alert(
-                    'Please complete all outcomes (100%) before moving to the next level'
-                  );
+                  notifications.show({
+                    title: 'Error',
+                    message:
+                      'Please complete all outcomes before moving to the next level',
+                    color: 'red',
+                    radius: 'md',
+                    icon: (
+                      <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+                        <img src={errorIcon} alt='Error' className='w-4 h-4' />
+                      </span>
+                    ),
+                    withBorder: true,
+                    autoClose: 3000,
+                    position: 'top-right',
+                  });
                 } else {
                   methods.handleSubmit(onSubmit)();
                 }
