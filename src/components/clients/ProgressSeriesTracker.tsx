@@ -34,12 +34,11 @@ const ProgressSeriesTracker = () => {
   const seriesData: Series[] = [
     {
       title: 'STARFISH Series',
-      progress: 20,
       levels: [
         { label: 'Level 1', value: 'starfish-1', progress: 20 },
         { label: 'Level 2', value: 'starfish-2', progress: 50 },
         { label: 'Level 3', value: 'starfish-3', progress: 70 },
-        { label: 'Level 4', value: 'starfish-4', progress: 90 },
+        { label: 'Level 4', value: 'starfish-4', progress: 100 },
         { label: 'Level 5', value: 'starfish-5', progress: 100 },
         { label: 'Level 6', value: 'starfish-6', progress: 100 },
       ],
@@ -47,34 +46,34 @@ const ProgressSeriesTracker = () => {
     {
       title: 'STANLEY Series',
       levels: [
-        { label: 'Level 1', value: 'stanley-1', progress: 20 },
-        { label: 'Level 2', value: 'stanley-2', progress: 50 },
-        { label: 'Level 3', value: 'stanley-3', progress: 70 },
-        { label: 'Level 4', value: 'stanley-4', progress: 90 },
-        { label: 'Level 5', value: 'stanley-5', progress: 100 },
-        { label: 'Level 6', value: 'stanley-6', progress: 100 },
+        { label: 'Level 1', value: 'stanley-1', progress: 0 },
+        { label: 'Level 2', value: 'stanley-2', progress: 0 },
+        { label: 'Level 3', value: 'stanley-3', progress: 0 },
+        { label: 'Level 4', value: 'stanley-4', progress: 0 },
+        { label: 'Level 5', value: 'stanley-5', progress: 0 },
+        { label: 'Level 6', value: 'stanley-6', progress: 0 },
       ],
     },
     {
       title: 'Octopus Series',
       levels: [
-        { label: 'Level 1', value: 'octopus-1', progress: 20 },
-        { label: 'Level 2', value: 'octopus-2', progress: 50 },
-        { label: 'Level 3', value: 'octopus-3', progress: 70 },
-        { label: 'Level 4', value: 'octopus-4', progress: 90 },
-        { label: 'Level 5', value: 'octopus-5', progress: 100 },
-        { label: 'Level 6', value: 'octopus-6', progress: 100 },
+        { label: 'Level 1', value: 'octopus-1', progress: 0 },
+        { label: 'Level 2', value: 'octopus-2', progress: 0 },
+        { label: 'Level 3', value: 'octopus-3', progress: 0 },
+        { label: 'Level 4', value: 'octopus-4', progress: 0 },
+        { label: 'Level 5', value: 'octopus-5', progress: 0 },
+        { label: 'Level 6', value: 'octopus-6', progress: 0 },
       ],
     },
     {
       title: 'Jellyfish Series',
       levels: [
-        { label: 'Level 1', value: 'jellyfish-1', progress: 20 },
-        { label: 'Level 2', value: 'jellyfish-2', progress: 50 },
-        { label: 'Level 3', value: 'jellyfish-3', progress: 70 },
-        { label: 'Level 4', value: 'jellyfish-4', progress: 90 },
-        { label: 'Level 5', value: 'jellyfish-5', progress: 100 },
-        { label: 'Level 6', value: 'jellyfish-6', progress: 100 },
+        { label: 'Level 1', value: 'jellyfish-1', progress: 0 },
+        { label: 'Level 2', value: 'jellyfish-2', progress: 0 },
+        { label: 'Level 3', value: 'jellyfish-3', progress: 0 },
+        { label: 'Level 4', value: 'jellyfish-4', progress: 0 },
+        { label: 'Level 5', value: 'jellyfish-5', progress: 0 },
+        { label: 'Level 6', value: 'jellyfish-6', progress: 0 },
       ],
     },
   ];
@@ -93,6 +92,16 @@ const ProgressSeriesTracker = () => {
       series: seriesTitle,
       level: level.label,
     });
+  };
+
+  const calculateSeriesProgress = (series: Series) => {
+    if (!series.levels || series.levels.length === 0) {
+      return 0;
+    }
+    const completedLevels = series.levels.filter(
+      (level) => level.progress === 100
+    ).length;
+    return (completedLevels / series.levels.length) * 100;
   };
 
   const handleAccordionChange = (value: string) => {
@@ -143,6 +152,7 @@ const ProgressSeriesTracker = () => {
         {seriesData.map((series, index) => {
           const canExpand = isSeriesComplete(index);
           const isExpanded = expandedSeries === series.title;
+          const seriesProgress = calculateSeriesProgress(series);
 
           return (
             <Accordion.Item
@@ -158,25 +168,24 @@ const ProgressSeriesTracker = () => {
                       <Text fw={500} size='sm'>
                         {series.title}
                       </Text>
-                      {series.progress !== undefined &&
-                        series.progress !== 0 && (
-                          <>
-                            <Progress
-                              value={series.progress || 0}
-                              color='#1D9B5E'
-                              size='sm'
-                              radius='xl'
-                              style={{ width: '70%', marginTop: '8px' }}
-                            />
-                            <Text size='14px' c='dimmed' mt='xs'>
-                              {series.progress === 100 ? (
-                                <Text color='#1D9B5E'>Completed</Text>
-                              ) : (
-                                `${series.progress}% Completed`
-                              )}
-                            </Text>
-                          </>
-                        )}
+                      {series.levels && series.levels.length > 0 && seriesProgress > 0 && (
+                        <>
+                          <Progress
+                            value={seriesProgress}
+                            color='#1D9B5E'
+                            size='sm'
+                            radius='xl'
+                            style={{ width: '70%', marginTop: '8px' }}
+                          />
+                          <Text size='14px' c='dimmed' mt='xs'>
+                            {seriesProgress === 100 ? (
+                              <Text color='#1D9B5E'>Completed</Text>
+                            ) : (
+                              `${Math.round(seriesProgress)}% Completed`
+                            )}
+                          </Text>
+                        </>
+                      )}
                     </Flex>
                     {canExpand ? (
                       isExpanded ? (
