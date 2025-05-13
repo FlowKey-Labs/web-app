@@ -1,211 +1,120 @@
-import { useState } from 'react';
 import { Card, Text, Flex, Box, Accordion, Progress } from '@mantine/core';
 import CustomRingProgress from '../common/CustomRingProgress';
 import lockIcon from '../../assets/icons/Lock.svg';
 import { IconChevronUp, IconChevronDown } from '@tabler/icons-react';
+import {
+  Series,
+  SeriesLevel,
+  useProgressStore,
+} from '../../store/progressStore';
+import { useState } from 'react';
 
-interface SeriesLevel {
-  label: string;
-  value: string;
-  progress?: number;
-}
+const ProgressSeriesTracker = () => {
+  const {
+    selectedLevel,
+    levelProgress,
+    expandedSeries,
+    setSelectedLevel,
+    setExpandedSeries,
+    setViewMode,
+    setActiveTab,
+    seriesData,
+    currentSeriesIndex,
+    currentLevelIndex,
+  } = useProgressStore();
 
-interface Series {
-  title: string;
-  progress?: number;
-  levels?: SeriesLevel[];
-}
-
-interface ProgressSeriesTrackerProps {
-  onLevelSelect: (seriesTitle: string, level: SeriesLevel) => void;
-  levelProgress?: { [key: string]: number };
-}
-
-const ProgressSeriesTracker = ({
-  onLevelSelect,
-  levelProgress = {},
-}: ProgressSeriesTrackerProps) => {
-  const [selectedLevel, setSelectedLevel] = useState<{
-    series: string;
-    level: string;
-  } | null>(null);
-  const [expandedSeries, setExpandedSeries] = useState<string | null>(null);
   const [isActive, setIsActive] = useState(false);
 
-  const seriesData: Series[] = [
-    {
-      title: 'STARFISH Series',
-      levels: [
-        {
-          label: 'Level 1',
-          value: 'starfish-1',
-          progress: levelProgress['starfish-1'] || 0,
-        },
-        {
-          label: 'Level 2',
-          value: 'starfish-2',
-          progress: levelProgress['starfish-2'] || 0,
-        },
-        {
-          label: 'Level 3',
-          value: 'starfish-3',
-          progress: levelProgress['starfish-3'] || 0,
-        },
-      ],
-    },
-    {
-      title: 'STANLEY Series',
-      levels: [
-        {
-          label: 'Level 1',
-          value: 'stanley-1',
-          progress: levelProgress['stanley-1'] || 0,
-        },
-        {
-          label: 'Level 2',
-          value: 'stanley-2',
-          progress: levelProgress['stanley-2'] || 0,
-        },
-        {
-          label: 'Level 3',
-          value: 'stanley-3',
-          progress: levelProgress['stanley-3'] || 0,
-        },
-        {
-          label: 'Level 4',
-          value: 'stanley-4',
-          progress: levelProgress['stanley-4'] || 0,
-        },
-        {
-          label: 'Level 5',
-          value: 'stanley-5',
-          progress: levelProgress['stanley-5'] || 0,
-        },
-        {
-          label: 'Level 6',
-          value: 'stanley-6',
-          progress: levelProgress['stanley-6'] || 0,
-        },
-      ],
-    },
-    {
-      title: 'Octopus Series',
-      levels: [
-        {
-          label: 'Level 1',
-          value: 'octopus-1',
-          progress: levelProgress['octopus-1'] || 0,
-        },
-        {
-          label: 'Level 2',
-          value: 'octopus-2',
-          progress: levelProgress['octopus-2'] || 0,
-        },
-        {
-          label: 'Level 3',
-          value: 'octopus-3',
-          progress: levelProgress['octopus-3'] || 0,
-        },
-        {
-          label: 'Level 4',
-          value: 'octopus-4',
-          progress: levelProgress['octopus-4'] || 0,
-        },
-        {
-          label: 'Level 5',
-          value: 'octopus-5',
-          progress: levelProgress['octopus-5'] || 0,
-        },
-        {
-          label: 'Level 6',
-          value: 'octopus-6',
-          progress: levelProgress['octopus-6'] || 0,
-        },
-      ],
-    },
-    {
-      title: 'Jellyfish Series',
-      levels: [
-        {
-          label: 'Level 1',
-          value: 'jellyfish-1',
-          progress: levelProgress['jellyfish-1'] || 0,
-        },
-        {
-          label: 'Level 2',
-          value: 'jellyfish-2',
-          progress: levelProgress['jellyfish-2'] || 0,
-        },
-        {
-          label: 'Level 3',
-          value: 'jellyfish-3',
-          progress: levelProgress['jellyfish-3'] || 0,
-        },
-        {
-          label: 'Level 4',
-          value: 'jellyfish-4',
-          progress: levelProgress['jellyfish-4'] || 0,
-        },
-        {
-          label: 'Level 5',
-          value: 'jellyfish-5',
-          progress: levelProgress['jellyfish-5'] || 0,
-        },
-        {
-          label: 'Level 6',
-          value: 'jellyfish-6',
-          progress: levelProgress['jellyfish-6'] || 0,
-        },
-      ],
-    },
-  ];
+  // const seriesData: Series[] = [
+  //   {
+  //     title: 'STARFISH Series',
+  //     levels: [
+  //       { label: 'Level 1', value: 'starfish-1', progress: levelProgress['starfish-1'] || 0 },
+  //       { label: 'Level 2', value: 'starfish-2', progress: levelProgress['starfish-2'] || 0 },
+  //       { label: 'Level 3', value: 'starfish-3', progress: levelProgress['starfish-3'] || 0 },
+  //     ],
+  //   },
+  //   {
+  //     title: 'STANLEY Series',
+  //     levels: [
+  //       { label: 'Level 1', value: 'stanley-1', progress: levelProgress['stanley-1'] || 0 },
+  //       { label: 'Level 2', value: 'stanley-2', progress: levelProgress['stanley-2'] || 0 },
+  //       { label: 'Level 3', value: 'stanley-3', progress: levelProgress['stanley-3'] || 0 },
+  //       { label: 'Level 4', value: 'stanley-4', progress: levelProgress['stanley-4'] || 0 },
+  //       { label: 'Level 5', value: 'stanley-5', progress: levelProgress['stanley-5'] || 0 },
+  //       { label: 'Level 6', value: 'stanley-6', progress: levelProgress['stanley-6'] || 0 },
+  //     ],
+  //   },
+  //   {
+  //     title: 'Octopus Series',
+  //     levels: [
+  //       { label: 'Level 1', value: 'octopus-1', progress: levelProgress['octopus-1'] || 0 },
+  //       { label: 'Level 2', value: 'octopus-2', progress: levelProgress['octopus-2'] || 0 },
+  //       { label: 'Level 3', value: 'octopus-3', progress: levelProgress['octopus-3'] || 0 },
+  //       { label: 'Level 4', value: 'octopus-4', progress: levelProgress['octopus-4'] || 0 },
+  //       { label: 'Level 5', value: 'octopus-5', progress: levelProgress['octopus-5'] || 0 },
+  //       { label: 'Level 6', value: 'octopus-6', progress: levelProgress['octopus-6'] || 0 },
+  //     ],
+  //   },
+  //   {
+  //     title: 'Jellyfish Series',
+  //     levels: [
+  //       { label: 'Level 1', value: 'jellyfish-1', progress: levelProgress['jellyfish-1'] || 0 },
+  //       { label: 'Level 2', value: 'jellyfish-2', progress: levelProgress['jellyfish-2'] || 0 },
+  //       { label: 'Level 3', value: 'jellyfish-3', progress: levelProgress['jellyfish-3'] || 0 },
+  //       { label: 'Level 4', value: 'jellyfish-4', progress: levelProgress['jellyfish-4'] || 0 },
+  //       { label: 'Level 5', value: 'jellyfish-5', progress: levelProgress['jellyfish-5'] || 0 },
+  //       { label: 'Level 6', value: 'jellyfish-6', progress: levelProgress['jellyfish-6'] || 0 },
+  //     ],
+  //   },
+  // ];
 
   const isSeriesComplete = (seriesIndex: number) => {
     if (seriesIndex === 0) return true;
-
     const prevSeries = seriesData[seriesIndex - 1];
     if (!prevSeries.levels) return true;
-
-    return prevSeries.levels.every((level) => level.progress === 100);
+    return prevSeries.levels.every(
+      (level) => (levelProgress[level.value] || 0) === 100
+    );
   };
 
   const handleLevelSelect = (seriesTitle: string, level: SeriesLevel) => {
-    setSelectedLevel({
-      series: seriesTitle,
-      level: level.label,
-    });
+    const seriesIndex = seriesData.findIndex((s) => s.title === seriesTitle);
+    const levelIndex =
+      seriesData[seriesIndex].levels?.findIndex(
+        (l) => l.value === level.value
+      ) || 0;
+
+    setSelectedLevel({ series: seriesTitle, level });
     setExpandedSeries(seriesTitle);
     setIsActive(true);
-    onLevelSelect(seriesTitle, level);
+    setActiveTab('Progress Tracker');
+    setViewMode('levels');
   };
 
   const calculateSeriesProgress = (series: Series) => {
-    if (!series.levels || series.levels.length === 0) {
-      return 0;
-    }
-    const totalProgress = series.levels.reduce((sum, level) => {
-      return sum + (levelProgress[level.value] || 0);
-    }, 0);
+    if (!series.levels || series.levels.length === 0) return 0;
+    const totalProgress = series.levels.reduce(
+      (sum, level) => sum + (levelProgress[level.value] || 0),
+      0
+    );
     return Math.round(totalProgress / series.levels.length);
   };
 
   const handleAccordionChange = (value: string) => {
     const seriesIndex = seriesData.findIndex((s) => s.title === value);
-    if (seriesIndex > 0 && !isSeriesComplete(seriesIndex)) {
-      return;
-    }
+    if (seriesIndex > 0 && !isSeriesComplete(seriesIndex)) return;
     setExpandedSeries(expandedSeries === value ? null : value);
   };
 
   const renderProgressText = (progress?: number) => {
-    if (progress === 100) {
+    if (progress === 100)
       return (
         <Text color='#1D9B5E' size='xs'>
           Completed
         </Text>
       );
-    }
-    return `${progress}%`;
+    return progress && progress > 0 ? `${progress}%` : null;
   };
 
   return (
@@ -221,17 +130,13 @@ const ProgressSeriesTracker = ({
             marginBottom: '8px',
             backgroundColor: '#F8F8EF',
             borderRadius: '8px',
-            '&[data-active]': {
+            '&[dataActive]': {
               backgroundColor: '#ffffff',
               boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
             },
           },
-          control: {
-            backgroundColor: 'transparent',
-          },
-          content: {
-            padding: '8px 16px 18px',
-          },
+          control: { backgroundColor: 'transparent' },
+          content: { padding: '8px 16px 18px' },
         }}
       >
         {seriesData.map((series, index) => {
@@ -306,7 +211,7 @@ const ProgressSeriesTracker = ({
                             borderRadius: '8px',
                             backgroundColor:
                               selectedLevel?.series === series.title &&
-                              selectedLevel?.level === level.label
+                              selectedLevel?.level.label === level.label
                                 ? '#f0fdf4'
                                 : '#DEDEDE66',
                           }}

@@ -24,38 +24,8 @@ import dropZoneIcon from '../../assets/icons/dropZone.svg';
 import styles from '../accountSettings/GeneralSettings.module.css';
 import previewEyeIcon from '../../assets/icons/previewEye.svg';
 import Input from '../common/Input';
+import { useProgressStore } from '../../store/progressStore';
 
-interface SeriesLevel {
-  label: string;
-  value: string;
-  progress?: number;
-}
-
-interface Series {
-  title: string;
-  progress?: number;
-  levels?: SeriesLevel[];
-}
-
-interface ProgressTrackerProps {
-  setViewMode: (mode: 'details' | 'levels') => void;
-  selectedLevel: {
-    series: string;
-    level: SeriesLevel;
-  } | null;
-  onProgressUpdate?: (levelId: string, progress: number) => void;
-  levelProgress?: { [key: string]: number };
-  seriesData?: Series[];
-}
-
-type PreviewLevelData = {
-  title: string;
-  outcomes: string[];
-  assessedOn: string;
-  dueDate: string;
-};
-
-// Level outcomes data
 const levelOutcomes: { [key: string]: string[] } = {
   'starfish-1': [
     'Enter the pool safely with adult support',
@@ -91,95 +61,89 @@ const levelOutcomes: { [key: string]: string[] } = {
   ],
 };
 
-const ProgressTracker = ({
-  setViewMode,
-  selectedLevel,
-  onProgressUpdate,
-  levelProgress = {},
-  seriesData = [],
-}: ProgressTrackerProps) => {
-  const calculateSeriesProgress = (series: Series) => {
-    if (!series.levels || series.levels.length === 0) {
-      return 0;
-    }
-    const totalProgress = series.levels.reduce((sum, level) => {
-      return sum + (levelProgress[level.value] || 0);
-    }, 0);
-    return Math.round(totalProgress / series.levels.length);
-  };
+const ProgressTracker = () => {
+  const {
+    selectedLevel,
+    levelProgress,
+    viewMode,
+    setViewMode,
+    updateLevelProgress,
+    seriesData,
+    goToNextLevel,
+    goToPreviousLevel,
+    currentSeriesIndex,
+    currentLevelIndex,
+  } = useProgressStore();
+
   const methods = useForm({
-    defaultValues: {
-      feedback: '',
-      attachments: [] as File[],
-    },
+    defaultValues: { feedback: '', attachments: [] as File[] },
   });
+
   const [isPreviewMode, setIsPreviewMode] = useState(false);
   const [completionPercentage, setCompletionPercentage] = useState(0);
   const [previewLevelOutcomePercentage, setPreviewLevelOutcomePercentage] =
     useState(0);
+  const [outcomeStatus, setOutcomeStatus] = useState<{
+    [key: string]: boolean;
+  }>({});
 
-  // Sync preview mode with view mode
+  const previewLevelData = useMemo(
+    () => ({
+      title: selectedLevel.level.label,
+      outcomes: levelOutcomes[selectedLevel.level.value] || [],
+      assessedOn: '2024-02-15',
+      dueDate: '2024-03-15',
+    }),
+    [selectedLevel, levelOutcomes]
+  );
+
+  // Calculate series progress for the current series
+  const currentSeriesProgress = useMemo(() => {
+    if (!selectedLevel) return 0;
+    const series = seriesData.find((s) => s.title === selectedLevel.series);
+    if (!series || !series.levels) return 0;
+
+    const totalProgress = series.levels.reduce((sum, level) => {
+      return sum + (levelProgress[level.value] || 0);
+    }, 0);
+    return Math.round(totalProgress / series.levels.length);
+  }, [selectedLevel, seriesData, levelProgress]);
+
   useEffect(() => {
-    if (!isPreviewMode) {
+    if (!isPreviewMode && viewMode === 'levels') {
       setViewMode('details');
     }
-  }, [isPreviewMode, setViewMode]);
+  }, [isPreviewMode, viewMode, setViewMode]);
 
   useEffect(() => {
     if (selectedLevel) {
-      setCompletionPercentage(selectedLevel.level.progress || 0);
+      const progress = levelProgress[selectedLevel.level.value] || 0;
+      setCompletionPercentage(progress);
     }
-  }, [selectedLevel]);
-
-  const onSubmit = (data: any) => {
-    console.log('Form submitted:', data);
-  };
-
-  // Preview mode data
-  const previewLevelData: PreviewLevelData | null = useMemo(
-    () =>
-      selectedLevel
-        ? {
-            title: selectedLevel.level.label,
-            outcomes: levelOutcomes[selectedLevel.level.value] || [],
-            assessedOn: new Date().toLocaleDateString(),
-            dueDate: new Date().toLocaleDateString(),
-          }
-        : null,
-    [selectedLevel]
-  );
-
-  const [outcomeStatus, setOutcomeStatus] = useState<{
-    [key: string]: boolean;
-  }>({
-    'Enter the pool safely with adult support': true,
-    // Initialize other outcomes as false or based on actual data if available
-  });
+  }, [selectedLevel, levelProgress]);
 
   const handleOutcomeToggle = (outcome: string) => {
-    setOutcomeStatus((prevStatus) => ({
-      ...prevStatus,
-      [outcome]: !prevStatus[outcome],
+    setOutcomeStatus((prev: { [key: string]: boolean }) => ({
+      ...prev,
+      [outcome]: !prev[outcome],
     }));
   };
 
   useEffect(() => {
-    if (!previewLevelData?.outcomes) return;
+    if (!previewLevelData?.outcomes || !selectedLevel) return;
     const totalOutcomes = previewLevelData.outcomes.length;
-    if (totalOutcomes > 0) {
-      const completedOutcomes = previewLevelData.outcomes.filter(
-        (outcome) => outcomeStatus[outcome]
-      ).length;
-      const percentage = Math.round((completedOutcomes / totalOutcomes) * 100);
-      setPreviewLevelOutcomePercentage(percentage);
-      onProgressUpdate?.(selectedLevel?.level?.value || '', percentage);
-    } else {
-      setPreviewLevelOutcomePercentage(0);
-      if (selectedLevel && onProgressUpdate) {
-        onProgressUpdate(selectedLevel.level.value, 0);
-      }
-    }
-  }, [outcomeStatus, previewLevelData?.outcomes, selectedLevel]);
+    const completedOutcomes = previewLevelData.outcomes.filter(
+      (outcome) => outcomeStatus[outcome]
+    ).length;
+    const percentage = Math.round((completedOutcomes / totalOutcomes) * 100);
+    setPreviewLevelOutcomePercentage(percentage);
+    updateLevelProgress(selectedLevel.level.value, percentage);
+  }, [outcomeStatus, previewLevelData, selectedLevel, updateLevelProgress]);
+
+  const onSubmit = (data: any) => {
+    console.log('Form submitted:', data);
+    goToNextLevel();
+  };
 
   if (isPreviewMode && previewLevelData) {
     return (
@@ -200,7 +164,7 @@ const ProgressTracker = ({
             Assessed on: {previewLevelData.assessedOn}
           </Text>
           <div className='space-y-3 mb-6'>
-            {previewLevelData.outcomes.map((outcome, index) => {
+            {previewLevelData.outcomes.map((outcome: string, index: number) => {
               const isCompleted = outcomeStatus[outcome] || false;
               return (
                 <Card
@@ -241,7 +205,6 @@ const ProgressTracker = ({
               );
             })}
           </div>
-
           <Controller
             name='feedback'
             control={methods.control}
@@ -255,7 +218,6 @@ const ProgressTracker = ({
               />
             )}
           />
-
           <Text size='sm' fw={500} mb='xs'>
             Attach Photos or videos
           </Text>
@@ -319,7 +281,7 @@ const ProgressTracker = ({
               color='#1D9B5E'
               radius='md'
               size='sm'
-              onClick={() => setIsPreviewMode(false)}
+              onClick={() => goToPreviousLevel()}
             >
               Back
             </Button>
@@ -346,26 +308,14 @@ const ProgressTracker = ({
               size={150}
               thickness={10}
               roundCaps
-              sections={[{ value: completionPercentage, color: '#1D9B5E' }]}
+              sections={[{ value: currentSeriesProgress, color: '#1D9B5E' }]}
               label={
                 <Flex direction='column' justify='center' align='center'>
                   <Text size='10px' c='black'>
                     Completion
                   </Text>
-                  <Text size='16px' fw={600} c='#1D9B5E' mt='xs'>
-                    {selectedLevel && seriesData.length > 0
-                      ? calculateSeriesProgress(
-                          seriesData.find(
-                            (s) => s.title === selectedLevel.series
-                          ) || seriesData[0]
-                        ) === 100
-                        ? '100%'
-                        : `${calculateSeriesProgress(
-                            seriesData.find(
-                              (s) => s.title === selectedLevel.series
-                            ) || seriesData[0]
-                          )}%`
-                      : '0%'}
+                  <Text c='#1D9B5E' fw={700} ta='center' size='xl'>
+                    {currentSeriesProgress}%
                   </Text>
                 </Flex>
               }
@@ -414,22 +364,11 @@ const ProgressTracker = ({
               Progress
             </Text>
             <Badge size='md' c='#1D9B5E' fw={500} bg='#ECFDF3'>
-              {calculateSeriesProgress(
-                seriesData.find((s) => s.title === selectedLevel?.series) ||
-                  seriesData[0]
-              )}
-              % ↑
+              {currentSeriesProgress}% ↑
             </Badge>
           </Flex>
           <Progress
-            value={
-              selectedLevel && seriesData.length > 0
-                ? calculateSeriesProgress(
-                    seriesData.find((s) => s.title === selectedLevel.series) ||
-                      seriesData[0]
-                  )
-                : 0
-            }
+            value={currentSeriesProgress}
             color='#1D9B5E'
             radius='sm'
             mb='sm'
@@ -440,7 +379,7 @@ const ProgressTracker = ({
         </Card>
 
         <Box>
-          {previewLevelData && !isPreviewMode ? (
+          {previewLevelData && (
             <Card shadow='sm' padding='xl' radius='lg' withBorder mb='md'>
               <Flex justify='space-between' align='center'>
                 <Box w='70%'>
@@ -448,7 +387,7 @@ const ProgressTracker = ({
                     Jump right back
                   </Text>
                   <Text size='xs' c='#8A8D8E'>
-                    {selectedLevel?.series}
+                    {selectedLevel?.level.label}
                   </Text>
                   <Progress
                     value={previewLevelOutcomePercentage}
@@ -473,44 +412,7 @@ const ProgressTracker = ({
                 </Box>
                 <Divider orientation='vertical' size='xs' />
                 <Text size='2rem' fw={600} c='#8A8D8E'>
-                  {previewLevelOutcomePercentage}%
-                </Text>
-              </Flex>
-            </Card>
-          ) : (
-            <Card shadow='sm' padding='xl' radius='lg' withBorder mb='md'>
-              <Flex justify='space-between' align='center'>
-                <Box w='70%'>
-                  <Text fw={600} c='#8A8D8E'>
-                    Jump right back
-                  </Text>
-                  <Text size='xs' c='#8A8D8E'>
-                    {selectedLevel?.series}
-                  </Text>
-                  <Progress
-                    value={completionPercentage}
-                    color='#FF9500'
-                    radius='sm'
-                    mt='sm'
-                  />
-                  <Button
-                    variant='transparent'
-                    color='#0F2028'
-                    rightSection={<IconChevronRight size={14} />}
-                    p={0}
-                    mt='sm'
-                    size='sm'
-                    onClick={() => {
-                      setIsPreviewMode(true);
-                      setViewMode('levels');
-                    }}
-                  >
-                    Continue Learning
-                  </Button>
-                </Box>
-                <Divider orientation='vertical' size='xs' />
-                <Text size='2rem' fw={600} c='#8A8D8E'>
-                  {previewLevelOutcomePercentage}%
+                  {previewLevelOutcomePercentage || 0}%
                 </Text>
               </Flex>
             </Card>
@@ -558,7 +460,7 @@ const ProgressTracker = ({
             <Box ta='center' pr='md' w='30%'>
               <Text size='2rem' fw={600} c='white'>
                 100%
-              </Text>{' '}
+              </Text>
               <Text size='10px' c='white' mt='xs'>
                 Avg presence
               </Text>
