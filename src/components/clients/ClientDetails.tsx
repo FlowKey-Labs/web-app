@@ -211,14 +211,6 @@ const ClientDetails = () => {
                         )}
                       </span>
                     </div>
-                    <div className='flex justify-between items-center w-full text-sm'>
-                      <span className='text-gray-400 font-bold text-xs'>
-                        CATEGORY
-                      </span>
-                      <span className='text-gray-400  text-xs'>
-                        {clientDetails.classCategory || 'N/A'}
-                      </span>
-                    </div>
                   </div>
                   <div className='h-[1px] bg-gray-300 w-[80%] mx-auto my-6'></div>
                   <div className='w-full px-4 space-y-4'>

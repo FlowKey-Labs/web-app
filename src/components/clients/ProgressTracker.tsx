@@ -71,7 +71,6 @@ const ProgressTracker = () => {
     seriesData,
     goToNextLevel,
     goToPreviousLevel,
-    currentSeriesIndex,
     currentLevelIndex,
   } = useProgressStore();
 
@@ -281,7 +280,14 @@ const ProgressTracker = () => {
               color='#1D9B5E'
               radius='md'
               size='sm'
-              onClick={() => goToPreviousLevel()}
+              onClick={() => {
+                if (currentLevelIndex > 0) {
+                  goToPreviousLevel();
+                } else {
+                  setViewMode('details');
+                  setIsPreviewMode(false);
+                }
+              }}
             >
               Back
             </Button>
@@ -289,7 +295,16 @@ const ProgressTracker = () => {
               color='#1D9B5E'
               radius='md'
               size='sm'
-              onClick={methods.handleSubmit(onSubmit)}
+              onClick={() => {
+                if (previewLevelOutcomePercentage < 100) {
+                  // Show a notification or alert to the user
+                  alert(
+                    'Please complete all outcomes (100%) before moving to the next level'
+                  );
+                } else {
+                  methods.handleSubmit(onSubmit)();
+                }
+              }}
             >
               Next
             </Button>

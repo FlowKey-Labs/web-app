@@ -24,13 +24,15 @@ interface ProgressState {
   seriesData: Series[];
   currentLevelIndex: number;
   currentSeriesIndex: number;
-  
+
   // Actions
   setSelectedLevel: (level: ProgressState['selectedLevel']) => void;
   updateLevelProgress: (levelId: string, progress: number) => void;
   setExpandedSeries: (series: string | null) => void;
   setViewMode: (mode: 'details' | 'levels') => void;
-  setActiveTab: (tab: 'overview' | 'Progress Tracker' | 'Attendance' | 'Assessments') => void;
+  setActiveTab: (
+    tab: 'overview' | 'Progress Tracker' | 'Attendance' | 'Assessments'
+  ) => void;
   goToNextLevel: () => void;
   goToPreviousLevel: () => void;
 }
@@ -102,10 +104,24 @@ export const useProgressStore = create<ProgressState>((set, get) => ({
   setViewMode: (mode) => set({ viewMode: mode }),
   setActiveTab: (tab) => set({ activeTab: tab }),
   goToNextLevel: () => {
-    const { seriesData, currentSeriesIndex, currentLevelIndex } = get();
+    const {
+      seriesData,
+      currentSeriesIndex,
+      currentLevelIndex,
+      levelProgress,
+      selectedLevel,
+    } = get();
     const currentSeries = seriesData[currentSeriesIndex];
-    
+
     if (!currentSeries || !currentSeries.levels) return;
+
+    // Check if current level is 100% complete
+    const currentLevelId = selectedLevel.level.value;
+    const currentLevelProgress = levelProgress[currentLevelId] || 0;
+
+    if (currentLevelProgress < 100) {
+      return;
+    }
 
     // Check if there's a next level in current series
     if (currentLevelIndex < currentSeries.levels.length - 1) {
@@ -116,9 +132,9 @@ export const useProgressStore = create<ProgressState>((set, get) => ({
           series: currentSeries.title,
           level: nextLevel,
         },
-        expandedSeries: currentSeries.title
+        expandedSeries: currentSeries.title,
       });
-    } 
+    }
     // Otherwise move to next series
     else if (currentSeriesIndex < seriesData.length - 1) {
       const nextSeries = seriesData[currentSeriesIndex + 1];
@@ -130,7 +146,7 @@ export const useProgressStore = create<ProgressState>((set, get) => ({
             series: nextSeries.title,
             level: nextSeries.levels[0],
           },
-          expandedSeries: nextSeries.title
+          expandedSeries: nextSeries.title,
         });
       }
     }
@@ -138,7 +154,7 @@ export const useProgressStore = create<ProgressState>((set, get) => ({
   goToPreviousLevel: () => {
     const { seriesData, currentSeriesIndex, currentLevelIndex } = get();
     const currentSeries = seriesData[currentSeriesIndex];
-    
+
     if (!currentSeries || !currentSeries.levels) return;
 
     // Check if there's a previous level in current series
@@ -150,9 +166,9 @@ export const useProgressStore = create<ProgressState>((set, get) => ({
           series: currentSeries.title,
           level: previousLevel,
         },
-        expandedSeries: currentSeries.title
+        expandedSeries: currentSeries.title,
       });
-    } 
+    }
     // Otherwise move to previous series
     else if (currentSeriesIndex > 0) {
       const previousSeries = seriesData[currentSeriesIndex - 1];
@@ -164,7 +180,7 @@ export const useProgressStore = create<ProgressState>((set, get) => ({
             series: previousSeries.title,
             level: previousSeries.levels[previousSeries.levels.length - 1],
           },
-          expandedSeries: previousSeries.title
+          expandedSeries: previousSeries.title,
         });
       }
     }
