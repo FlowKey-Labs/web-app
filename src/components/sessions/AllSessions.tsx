@@ -32,6 +32,7 @@ import {
   Text,
   Button as MantineButton,
   Stack,
+  Loader,
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
@@ -513,6 +514,22 @@ const AllSessions = () => {
     });
   };
 
+  if (isLoadingSessions) {
+    return (
+      <div className='flex justify-center items-center h-screen'>
+        <Loader size='xl' color='#1D9B5E'/>
+      </div>
+    );
+  } 
+
+  if (isLoadingCategories) {
+    return (
+      <div className='flex justify-center items-center py-10'>
+        <Loader size='xl' color='#1D9B5E'/>
+      </div>
+    );
+  }
+
   return (
     <>
       <div className='flex flex-col h-screen bg-cardsBg w-full overflow-y-auto'>
@@ -766,7 +783,8 @@ const AllSessions = () => {
               }
             }}
             opened={
-              (!filteredSessions || filteredSessions.length === 0) && !isLoadingSessions
+              (!filteredSessions || filteredSessions.length === 0) &&
+              !isLoadingSessions
             }
             filterType={
               selectedTypes.length === 1
@@ -785,23 +803,17 @@ const AllSessions = () => {
           />
         )}
         <div className='flex-1 px-6 py-2'>
-          {isLoadingSessions || isLoadingCategories ? (
-            <div className='flex justify-center items-center py-10'>
-              <p>Loading sessions data...</p>
-            </div>
-          ) : (
-            <Table
-              data={filteredSessions || []}
-              columns={columns}
-              rowSelection={rowSelection}
-              onRowSelectionChange={setRowSelection}
-              className='mt-4'
-              pageSize={7}
-              onRowClick={(row: Session) =>
-                navigateToSessionDetails(navigate, row.id.toString())
-              }
-            />
-          )}
+          <Table
+            data={filteredSessions || []}
+            columns={columns}
+            rowSelection={rowSelection}
+            onRowSelectionChange={setRowSelection}
+            className='mt-4'
+            pageSize={7}
+            onRowClick={(row: Session) =>
+              navigateToSessionDetails(navigate, row.id.toString())
+            }
+          />
         </div>
       </div>
       <AddSession isOpen={isModalOpen} onClose={closeDrawer} />

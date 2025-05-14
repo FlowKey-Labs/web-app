@@ -23,6 +23,7 @@ import Table from "../common/Table";
 import { navigateToSessionDetails } from "../../utils/navigationHelpers";
 import { Session } from "../../types/sessionTypes";
 import { createColumnHelper } from "@tanstack/react-table";
+import { Loader } from "@mantine/core";
 
 interface PersonalFormData {
   firstName: string;
@@ -303,7 +304,7 @@ const StaffDetails = () => {
 
   if (!staffDetails) {
     return (
-      <div className="p-8">
+      <div className="flex justify-center items-center h-screen">
         <h2 className="text-[40px] font-bold text-primary">Staff not found</h2>
       </div>
     );
@@ -311,15 +312,15 @@ const StaffDetails = () => {
 
   if (isLoading) {
     return (
-      <div className="w-full min-h-screen space-y-6 bg-white rounded-lg p-6">
-        <p className="text-primary">Loading staff details...</p>
+      <div className="flex justify-center items-center h-screen">
+        <Loader color="#1D9B5E" size="xl" />
       </div>
     );
   }
 
   if (isError) {
     return (
-      <div className="w-full min-h-screen space-y-6 bg-white rounded-lg p-6">
+      <div className="flex justify-center items-center h-screen">
         <div className="space-y-4">
           <p className="text-red-500">
             Error loading staff details: {error?.message}
@@ -418,7 +419,7 @@ const StaffDetails = () => {
                   name="firstName"
                   control={control}
                   render={({ field }) => (
-                    <Input {...field} label="First Name" className="w-full" />
+                    <Input {...field} label="First Name" className="w-full" placeholder="Enter First Name"/>
                   )}
                 />
               ) : (
@@ -436,7 +437,7 @@ const StaffDetails = () => {
                   name="lastName"
                   control={control}
                   render={({ field }) => (
-                    <Input {...field} label="Last Name" className="w-full" />
+                    <Input {...field} label="Last Name" className="w-full" placeholder="Enter Last Name" />
                   )}
                 />
               ) : (
@@ -482,7 +483,7 @@ const StaffDetails = () => {
                   name="mobile_number"
                   control={control}
                   render={({ field }) => (
-                    <Input {...field} label="Phone Number" className="w-full" />
+                    <Input {...field} label="Phone Number" className="w-full" placeholder="Enter Phone Number"/>
                   )}
                 />
               ) : (

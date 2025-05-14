@@ -8,6 +8,7 @@ import {
   Button,
   Stack,
   Group,
+  Loader,
 } from '@mantine/core';
 import { useCallback, useMemo, useState } from 'react';
 import { useDisclosure } from '@mantine/hooks';
@@ -20,7 +21,6 @@ import {
   useGetSessionDetail,
   useGetSessionAnalytics,
   useGetSessionClients,
-  // useMarkClientAttended,
   useRemoveClientFromSession,
   useUpdateAttendanceStatus,
 } from '../../hooks/reactQuery';
@@ -502,15 +502,15 @@ const SessionDetails = () => {
 
   if (isLoading) {
     return (
-      <div className='w-full space-y-6 bg-white rounded-lg p-6'>
-        <p className='text-primary'>Loading session details...</p>
+      <div className='flex justify-center items-center h-screen'>
+        <Loader color='#1D9B5E' size='xl' />
       </div>
     );
   }
 
   if (isError) {
     return (
-      <div className='w-full space-y-6 bg-white rounded-lg p-6'>
+      <div className='flex justify-center items-center h-screen'>
         <div className='space-y-4'>
           <p className='text-red-500'>
             Error loading session details: {error?.message}
@@ -528,7 +528,7 @@ const SessionDetails = () => {
 
   if (!session) {
     return (
-      <div className='p-8'>
+      <div className='flex justify-center items-center h-screen'>
         <h2 className='text-[40px] font-bold text-primary'>
           Session not found
         </h2>
@@ -733,18 +733,12 @@ const SessionDetails = () => {
                   >
                     Overview
                   </button>
-                  <h3 className='font-semibold text-xl relative cursor-pointer transition-all duration-200 hover:text-secondary '>
-                    Attendance
-                  </h3>
-                  <h3 className='font-semibold text-xl relative cursor-pointer transition-all duration-200 hover:text-secondary '>
-                    Progress Tracker
-                  </h3>
                 </div>
                 <div className='h-[1px] bg-gray-300 w-full opacity-60'></div>
               </div>
               <div className='flex space-x-16 mt-6'>
                 {analyticsLoading ? (
-                  <p>Loading analytics data...</p>
+                  <Loader color='#1D9B5E' size='xl' />
                 ) : (
                   <>
                     <div className='flex flex-col items-center border bg-white rounded-xl p-6 space-y-4'>

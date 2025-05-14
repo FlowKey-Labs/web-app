@@ -11,7 +11,7 @@ import {
 import React from 'react';
 import moment from 'moment';
 import { AddClient, ClientData } from '../../types/clientTypes';
-import { Drawer } from '@mantine/core';
+import { Drawer, Loader } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import successIcon from '../../assets/icons/success.svg';
 import errorIcon from '../../assets/icons/error.svg';
@@ -150,7 +150,9 @@ const UpdateClient = ({ isOpen, onClose, clientId }: UpdateClientProps) => {
         size='lg'
         title='Update Client'
       >
-        <div className='p-6'>Loading client data...</div>
+        <div className='flex justify-center items-center h-screen'>
+          <Loader color="#1D9B5E" size="xl" />
+        </div>
       </Drawer>
     );
   }
@@ -164,7 +166,9 @@ const UpdateClient = ({ isOpen, onClose, clientId }: UpdateClientProps) => {
         size='lg'
         title='Update Client'
       >
-        <div className='p-6'>Client not found.</div>
+        <div className='flex justify-center items-center h-screen'>
+          <p className='text-primary'>Client not found.</p>
+        </div>
       </Drawer>
     );
   }
