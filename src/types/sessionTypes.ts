@@ -92,6 +92,10 @@ export interface Session
   location?: Location;
   attendances?: Attendance[];
   policies?: Policy[]; // To hold policy details when fetching a session
+  policy_ids?: number[]; // Array of policy IDs for the session
+  _frontend_start_time?: string; // Formatted start time for frontend display (HH:MM)
+  _frontend_end_time?: string; // Formatted end time for frontend display (HH:MM)
+  client_ids?: number[]; // Array of client IDs for the session
 }
 
 // For the frontend table display

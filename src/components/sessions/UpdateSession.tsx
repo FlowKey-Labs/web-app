@@ -29,6 +29,7 @@ import moment from 'moment';
 import { Drawer, Modal } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { Policy } from '../../types/policy';
+import { useUIStore } from "../../store/ui";
 
 interface SessionModalProps {
   isOpen: boolean;
@@ -95,6 +96,8 @@ const UpdateSession = ({
   const [occurrences, setOccurrences] = useState(2);
   const [value, setValue] = useState<Date | null>(null);
 
+  const { openDrawer } = useUIStore();
+
   const handleWeekdayClick = (day: string) => {
     setSelectedWeekdays((prev) => {
       if (prev.includes(day)) {
@@ -132,6 +135,9 @@ const UpdateSession = ({
 
   useEffect(() => {
     if (sessionData && isOpen) {
+      // Log session data for debugging
+      console.log("Session data received:", sessionData);
+
       if (sessionData.repeat_on && Array.isArray(sessionData.repeat_on)) {
         setSelectedWeekdays(sessionData.repeat_on);
       }
@@ -205,21 +211,67 @@ const UpdateSession = ({
         }
       }
 
+      // Ensure date and time are properly formatted
+      // Format to YYYY-MM-DD for HTML date input
+      const formattedDate = sessionData.date 
+        ? moment(sessionData.date).format('YYYY-MM-DD')
+        : '';
+
+      // Extract client IDs properly from attendances
+      const clientIds = sessionData.attendances?.map(a => {
+        return typeof a.client === 'object' && a.client !== null
+          ? a.client.id 
+          : typeof a.client === 'number'
+          ? a.client
+          : null;
+      }).filter(id => id !== null) || [];
+      
+      console.log("Extracted client IDs:", clientIds);
+
+      // Map policy IDs - prioritize policy_ids from response if available
+      const policyIds = sessionData.policy_ids || sessionData.policies?.map(p => p.id) || [];
+      console.log("Extracted policy IDs:", policyIds);
+
+      // Extract staff ID safely with proper type guard
+      let staffId = null;
+      if (sessionData.staff) {
+        // TypeScript type guard
+        if (typeof sessionData.staff === 'object' && sessionData.staff !== null) {
+          const staffObj = sessionData.staff as Record<string, any>;
+          if ('id' in staffObj) {
+            staffId = staffObj.id;
+          }
+        } else if (typeof sessionData.staff === 'number') {
+          staffId = sessionData.staff;
+        }
+      }
+
+      console.log("Staff ID extracted:", staffId);
+
+      // Format start and end times by extracting the time portion only
+      const formattedStartTime = sessionData._frontend_start_time || 
+        (sessionData.start_time ? moment(sessionData.start_time).format('HH:mm') : '');
+      const formattedEndTime = sessionData._frontend_end_time || 
+        (sessionData.end_time ? moment(sessionData.end_time).format('HH:mm') : '');
+      
+      console.log("Formatted times:", formattedStartTime, formattedEndTime);
+
+      // Reset the form with all the extracted values
       methods.reset({
         title: sessionData.title || '',
         description: sessionData.description || '',
         session_type: sessionData.session_type || 'class',
         class_type: sessionData.class_type || 'regular',
-        date: moment(sessionData.date).format('YYYY-MM-DD'),
-        start_time: sessionData.start_time,
-        end_time: sessionData.end_time,
+        date: formattedDate,
+        start_time: formattedStartTime,
+        end_time: formattedEndTime,
         spots: sessionData.spots,
         category: sessionData.category?.id,
         location_id: sessionData.location?.id,
         is_active: sessionData.is_active,
-        client_ids: sessionData.attendances?.map((a) => a.client.id) || [],
-        email: sessionData.email,
-        phone_number: sessionData.phone_number,
+        client_ids: clientIds,
+        email: sessionData.email || '',
+        phone_number: sessionData.phone_number || '',
         selected_class: sessionData.selected_class,
         repetition: repetitionValue as any,
         repeat_every: sessionData.repeat_every,
@@ -228,8 +280,28 @@ const UpdateSession = ({
         repeat_end_type: sessionData.repeat_end_type,
         repeat_end_date: sessionData.repeat_end_date,
         repeat_occurrences: sessionData.repeat_occurrences,
-        policy_ids: sessionData.policies?.map((p) => p.id) || [],
+        policy_ids: policyIds,
+        staff: staffId,
       });
+
+      // Log what we're setting in the form
+      console.log("Form reset with values:", {
+        client_ids: clientIds,
+        date: formattedDate,
+        start_time: formattedStartTime,
+        end_time: formattedEndTime,
+        staff: staffId,
+        policy_ids: policyIds,
+        location_id: sessionData.location?.id,
+      });
+
+      // Force update fields individually to ensure they're properly set
+      methods.setValue('date', formattedDate);
+      methods.setValue('start_time', formattedStartTime);
+      methods.setValue('end_time', formattedEndTime);
+      methods.setValue('client_ids', clientIds);
+      methods.setValue('policy_ids', policyIds);
+      methods.setValue('staff', staffId);
 
       if (sessionData.repeat_on && Array.isArray(sessionData.repeat_on)) {
         const dayNames = sessionData.repeat_on.map((day) => {
@@ -369,6 +441,7 @@ const UpdateSession = ({
         phone_number: data.phone_number,
         selected_class: data.selected_class,
         client_ids: [],
+        policy_ids: data.policy_ids || [],
       };
 
       formattedData.client_ids = clientIds;
@@ -557,6 +630,8 @@ const UpdateSession = ({
                                 onSelectItem={(selectedItem) =>
                                   field.onChange(selectedItem)
                                 }
+                                createLabel="Create new class type"
+                                createDrawerType="session"
                               />
                             );
                           }}
@@ -610,6 +685,8 @@ const UpdateSession = ({
                                     selectedItem ? selectedItem.value : ''
                                   );
                                 }}
+                                createLabel="Create new category"
+                                createDrawerType="category"
                               />
                             );
                           }}
@@ -628,6 +705,10 @@ const UpdateSession = ({
                                 placeholder='YYYY-MM-DD'
                                 type='date'
                                 value={field.value}
+                                onChange={(e) => {
+                                  field.onChange(e);
+                                  console.log("Date changed:", e.target.value);
+                                }}
                               />
                             )}
                           />
@@ -642,6 +723,10 @@ const UpdateSession = ({
                                   placeholder='HH:MM'
                                   type='time'
                                   value={field.value}
+                                  onChange={(e) => {
+                                    field.onChange(e);
+                                    console.log("Start time changed:", e.target.value);
+                                  }}
                                 />
                               )}
                             />
@@ -655,6 +740,10 @@ const UpdateSession = ({
                                   placeholder='HH:MM'
                                   type='time'
                                   value={field.value}
+                                  onChange={(e) => {
+                                    field.onChange(e);
+                                    console.log("End time changed:", e.target.value);
+                                  }}
                                 />
                               )}
                             />
@@ -794,7 +883,7 @@ const UpdateSession = ({
                                     placeholder='Select Staff'
                                     options={
                                       isStaffLoading
-                                        ? [{ label: 'Loading...', value: '' }]
+                                        ? []
                                         : staffData?.map((staff: any) => ({
                                             label: `${staff.user?.first_name} ${staff.user?.last_name}`,
                                             value: staff.id.toString(),
@@ -802,10 +891,10 @@ const UpdateSession = ({
                                     }
                                     value={staffValue}
                                     onSelectItem={(selectedItem) => {
-                                      field.onChange(
-                                        selectedItem ? selectedItem.value : ''
-                                      );
-                                    }}
+                                      field.onChange(selectedItem.value)}
+                                    }
+                                    createLabel="Add new staff member"
+                                    createDrawerType="staff"
                                   />
                                 );
                               }}
@@ -817,15 +906,16 @@ const UpdateSession = ({
                         name='client_ids'
                         control={methods.control}
                         render={({ field }) => {
+                          console.log("Client field value:", field.value);
                           return (
                             <DropdownSelectInput
-                              label='Clients'
-                              placeholder='Select clients'
+                              label='Name'
+                              placeholder='Select client'
                               singleSelect={false}
                               options={
                                 isClientsLoading
                                   ? [{ label: 'Loading...', value: '' }]
-                                  : clientsData?.map((client: any) => ({
+                                  : clientsData?.filter(Boolean).map((client: any) => ({
                                       label: `${client.first_name} ${client.last_name}`,
                                       value: client.id.toString(),
                                     })) || []
@@ -838,6 +928,7 @@ const UpdateSession = ({
                                   : []
                               }
                               onSelectItem={(selectedItems) => {
+                                console.log("Selected clients:", selectedItems);
                                 const values = Array.isArray(selectedItems)
                                   ? selectedItems.map((item) =>
                                       parseInt(item.value)
@@ -847,6 +938,8 @@ const UpdateSession = ({
                                   : [];
                                 field.onChange(values);
                               }}
+                              createLabel="Add new client"
+                              createDrawerType="client"
                             />
                           );
                         }}
@@ -881,18 +974,20 @@ const UpdateSession = ({
                               placeholder='Select Location'
                               options={
                                 isLocationsLoading
-                                  ? [{ label: 'Loading...', value: '' }]
+                                  ? []
                                   : locationsData?.map((location: any) => ({
                                       label: location.name,
                                       value: location.id.toString(),
                                     })) || []
                               }
-                              value={locationValue}
+                              value={
+                                field.value ? field.value.toString() : ''
+                              }
                               onSelectItem={(selectedItem) => {
-                                field.onChange(
-                                  selectedItem ? selectedItem.value : ''
-                                );
-                              }}
+                                field.onChange(selectedItem.value)}
+                              }
+                              createLabel="Create new location"
+                              createDrawerType="location"
                             />
                           );
                         }}
@@ -900,7 +995,9 @@ const UpdateSession = ({
                       <Controller
                         name='policy_ids'
                         control={methods.control}
-                        render={({ field }) => (
+                        render={({ field }) => {
+                          console.log("Policy field value:", field.value);
+                          return (
                           <DropdownSelectInput
                             label='Policies'
                             placeholder='Select Policies'
@@ -913,8 +1010,9 @@ const UpdateSession = ({
                                     value: policy.id.toString(),
                                   })) || []
                             }
-                            value={field.value ? field.value.map(String) : []}
+                            value={field.value ? Array.isArray(field.value) ? field.value.map(String) : [String(field.value)] : []}
                             onSelectItem={(selectedItems) => {
+                              console.log("Selected policies:", selectedItems);
                               const values = (
                                 Array.isArray(selectedItems)
                                   ? selectedItems
@@ -928,8 +1026,11 @@ const UpdateSession = ({
                                 );
                               field.onChange(values);
                             }}
+                            createLabel="Create new policy"
+                            createDrawerType="policy"
                           />
-                        )}
+                        );
+                        }}
                       />
                     </div>
                   ) : methods.watch('session_type') === 'appointment' ? (
@@ -970,14 +1071,16 @@ const UpdateSession = ({
                         name='client_ids'
                         control={methods.control}
                         render={({ field }) => {
+                          console.log("Client field value:", field.value);
                           return (
                             <DropdownSelectInput
                               label='Name'
                               placeholder='Select client'
+                              singleSelect={false}
                               options={
                                 isClientsLoading
                                   ? [{ label: 'Loading...', value: '' }]
-                                  : clientsData?.map((client: any) => ({
+                                  : clientsData?.filter(Boolean).map((client: any) => ({
                                       label: `${client.first_name} ${client.last_name}`,
                                       value: client.id.toString(),
                                     })) || []
@@ -990,6 +1093,7 @@ const UpdateSession = ({
                                   : []
                               }
                               onSelectItem={(selectedItems) => {
+                                console.log("Selected clients:", selectedItems);
                                 const values = Array.isArray(selectedItems)
                                   ? selectedItems.map((item) =>
                                       parseInt(item.value)
@@ -999,6 +1103,8 @@ const UpdateSession = ({
                                   : [];
                                 field.onChange(values);
                               }}
+                              createLabel="Add new client"
+                              createDrawerType="client"
                             />
                           );
                         }}
@@ -1147,7 +1253,7 @@ const UpdateSession = ({
                               placeholder='Select Staff'
                               options={
                                 isStaffLoading
-                                  ? [{ label: 'Loading...', value: '' }]
+                                  ? []
                                   : staffData?.map((staff: any) => ({
                                       label: `${staff.user?.first_name} ${staff.user?.last_name}`,
                                       value: staff.id.toString(),
@@ -1155,10 +1261,10 @@ const UpdateSession = ({
                               }
                               value={staffValue}
                               onSelectItem={(selectedItem) => {
-                                field.onChange(
-                                  selectedItem ? selectedItem.value : ''
-                                );
-                              }}
+                                field.onChange(selectedItem.value)}
+                              }
+                              createLabel="Add new staff member"
+                              createDrawerType="staff"
                             />
                           );
                         }}
@@ -1166,7 +1272,9 @@ const UpdateSession = ({
                       <Controller
                         name='policy_ids'
                         control={methods.control}
-                        render={({ field }) => (
+                        render={({ field }) => {
+                          console.log("Policy field value:", field.value);
+                          return (
                           <DropdownSelectInput
                             label='Policies'
                             placeholder='Select Policies'
@@ -1179,8 +1287,9 @@ const UpdateSession = ({
                                     value: policy.id.toString(),
                                   })) || []
                             }
-                            value={field.value ? field.value.map(String) : []}
+                            value={field.value ? Array.isArray(field.value) ? field.value.map(String) : [String(field.value)] : []}
                             onSelectItem={(selectedItems) => {
+                              console.log("Selected policies:", selectedItems);
                               const values = (
                                 Array.isArray(selectedItems)
                                   ? selectedItems
@@ -1194,8 +1303,11 @@ const UpdateSession = ({
                                 );
                               field.onChange(values);
                             }}
+                            createLabel="Create new policy"
+                            createDrawerType="policy"
                           />
-                        )}
+                        );
+                        }}
                       />
                     </div>
                   ) : methods.watch('session_type') === 'event' ? (
@@ -1378,7 +1490,7 @@ const UpdateSession = ({
                             options={
                               isClientsLoading
                                 ? [{ label: 'Loading...', value: '' }]
-                                : clientsData?.map((client: any) => ({
+                                : clientsData?.filter(Boolean).map((client: any) => ({
                                     label: `${client.first_name} ${client.last_name}`,
                                     value: client.id.toString(),
                                   })) || []
@@ -1391,6 +1503,7 @@ const UpdateSession = ({
                                 : []
                             }
                             onSelectItem={(selectedItems) => {
+                              console.log("Selected clients:", selectedItems);
                               const values = Array.isArray(selectedItems)
                                 ? selectedItems.map((item) =>
                                     parseInt(item.value)
@@ -1400,13 +1513,17 @@ const UpdateSession = ({
                                 : [];
                               field.onChange(values);
                             }}
+                            createLabel="Add new client"
+                            createDrawerType="client"
                           />
                         )}
                       />
                       <Controller
                         name='policy_ids'
                         control={methods.control}
-                        render={({ field }) => (
+                        render={({ field }) => {
+                          console.log("Policy field value:", field.value);
+                          return (
                           <DropdownSelectInput
                             label='Policies'
                             placeholder='Select Policies'
@@ -1419,8 +1536,9 @@ const UpdateSession = ({
                                     value: policy.id.toString(),
                                   })) || []
                             }
-                            value={field.value ? field.value.map(String) : []}
+                            value={field.value ? Array.isArray(field.value) ? field.value.map(String) : [String(field.value)] : []}
                             onSelectItem={(selectedItems) => {
+                              console.log("Selected policies:", selectedItems);
                               const values = (
                                 Array.isArray(selectedItems)
                                   ? selectedItems
@@ -1434,8 +1552,11 @@ const UpdateSession = ({
                                 );
                               field.onChange(values);
                             }}
+                            createLabel="Create new policy"
+                            createDrawerType="policy"
                           />
-                        )}
+                        );
+                        }}
                       />
                     </div>
                   ) : null}
