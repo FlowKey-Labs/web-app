@@ -522,12 +522,33 @@ const SessionDetails = () => {
                       setSelectedClient(client);
                       setSelectedStatus('make_up');
                       setIsRemovingClient(false);
-                      methods.setValue('session_title', session?.title || '');
+                      if (sessionId) {
+                        const fetchSessionDetails = async () => {
+                          try {
+                            const sessionDetails = await refetch();
+                            methods.setValue(
+                              'session_title',
+                              sessionDetails?.data?.title || 'Unnamed Session'
+                            );
+                          } catch (error) {
+                            console.error(
+                              'Failed to fetch session details',
+                              error
+                            );
+                            methods.setValue(
+                              'session_title',
+                              `Session ${sessionId}`
+                            );
+                          }
+                        };
+
+                        fetchSessionDetails();
+                      }
+
                       methods.setValue(
                         'client_name',
                         `${client.first_name} ${client.last_name}`
                       );
-                      methods.setValue('original_date', session?.date || '');
                       open();
                     }}
                     className='text-sm'
@@ -915,7 +936,7 @@ const SessionDetails = () => {
               : selectedStatus === 'missed'
               ? 'Are you sure you want to mark this client as missed for this session?'
               : selectedStatus === 'make_up'
-              ? 'Are you sure you want to request a make-up class for this client?'
+              ? ''
               : selectedStatus === 'cancelled'
               ? "Are you sure you want to mark this client's attendance as cancelled for this session?"
               : 'Are you sure you want to update the attendance status for this client?'}
@@ -963,7 +984,7 @@ const SessionDetails = () => {
                           <Input
                             {...field}
                             label='Original Date'
-                            placeholder='Original Date'
+                            placeholder='2025/03/12'
                             value={field.value || ''}
                             type='date'
                           />
@@ -978,7 +999,7 @@ const SessionDetails = () => {
                             <Input
                               {...field}
                               label='New Date'
-                              placeholder='New Date'
+                              placeholder='2025/03/12'
                               value={field.value || ''}
                               type='date'
                             />
@@ -992,7 +1013,7 @@ const SessionDetails = () => {
                               <Input
                                 {...field}
                                 label='New Start Time'
-                                placeholder='New Start Time'
+                                placeholder='10:00'
                                 value={field.value || ''}
                                 type='time'
                               />
@@ -1005,7 +1026,7 @@ const SessionDetails = () => {
                               <Input
                                 {...field}
                                 label='New End Time'
-                                placeholder='New End Time'
+                                placeholder='12:00'
                                 value={field.value || ''}
                                 type='time'
                               />

@@ -140,8 +140,8 @@ export interface EventFields {
 
 export interface MakeUpSession {
   id: number | string;
-  session_title: string;
-  client_name: string;
+  session_title?: string;
+  client_name?: string;
   original_date: CreateSessionData['date'];
   new_date: string;
   new_start_time: string;
