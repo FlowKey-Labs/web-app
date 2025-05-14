@@ -21,7 +21,6 @@ import {
   useGetSessionDetail,
   useGetSessionAnalytics,
   useGetSessionClients,
-  // useMarkClientAttended,
   useRemoveClientFromSession,
   useUpdateAttendanceStatus,
 } from '../../hooks/reactQuery';
@@ -734,12 +733,6 @@ const SessionDetails = () => {
                   >
                     Overview
                   </button>
-                  <h3 className='font-semibold text-xl relative cursor-pointer transition-all duration-200 hover:text-secondary '>
-                    Attendance
-                  </h3>
-                  <h3 className='font-semibold text-xl relative cursor-pointer transition-all duration-200 hover:text-secondary '>
-                    Progress Tracker
-                  </h3>
                 </div>
                 <div className='h-[1px] bg-gray-300 w-full opacity-60'></div>
               </div>
