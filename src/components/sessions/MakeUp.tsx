@@ -5,9 +5,10 @@ import {
 } from '../../hooks/reactQuery';
 import { createColumnHelper } from '@tanstack/react-table';
 import { MakeUpSession } from '../../types/sessionTypes';
-import { Loader, Menu, Text, Group, Modal, Button } from '@mantine/core';
+import { Loader, Menu, Text, Group, Modal, Button, Stack } from '@mantine/core';
 import moment from 'moment';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
+import { useExportMakeupSessions } from '../../hooks/useExport';
 
 import actionOptionIcon from '../../assets/icons/actionOption.svg';
 import successIcon from '../../assets/icons/success.svg';
@@ -38,6 +39,28 @@ const MakeUp = ({ sessionId }: { sessionId: string | number }) => {
   const filteredMakeupSessions = makeupSessions?.filter((s: MakeUpSession) => {
     return s.session?.toString() === sessionId.toString();
   });
+
+  const {
+    exportModalOpened,
+    openExportModal,
+    closeExportModal,
+    handleExport,
+    isExporting,
+  } = useExportMakeupSessions(makeupSessions || []);
+
+  const getSelectedMakeupSessionIds = useCallback(() => {
+    if (!makeupSessions) return [];
+
+    const selectedIds = Object.keys(rowSelection)
+      .map((index) => {
+        const makeupSessionIndex = parseInt(index);
+        const selectedSession = makeupSessions[makeupSessionIndex];
+        return selectedSession?.id.toString();
+      })
+      .filter(Boolean);
+
+    return selectedIds;
+  }, [rowSelection, makeupSessions]);
 
   const columns = [
     columnHelper.display({
@@ -104,7 +127,7 @@ const MakeUp = ({ sessionId }: { sessionId: string | number }) => {
                   color='#162F3B'
                   className='text-sm'
                   style={{ textAlign: 'center' }}
-                  //   onClick={openExportModal}
+                  onClick={openExportModal}
                 >
                   Export Makeup Session
                 </Menu.Item>
@@ -285,6 +308,70 @@ const MakeUp = ({ sessionId }: { sessionId: string | number }) => {
           >
             Remove
           </Button>
+        </div>
+      </Modal>
+      <Modal
+        opened={exportModalOpened}
+        onClose={closeExportModal}
+        title={
+          <Text fw={600} size='lg'>
+            Export Makeup Sessions
+          </Text>
+        }
+        centered
+        radius='md'
+        size='md'
+        withCloseButton={false}
+        overlayProps={{
+          backgroundOpacity: 0.55,
+          blur: 3,
+        }}
+        shadow='xl'
+      >
+        <div className='py-2'>
+          <Text size='sm' style={{ marginBottom: '2rem' }}>
+            Select a format to export {Object.keys(rowSelection).length}{' '}
+            selected makeup sessions
+          </Text>
+
+          <Stack gap='md'>
+            <Button
+              variant='outline'
+              color='#1D9B5E'
+              radius='md'
+              onClick={() => {
+                const selectedIds = getSelectedMakeupSessionIds();
+                handleExport('excel', selectedIds);
+              }}
+              className='px-6'
+              loading={isExporting}
+            >
+              Export as Excel
+            </Button>
+
+            <Button
+              variant='outline'
+              color='#1D9B5E'
+              radius='md'
+              onClick={() => handleExport('csv', getSelectedMakeupSessionIds())}
+              className='px-6'
+              loading={isExporting}
+            >
+              Export as CSV
+            </Button>
+          </Stack>
+
+          <div className='flex justify-end space-x-4 mt-8'>
+            <Button
+              variant='outline'
+              color='red'
+              radius='md'
+              onClick={closeExportModal}
+              className='px-6'
+            >
+              Cancel
+            </Button>
+          </div>
         </div>
       </Modal>
     </>

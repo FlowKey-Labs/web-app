@@ -882,7 +882,7 @@ const SessionDetails = () => {
                       color='#1D9B5E'
                       radius='md'
                     >
-                      Class
+                      Clients
                     </Button>
                     <Button
                       onClick={() => setIsMakeupOpen(true)}
@@ -890,7 +890,7 @@ const SessionDetails = () => {
                       color='#1D9B5E'
                       radius='md'
                         >
-                      Make-up Class
+                      Make-up Sessions
                     </Button>
                   </div>
                   <div className='flex-1 py-2'>

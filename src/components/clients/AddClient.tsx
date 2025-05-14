@@ -2,7 +2,6 @@ import { useForm, Controller, FormProvider } from 'react-hook-form';
 import Input from '../common/Input';
 import DropdownSelectInput from '../common/Dropdown';
 import Button from '../common/Button';
-import clientlocationIcons from '../../assets/icons/clientLocation.svg';
 import {
   useAddClient,
   useGetClassSessions,
