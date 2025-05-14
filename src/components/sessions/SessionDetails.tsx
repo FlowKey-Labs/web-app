@@ -895,7 +895,7 @@ const SessionDetails = () => {
                   </div>
                   <div className='flex-1 py-2'>
                     {isMakeupOpen ? (
-                      <MakeUp />
+                      <MakeUp sessionId={sessionId || ''} />
                     ) : (
                       <Table
                         data={clients}

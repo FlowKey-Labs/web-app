@@ -17,12 +17,11 @@ import { notifications } from '@mantine/notifications';
 
 const columnHelper = createColumnHelper<MakeUpSession>();
 
-const MakeUp = () => {
+const MakeUp = ({ sessionId }: { sessionId: string | number }) => {
   const [rowSelection, setRowSelection] = useState({});
   const [selectedMakeupSession, setSelectedMakeupSession] =
     useState<MakeUpSession | null>(null);
   const [isRemovingMakeupSession, setIsRemovingMakeupSession] = useState(false);
-  const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
 
   const [opened, { open, close }] = useDisclosure(false);
 
@@ -35,6 +34,10 @@ const MakeUp = () => {
   } = useGetMakeupSessions();
 
   const removeMakeupSessionMutation = useDeleteMakeupSession();
+
+  const filteredMakeupSessions = makeupSessions?.filter((s: MakeUpSession) => {
+    return s.session?.toString() === sessionId.toString();
+  });
 
   const columns = [
     columnHelper.display({
@@ -136,7 +139,6 @@ const MakeUp = () => {
                   onClick={() => {
                     setSelectedMakeupSession(client);
                     setIsRemovingMakeupSession(true);
-                    setSelectedStatus(null);
                     open();
                   }}
                   className='text-sm'
@@ -182,7 +184,7 @@ const MakeUp = () => {
     <>
       <Table
         columns={columns}
-        data={makeupSessions || []}
+        data={filteredMakeupSessions || []}
         pageSize={5}
         rowSelection={rowSelection}
         onRowSelectionChange={setRowSelection}
@@ -255,7 +257,8 @@ const MakeUp = () => {
                     console.error('Failed to remove makeup session:', error);
                     notifications.show({
                       title: 'Error',
-                      message: 'Failed to remove makeup session. Please try again.',
+                      message:
+                        'Failed to remove makeup session. Please try again.',
                       color: 'red',
                       icon: (
                         <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
