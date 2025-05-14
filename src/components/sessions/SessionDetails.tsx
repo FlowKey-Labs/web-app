@@ -861,13 +861,13 @@ const SessionDetails = () => {
           </Text>
           <div className=''>
             {selectedStatus === 'make_up' && (
-              <div className='flex flex-col p-6'>
+              <div className='flex flex-col gap-4'>
                 <h3 className='text-lg font-semibold text-secondary'>
                   Reschedule Session
                 </h3>
                 <div className='flex flex-col w-full justify-start'>
                   <FormProvider {...methods}>
-                    <div className=' space-y-2'>
+                    <div className=' space-y-4'>
                       <Controller
                         name='client_id'
                         control={methods.control}
@@ -905,7 +905,7 @@ const SessionDetails = () => {
                           />
                         )}
                       />
-                      <div className=' space-y-2'>
+                      <div className=' space-y-4'>
                         <p className='text-base font-medium'>Move to </p>
                         <Controller
                           name='new_date'
@@ -949,7 +949,7 @@ const SessionDetails = () => {
                           />
                         </div>
                       </div>
-                      <div className='flex justify-end space-x-3 pt-4'>
+                      <div className='flex justify-end space-x-3 pt-2'>
                         <Button variant='subtle' onClick={close} color='gray'>
                           Cancel
                         </Button>
