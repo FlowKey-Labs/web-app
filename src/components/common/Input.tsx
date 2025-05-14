@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useFormContext, RegisterOptions } from 'react-hook-form';
 import { ColorInput } from '@mantine/core';
 import { DatePickerInput, TimeInput } from '@mantine/dates';
@@ -33,8 +33,26 @@ const Input: React.FC<InputProps> = ({
     watch,
   } = useFormContext();
 
+  const currentValue = watch(name);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [timeValue, setTimeValue] = useState<string>('');
+
+  // Initialize date and time state from the form value
+  useEffect(() => {
+    if (type === 'date' && currentValue) {
+      try {
+        // If the value is a date string, convert it to a Date object
+        const date = new Date(currentValue);
+        if (!isNaN(date.getTime())) {
+          setSelectedDate(date);
+        }
+      } catch (e) {
+        console.error("Error parsing date:", e);
+      }
+    } else if (type === 'time' && currentValue) {
+      setTimeValue(currentValue);
+    }
+  }, [currentValue, type, name]);
 
   const handleDateChange = (date: Date | null) => {
     setSelectedDate(date);
@@ -124,7 +142,7 @@ const Input: React.FC<InputProps> = ({
             <DatePickerInput
               value={selectedDate}
               onChange={handleDateChange}
-              valueFormat='YYYY/MM/DD'
+              valueFormat='YYYY-MM-DD'
               placeholder={placeholder}
               rightSection={<IconCalendar size={18} stroke={1.5} />}
               clearable
@@ -150,15 +168,7 @@ const Input: React.FC<InputProps> = ({
               onChange={(event) => {
                 const value = event.currentTarget.value;
                 setTimeValue(value);
-                if (value) {
-                  const [hours, minutes] = value.split(':');
-                  if (hours && minutes) {
-                    const date = new Date();
-                    date.setHours(parseInt(hours));
-                    date.setMinutes(parseInt(minutes));
-                    setValue(name, date);
-                  }
-                }
+                setValue(name, value); // Set the string value directly for time
               }}
               withSeconds={false}
               styles={{

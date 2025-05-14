@@ -839,7 +839,16 @@ export const useUpdateClient = () => {
       updateData,
     }: {
       id: string;
-      updateData: Partial<Client>;
+      updateData: {
+        first_name?: string;
+        last_name?: string;
+        email?: string;
+        phone_number?: string;
+        location?: string;
+        dob?: string;
+        gender?: string;
+        session_ids?: number[];
+      };
     }) => update_client(id, updateData),
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: ["clients"] });

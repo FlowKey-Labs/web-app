@@ -1,27 +1,11 @@
 import { useCallback, useMemo, useState } from 'react';
-import {
-  useGetPolicies,
-  useCreatePolicy,
-  useUpdatePolicy,
-  useDeletePolicy,
-} from "../../hooks/reactQuery";
-import {
-  Box,
-  Drawer,
-  Group,
-  Button as MantineButton,
-  Menu,
-  Stack,
-  Modal,
-  Image,
-  Text,
-  Button,
-} from '@mantine/core';
+import { useGetPolicies, useDeletePolicy } from "../../hooks/reactQuery";
+import { Group, Button as MantineButton, Menu, Stack, Modal, Text, Button } from '@mantine/core';
 import actionOptionIcon from '../../assets/icons/actionOption.svg';
 import editIcon from '../../assets/icons/edit.svg';
 import deleteIcon from '../../assets/icons/delete.svg';
-import { useForm, Controller, FormProvider } from 'react-hook-form';
-import { useEditor, EditorContent } from '@tiptap/react';
+import { useForm } from 'react-hook-form';
+import { useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
 import Link from '@tiptap/extension-link';
@@ -32,13 +16,9 @@ import FontFamily from '@tiptap/extension-font-family';
 import FontSize from '@tiptap/extension-font-size';
 import './tiptap.css';
 import Table from '../common/Table';
-import Input from '../common/Input';
-import DropdownSelectInput from '../common/Dropdown';
 import { IconFile, IconPlus } from '@tabler/icons-react';
-import { Dropzone } from '@mantine/dropzone';
-import dropZoneIcon from '../../assets/icons/dropZone.svg';
-import styles from './GeneralSettings.module.css';
 import { useExportPolicies } from '../../hooks/useExport';
+import { useUIStore } from '../../store/ui';
 
 import { Policy } from "../../types/policy";
 import { truncateHtmlContent, getUserFullName } from "../../utils/policy";
@@ -60,12 +40,10 @@ type PolicyFormData = {
 const columnHelper = createColumnHelper<Policy>();
 
 const Policies = () => {
-  const [drawerOpened, setDrawerOpened] = useState(false);
   const { data: policies = [] } = useGetPolicies();
   const [selectedPolicy, setSelectedPolicy] = useState<Policy | null>(null);
-
-  const createPolicyMutation = useCreatePolicy();
-  const updatePolicyMutation = useUpdatePolicy();
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  
   const deletePolicyMutation = useDeletePolicy();
 
   const methods = useForm<PolicyFormData>({
@@ -117,6 +95,8 @@ const Policies = () => {
     handleExport,
     isExporting,
   } = useExportPolicies(policies || []);
+
+  const { openDrawer } = useUIStore();
 
   const columns = useMemo(
     () => [
@@ -236,25 +216,11 @@ const Policies = () => {
                       }
                       onClick={() => {
                         if (!currentPolicy) return;
-                        setSelectedPolicy(currentPolicy);
-                        methods.setValue(
-                          "policyTitle",
-                          currentPolicy.title ?? ""
-                        );
-                        methods.setValue(
-                          "policyContent",
-                          currentPolicy.content ?? ""
-                        );
-                        methods.setValue(
-                          "policyType",
-                          currentPolicy.policy_type ?? "TEXT"
-                        );
-                        if (editor) {
-                          editor.commands.setContent(
-                            currentPolicy.content || ""
-                          );
-                        }
-                        setDrawerOpened(true);
+                        openDrawer({
+                          type: 'policy',
+                          entityId: currentPolicy.id,
+                          isEditing: true
+                        });
                       }}
                     >
                       Edit
@@ -283,156 +249,8 @@ const Policies = () => {
         },
       }),
     ],
-    [
-      actionOptionIcon,
-      editIcon,
-      deleteIcon,
-      methods.setValue,
-      editor?.commands,
-      setSelectedPolicy,
-      setDrawerOpened,
-      setPolicyToDelete,
-      setIsDeleteModalOpen,
-      truncateHtmlContent,
-      getUserFullName,
-      format,
-    ]
+    [openDrawer]
   );
-
-  const onSubmit = (data: PolicyFormData) => {
-    const policyType =
-      typeof data.policyType === "object"
-        ? data.policyType.value
-        : data.policyType;
-
-    if (policyType === "PDF" && !data.policyFile) {
-      notifications.show({
-        title: 'Error',
-        message: 'PDF file is required for PDF policy type',
-        color: 'red',
-        radius: 'md',
-        icon: (
-          <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
-            <img src={errorIcon} alt='Error' className='w-4 h-4' />
-          </span>
-        ),
-        withBorder: true,
-        autoClose: 3000,
-        position: 'top-right',
-      });
-      return;
-    }
-
-    if (policyType === "TEXT" && !data.policyContent) {
-      notifications.show({
-        title: 'Error',
-        message: 'Content is required for TEXT policy type',
-        color: 'red',
-        radius: 'md',
-        icon: (
-          <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
-            <img src={errorIcon} alt='Error' className='w-4 h-4' />
-          </span>
-        ),
-        withBorder: true,
-        autoClose: 3000,
-        position: 'top-right',
-      });
-      return;
-    }
-
-    const payload = {
-      title: data.policyTitle,
-      content: policyType === "TEXT" ? data.policyContent : "",
-      policy_type: policyType,
-      file: policyType === "PDF" ? data.policyFile : undefined,
-    };
-
-    if (selectedPolicy) {
-      updatePolicyMutation.mutate(
-        {
-          id: selectedPolicy.id,
-          ...payload,
-        },
-        {
-          onSuccess: () => {
-            notifications.show({
-              title: 'Success',
-              message: 'Policy updated successfully!',
-              color: 'green',
-              radius: 'md',
-              icon: (
-                <span className='flex items-center justify-center w-6 h-6 rounded-full bg-green-200'>
-                  <img src={successIcon} alt='Success' className='w-4 h-4' />
-                </span>
-              ),
-              withBorder: true,
-              autoClose: 3000,
-              position: 'top-right',
-            });
-            setDrawerOpened(false);
-            setSelectedPolicy(null);
-            reset();
-            if (editor) editor.commands.setContent("");
-          },
-          onError: () => {
-            notifications.show({
-              title: 'Error',
-              message: 'Failed to update policy.',
-              color: 'red',
-              radius: 'md',
-              icon: (
-                <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
-                  <img src={errorIcon} alt='Error' className='w-4 h-4' />
-                </span>
-              ),
-              withBorder: true,
-              autoClose: 3000,
-              position: 'top-right',
-            });
-          },
-        }
-      );
-    } else {
-      createPolicyMutation.mutate(payload, {
-        onSuccess: () => {
-          notifications.show({
-            title: 'Success',
-            message: 'Policy created successfully!',
-            color: 'green',
-            radius: 'md',
-            icon: (
-              <span className='flex items-center justify-center w-6 h-6 rounded-full bg-green-200'>
-                <img src={successIcon} alt='Success' className='w-4 h-4' />
-              </span>
-            ),
-            withBorder: true,
-            autoClose: 3000,
-            position: 'top-right',
-          });
-          setDrawerOpened(false);
-          reset();
-          if (editor) editor.commands.setContent("");
-        },
-        onError: () => {
-          notifications.show({
-            title: 'Error',
-            message: 'Failed to create policy.',
-            color: 'red',
-            radius: 'md',
-            icon: (
-              <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
-                <img src={errorIcon} alt='Error' className='w-4 h-4' />
-              </span>
-            ),
-            withBorder: true,
-            autoClose: 3000,
-            position: 'top-right',
-          });
-        },
-      });
-    }
-  };
 
   const handleDelete = () => {
     if (!policyToDelete) return;
@@ -487,10 +305,10 @@ const Policies = () => {
           size="sm"
           leftSection={<IconPlus size={16} />}
           onClick={() => {
-            setDrawerOpened(true);
-            setSelectedPolicy(null);
-            reset();
-            if (editor) editor.commands.setContent("");
+            openDrawer({
+              type: 'policy',
+              isEditing: false
+            });
           }}
         >
           Create Policy
@@ -501,357 +319,15 @@ const Policies = () => {
         columns={columns}
         rowSelection={rowSelection}
         onRowSelectionChange={setRowSelection}
-        onRowClick={(row: any) => {
+        onRowClick={(row) => {
           setSelectedPolicy(row);
+          setIsViewModalOpen(true);
         }}
       />
-      <Drawer
-        opened={drawerOpened}
-        onClose={() => {
-          setDrawerOpened(false);
-          setSelectedPolicy(null);
-          reset();
-          if (editor) editor.commands.setContent("");
-        }}
-        title={selectedPolicy ? 'Update Policy' : 'Create Policy'}
-        position='right'
-        size='md'
-        padding='xl'
-        overlayProps={{ opacity: 0.5, blur: 2 }}
-      >
-        <FormProvider {...methods}>
-          <form onSubmit={handleSubmit(onSubmit)}>
-            <div className="mb-4">
-              <Controller
-                name="policyTitle"
-                control={control}
-                render={({ field }) => (
-                  <Input
-                    {...field}
-                    label="Policy Title"
-                    placeholder="Enter policy title"
-                  />
-                )}
-              />
-              <div className="relative w-full mt-4">
-                <Controller
-                  name="policyType"
-                  control={control}
-                  rules={{ required: "Policy type is required" }}
-                  render={({ field }) => (
-                    <DropdownSelectInput
-                      {...field}
-                      label="Policy Type"
-                      options={[
-                        { label: "Text Content", value: "TEXT" },
-                        { label: "PDF Document", value: "PDF" },
-                      ]}
-                      placeholder="Select policy type"
-                      singleSelect
-                      onSelectItem={(value) => {
-                        const selectedValue =
-                          typeof value === "object" ? value.value : value;
-                        field.onChange(selectedValue);
-                        methods.setValue("policyType", selectedValue);
-                      }}
-                      value={
-                        typeof field.value === "object"
-                          ? field.value.value
-                          : field.value
-                      }
-                    />
-                  )}
-                />
-                {watch("policyType") === "TEXT" && (
-                  <Controller
-                    name="policyContent"
-                    control={control}
-                    render={() => (
-                      <>
-                        <div className="tiptap-toolbar mt-4">
-                          <button
-                            type="button"
-                            onClick={() =>
-                              editor?.chain().focus().toggleBold().run()
-                            }
-                            className={
-                              editor?.isActive("bold") ? "is-active" : ""
-                            }
-                          >
-                            B
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() =>
-                              editor?.chain().focus().toggleItalic().run()
-                            }
-                            className={
-                              editor?.isActive("italic") ? "is-active" : ""
-                            }
-                          >
-                            I
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() =>
-                              editor?.chain().focus().toggleUnderline().run()
-                            }
-                            className={
-                              editor?.isActive("underline") ? "is-active" : ""
-                            }
-                          >
-                            U
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() =>
-                              editor?.chain().focus().toggleStrike().run()
-                            }
-                            className={
-                              editor?.isActive("strike") ? "is-active" : ""
-                            }
-                          >
-                            S
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() =>
-                              editor?.chain().focus().toggleBulletList().run()
-                            }
-                            className={
-                              editor?.isActive("bulletList") ? "is-active" : ""
-                            }
-                          >
-                            • List
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() =>
-                              editor?.chain().focus().toggleOrderedList().run()
-                            }
-                            className={
-                              editor?.isActive("orderedList") ? "is-active" : ""
-                            }
-                          >
-                            1. List
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() =>
-                              editor?.chain().focus().setTextAlign("left").run()
-                            }
-                            className={
-                              editor?.isActive({ textAlign: "left" })
-                                ? "is-active"
-                                : ""
-                            }
-                          >
-                            Left
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() =>
-                              editor
-                                ?.chain()
-                                .focus()
-                                .setTextAlign("center")
-                                .run()
-                            }
-                            className={
-                              editor?.isActive({ textAlign: "center" })
-                                ? "is-active"
-                                : ""
-                            }
-                          >
-                            Center
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() =>
-                              editor
-                                ?.chain()
-                                .focus()
-                                .setTextAlign("right")
-                                .run()
-                            }
-                            className={
-                              editor?.isActive({ textAlign: "right" })
-                                ? "is-active"
-                                : ""
-                            }
-                          >
-                            Right
-                          </button>
-                          <input
-                            type="color"
-                            value={
-                              editor?.getAttributes("textStyle").color ||
-                              "#000000"
-                            }
-                            onInput={(e) =>
-                              editor
-                                ?.chain()
-                                .focus()
-                                .setColor((e.target as HTMLInputElement).value)
-                                .run()
-                            }
-                            title="Text color"
-                          />
-                          <DropdownSelectInput
-                            options={[
-                              { label: "Size", value: "" },
-                              { label: "12", value: "12px" },
-                              { label: "14", value: "14px" },
-                              { label: "16", value: "16px" },
-                              { label: "18", value: "18px" },
-                              { label: "20", value: "20px" },
-                              { label: "24", value: "24px" },
-                              { label: "28", value: "28px" },
-                              { label: "32", value: "32px" },
-                            ]}
-                            value={
-                              editor?.getAttributes("textStyle").fontSize || ""
-                            }
-                            placeholder="Size"
-                            width={120}
-                            singleSelect
-                            onSelectItem={(item) => {
-                              editor
-                                ?.chain()
-                                .focus()
-                                .setFontSize(item.value)
-                                .run();
-                            }}
-                            selectClassName="mr-2"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => {
-                              if (!editor) return;
-                              editor
-                                .chain()
-                                .focus()
-                                .unsetAllMarks()
-                                .setParagraph()
-                                .setFontFamily("")
-                                .setFontSize("")
-                                .setColor("#000000")
-                                .run();
-                            }}
-                          >
-                            Clear
-                          </button>
-                        </div>
-                        <div className="relative w-full mt-4">
-                          <EditorContent
-                            editor={editor}
-                            className="tiptap-editor"
-                          />
-                        </div>
-                      </>
-                    )}
-                  />
-                )}
-                {watch("policyType") === "PDF" && (
-                  <div className="mt-4">
-                    <Dropzone
-                      radius="8px"
-                      onDrop={(files) => {
-                        if (files.length > 0) {
-                          methods.setValue("policyFile", files[0], {
-                            shouldValidate: true,
-                          });
-                          notifications.show({
-                            title: "File uploaded",
-                            message: `${files[0].name} has been selected`,
-                            color: "green",
-                          });
-                        }
-                      }}
-                      maxSize={20 * 1024 ** 2}
-                      accept={["application/pdf"]}
-                      className={styles.dropzoneRoot}
-                      multiple={false}
-                    >
-                      <Box style={{ pointerEvents: "none" }}>
-                        <Group justify="center" gap="xl" mb="md" p="6">
-                          <Group gap="sm">
-                            <Image
-                              src={dropZoneIcon}
-                              width={24}
-                              height={24}
-                              alt="Upload icon"
-                            />
-                            <Text c="#1D9B5E">
-                              {methods.getValues("policyFile")
-                                ? `Selected file: ${
-                                    methods.getValues("policyFile")?.name
-                                  }`
-                                : "Drag and drop a policy file here, or Browse"}
-                            </Text>
-                          </Group>
-                        </Group>
-                        {!methods.getValues("policyFile") && (
-                          <Text c="#1D9B5E" ta="center" mt="auto" py="xs">
-                            Max size: 20MB (PDF recommended)
-                          </Text>
-                        )}
-                        {methods.getValues("policyFile") && (
-                          <Button
-                            variant="subtle"
-                            color="red"
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              methods.setValue("policyFile", undefined, {
-                                shouldValidate: true,
-                              });
-                            }}
-                          >
-                            Remove file
-                          </Button>
-                        )}
-                      </Box>{" "}
-                    </Dropzone>
-                    {methods.formState.errors.policyFile && (
-                      <Text c="red" size="sm" mt={4}>
-                        {methods.formState.errors.policyFile.message}
-                      </Text>
-                    )}
-                  </div>
-                )}
-              </div>
-              <Stack
-                justify="flex-end"
-                align="flex-end"
-                gap="sm"
-                style={{ marginTop: 16 }}
-              >
-                <MantineButton
-                  variant="filled"
-                  color="#1D9B5E"
-                  radius="md"
-                  size="sm"
-                  type="submit"
-                  loading={
-                    createPolicyMutation.isPending ||
-                    updatePolicyMutation.isPending
-                  }
-                  disabled={
-                    createPolicyMutation.isPending ||
-                    updatePolicyMutation.isPending
-                  }
-                >
-                  {selectedPolicy ? "Update Policy" : "Save Policy"}
-                </MantineButton>
-              </Stack>
-            </div>
-          </form>
-        </FormProvider>
-      </Drawer>
+
       <Modal
-        opened={!!selectedPolicy && !drawerOpened}
-        onClose={() => setSelectedPolicy(null)}
+        opened={isViewModalOpen}
+        onClose={() => setIsViewModalOpen(false)}
         title="Policy Details"
         size="lg"
         centered

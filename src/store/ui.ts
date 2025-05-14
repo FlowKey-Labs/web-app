@@ -21,6 +21,10 @@ export interface DrawerData {
   entityId?: number | string | null;
   isEditing?: boolean;
   extraData?: Record<string, any>;
+  parentContext?: {
+    type: DrawerType;
+    pendingData?: Record<string, any>;
+  };
 }
 
 /**

@@ -5,7 +5,10 @@ import {
   SubcategoryDrawer,
   PolicyDrawer,
   ClientDrawer,
-  PlaceholderDrawer 
+  PlaceholderDrawer,
+  RoleDrawer,
+  StaffDrawer,
+  SessionDrawer
 } from './index';
 
 /**
@@ -60,6 +63,36 @@ const renderDrawer = (drawerData: DrawerData, index: number, totalDrawers: numbe
       return (
         <ClientDrawer
           key={`client-drawer-${index}`}
+          entityId={drawerData.entityId}
+          isEditing={drawerData.isEditing}
+          zIndex={zIndex}
+        />
+      );
+      
+    case 'role':
+      return (
+        <RoleDrawer
+          key={`role-drawer-${index}`}
+          entityId={drawerData.entityId}
+          isEditing={drawerData.isEditing}
+          zIndex={zIndex}
+        />
+      );
+      
+    case 'staff':
+      return (
+        <StaffDrawer
+          key={`staff-drawer-${index}`}
+          entityId={drawerData.entityId}
+          isEditing={drawerData.isEditing}
+          zIndex={zIndex}
+        />
+      );
+    
+    case 'session':
+      return (
+        <SessionDrawer
+          key={`session-drawer-${index}`}
           entityId={drawerData.entityId}
           isEditing={drawerData.isEditing}
           zIndex={zIndex}

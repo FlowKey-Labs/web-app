@@ -5,6 +5,9 @@ import SubcategoryDrawer from './SubcategoryDrawer';
 import PlaceholderDrawer from './PlaceholderDrawer';
 import PolicyDrawer from './PolicyDrawer';
 import ClientDrawer from './ClientDrawer';
+import RoleDrawer from './RoleDrawer';
+import StaffDrawer from './StaffDrawer';
+import SessionDrawer from './SessionDrawer';
 
 export { 
   GlobalDrawerManager,
@@ -13,5 +16,8 @@ export {
   SubcategoryDrawer,
   PlaceholderDrawer,
   PolicyDrawer,
-  ClientDrawer
+  ClientDrawer,
+  RoleDrawer,
+  StaffDrawer,
+  SessionDrawer
 }; 

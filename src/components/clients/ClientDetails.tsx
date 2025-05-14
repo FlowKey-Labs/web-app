@@ -6,21 +6,18 @@ import Table from '../common/Table';
 import { createColumnHelper } from '@tanstack/react-table';
 import { useGetClient, useGetClientAnalytics } from '../../hooks/reactQuery';
 import avatar from '../../assets/icons/newAvatar.svg';
-import UpdateClient from './UpdateClient';
 import { navigateToSessionDetails } from '../../utils/navigationHelpers';
+import { useUIStore } from '../../store/ui';
 
 const ClientDetails = () => {
   const { id: clientId } = useParams();
   const navigate = useNavigate();
+  const { openDrawer } = useUIStore();
 
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'overview' | 'clients'>(
     'overview'
   );
   const [rowSelection, setRowSelection] = useState({});
-
-  const openDrawer = () => setIsDrawerOpen(true);
-  const closeDrawer = () => setIsDrawerOpen(false);
 
   const {
     data: clientDetails,
@@ -102,6 +99,16 @@ const ClientDetails = () => {
     
   ];
 
+  const handleOpenUpdateDrawer = () => {
+    if (clientId) {
+      openDrawer({
+        type: 'client',
+        entityId: clientId,
+        isEditing: true
+      });
+    }
+  };
+
   if (isLoading) {
     return (
       <div className='w-full space-y-6 bg-white rounded-lg p-6'>
@@ -147,7 +154,7 @@ const ClientDetails = () => {
           title='Client Details'
           buttonText='Update Client'
           searchPlaceholder='Search by ID, Name or Subject'
-          onButtonClick={openDrawer}
+          onButtonClick={handleOpenUpdateDrawer}
           showFilterIcons={false}
         />
         <div className='items-center gap-4 p-6'>
@@ -249,44 +256,18 @@ const ClientDetails = () => {
                     className={`font-bold text-xl relative cursor-pointer transition-all duration-200 hover:text-gray-700  ${
                       activeTab === 'overview'
                         ? 'text-primary'
-                        : 'text-gray-500'
+                        : 'text-gray-400'
                     }`}
                     onClick={() => setActiveTab('overview')}
                   >
-                    Overall View
+                    Overview
+                    {activeTab === 'overview' && (
+                      <div className='absolute bottom-0 left-0 w-full h-1 bg-primary rounded'></div>
+                    )}
                   </button>
                 </div>
-                <div className='h-[1px] bg-gray-300 w-full opacity-60'></div>
               </div>
-              <div className='flex space-x-16 mt-6'>
-                <div className='flex items-center border py-6 px-10 bg-white rounded-xl'>
-                  <div className='flex flex-col items-center rounded-xl  space-y-4'>
-                    <p className='text-4xl'>
-                      {analyticsLoading ? (
-                        <span className='text-lg text-gray-500'>Loading...</span>
-                      ) : (
-                        <>
-                          {clientAnalytics?.attended_sessions}
-                          <span className='text-lg text-gray-500'>/{clientAnalytics?.total_sessions || 0}</span>
-                        </>
-                      )}
-                    </p>
-                    <p className='text-sm'>Sessions</p>
-                  </div>
-                </div>
-                <div className='flex items-center border py-6 px-10 bg-white rounded-xl'>
-                  <div className='flex flex-col items-center rounded-xl  space-y-4'>
-                    <p className='text-2xl font-semibold  test-primary'>
-                      {analyticsLoading ? (
-                        <span className='text-lg text-gray-500'>Loading...</span>
-                      ) : (
-                        `${clientAnalytics?.average_attendance || 0}%`
-                      )}
-                    </p>
-                    <p className='text-sm'>Average Attendance</p>
-                  </div>
-                </div>
-              </div>
+
               <div className='flex-1 mt-6'>
                 <div className=''>
                   <div className='flex justify-between'>
@@ -313,11 +294,6 @@ const ClientDetails = () => {
           </div>
         </div>
       </div>
-      <UpdateClient
-        isOpen={isDrawerOpen}
-        onClose={closeDrawer}
-        clientId={clientId}
-      />
     </>
   );
 };

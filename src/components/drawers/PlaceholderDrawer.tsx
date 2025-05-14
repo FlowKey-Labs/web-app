@@ -22,7 +22,6 @@ export default function PlaceholderDrawer({
 }: PlaceholderDrawerProps) {
   const { closeDrawer } = useUIStore();
   
-  // Generate a human-readable title based on the drawer type
   const getDrawerTitle = () => {
     const action = isEditing ? 'Edit' : 'Add New';
     const typeName = drawerType.charAt(0).toUpperCase() + drawerType.slice(1);

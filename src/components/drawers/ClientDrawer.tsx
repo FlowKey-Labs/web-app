@@ -56,10 +56,16 @@ interface ClientDrawerProps {
 }
 
 export default function ClientDrawer({ entityId, isEditing, zIndex }: ClientDrawerProps) {
-  const { closeDrawer } = useUIStore();
+  const { closeDrawer, drawerStack } = useUIStore();
   const [activeTab, setActiveTab] = useState<string>('individual');
   const editingId = entityId ? Number(entityId) : null;
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+  
+  const parentDrawer = drawerStack.length > 1 
+    ? drawerStack[drawerStack.length - 2] 
+    : null;
+  
+  const isFromSessionDrawer = parentDrawer?.type === 'session';
   
   const methods = useForm<AddClient>({
     defaultValues: emptyClient,
@@ -189,7 +195,6 @@ export default function ClientDrawer({ entityId, isEditing, zIndex }: ClientDraw
 
   const handleSubmitIndividual = individualHandleSubmit(async (data) => {
     try {
-
       setFormErrors({});
       
       const formattedDob = data.dob
@@ -207,7 +212,11 @@ export default function ClientDrawer({ entityId, isEditing, zIndex }: ClientDraw
         group_id: data.group_id || null,
       };
 
-      if (data.sessions && data.sessions.length > 0) {
+      if (isFromSessionDrawer && parentDrawer?.entityId) {
+        const sessionId = parentDrawer.entityId;
+        console.log(`Adding client to session ID: ${sessionId}`);
+        clientData.session_ids = [parseInt(sessionId.toString())];
+      } else if (data.sessions && data.sessions.length > 0) {
         const sessionIds = data.sessions
           .filter(session => session && typeof session === 'object' && session.value)
           .map(session => parseInt(session.value));
@@ -397,6 +406,12 @@ export default function ClientDrawer({ entityId, isEditing, zIndex }: ClientDraw
         contact_person_id: data.contact_person_id,
       };
       
+      if (isFromSessionDrawer && parentDrawer?.entityId) {
+        const sessionId = parentDrawer.entityId;
+        console.log(`Adding group to session ID: ${sessionId}`);
+        groupData.session_ids = [parseInt(sessionId.toString())];
+      }
+      
       addGroup(groupData, {
         onSuccess: () => {
           notifications.show({
@@ -566,6 +581,26 @@ export default function ClientDrawer({ entityId, isEditing, zIndex }: ClientDraw
                     </div>
                   </div>
                 )}
+                
+                {/* Show notice when creating from session drawer */}
+                {isFromSessionDrawer && !isEditing && (
+                  <div className="bg-blue-50 p-3 mb-4 rounded-md border border-blue-200">
+                    <div className="flex items-start">
+                      <div className="flex-shrink-0 pt-0.5">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-500" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                        </svg>
+                      </div>
+                      <div className="ml-3">
+                        <h3 className="text-sm font-medium text-blue-800">Creating Client for Session</h3>
+                        <div className="mt-1 text-sm text-blue-700">
+                          <p>This client will be automatically assigned to the session you're creating.</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
                 <h4 className='text-lg font-semibold text-gray-700'>
                   {isEditing ? 'Personal Information' : 'Client Information'}
                 </h4>
@@ -753,53 +788,56 @@ export default function ClientDrawer({ entityId, isEditing, zIndex }: ClientDraw
                 </div>
               </div>
 
-              <div className='mb-8'>
-                <Controller
-                  name='sessions'
-                  control={individualControl}
-                  render={({ field }) => (
-                    <div className="w-full">
-                      <DropdownSelectInput
-                        label='Sessions'
-                        singleSelect={false}
-                        placeholder='Select sessions'
-                        options={
-                          isSessionsLoading
-                            ? [{ label: 'Loading...', value: '' }]
-                            : sessionsData
-                                ?.filter(Boolean)
-                                .map((session: any) => ({
-                                  label: session.title || session.name || 'Unnamed Session',
-                                  value: session.id?.toString() || ''
-                                }))
-                                .filter(item => item.value) || []
-                        }
-                        value={field.value && Array.isArray(field.value) 
-                          ? field.value
-                            .filter(item => item && typeof item === 'object' && item.value)
-                            .map(item => item.value)
-                          : []
-                        }
-                        onSelectItem={(selectedItems) => {
-                          field.onChange(selectedItems);
-                        }}
-                        createLabel="Create new session"
-                        createDrawerType="session"
-                      />
-                      {formErrors.sessions && (
-                        <p className="text-red-500 text-xs mt-1">
-                          {formErrors.sessions}
-                        </p>
-                      )}
-                      {formErrors.session_ids && (
-                        <p className="text-red-500 text-xs mt-1">
-                          {formErrors.session_ids}
-                        </p>
-                      )}
-                    </div>
-                  )}
-                />
-              </div>
+              {/* Only show sessions dropdown if not from session drawer */}
+              {!isFromSessionDrawer && (
+                <div className='mb-8'>
+                  <Controller
+                    name='sessions'
+                    control={individualControl}
+                    render={({ field }) => (
+                      <div className="w-full">
+                        <DropdownSelectInput
+                          label='Sessions'
+                          singleSelect={false}
+                          placeholder='Select sessions'
+                          options={
+                            isSessionsLoading
+                              ? [{ label: 'Loading...', value: '' }]
+                              : sessionsData
+                                  ?.filter(Boolean)
+                                  .map((session: any) => ({
+                                    label: session.title || session.name || 'Unnamed Session',
+                                    value: session.id?.toString() || ''
+                                  }))
+                                  .filter(item => item.value) || []
+                          }
+                          value={field.value && Array.isArray(field.value) 
+                            ? field.value
+                              .filter(item => item && typeof item === 'object' && item.value)
+                              .map(item => item.value)
+                            : []
+                          }
+                          onSelectItem={(selectedItems) => {
+                            field.onChange(selectedItems);
+                          }}
+                          createLabel="Create new session"
+                          createDrawerType="session"
+                        />
+                        {formErrors.sessions && (
+                          <p className="text-red-500 text-xs mt-1">
+                            {formErrors.sessions}
+                          </p>
+                        )}
+                        {formErrors.session_ids && (
+                          <p className="text-red-500 text-xs mt-1">
+                            {formErrors.session_ids}
+                          </p>
+                        )}
+                      </div>
+                    )}
+                  />
+                </div>
+              )}
 
               <div className='mt-auto flex justify-end gap-4'>
                 <Button
@@ -824,6 +862,40 @@ export default function ClientDrawer({ entityId, isEditing, zIndex }: ClientDraw
               className='flex-1 flex flex-col p-2'
             >
               <div className='space-y-4 mb-8'>
+                {Object.keys(formErrors).length > 0 && (
+                  <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-4">
+                    <div className="flex">
+                      <div className="flex-shrink-0">
+                        <img src={errorIcon} alt="Error" className="w-5 h-5" />
+                      </div>
+                      <div className="ml-3">
+                        <p className="text-sm text-red-700">
+                          Please correct the errors in the form to continue.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Show notice when creating from session drawer */}
+                {isFromSessionDrawer && (
+                  <div className="bg-blue-50 p-3 mb-4 rounded-md border border-blue-200">
+                    <div className="flex items-start">
+                      <div className="flex-shrink-0 pt-0.5">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-500" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                        </svg>
+                      </div>
+                      <div className="ml-3">
+                        <h3 className="text-sm font-medium text-blue-800">Creating Group for Session</h3>
+                        <div className="mt-1 text-sm text-blue-700">
+                          <p>This group will be automatically assigned to the session you're creating.</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
                 <h4 className='text-lg font-semibold text-gray-700'>
                   Group Information
                 </h4>
@@ -909,33 +981,36 @@ export default function ClientDrawer({ entityId, isEditing, zIndex }: ClientDraw
                   )}
                 />
                 
-                <Controller
-                  name='session_ids'
-                  control={groupControl}
-                  render={({ field }) => (
-                    <DropdownSelectInput
-                      label='Sessions'
-                      placeholder={isSessionsLoading ? 'Loading sessions...' : 'Select sessions for this group'}
-                      singleSelect={false}
-                      options={
-                        isSessionsLoading
-                          ? [{ label: 'Loading...', value: '' }]
-                          : sessionsData
-                              ?.filter(Boolean)
-                              .map((session) => ({
-                                label: session.title || session.name,
-                                value: session.id.toString(),
-                              })) || []
-                      }
-                      value={field.value?.map((id: number) => id.toString()) || []}
-                      onSelectItem={(selectedItems) => {
-                        field.onChange(selectedItems.map((item: { value: string }) => parseInt(item.value)));
-                      }}
-                      createLabel="Create new session"
-                      createDrawerType="session"
-                    />
-                  )}
-                />
+                {/* Only show sessions dropdown if not from session drawer */}
+                {!isFromSessionDrawer && (
+                  <Controller
+                    name='session_ids'
+                    control={groupControl}
+                    render={({ field }) => (
+                      <DropdownSelectInput
+                        label='Sessions'
+                        placeholder={isSessionsLoading ? 'Loading sessions...' : 'Select sessions for this group'}
+                        singleSelect={false}
+                        options={
+                          isSessionsLoading
+                            ? [{ label: 'Loading...', value: '' }]
+                            : sessionsData
+                                ?.filter(Boolean)
+                                .map((session) => ({
+                                  label: session.title || session.name,
+                                  value: session.id.toString(),
+                                })) || []
+                        }
+                        value={field.value?.map((id: number) => id.toString()) || []}
+                        onSelectItem={(selectedItems) => {
+                          field.onChange(selectedItems.map((item: { value: string }) => parseInt(item.value)));
+                        }}
+                        createLabel="Create new session"
+                        createDrawerType="session"
+                      />
+                    )}
+                  />
+                )}
                 
                 <Controller
                   name='contact_person_id'

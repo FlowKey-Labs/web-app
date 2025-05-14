@@ -26,20 +26,20 @@ import { useState, useMemo, useCallback } from 'react';
 import { useExportClients } from '../../hooks/useExport';
 import { useNavigate } from 'react-router-dom';
 import { navigateToClientDetails } from '../../utils/navigationHelpers';
-import AddClients from './AddClient';
 import EmptyDataPage from '../common/EmptyDataPage';
 import { useAuthStore } from '../../store/auth';
+import { useUIStore } from '../../store/ui';
 
 const columnHelper = createColumnHelper<Client>();
 
 const AllClients = () => {
   const [rowSelection, setRowSelection] = useState({});
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [opened, { open, close }] = useDisclosure(false);
   const [isActivating, setIsActivating] = useState(false);
 
   const navigate = useNavigate();
+  const { openDrawer } = useUIStore();
   const deactivateClientMutation = useDeactivateClient();
   const activateClientMutation = useActivateClient();
 
@@ -310,8 +310,12 @@ const AllClients = () => {
     });
   };
 
-  const openDrawer = () => setIsDrawerOpen(true);
-  const closeDrawer = () => setIsDrawerOpen(false);
+  const handleOpenClientDrawer = () => {
+    openDrawer({
+      type: 'client',
+      isEditing: false
+    });
+  };
 
   if (isLoading) {
     return (
@@ -347,18 +351,18 @@ const AllClients = () => {
           buttonText='Add Client'
           searchPlaceholder='Search by Name, Email or Phone Number'
           leftIcon={plusIcon}
-          onButtonClick={openDrawer}
+          onButtonClick={handleOpenClientDrawer}
           showButton={permisions?.can_create_clients}
         />
-        {!isDrawerOpen && <EmptyDataPage
+        <EmptyDataPage
           title='No Clients Found'
           description="You don't have any clients yet"
           buttonText='Add New Client'
-          onButtonClick={openDrawer}
+          onButtonClick={handleOpenClientDrawer}
           onClose={() => {}}
           opened={clients.length === 0 && !isLoading}
           showButton={permisions?.can_create_clients}
-        />}
+        />
         <div className='flex-1 px-6 py-3'>
           <Table
             data={clients}
@@ -373,7 +377,6 @@ const AllClients = () => {
           />
         </div>
       </div>
-      <AddClients isOpen={isDrawerOpen} onClose={closeDrawer} />
 
       <Modal
         opened={opened}
