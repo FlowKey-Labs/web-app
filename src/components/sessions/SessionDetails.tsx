@@ -32,8 +32,19 @@ import avatar from '../../assets/icons/newAvatar.svg';
 import UpdateSession from './UpdateSession';
 import successIcon from '../../assets/icons/success.svg';
 import errorIcon from '../../assets/icons/error.svg';
+import { Controller, FormProvider, useForm } from 'react-hook-form';
+import Input from '../common/Input';
 
 const columnHelper = createColumnHelper<Client>();
+
+type ModalFormData = {
+  client_id: number;
+  session_id: number;
+  original_date: string;
+  new_date: string;
+  new_start_time: string;
+  new_end_time: string;
+};
 
 const SessionDetails = () => {
   const { id: sessionId } = useParams();
@@ -84,6 +95,8 @@ const SessionDetails = () => {
       return clients[clientIndex].id;
     });
   }, [rowSelection, clients]);
+
+  const methods = useForm<ModalFormData>();
 
   const {
     exportModalOpened,
@@ -269,6 +282,14 @@ const SessionDetails = () => {
         },
       }
     );
+  };
+
+  const onSubmit = async (data: ModalFormData) => {
+    console.log(data);
+    try {
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   const columns = useMemo(
@@ -838,37 +859,150 @@ const SessionDetails = () => {
               ? "Are you sure you want to mark this client's attendance as cancelled for this session?"
               : 'Are you sure you want to update the attendance status for this client?'}
           </Text>
-          <div className='flex justify-end space-x-3'>
-            <Button variant='subtle' onClick={close} color='gray'>
-              Cancel
-            </Button>
-            <Button
-              onClick={() => {
-                if (isRemovingClient) {
-                  handleRemoveClient();
-                } else if (selectedStatus) {
-                  handleUpdateAttendanceStatus();
-                }
-              }}
-              color={
-                isRemovingClient
-                  ? 'red'
-                  : selectedStatus === 'attended'
-                  ? 'green'
-                  : selectedStatus === 'not_yet'
-                  ? 'yellow'
-                  : selectedStatus === 'missed'
-                  ? 'red'
-                  : selectedStatus === 'make_up'
-                  ? 'blue'
-                  : selectedStatus === 'cancelled'
-                  ? 'gray'
-                  : 'green'
-              }
-            >
-              Confirm
-            </Button>
+          <div className=''>
+            {selectedStatus === 'make_up' && (
+              <div className='flex flex-col p-6'>
+                <h3 className='text-lg font-semibold text-secondary'>
+                  Reschedule Session
+                </h3>
+                <div className='flex flex-col w-full justify-start'>
+                  <FormProvider {...methods}>
+                    <div className=' space-y-2'>
+                      <Controller
+                        name='client_id'
+                        control={methods.control}
+                        render={({ field }) => (
+                          <Input
+                            {...field}
+                            label='Client Name'
+                            placeholder='Client Name'
+                            value={field.value || ''}
+                          />
+                        )}
+                      />
+                      <Controller
+                        name='session_id'
+                        control={methods.control}
+                        render={({ field }) => (
+                          <Input
+                            {...field}
+                            label='Session Name'
+                            placeholder='Session Name'
+                            value={field.value || ''}
+                          />
+                        )}
+                      />
+                      <Controller
+                        name='original_date'
+                        control={methods.control}
+                        render={({ field }) => (
+                          <Input
+                            {...field}
+                            label='Original Date'
+                            placeholder='Original Date'
+                            value={field.value || ''}
+                            type='date'
+                          />
+                        )}
+                      />
+                      <div className=' space-y-2'>
+                        <p className='text-base font-medium'>Move to </p>
+                        <Controller
+                          name='new_date'
+                          control={methods.control}
+                          render={({ field }) => (
+                            <Input
+                              {...field}
+                              label='New Date'
+                              placeholder='New Date'
+                              value={field.value || ''}
+                              type='date'
+                            />
+                          )}
+                        />
+                        <div className='flex gap-2'>
+                          <Controller
+                            name='new_start_time'
+                            control={methods.control}
+                            render={({ field }) => (
+                              <Input
+                                {...field}
+                                label='New Start Time'
+                                placeholder='New Start Time'
+                                value={field.value || ''}
+                                type='time'
+                              />
+                            )}
+                          />
+                          <Controller
+                            name='new_end_time'
+                            control={methods.control}
+                            render={({ field }) => (
+                              <Input
+                                {...field}
+                                label='New End Time'
+                                placeholder='New End Time'
+                                value={field.value || ''}
+                                type='time'
+                              />
+                            )}
+                          />
+                        </div>
+                      </div>
+                      <div className='flex justify-end space-x-3 pt-4'>
+                        <Button variant='subtle' onClick={close} color='gray'>
+                          Cancel
+                        </Button>
+                        <Button
+                          onClick={() => {
+                            methods.handleSubmit((data) => {
+                              console.log(data);
+                            })();
+                          }}
+                          color='#1D9B5E'
+                        >
+                          Confirm
+                        </Button>
+                      </div>
+                    </div>
+                  </FormProvider>
+                </div>
+              </div>
+            )}
           </div>
+          {selectedStatus !== 'make_up' && (
+            <div className='flex justify-end space-x-3'>
+              <Button variant='subtle' onClick={close} color='gray'>
+                Cancel
+              </Button>
+              <Button
+                onClick={() => {
+                  if (isRemovingClient) {
+                    handleRemoveClient();
+                  } else if (selectedStatus) {
+                    handleUpdateAttendanceStatus();
+                  }
+                }}
+                color={
+                  isRemovingClient
+                    ? 'red'
+                    : selectedStatus === 'attended'
+                    ? 'green'
+                    : selectedStatus === 'not_yet'
+                    ? 'yellow'
+                    : selectedStatus === 'missed'
+                    ? 'red'
+                    : selectedStatus === 'make_up'
+                    ? 'blue'
+                    : selectedStatus === 'cancelled'
+                    ? 'gray'
+                    : 'green'
+                }
+              >
+                Confirm
+              </Button>
+            </div>
+          )}
         </div>
       </Modal>
       <Modal
