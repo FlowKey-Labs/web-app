@@ -14,7 +14,12 @@ export interface Staff {
   email: string;
 }
 
-export type AttendanceStatus = 'not_yet' | 'attended' | 'missed' | 'make_up' | 'cancelled';
+export type AttendanceStatus =
+  | 'not_yet'
+  | 'attended'
+  | 'missed'
+  | 'make_up'
+  | 'cancelled';
 
 export interface Attendance {
   id: number;
@@ -82,7 +87,6 @@ export interface CreateSessionData {
   repeat_occurrences?: number; // required if repeat_end_type is 'after'
 }
 
-
 // Session data as returned by the API
 export interface Session
   extends Omit<CreateSessionData, 'category' | 'client_ids' | 'location_id'> {
@@ -106,7 +110,6 @@ export interface SessionTableData {
   duration: string;
   repeats: string[];
 }
-
 
 // Class session specific fields
 export interface ClassFields {
@@ -133,4 +136,18 @@ export interface EventFields {
   spots: number;
   category?: number;
   client_ids?: number[];
+}
+
+export interface MakeUpSession {
+  id: number | string;
+  session_title: string;
+  client_name: string;
+  original_date: CreateSessionData['date'];
+  new_date: string;
+  new_start_time: string;
+  new_end_time: string;
+  created_at?: string;
+  updated_at?: string;
+  session: number | string;
+  client: number | string;
 }

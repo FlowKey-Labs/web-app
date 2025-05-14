@@ -1,7 +1,7 @@
 import { api } from "../lib/axios";
 import axios from "axios";
 
-import { CreateSessionData, Session } from "../types/sessionTypes";
+import { CreateSessionData, MakeUpSession, Session } from "../types/sessionTypes";
 import { CreateLocationData } from "../types/location";
 import { Role } from "../store/auth";
 
@@ -48,6 +48,7 @@ const END_POINTS = {
     STAFF_SESSIONS: (id: string) => `${BASE_URL}/api/staff/sessions/${id}`,
     SUBCATEGORIES: `${BASE_URL}/api/session/subcategories/`,
     SUBSKILLS: `${BASE_URL}/api/session/subskills/`,
+    MAKEUP_SESSIONS: `${BASE_URL}/api/session/makeup-sessions/`,
   },
   ANALYTICS: {
     ANALYTICS_DATA: `${BASE_URL}/api/dashboard/analytics/`,
@@ -778,6 +779,26 @@ const deleteRole = async (id: string) => {
   return data;
 };
 
+const getMakeupSessions = async () => {
+  const { data } = await api.get(END_POINTS.SESSION.MAKEUP_SESSIONS);
+  return data;
+};
+
+const createMakeupSession = async (makeupSessionData: MakeUpSession) => {
+  const { data } = await api.post(END_POINTS.SESSION.MAKEUP_SESSIONS, makeupSessionData);
+  return data;
+};
+
+const updateMakeupSession = async (id: string, makeupSessionData: MakeUpSession) => {
+  const { data } = await api.patch(`${END_POINTS.SESSION.MAKEUP_SESSIONS}${id}/`, makeupSessionData);
+  return data;
+};
+
+const deleteMakeupSession = async (id: string) => {
+  const { data } = await api.delete(`${END_POINTS.SESSION.MAKEUP_SESSIONS}${id}/`);
+  return data;
+};
+
 export {
   END_POINTS,
   registerUser,
@@ -855,4 +876,8 @@ export {
   createRole,
   updateRole,
   deleteRole,
+  getMakeupSessions,
+  createMakeupSession,
+  updateMakeupSession,
+  deleteMakeupSession,
 };

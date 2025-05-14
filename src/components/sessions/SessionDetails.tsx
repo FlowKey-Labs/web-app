@@ -16,6 +16,7 @@ import { notifications } from '@mantine/notifications';
 import Table from '../common/Table';
 import { createColumnHelper } from '@tanstack/react-table';
 import { useExportSessionClients } from '../../hooks/useExport';
+import moment from 'moment';
 
 import {
   useGetSessionDetail,
@@ -24,6 +25,8 @@ import {
   // useMarkClientAttended,
   useRemoveClientFromSession,
   useUpdateAttendanceStatus,
+  useCreateMakeupSession,
+  useGetMakeupSessions,
 } from '../../hooks/reactQuery';
 
 import actionOptionIcon from '../../assets/icons/actionOption.svg';
@@ -34,17 +37,9 @@ import successIcon from '../../assets/icons/success.svg';
 import errorIcon from '../../assets/icons/error.svg';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
 import Input from '../common/Input';
+import { MakeUpSession } from '../../types/sessionTypes';
 
 const columnHelper = createColumnHelper<Client>();
-
-type ModalFormData = {
-  client_id: number;
-  session_id: number;
-  original_date: string;
-  new_date: string;
-  new_start_time: string;
-  new_end_time: string;
-};
 
 const SessionDetails = () => {
   const { id: sessionId } = useParams();
@@ -58,6 +53,8 @@ const SessionDetails = () => {
 
   const removeClientMutation = useRemoveClientFromSession();
   const updateStatusMutation = useUpdateAttendanceStatus();
+
+  const createMakeupSessionMutation = useCreateMakeupSession();
 
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'overview' | 'clients'>(
@@ -96,7 +93,7 @@ const SessionDetails = () => {
     });
   }, [rowSelection, clients]);
 
-  const methods = useForm<ModalFormData>();
+  const methods = useForm<MakeUpSession>();
 
   const {
     exportModalOpened,
@@ -284,9 +281,67 @@ const SessionDetails = () => {
     );
   };
 
-  const onSubmit = async (data: ModalFormData) => {
+  const handleCreateMakeupSession = () => {
+    if (!sessionId) return;
+
+    createMakeupSessionMutation.mutate(
+      {
+        session_title: methods.getValues('session_title'),
+        client_name: methods.getValues('client_name'),
+        id: '0',
+        session: sessionId,
+        client: selectedClient?.id || '',
+        original_date: moment(session?.date).format('YYYY-MM-DD'),
+        new_date: moment(methods.getValues('new_date')).format('YYYY-MM-DD'),
+        new_start_time: methods.getValues('new_start_time'),
+        new_end_time: methods.getValues('new_end_time'),
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      },
+      {
+        onSuccess: () => {
+          notifications.show({
+            title: 'Success',
+            message: 'Makeup session created successfully!',
+            color: 'green',
+            radius: 'md',
+            icon: (
+              <span className='flex items-center justify-center w-6 h-6 rounded-full bg-green-200'>
+                <img src={successIcon} alt='Success' className='w-4 h-4' />
+              </span>
+            ),
+            withBorder: true,
+            autoClose: 3000,
+            position: 'top-right',
+          });
+          close();
+          refetchSession();
+        },
+        onError: () => {
+          notifications.show({
+            title: 'Error',
+            message: 'Failed to create makeup session. Please try again.',
+            color: 'red',
+            radius: 'md',
+            icon: (
+              <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+                <img src={errorIcon} alt='Error' className='w-4 h-4' />
+              </span>
+            ),
+            withBorder: true,
+            autoClose: 3000,
+            position: 'top-right',
+          });
+          close();
+        },
+      }
+    );
+  };
+
+  const onSubmit = async (data: MakeUpSession) => {
     console.log(data);
     try {
+      handleCreateMakeupSession();
     } catch (error) {
       console.error(error);
     }
@@ -467,6 +522,12 @@ const SessionDetails = () => {
                       setSelectedClient(client);
                       setSelectedStatus('make_up');
                       setIsRemovingClient(false);
+                      methods.setValue('session_title', session?.title || '');
+                      methods.setValue(
+                        'client_name',
+                        `${client.first_name} ${client.last_name}`
+                      );
+                      methods.setValue('original_date', session?.date || '');
                       open();
                     }}
                     className='text-sm'
@@ -869,19 +930,7 @@ const SessionDetails = () => {
                   <FormProvider {...methods}>
                     <div className=' space-y-4'>
                       <Controller
-                        name='client_id'
-                        control={methods.control}
-                        render={({ field }) => (
-                          <Input
-                            {...field}
-                            label='Client Name'
-                            placeholder='Client Name'
-                            value={field.value || ''}
-                          />
-                        )}
-                      />
-                      <Controller
-                        name='session_id'
+                        name='session_title'
                         control={methods.control}
                         render={({ field }) => (
                           <Input
@@ -889,9 +938,24 @@ const SessionDetails = () => {
                             label='Session Name'
                             placeholder='Session Name'
                             value={field.value || ''}
+                            readOnly
                           />
                         )}
                       />
+                      <Controller
+                        name='client_name'
+                        control={methods.control}
+                        render={({ field }) => (
+                          <Input
+                            {...field}
+                            label='Client Name'
+                            placeholder='Client Name'
+                            value={field.value || ''}
+                            readOnly
+                          />
+                        )}
+                      />
+
                       <Controller
                         name='original_date'
                         control={methods.control}
@@ -957,6 +1021,7 @@ const SessionDetails = () => {
                           onClick={() => {
                             methods.handleSubmit((data) => {
                               console.log(data);
+                              onSubmit(data);
                             })();
                           }}
                           color='#1D9B5E'

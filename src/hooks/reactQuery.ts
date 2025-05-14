@@ -83,6 +83,12 @@ import {
   updateRole,
   deleteRole,
   get_staff_sessions,
+
+  // Makeup Session API functions
+  getMakeupSessions,
+  createMakeupSession,
+  updateMakeupSession,
+  deleteMakeupSession,
 } from "../api/api";
 import { Role, useAuthStore } from "../store/auth";
 import { AddClient, Client } from "../types/clientTypes";
@@ -92,7 +98,7 @@ import {
   DateFilterOption,
   UpcomingSession,
 } from "../types/dashboard";
-import { Session } from "../types/sessionTypes";
+import { MakeUpSession, Session } from "../types/sessionTypes";
 import { CreateLocationData } from "../types/location";
 import { Group, GroupData } from "../types/clientTypes";
 
@@ -1221,6 +1227,65 @@ export const useRemoveMemberFromGroup = () => {
     onSuccess: (_, { groupId }) => {
       queryClient.invalidateQueries({ queryKey: ["group_members", groupId] });
       queryClient.invalidateQueries({ queryKey: ["group", groupId] });
+    },
+  });
+};
+
+// Makeup Session related hooks
+export const useGetMakeupSessions = () => {
+  return useQuery({
+    queryKey: ["makeup_sessions"],
+    queryFn: getMakeupSessions,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    refetchOnWindowFocus: false,
+  });
+};
+
+export const useCreateMakeupSession = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: createMakeupSession,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["makeup_sessions"] });
+    },
+    onError: (error) => {
+      console.error("Failed to create makeup session:", error);
+    },
+  });
+};
+
+export const useUpdateMakeupSession = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      id,
+      makeupSessionData,
+    }: {
+      id: string;
+      makeupSessionData: MakeUpSession;
+    }) => updateMakeupSession(id, makeupSessionData),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["makeup_sessions"] });
+    },
+    onError: (error) => {
+      console.error("Failed to update makeup session:", error);
+    },
+  });
+};
+
+export const useDeleteMakeupSession = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      id,
+    }: {
+      id: string;
+    }) => deleteMakeupSession(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["makeup_sessions"] });
+    },
+    onError: (error) => {
+      console.error("Failed to delete makeup session:", error);
     },
   });
 };
