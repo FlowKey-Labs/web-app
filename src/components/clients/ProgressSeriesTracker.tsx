@@ -25,50 +25,6 @@ const ProgressSeriesTracker = () => {
 
   const [isActive, setIsActive] = useState(false);
 
-  // const seriesData: Series[] = [
-  //   {
-  //     title: 'STARFISH Series',
-  //     levels: [
-  //       { label: 'Level 1', value: 'starfish-1', progress: levelProgress['starfish-1'] || 0 },
-  //       { label: 'Level 2', value: 'starfish-2', progress: levelProgress['starfish-2'] || 0 },
-  //       { label: 'Level 3', value: 'starfish-3', progress: levelProgress['starfish-3'] || 0 },
-  //     ],
-  //   },
-  //   {
-  //     title: 'STANLEY Series',
-  //     levels: [
-  //       { label: 'Level 1', value: 'stanley-1', progress: levelProgress['stanley-1'] || 0 },
-  //       { label: 'Level 2', value: 'stanley-2', progress: levelProgress['stanley-2'] || 0 },
-  //       { label: 'Level 3', value: 'stanley-3', progress: levelProgress['stanley-3'] || 0 },
-  //       { label: 'Level 4', value: 'stanley-4', progress: levelProgress['stanley-4'] || 0 },
-  //       { label: 'Level 5', value: 'stanley-5', progress: levelProgress['stanley-5'] || 0 },
-  //       { label: 'Level 6', value: 'stanley-6', progress: levelProgress['stanley-6'] || 0 },
-  //     ],
-  //   },
-  //   {
-  //     title: 'Octopus Series',
-  //     levels: [
-  //       { label: 'Level 1', value: 'octopus-1', progress: levelProgress['octopus-1'] || 0 },
-  //       { label: 'Level 2', value: 'octopus-2', progress: levelProgress['octopus-2'] || 0 },
-  //       { label: 'Level 3', value: 'octopus-3', progress: levelProgress['octopus-3'] || 0 },
-  //       { label: 'Level 4', value: 'octopus-4', progress: levelProgress['octopus-4'] || 0 },
-  //       { label: 'Level 5', value: 'octopus-5', progress: levelProgress['octopus-5'] || 0 },
-  //       { label: 'Level 6', value: 'octopus-6', progress: levelProgress['octopus-6'] || 0 },
-  //     ],
-  //   },
-  //   {
-  //     title: 'Jellyfish Series',
-  //     levels: [
-  //       { label: 'Level 1', value: 'jellyfish-1', progress: levelProgress['jellyfish-1'] || 0 },
-  //       { label: 'Level 2', value: 'jellyfish-2', progress: levelProgress['jellyfish-2'] || 0 },
-  //       { label: 'Level 3', value: 'jellyfish-3', progress: levelProgress['jellyfish-3'] || 0 },
-  //       { label: 'Level 4', value: 'jellyfish-4', progress: levelProgress['jellyfish-4'] || 0 },
-  //       { label: 'Level 5', value: 'jellyfish-5', progress: levelProgress['jellyfish-5'] || 0 },
-  //       { label: 'Level 6', value: 'jellyfish-6', progress: levelProgress['jellyfish-6'] || 0 },
-  //     ],
-  //   },
-  // ];
-
   const isSeriesComplete = (seriesIndex: number) => {
     if (seriesIndex === 0) return true;
     const prevSeries = seriesData[seriesIndex - 1];
