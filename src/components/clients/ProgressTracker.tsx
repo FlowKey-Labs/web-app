@@ -26,44 +26,9 @@ import previewEyeIcon from '../../assets/icons/previewEye.svg';
 import Input from '../common/Input';
 import { useProgressStore } from '../../store/progressStore';
 
-import sucessIcon from '../../assets/icons/success.svg';
 import errorIcon from '../../assets/icons/error.svg';
 import { notifications } from '@mantine/notifications';
-
-const levelOutcomes: { [key: string]: string[] } = {
-  'starfish-1': [
-    'Enter the pool safely with adult support',
-    'Familiarize child with the water using swing dips',
-    'Move freely around the pool on the front with adult support',
-    'Move freely around the pool on the back with adult support',
-    'Child to face adult and view them blowing bubbles',
-    'Leave the pool safely with adult support',
-  ],
-  'starfish-2': [
-    'Submerge face in the water with confidence',
-    'Float on back independently for 5 seconds',
-    'Kick legs while holding pool edge',
-    'Blow bubbles underwater for 3 seconds',
-    'Push and glide from wall with assistance',
-    'Retrieve object from pool bottom in chest-deep water',
-  ],
-  'starfish-3': [
-    'Swim 5 meters using any stroke',
-    'Tread water for 10 seconds',
-    'Perform basic freestyle arm movements',
-    'Jump into deep water with confidence',
-    'Float transition from front to back',
-    'Demonstrate basic water safety skills',
-  ],
-  'stanley-1': [
-    'Enter and exit pool safely using steps',
-    'Blow bubbles with mouth and nose submerged',
-    'Front float with support for 3 seconds',
-    'Back float with support for 3 seconds',
-    'Push and glide on front with face in water',
-    'Kick with a float board for 5 meters',
-  ],
-};
+import { useLoadProgressTrackerData } from '../../hooks/useLoadProgressTrackerData';
 
 const ProgressTracker = () => {
   const {
@@ -82,6 +47,12 @@ const ProgressTracker = () => {
     defaultValues: { feedback: '', attachments: [] as File[] },
   });
 
+  const { loadProgressData } = useLoadProgressTrackerData();
+
+  useEffect(() => {
+    loadProgressData();
+  }, []);
+
   const [isPreviewMode, setIsPreviewMode] = useState(false);
   const [completionPercentage, setCompletionPercentage] = useState(0);
   const [previewLevelOutcomePercentage, setPreviewLevelOutcomePercentage] =
@@ -90,15 +61,29 @@ const ProgressTracker = () => {
     [key: string]: boolean;
   }>({});
 
-  const previewLevelData = useMemo(
-    () => ({
+  const previewLevelData = useMemo(() => {
+    const levelId = selectedLevel.level.value;
+  
+    let outcomes: string[] = [];
+    let completed: string[] = [];
+  
+    for (const series of seriesData) {
+      const level = series?.levels?.find(lvl => lvl.value === levelId);
+      if (level) {
+        outcomes = level.outcomes || [];
+        completed = level.completed || [];
+        break;
+      }
+    }
+  
+    return {
       title: selectedLevel.level.label,
-      outcomes: levelOutcomes[selectedLevel.level.value] || [],
+      outcomes,
+      completed,
       assessedOn: '2024-02-15',
       dueDate: '2024-03-15',
-    }),
-    [selectedLevel, levelOutcomes]
-  );
+    };
+  }, [selectedLevel, seriesData]);
 
   // Calculate series progress for the current series
   const currentSeriesProgress = useMemo(() => {

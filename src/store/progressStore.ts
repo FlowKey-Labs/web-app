@@ -1,8 +1,10 @@
-import { create } from 'zustand';
+import { create } from "zustand";
 
 export interface SeriesLevel {
   label: string;
   value: string;
+  outcomes?: string[];
+  completed?: string[];
   progress?: number;
 }
 
@@ -17,21 +19,24 @@ interface ProgressState {
     series: string;
     level: SeriesLevel;
   };
+  levelOutcomesCompleted: { [key: string]: string[] };
   levelProgress: { [key: string]: number };
   expandedSeries: string | null;
-  viewMode: 'details' | 'levels';
-  activeTab: 'overview' | 'Progress Tracker' | 'Attendance' | 'Assessments';
+  viewMode: "details" | "levels";
+  activeTab: "overview" | "Progress Tracker" | "Attendance" | "Assessments";
   seriesData: Series[];
   currentLevelIndex: number;
   currentSeriesIndex: number;
 
   // Actions
-  setSelectedLevel: (level: ProgressState['selectedLevel']) => void;
+  setSeriesData: (data: Series[]) => void;
+  setSelectedLevel: (level: ProgressState["selectedLevel"]) => void;
+  setLevelOutcomesCompleted?: (levelId: string, completed: string[]) => void;
   updateLevelProgress: (levelId: string, progress: number) => void;
   setExpandedSeries: (series: string | null) => void;
-  setViewMode: (mode: 'details' | 'levels') => void;
+  setViewMode: (mode: "details" | "levels") => void;
   setActiveTab: (
-    tab: 'overview' | 'Progress Tracker' | 'Attendance' | 'Assessments'
+    tab: "overview" | "Progress Tracker" | "Attendance" | "Assessments"
   ) => void;
   goToNextLevel: () => void;
   goToPreviousLevel: () => void;
@@ -39,59 +44,18 @@ interface ProgressState {
 
 export const useProgressStore = create<ProgressState>((set, get) => ({
   selectedLevel: {
-    series: 'STARFISH Series',
-    level: { label: 'Level 1', value: 'starfish-1' },
+    series: "",
+    level: { label: "", value: "" },
   },
   levelProgress: {},
-  expandedSeries: 'STARFISH Series',
-  viewMode: 'details',
-  activeTab: 'overview',
+  expandedSeries: "STARFISH Series",
+  viewMode: "details",
+  activeTab: "overview",
   currentLevelIndex: 0,
   currentSeriesIndex: 0,
-  seriesData: [
-    {
-      title: 'STARFISH Series',
-      levels: [
-        { label: 'Level 1', value: 'starfish-1' },
-        { label: 'Level 2', value: 'starfish-2' },
-        { label: 'Level 3', value: 'starfish-3' },
-      ],
-    },
-    {
-      title: 'STANLEY Series',
-      levels: [
-        { label: 'Level 1', value: 'stanley-1' },
-        { label: 'Level 2', value: 'stanley-2' },
-        { label: 'Level 3', value: 'stanley-3' },
-        { label: 'Level 4', value: 'stanley-4' },
-        { label: 'Level 5', value: 'stanley-5' },
-        { label: 'Level 6', value: 'stanley-6' },
-      ],
-    },
-    {
-      title: 'Octopus Series',
-      levels: [
-        { label: 'Level 1', value: 'octopus-1' },
-        { label: 'Level 2', value: 'octopus-2' },
-        { label: 'Level 3', value: 'octopus-3' },
-        { label: 'Level 4', value: 'octopus-4' },
-        { label: 'Level 5', value: 'octopus-5' },
-        { label: 'Level 6', value: 'octopus-6' },
-      ],
-    },
-    {
-      title: 'Jellyfish Series',
-      levels: [
-        { label: 'Level 1', value: 'jellyfish-1' },
-        { label: 'Level 2', value: 'jellyfish-2' },
-        { label: 'Level 3', value: 'jellyfish-3' },
-        { label: 'Level 4', value: 'jellyfish-4' },
-        { label: 'Level 5', value: 'jellyfish-5' },
-        { label: 'Level 6', value: 'jellyfish-6' },
-      ],
-    },
-  ],
-
+  seriesData: [],
+  levelOutcomesCompleted: {},
+  setSeriesData: (data: Series[]) => set({ seriesData: data }),
   setSelectedLevel: (level) => set({ selectedLevel: level }),
   updateLevelProgress: (levelId, progress) =>
     set((state) => ({
