@@ -17,6 +17,7 @@ import Table from '../common/Table';
 import { createColumnHelper } from '@tanstack/react-table';
 import { useExportSessionClients } from '../../hooks/useExport';
 import moment from 'moment';
+import MakeUp from './MakeUp';
 
 import {
   useGetSessionDetail,
@@ -26,7 +27,6 @@ import {
   useRemoveClientFromSession,
   useUpdateAttendanceStatus,
   useCreateMakeupSession,
-  useGetMakeupSessions,
 } from '../../hooks/reactQuery';
 
 import actionOptionIcon from '../../assets/icons/actionOption.svg';
@@ -50,6 +50,7 @@ const SessionDetails = () => {
   const [isRemovingClient, setIsRemovingClient] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
   const [opened, { open, close }] = useDisclosure(false);
+  const [isMakeupOpen, setIsMakeupOpen] = useState(false);
 
   const removeClientMutation = useRemoveClientFromSession();
   const updateStatusMutation = useUpdateAttendanceStatus();
@@ -874,20 +875,37 @@ const SessionDetails = () => {
               </div>
               <div className='flex-1 mt-6'>
                 <div className=''>
-                  <div>
-                    <h3 className='text-primary text-xl font-semibold'>
-                      Clients
-                    </h3>
+                  <div className='flex space-x-4 mb-3'>
+                    <Button
+                      onClick={() => setIsMakeupOpen(false)}
+                      variant={isMakeupOpen ? 'outline' : 'filled'}
+                      color='#1D9B5E'
+                      radius='md'
+                    >
+                      Class
+                    </Button>
+                    <Button
+                      onClick={() => setIsMakeupOpen(true)}
+                      variant={isMakeupOpen ? 'filled' : 'outline'}
+                      color='#1D9B5E'
+                      radius='md'
+                        >
+                      Make-up Class
+                    </Button>
                   </div>
                   <div className='flex-1 py-2'>
-                    <Table
-                      data={clients}
-                      columns={columns}
-                      rowSelection={rowSelection}
-                      onRowSelectionChange={setRowSelection}
-                      className='mt-4'
-                      pageSize={5}
-                    />
+                    {isMakeupOpen ? (
+                      <MakeUp />
+                    ) : (
+                      <Table
+                        data={clients}
+                        columns={columns}
+                        rowSelection={rowSelection}
+                        onRowSelectionChange={setRowSelection}
+                        className='mt-4'
+                        pageSize={5}
+                      />
+                    )}
                   </div>
                 </div>
               </div>
