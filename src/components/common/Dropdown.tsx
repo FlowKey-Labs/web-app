@@ -49,10 +49,8 @@ const Option = (props: OptionProps<DropDownItem>) => {
   const subLabel = props.data.subLabel;
   const status = props.data.status;
   
-  // Get drawer type from data attribute if present
   const drawerType = props.data?.drawerType;
   
-  // Generate appropriate tooltip based on drawer type
   const getTooltipText = () => {
     if (!drawerType) return "Click to open creation form";
     
@@ -199,11 +197,8 @@ export default function DropdownSelectInput({
   );
 
   const handleChange = (newValue: any) => {
-    // Check if this is a "Create Option" selection
     if (newValue) {
-      // Case 1: Single select mode with a create option
       if (!Array.isArray(newValue) && newValue.isCreateOption) {
-        // Open the drawer but don't update the selection
         if (createDrawerType) {
           if (createDrawerType === 'session') {
             openDrawer({ 
@@ -223,14 +218,11 @@ export default function DropdownSelectInput({
         } else if (onCreateNew) {
           onCreateNew();
         }
-        // Critical: Return early without changing the selection
         return;
       } 
-      // Case 2: Multi-select mode with a create option
       else if (Array.isArray(newValue)) {
         const createOption = newValue.find(item => item.isCreateOption);
         if (createOption) {
-          // Open the drawer
           if (createDrawerType) {
             if (createDrawerType === 'session') {
               openDrawer({ 
@@ -251,15 +243,12 @@ export default function DropdownSelectInput({
             onCreateNew();
           }
           
-          // Keep only the existing non-create options - preserve the previous selection
           const filteredSelection = newValue.filter(item => !item.isCreateOption);
           
-          // If we had ONLY a create option, don't update selection at all
           if (filteredSelection.length === 0) {
             return;
           }
           
-          // Otherwise, update with just the regular options (excluding create option)
           onSelectItem?.(filteredSelection);
           setSelectedValue(filteredSelection);
           return;
@@ -267,7 +256,6 @@ export default function DropdownSelectInput({
       }
     }
     
-    // Normal case: regular option selection (not a create option)
     onSelectItem?.(newValue || { value: '' });
     setSelectedValue(newValue);
   };

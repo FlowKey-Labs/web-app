@@ -14,13 +14,11 @@ import {
 import successIcon from '../../assets/icons/success.svg';
 import errorIcon from '../../assets/icons/error.svg';
 
-// Reuse the same type definitions from the Categories component
 interface CategoryData {
   name: string;
   description?: string;
 }
 
-// Type definition for category with ID
 interface Category extends CategoryData {
   id: number;
 }
@@ -31,11 +29,6 @@ interface CategoryDrawerProps {
   zIndex?: number;
 }
 
-/**
- * CategoryDrawer component for adding or editing categories
- * This implementation reuses the same functionality from the Categories component
- * but uses the global UI store for managing drawer state
- */
 export default function CategoryDrawer({ entityId, isEditing, zIndex }: CategoryDrawerProps) {
   const { closeDrawer } = useUIStore();
   
@@ -48,12 +41,10 @@ export default function CategoryDrawer({ entityId, isEditing, zIndex }: Category
   
   const { reset, handleSubmit } = methods;
   
-  // Get category data for editing
   const { data: categoriesData, refetch } = useGetSessionCategories();
   const { mutateAsync: createCategory } = useCreateSessionCategory();
   const { mutateAsync: updateCategory } = useUpdateSessionCategory();
 
-  // Initialize form when editing an existing category
   useEffect(() => {
     if (isEditing && entityId && categoriesData) {
       const categoryToEdit = categoriesData.find(
@@ -110,7 +101,6 @@ export default function CategoryDrawer({ entityId, isEditing, zIndex }: Category
         });
       }
       
-      // Refresh category data before closing drawer
       await refetch();
       closeDrawer();
     } catch (error) {
@@ -132,10 +122,8 @@ export default function CategoryDrawer({ entityId, isEditing, zIndex }: Category
     }
   };
 
-  // Add an effect to reload categories when the drawer closes
   useEffect(() => {
     return () => {
-      // Run refetch when the component unmounts (drawer closes)
       refetch();
     };
   }, [refetch]);

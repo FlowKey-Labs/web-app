@@ -14,7 +14,6 @@ import {
 import successIcon from '../../assets/icons/success.svg';
 import errorIcon from '../../assets/icons/error.svg';
 
-// Type definitions
 interface Subcategory {
   id: number;
   name: string;
@@ -35,11 +34,6 @@ interface SubcategoryDrawerProps {
   zIndex?: number;
 }
 
-/**
- * SubcategoryDrawer component for adding or editing subcategories
- * This implementation reuses the same functionality from the CategoryDetails component
- * but uses the global UI store for managing drawer state
- */
 export default function SubcategoryDrawer({ 
   entityId, 
   isEditing,
@@ -58,12 +52,10 @@ export default function SubcategoryDrawer({
   
   const { reset, handleSubmit } = methods;
   
-  // Get subcategory data
   const { data: subcategories, refetch } = useGetSessionSubCategories();
   const { mutateAsync: createSubcategory } = useCreateSessionSubCategory();
   const { mutateAsync: updateSubcategory } = useUpdateSessionSubCategory();
 
-  // Initialize form when editing an existing subcategory
   useEffect(() => {
     if (isEditing && entityId && subcategories) {
       const subcategoryToEdit = subcategories.find(
@@ -130,7 +122,6 @@ export default function SubcategoryDrawer({
         });
       }
       
-      // Refresh data before closing drawer
       await refetch();
       closeDrawer();
     } catch (error) {
@@ -152,7 +143,6 @@ export default function SubcategoryDrawer({
     }
   };
 
-  // Add an effect to reload subcategories when the drawer closes
   useEffect(() => {
     return () => {
       refetch();

@@ -37,11 +37,9 @@ const Input: React.FC<InputProps> = ({
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [timeValue, setTimeValue] = useState<string>('');
 
-  // Initialize date and time state from the form value
   useEffect(() => {
     if (type === 'date' && currentValue) {
       try {
-        // If the value is a date string, convert it to a Date object
         const date = new Date(currentValue);
         if (!isNaN(date.getTime())) {
           setSelectedDate(date);
@@ -168,7 +166,7 @@ const Input: React.FC<InputProps> = ({
               onChange={(event) => {
                 const value = event.currentTarget.value;
                 setTimeValue(value);
-                setValue(name, value); // Set the string value directly for time
+                setValue(name, value); 
               }}
               withSeconds={false}
               styles={{

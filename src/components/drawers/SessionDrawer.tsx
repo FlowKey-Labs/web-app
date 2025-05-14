@@ -10,12 +10,6 @@ interface SessionDrawerProps {
   zIndex?: number;
 }
 
-/**
- * SessionDrawer component for creating or editing sessions
- * Uses the AddSession component for new sessions and UpdateSession for existing ones
- * Supports nested drawer functionality by passing zIndex to child components
- * Handles special context when opened from client drawer
- */
 export default function SessionDrawer({ 
   entityId, 
   isEditing,

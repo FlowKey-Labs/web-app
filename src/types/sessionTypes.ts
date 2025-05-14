@@ -52,38 +52,34 @@ export type ClassType = 'private' | 'regular' | 'workshop';
 export type RepeatUnit = 'days' | 'weeks' | 'months';
 export type EndType = 'never' | 'on' | 'after';
 
-// For creating a new session
 export interface CreateSessionData {
   title: string;
   session_type: SessionType;
   class_type: ClassType;
-  staff: number; // staff ID
-  date: string; // YYYY-MM-DD
-  start_time: string; // ISO datetime
-  end_time: string; // ISO datetime
+  staff: number;
+  date: string;
+  start_time: string;
+  end_time: string;
   spots: number;
-  category: number; // category ID
-  location_id?: number; // optional location ID
+  category: number;
+  location_id?: number;
   is_active?: boolean;
-  client_ids?: number[]; // optional list of client IDs
-  policy_ids?: number[]; // optional list of policy IDs
-  description?: string; // optional description for the session
-  // Appointment specific fields
-  email?: string; // optional, for appointments
-  phone_number?: string; // optional, for appointments
-  selected_class?: number; // optional, for appointments - references a class ID
-  // Repetition fields (all optional)
-  repetition?: 'none' | 'daily' | 'weekly' | 'monthly' | 'custom'; // UI field for repetition type
+  client_ids?: number[];
+  policy_ids?: number[];
+  description?: string;
+  email?: string;
+  phone_number?: string;
+  selected_class?: number;
+  repetition?: 'none' | 'daily' | 'weekly' | 'monthly' | 'custom';
   repeat_every?: number;
   repeat_unit?: RepeatUnit;
-  repeat_on?: string[]; // for weekly repeat, array of weekday strings
+  repeat_on?: string[];
   repeat_end_type?: EndType;
-  repeat_end_date?: string; // YYYY-MM-DD, required if repeat_end_type is 'on'
-  repeat_occurrences?: number; // required if repeat_end_type is 'after'
+  repeat_end_date?: string;
+  repeat_occurrences?: number;
 }
 
 
-// Session data as returned by the API
 export interface Session
   extends Omit<CreateSessionData, 'category' | 'client_ids' | 'location_id'> {
   id: number;
@@ -91,14 +87,13 @@ export interface Session
   category: Category;
   location?: Location;
   attendances?: Attendance[];
-  policies?: Policy[]; // To hold policy details when fetching a session
-  policy_ids?: number[]; // Array of policy IDs for the session
-  _frontend_start_time?: string; // Formatted start time for frontend display (HH:MM)
-  _frontend_end_time?: string; // Formatted end time for frontend display (HH:MM)
-  client_ids?: number[]; // Array of client IDs for the session
+  policies?: Policy[];
+  policy_ids?: number[];
+  _frontend_start_time?: string;
+  _frontend_end_time?: string;
+  client_ids?: number[];
 }
 
-// For the frontend table display
 export interface SessionTableData {
   id: number;
   class: string;
@@ -112,7 +107,6 @@ export interface SessionTableData {
 }
 
 
-// Class session specific fields
 export interface ClassFields {
   title: string;
   class_type: 'private' | 'regular' | 'workshop';
@@ -120,7 +114,6 @@ export interface ClassFields {
   client_ids?: number[];
 }
 
-// Appointment session specific fields
 export interface AppointmentFields {
   client_ids: number[];
   email?: string;
@@ -130,7 +123,6 @@ export interface AppointmentFields {
   title?: string;
 }
 
-// Event session specific fields
 export interface EventFields {
   title: string;
   description?: string;

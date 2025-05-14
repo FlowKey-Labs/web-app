@@ -8,12 +8,6 @@ interface PlaceholderDrawerProps {
   zIndex?: number;
 }
 
-/**
- * PlaceholderDrawer is a temporary component for drawer types
- * that don't have a specific implementation yet.
- * 
- * Will be replaced with proper implementations as needed.
- */
 export default function PlaceholderDrawer({ 
   drawerType, 
   entityId, 
