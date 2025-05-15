@@ -1017,6 +1017,13 @@ const SessionDetails = () => {
                           placeholder='Session Name'
                           value={field.value || ''}
                           readOnly
+                          style={{
+                            backgroundColor: '#80808052',
+                            cursor: 'not-allowed',
+                          }}
+                          onFocus={(e) => {
+                            e.target.blur();
+                          }}
                         />
                       )}
                     />
@@ -1030,6 +1037,13 @@ const SessionDetails = () => {
                           placeholder='Client Name'
                           value={field.value || ''}
                           readOnly
+                          style={{
+                            backgroundColor: '#80808052',
+                            cursor: 'not-allowed',
+                          }}
+                          onFocus={(e) => {
+                            e.target.blur();
+                          }}
                         />
                       )}
                     />
@@ -1152,39 +1166,6 @@ const SessionDetails = () => {
               </div>
             </div>
           </div>
-          {selectedStatus !== 'make_up' && (
-            <div className='flex justify-end space-x-3'>
-              <Button variant='subtle' onClick={close} color='gray'>
-                Cancel
-              </Button>
-              <Button
-                onClick={() => {
-                  if (isRemovingClient) {
-                    handleRemoveClient();
-                  } else if (selectedStatus) {
-                    handleUpdateAttendanceStatus();
-                  }
-                }}
-                color={
-                  isRemovingClient
-                    ? 'red'
-                    : selectedStatus === 'attended'
-                    ? 'green'
-                    : selectedStatus === 'not_yet'
-                    ? 'yellow'
-                    : selectedStatus === 'missed'
-                    ? 'red'
-                    : selectedStatus === 'make_up'
-                    ? 'blue'
-                    : selectedStatus === 'cancelled'
-                    ? 'gray'
-                    : 'green'
-                }
-              >
-                Confirm
-              </Button>
-            </div>
-          )}
         </div>
       </Modal>
       <Modal
