@@ -1,17 +1,10 @@
 import { useState } from 'react';
-import { useForm, FormProvider, Controller } from 'react-hook-form';
-import { ActionIcon, Drawer, Group, Loader, Modal, Text } from '@mantine/core';
+import { ActionIcon, Group, Loader, Modal, Text } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import successIcon from '../../assets/icons/success.svg';
 import errorIcon from '../../assets/icons/error.svg';
 
-import Input from '../common/Input';
-import {
-  useGetSessionCategories,
-  useCreateSessionCategory,
-  useUpdateSessionCategory,
-  useDeleteSessionCategory,
-} from '../../hooks/reactQuery';
+import { useGetSessionCategories, useDeleteSessionCategory } from '../../hooks/reactQuery';
 import { useUIStore } from '../../store/ui';
 
 import Button from '../common/Button';

@@ -302,35 +302,74 @@ const StaffDetails = () => {
     setIsEditing(false);
   };
 
-  if (!staffDetails) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <h2 className="text-[40px] font-bold text-primary">Staff not found</h2>
-      </div>
-    );
-  }
-
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center h-screen">
-        <Loader color="#1D9B5E" size="xl" />
+      <div className="flex flex-col h-screen bg-cardsBg w-full overflow-y-auto">
+        <MembersHeader
+          title="Staff Details"
+          showFilterIcons={false}
+          showButton={false}
+          showSearch={false}
+        />
+        <div className="flex justify-center items-center h-[80vh]">
+          <div className="text-center">
+            <Loader color="#1D9B5E" size="xl" />
+            <p className="mt-4 text-gray-600">Loading staff details...</p>
+          </div>
+        </div>
       </div>
     );
   }
 
   if (isError) {
     return (
-      <div className="flex justify-center items-center h-screen">
-        <div className="space-y-4">
-          <p className="text-red-500">
-            Error loading staff details: {error?.message}
-          </p>
-          <button
-            onClick={() => refetch()}
-            className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90"
-          >
-            Try Again
-          </button>
+      <div className="flex flex-col h-screen bg-cardsBg w-full overflow-y-auto">
+        <MembersHeader
+          title="Staff Details"
+          showFilterIcons={false}
+          showButton={false}
+          showSearch={false}
+        />
+        <div className="flex justify-center items-center h-[80vh]">
+          <div className="space-y-4 text-center">
+            <p className="text-red-500 font-medium text-lg">
+              Error loading staff details
+            </p>
+            <p className="text-red-400">
+              {error?.message || "Something went wrong"}
+            </p>
+            <button
+              onClick={() => refetch()}
+              className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90"
+            >
+              Try Again
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!staffDetails) {
+    return (
+      <div className="flex flex-col h-screen bg-cardsBg w-full overflow-y-auto">
+        <MembersHeader
+          title="Staff Details"
+          showFilterIcons={false}
+          showButton={false}
+          showSearch={false}
+        />
+        <div className="flex justify-center items-center h-[80vh]">
+          <div className="space-y-4 text-center">
+            <h2 className="text-2xl font-bold text-primary">Staff not found</h2>
+            <p className="text-gray-500">The staff member you're looking for doesn't exist or has been removed.</p>
+            <button
+              onClick={() => navigate('/staff')}
+              className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 mt-4"
+            >
+              Back to Staff List
+            </button>
+          </div>
         </div>
       </div>
     );

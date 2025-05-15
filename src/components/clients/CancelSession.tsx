@@ -11,7 +11,6 @@ import { useCallback, useMemo, useState } from 'react';
 import { useExportCancelledSessions } from '../../hooks/useExport';
 
 import actionOptionIcon from '../../assets/icons/actionOption.svg';
-import successIcon from '../../assets/icons/success.svg';
 import errorIcon from '../../assets/icons/error.svg';
 import { useDisclosure } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
@@ -22,8 +21,6 @@ const CancelSession = ({ clientId }: { clientId: string | number }) => {
   const [rowSelection, setRowSelection] = useState({});
   const [selectedCancelledSession, setSelectedCancelledSession] =
     useState<CancelledSession | null>(null);
-  const [isRemovingCancelledSession, setIsRemovingCancelledSession] =
-    useState(false);
 
   const [opened, { open, close }] = useDisclosure(false);
 
@@ -156,7 +153,6 @@ const CancelSession = ({ clientId }: { clientId: string | number }) => {
                     color='red'
                     onClick={() => {
                       setSelectedCancelledSession(client);
-                      setIsRemovingCancelledSession(true);
                       open();
                     }}
                     className='text-sm'

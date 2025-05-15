@@ -1059,25 +1059,7 @@ const UpdateSession = ({
                         name='location_id'
                         control={methods.control}
                         render={({ field }) => {
-                          const locationId = field.value
-                            ? typeof field.value === 'object' &&
-                              field.value !== null
-                              ? (field.value as any).id
-                              : field.value
-                            : null;
-
-                          const selectedLocation = locationsData?.find(
-                            (location: any) =>
-                              location.id?.toString() === locationId?.toString()
-                          ) as Location | undefined;
-
-                          const locationValue = selectedLocation
-                            ? selectedLocation.id.toString()
-                            : typeof field.value === 'string' ||
-                              typeof field.value === 'number'
-                            ? field.value.toString()
-                            : '';
-
+                          // Display the location's formatted address if available
                           return (
                             <DropdownSelectInput
                               label='Location'
@@ -1085,14 +1067,12 @@ const UpdateSession = ({
                               options={
                                 isLocationsLoading
                                   ? []
-                                  : locationsData?.map((location: any) => ({
+                                  : locationsData?.map((location: Location) => ({
                                       label: location.name,
-                                      value: location.id.toString(),
+                                      value: location.id ? location.id.toString() : '',
                                     })) || []
                               }
-                              value={
-                                field.value ? field.value.toString() : ''
-                              }
+                              value={field.value ? field.value.toString() : ''}
                               onSelectItem={(selectedItem) => {
                                 field.onChange(selectedItem.value)}
                               }
@@ -1224,25 +1204,6 @@ const UpdateSession = ({
                         name='location_id'
                         control={methods.control}
                         render={({ field }) => {
-                          const locationId = field.value
-                            ? typeof field.value === 'object' &&
-                              field.value !== null
-                              ? (field.value as any).id
-                              : field.value
-                            : null;
-
-                          const selectedLocation = locationsData?.find(
-                            (location: any) =>
-                              location.id?.toString() === locationId?.toString()
-                          ) as Location | undefined;
-
-                          const locationValue = selectedLocation
-                            ? selectedLocation.id.toString()
-                            : typeof field.value === 'string' ||
-                              typeof field.value === 'number'
-                            ? field.value.toString()
-                            : '';
-
                           return (
                             <DropdownSelectInput
                               label='Location'
@@ -1250,12 +1211,12 @@ const UpdateSession = ({
                               options={
                                 isLocationsLoading
                                   ? [{ label: 'Loading...', value: '' }]
-                                  : locationsData?.map((location: any) => ({
+                                  : locationsData?.map((location: Location) => ({
                                       label: location.name,
-                                      value: location.id.toString(),
+                                      value: location.id ? location.id.toString() : '',
                                     })) || []
                               }
-                              value={locationValue}
+                              value={field.value ? field.value.toString() : ''}
                               onSelectItem={(selectedItem) => {
                                 field.onChange(
                                   selectedItem ? selectedItem.value : ''
@@ -1562,25 +1523,6 @@ const UpdateSession = ({
                         name='location_id'
                         control={methods.control}
                         render={({ field }) => {
-                          const locationId = field.value
-                            ? typeof field.value === 'object' &&
-                              field.value !== null
-                              ? (field.value as any).id
-                              : field.value
-                            : null;
-
-                          const selectedLocation = locationsData?.find(
-                            (location: any) =>
-                              location.id?.toString() === locationId?.toString()
-                          ) as Location | undefined;
-
-                          const locationValue = selectedLocation
-                            ? selectedLocation.id.toString()
-                            : typeof field.value === 'string' ||
-                              typeof field.value === 'number'
-                            ? field.value.toString()
-                            : '';
-
                           return (
                             <DropdownSelectInput
                               label='Location'
@@ -1588,12 +1530,12 @@ const UpdateSession = ({
                               options={
                                 isLocationsLoading
                                   ? [{ label: 'Loading...', value: '' }]
-                                  : locationsData?.map((location: any) => ({
+                                  : locationsData?.map((location: Location) => ({
                                       label: location.name,
-                                      value: location.id.toString(),
+                                      value: location.id ? location.id.toString() : '',
                                     })) || []
                               }
-                              value={locationValue}
+                              value={field.value ? field.value.toString() : ''}
                               onSelectItem={(selectedItem) => {
                                 field.onChange(
                                   selectedItem ? selectedItem.value : ''
