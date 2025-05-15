@@ -1,8 +1,14 @@
-import { api } from '../lib/axios';
-import axios from 'axios';
+import { api } from "../lib/axios";
+import axios from "axios";
 
-import { CreateSessionData, Session } from '../types/sessionTypes';
-import { CreateLocationData } from '../types/location';
+import {
+  CreateSessionData,
+  ProgressFeedback,
+  Session,
+  MakeUpSession,
+} from "../types/sessionTypes";
+import { CreateLocationData } from "../types/location";
+import { Role } from "../store/auth";
 
 const BASE_URL = import.meta.env.VITE_APP_BASEURL;
 
@@ -44,8 +50,10 @@ const END_POINTS = {
     SESSION_CLIENTS: (id: string) => `${BASE_URL}/api/session/${id}/clients/`,
     CATEGORIES: `${BASE_URL}/api/session/categories/`,
     CLASS_SESSIONS: `${BASE_URL}/api/session/?session_type=class`,
+    STAFF_SESSIONS: (id: string) => `${BASE_URL}/api/staff/sessions/${id}`,
     SUBCATEGORIES: `${BASE_URL}/api/session/subcategories/`,
     SUBSKILLS: `${BASE_URL}/api/session/subskills/`,
+    MAKEUP_SESSIONS: `${BASE_URL}/api/session/makeup-sessions/`,
   },
   ANALYTICS: {
     ANALYTICS_DATA: `${BASE_URL}/api/dashboard/analytics/`,
@@ -61,8 +69,27 @@ const END_POINTS = {
     POLICIES: `${BASE_URL}/api/policy/policies/`,
     POLICY_DETAIL: (id: number) => `${BASE_URL}/api/policy/policies/${id}/`,
   },
+  ROLE: {
+    ROLES: `${BASE_URL}/api/auth/roles/`,
+    ROLE_DETAIL: (id: string) => `${BASE_URL}/api/auth/roles/${id}/`,
+  },
   GOOGLE: {
     PLACES_AUTOCOMPLETE: `https://maps.googleapis.com/maps/api/place/autocomplete/json`,
+  },
+  PROGRESS: {
+    SERIES: `${BASE_URL}/api/progress/series`,
+    OUTCOMES: (client_id: string) =>
+      `${BASE_URL}/api/progress/outcomes?client_id=` + client_id,
+    CLIENT_PROGRESS: (clientId: string) =>
+      `${BASE_URL}/api/progress/${clientId}/`,
+    MARK_OUTCOME_COMPLETED: `${BASE_URL}/api/progress/mark/`,
+    MARK_OUTCOME_INCOMPLETE: `${BASE_URL}/api/progress/unmark/`,
+    FEEDBACK: `${BASE_URL}/api/progress/feedback/`,
+    LEVEL_FEEDBACK: (client_id: string, subcategory_id: string) =>
+      `${BASE_URL}/api/progress/get-feedback/?client_id=` +
+      client_id +
+      `&subcategory_id=` +
+      subcategory_id,
   },
 };
 
@@ -87,6 +114,9 @@ const setStaffPassword = async (credentials: {
   uid: string;
   token: string;
   email: string;
+  first_name: string;
+  last_name: string;
+  mobile_number: string;
   password: string;
   new_password: string;
 }) => {
@@ -142,7 +172,7 @@ const searchCities = async (query: string) => {
   const { data } = await axios.get(END_POINTS.GOOGLE.PLACES_AUTOCOMPLETE, {
     params: {
       input: query,
-      types: '(cities)',
+      types: "(cities)",
       key: GOOGLE_API_KEY,
     },
   });
@@ -233,11 +263,6 @@ const create_staff = async (staffData: {
   role: string;
   pay_type: string;
   rate: string;
-  permissions: {
-    can_create_events: boolean;
-    can_add_clients: boolean;
-    can_create_invoices: boolean;
-  };
 }) => {
   const { data } = await api.post(END_POINTS.STAFF.STAFF_DATA, staffData);
   return data;
@@ -303,21 +328,21 @@ const get_sessions = async (filters?: SessionFilters): Promise<Session[]> => {
 
     if (filters.sessionTypes && filters.sessionTypes.length > 0) {
       filters.sessionTypes.forEach((type: string) => {
-        params.append('session_type', type);
+        params.append("session_type", type);
       });
     }
 
     if (filters.categories && filters.categories.length > 0) {
       filters.categories.forEach((category: string) => {
-        params.append('category', category);
+        params.append("category", category);
       });
     }
 
     if (filters.dateRange && filters.dateRange[0] && filters.dateRange[1]) {
       const startDate = new Date(filters.dateRange[0]);
       const endDate = new Date(filters.dateRange[1]);
-      params.append('start_date', startDate.toISOString().split('T')[0]);
-      params.append('end_date', endDate.toISOString().split('T')[0]);
+      params.append("start_date", startDate.toISOString().split("T")[0]);
+      params.append("end_date", endDate.toISOString().split("T")[0]);
     }
 
     if (params.toString()) {
@@ -331,6 +356,11 @@ const get_sessions = async (filters?: SessionFilters): Promise<Session[]> => {
 
 const get_class_sessions = async () => {
   const { data } = await api.get(END_POINTS.SESSION.CLASS_SESSIONS);
+  return data;
+};
+
+const get_staff_sessions = async (id: string) => {
+  const { data } = await api.get(END_POINTS.SESSION.STAFF_SESSIONS(id));
   return data;
 };
 
@@ -446,7 +476,7 @@ const mark_client_attended = async (clientId: string, sessionId: string) => {
     client: clientId,
     session: sessionId,
     attended: true,
-    status: 'attended',
+    status: "attended",
   });
   return data;
 };
@@ -459,7 +489,7 @@ const mark_client_not_attended = async (
     client: clientId,
     session: sessionId,
     attended: false,
-    status: 'missed',
+    status: "missed",
   });
   return data;
 };
@@ -565,7 +595,7 @@ const get_places_autocomplete = async (input: string) => {
     params: {
       input,
       key: GOOGLE_API_KEY,
-      types: 'geocode',
+      types: "geocode",
     },
   });
   return data.predictions;
@@ -618,7 +648,7 @@ const get_groups = async () => {
     const { data } = await api.get(`${BASE_URL}/api/client/list-groups/`);
     return data;
   } catch (error) {
-    console.error('Error fetching groups:', error);
+    console.error("Error fetching groups:", error);
     return [];
   }
 };
@@ -694,17 +724,17 @@ const createPolicy = async (policyData: {
   file?: File;
 }) => {
   const formData = new FormData();
-  formData.append('title', policyData.title);
-  formData.append('content', policyData.content);
-  formData.append('policy_type', policyData.policy_type);
+  formData.append("title", policyData.title);
+  formData.append("content", policyData.content);
+  formData.append("policy_type", policyData.policy_type);
 
   if (policyData.file) {
-    formData.append('file', policyData.file);
+    formData.append("file", policyData.file);
   }
 
   const { data } = await api.post(END_POINTS.POLICY.POLICIES, formData, {
     headers: {
-      'Content-Type': 'multipart/form-data',
+      "Content-Type": "multipart/form-data",
     },
   });
   return data;
@@ -721,13 +751,13 @@ const updatePolicy = async (
 ) => {
   const formData = new FormData();
 
-  if (policyData.title) formData.append('title', policyData.title);
-  if (policyData.content) formData.append('content', policyData.content);
+  if (policyData.title) formData.append("title", policyData.title);
+  if (policyData.content) formData.append("content", policyData.content);
   if (policyData.policy_type)
-    formData.append('policy_type', policyData.policy_type);
+    formData.append("policy_type", policyData.policy_type);
 
   if (policyData.file) {
-    formData.append('file', policyData.file);
+    formData.append("file", policyData.file);
   }
 
   const { data } = await api.patch(
@@ -735,7 +765,7 @@ const updatePolicy = async (
     formData,
     {
       headers: {
-        'Content-Type': 'multipart/form-data',
+        "Content-Type": "multipart/form-data",
       },
     }
   );
@@ -744,6 +774,117 @@ const updatePolicy = async (
 
 const deletePolicy = async (id: number) => {
   const { data } = await api.delete(END_POINTS.POLICY.POLICY_DETAIL(id));
+  return data;
+};
+
+// Roles API functions
+
+const getRoles = async () => {
+  const { data } = await api.get(END_POINTS.ROLE.ROLES);
+  return data;
+};
+
+const createRole = async (roleData: Role) => {
+  const { data } = await api.post(END_POINTS.ROLE.ROLES, roleData);
+  return data;
+};
+
+const updateRole = async (id: string, roleData: Omit<Role, "id">) => {
+  const { data } = await api.patch(END_POINTS.ROLE.ROLE_DETAIL(id), roleData);
+  return data;
+};
+
+const deleteRole = async (id: string) => {
+  const { data } = await api.delete(END_POINTS.ROLE.ROLE_DETAIL(id));
+  return data;
+};
+
+// Make up session API functions
+
+const getMakeupSessions = async () => {
+  const { data } = await api.get(END_POINTS.SESSION.MAKEUP_SESSIONS);
+  return data;
+};
+
+const createMakeupSession = async (makeupSessionData: MakeUpSession) => {
+  const { data } = await api.post(
+    END_POINTS.SESSION.MAKEUP_SESSIONS,
+    makeupSessionData
+  );
+  return data;
+};
+
+const updateMakeupSession = async (
+  id: string,
+  makeupSessionData: MakeUpSession
+) => {
+  const { data } = await api.patch(
+    `${END_POINTS.SESSION.MAKEUP_SESSIONS}${id}/`,
+    makeupSessionData
+  );
+  return data;
+};
+
+const deleteMakeupSession = async (id: string) => {
+  const { data } = await api.delete(
+    `${END_POINTS.SESSION.MAKEUP_SESSIONS}${id}/`
+  );
+};
+// Progress tracker API functions
+
+const getSeries = async () => {
+  const { data } = await api.get(END_POINTS.PROGRESS.SERIES);
+  return data;
+};
+
+const getClientProgress = async (clientId: string) => {
+  const { data } = await api.get(END_POINTS.PROGRESS.CLIENT_PROGRESS(clientId));
+  return data;
+};
+
+const getOutcomes = async (clientId: string) => {
+  const { data } = await api.get(END_POINTS.PROGRESS.OUTCOMES(clientId));
+  return data;
+};
+
+const markOutcomeComplete = async (payload: {
+  client_id: string;
+  subskill_id: string;
+}) => {
+  const { data } = await api.post(
+    END_POINTS.PROGRESS.MARK_OUTCOME_COMPLETED,
+    payload
+  );
+  return data;
+};
+
+const markOutcomeIncomplete = async (payload: {
+  client_id: string;
+  subskill_id: string;
+}) => {
+  const { data } = await api.post(
+    END_POINTS.PROGRESS.MARK_OUTCOME_INCOMPLETE,
+    payload
+  );
+  return data;
+};
+
+const submitProgressFeedback = async (payload: ProgressFeedback) => {
+  const formData = new FormData();
+  formData.append("client_id", payload.client_id);
+  formData.append("subcategory_id", payload.subcategory_id);
+  formData.append("feedback", payload.feedback);
+  formData.append("attachment", payload.attachment);
+  const { data } = await api.post(END_POINTS.PROGRESS.FEEDBACK, payload, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+  return data;
+};
+
+const getLevelFeedback = async (clientId: string, subcategory_id: string) => {
+  const { data } = await api.get(
+    END_POINTS.PROGRESS.LEVEL_FEEDBACK(clientId, subcategory_id)
+  );
   return data;
 };
 
@@ -776,6 +917,7 @@ export {
   cancel_session,
   reschedule_session,
   get_sessions,
+  get_staff_sessions,
   get_session_detail,
   get_session_categories,
   create_session_category,
@@ -819,4 +961,19 @@ export {
   createPolicy,
   updatePolicy,
   deletePolicy,
+  getRoles,
+  createRole,
+  updateRole,
+  deleteRole,
+  getMakeupSessions,
+  createMakeupSession,
+  updateMakeupSession,
+  deleteMakeupSession,
+  getSeries,
+  markOutcomeComplete,
+  markOutcomeIncomplete,
+  submitProgressFeedback,
+  getClientProgress,
+  getOutcomes,
+  getLevelFeedback,
 };

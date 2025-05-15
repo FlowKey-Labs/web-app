@@ -9,6 +9,7 @@ import { exportDataToFile } from '../utils/exportUtils';
 import { Subcategory } from '../types/profileCategories';
 import { Skill } from '../types/profileCategories';
 import { GroupData } from '../types/clientTypes';
+import { MakeUpSession } from '../types/sessionTypes';
 
 import successIcon from '../assets/icons/success.svg';
 import errorIcon from '../assets/icons/error.svg';
@@ -645,8 +646,11 @@ export const useExportSessionClients = (clients: Client[]) => {
     );
 
     return clientsToExport.map((client) => {
-      const attendance = client.attendances && client.attendances.length > 0 ? client.attendances[0] : null;
-      
+      const attendance =
+        client.attendances && client.attendances.length > 0
+          ? client.attendances[0]
+          : null;
+
       return {
         id: client.id,
         first_name: client.first_name,
@@ -710,7 +714,9 @@ export const useExportSessionClients = (clients: Client[]) => {
 
         notifications.show({
           title: 'Export successful',
-          message: `${dataToExport.length} client(s) exported successfully as ${type.toUpperCase()}`,
+          message: `${
+            dataToExport.length
+          } client(s) exported successfully as ${type.toUpperCase()}`,
           color: 'green',
           radius: 'md',
           withBorder: true,
@@ -722,7 +728,7 @@ export const useExportSessionClients = (clients: Client[]) => {
             </span>
           ),
         });
-      } catch (error) {
+      } catch {
         notifications.show({
           title: 'Export failed',
           message: 'An error occurred while exporting clients',
@@ -834,7 +840,7 @@ export const useExportGroups = (groups: GroupData[]) => {
             </span>
           ),
         });
-      } catch (error) {
+      } catch {
         notifications.show({
           title: 'Export failed',
           message: 'An error occurred while exporting groups',
@@ -864,5 +870,120 @@ export const useExportGroups = (groups: GroupData[]) => {
     handleExport,
     isExporting,
   };
-};
+}
+
+  export const useExportMakeupSessions = (makeupSessions: MakeUpSession[]) => {
+    const [isExporting, setIsExporting] = useState(false);
+    const [
+      exportModalOpened,
+      { open: openExportModal, close: closeExportModal },
+    ] = useDisclosure(false);
   
+    const processMakeupSessionsForExport = (selectedIds: string[]) => {
+      const makeupSessionsToExport = makeupSessions.filter((session) =>
+        selectedIds.includes(session.id.toString())
+      );
+  
+      return makeupSessionsToExport.map((makeupSession) => ({
+        id: makeupSession.id,
+        client_name: makeupSession.client_name,
+        original_session_date: makeupSession.original_date,
+        new_session_date: makeupSession.new_date,
+        new_start_time: makeupSession.new_start_time,
+        new_end_time: makeupSession.new_end_time,
+      }));
+    };
+  
+    const handleExport = useCallback(
+      (type: 'csv' | 'excel', selectedIds: string[]) => {
+        if (selectedIds.length === 0) {
+          console.warn('No makeup sessions selected');
+          notifications.show({
+            title: 'No makeup sessions selected',
+            message: 'Please select at least one makeup session to export',
+            color: 'red',
+            radius: 'md',
+            withBorder: true,
+            autoClose: 3000,
+            position: 'top-right',
+            icon: (
+              <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+                <img src={errorIcon} alt='Error' className='w-4 h-4' />
+              </span>
+            ),
+          });
+          closeExportModal();
+          return;
+        }
+  
+        if (makeupSessions.length === 0) {
+          notifications.show({
+            title: 'No makeup sessions available',
+            message: 'There are no makeup sessions to export',
+            color: 'red',
+            radius: 'md',
+            withBorder: true,
+            autoClose: 3000,
+            position: 'top-right',
+            icon: (
+              <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+                <img src={errorIcon} alt='Error' className='w-4 h-4' />
+              </span>
+            ),
+          });
+          closeExportModal();
+          return;
+        }
+  
+        setIsExporting(true);
+        try {
+          const dataToExport = processMakeupSessionsForExport(selectedIds);
+          exportDataToFile(dataToExport, type, 'makeup_sessions', ['id']);
+  
+          notifications.show({
+            title: 'Export successful',
+            message: `${
+              dataToExport.length
+            } makeup session(s) exported successfully as ${type.toUpperCase()}`,
+            color: 'green',
+            radius: 'md',
+            withBorder: true,
+            autoClose: 3000,
+            position: 'top-right',
+            icon: (
+              <span className='flex items-center justify-center w-6 h-6 rounded-full bg-green-200'>
+                <img src={successIcon} alt='Success' className='w-4 h-4' />
+              </span>
+            ),
+          });
+        } catch {
+          notifications.show({
+            title: 'Export failed',
+            message: 'An error occurred while exporting makeup sessions',
+            color: 'red',
+            radius: 'md',
+            withBorder: true,
+            autoClose: 3000,
+            position: 'top-right',
+            icon: (
+              <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+                <img src={errorIcon} alt='Error' className='w-4 h-4' />
+              </span>
+            ),
+          });
+        } finally {
+          setIsExporting(false);
+          closeExportModal();
+        }
+      },
+      [makeupSessions, closeExportModal]
+    );
+
+  return {
+    exportModalOpened,
+    openExportModal,
+    closeExportModal,
+    handleExport,
+    isExporting,
+  };
+};

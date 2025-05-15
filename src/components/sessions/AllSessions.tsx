@@ -38,6 +38,7 @@ import { useDisclosure } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
 import successIcon from '../../assets/icons/success.svg';
 import errorIcon from '../../assets/icons/error.svg';
+import { useAuthStore } from '../../store/auth';
 
 const columnHelper = createColumnHelper<Session>();
 
@@ -68,6 +69,8 @@ const AllSessions = () => {
 
   const activateSessionMutation = useActivateSession();
   const deactivateSessionMutation = useDeactivateSession();
+
+  const permisions = useAuthStore((state) => state.role);
 
   const {
     data: allSessionsData,
@@ -116,24 +119,22 @@ const AllSessions = () => {
     });
   }, [allSessionsData, selectedTypes, selectedCategories, dateRange]);
 
-  const sessionsData = filteredSessions;
-
   const {
     exportModalOpened,
     openExportModal,
     closeExportModal,
     handleExport,
     isExporting,
-  } = useExportSessions(sessionsData || []);
+  } = useExportSessions(filteredSessions || []);
 
   const getSelectedSessionIds = useCallback(() => {
-    if (!sessionsData) return [];
+    if (!filteredSessions) return [];
 
     return Object.keys(rowSelection).map((index) => {
       const sessionIndex = parseInt(index);
-      return sessionsData[sessionIndex].id;
+      return filteredSessions[sessionIndex].id;
     });
-  }, [rowSelection, sessionsData]);
+  }, [rowSelection, filteredSessions]);
   const { data: categoriesData, isLoading: isLoadingCategories } =
     useGetSessionCategories();
 
@@ -513,6 +514,22 @@ const AllSessions = () => {
     });
   };
 
+  if (isLoadingSessions) {
+    return (
+      <div className='flex justify-center items-center h-screen'>
+        <Loader size='xl' color='#1D9B5E'/>
+      </div>
+    );
+  } 
+
+  if (isLoadingCategories) {
+    return (
+      <div className='flex justify-center items-center py-10'>
+        <Loader size='xl' color='#1D9B5E'/>
+      </div>
+    );
+  }
+
   return (
     <>
       <div className='flex flex-col h-screen bg-cardsBg w-full overflow-y-auto'>
@@ -522,6 +539,7 @@ const AllSessions = () => {
           searchPlaceholder='Search by Session, Staff Name or Session Type'
           leftIcon={plusIcon}
           onButtonClick={openDrawer}
+          showButton={permisions?.can_create_sessions}
         />
         <div className='flex h-[70px] w-[80%] ml-6 text-sm p-2 border rounded-md bg-white'>
           <div className='flex items-center justify-between w-full px-6 font-bold '>
@@ -756,6 +774,7 @@ const AllSessions = () => {
             description="You don't have any sessions yet"
             buttonText='Create New Session'
             onButtonClick={openDrawer}
+            showButton={permisions?.can_create_sessions}
             onClose={() => {
               if (
                 selectedTypes.length > 0 ||
@@ -766,7 +785,8 @@ const AllSessions = () => {
               }
             }}
             opened={
-              (!sessionsData || sessionsData.length === 0) && !isLoadingSessions
+              (!filteredSessions || filteredSessions.length === 0) &&
+              !isLoadingSessions
             }
             filterType={
               selectedTypes.length === 1
@@ -791,7 +811,7 @@ const AllSessions = () => {
             </div>
           ) : (
             <Table
-              data={sessionsData || []}
+              data={filteredSessions || []}
               columns={columns}
               rowSelection={rowSelection}
               onRowSelectionChange={setRowSelection}

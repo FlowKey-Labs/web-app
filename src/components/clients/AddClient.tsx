@@ -227,6 +227,13 @@ const AddClients = ({ isOpen, onClose }: ClientsModalProps) => {
           title: 'Error',
           message: 'A group must have at least one client',
           color: 'red',
+          icon: (
+            <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+              <img src={errorIcon} alt='Error' className='w-4 h-4' />
+            </span>
+          ),
+          withBorder: true,
+          autoClose: 3000,
         });
         return;
       }
@@ -236,6 +243,13 @@ const AddClients = ({ isOpen, onClose }: ClientsModalProps) => {
           title: 'Error',
           message: 'Please select a contact person for the group',
           color: 'red',
+          icon: (
+            <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+              <img src={errorIcon} alt='Error' className='w-4 h-4' />
+            </span>
+          ),
+          withBorder: true,
+          autoClose: 3000,
         });
         return;
       }

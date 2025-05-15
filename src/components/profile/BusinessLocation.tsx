@@ -260,7 +260,7 @@ export const BusinessLocation = () => {
       </div>
 
       {isLoading ? (
-        <div className='flex justify-center items-center h-64'>
+        <div className='flex justify-center items-center h-screen'>
           <Loader color='#1D9B5E' size='xl' />
         </div>
       ) : locations.length === 0 ? (
@@ -400,11 +400,7 @@ export const BusinessLocation = () => {
                 control={methods.control}
                 rules={{ required: 'City is required' }}
                 render={({ field }) => (
-                  <Input
-                    {...field}
-                    label='City'
-                    placeholder='Nairobi'
-                  />
+                  <Input {...field} label='City' placeholder='Nairobi' />
                 )}
               />
               <Controller
@@ -438,11 +434,7 @@ export const BusinessLocation = () => {
                 control={methods.control}
                 rules={{ required: 'Country is required' }}
                 render={({ field }) => (
-                  <Input
-                    {...field}
-                    label='Country'
-                    placeholder='Kenya'
-                  />
+                  <Input {...field} label='Country' placeholder='Kenya' />
                 )}
               />
             </div>

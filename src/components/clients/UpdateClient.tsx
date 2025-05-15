@@ -2,18 +2,17 @@ import { useForm, Controller, FormProvider } from 'react-hook-form';
 import Input from '../common/Input';
 import DropdownSelectInput from '../common/Dropdown';
 import Button from '../common/Button';
-import clientlocationIcons from '../../assets/icons/clientLocation.svg';
 import {
   useGetClassSessions,
   useUpdateClient,
   useGetClient,
-  useGetLocations, // Added
+  useGetLocations,
 } from '../../hooks/reactQuery';
 import { useEffect } from 'react';
 import moment from 'moment';
 import { AddClient, ClientData } from '../../types/clientTypes';
-import { Location } from '../../types/location'; // Added
-import { Drawer } from '@mantine/core';
+import { Location } from '../../types/location';
+import { Drawer, Loader } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import successIcon from '../../assets/icons/success.svg';
 import errorIcon from '../../assets/icons/error.svg';
@@ -151,7 +150,9 @@ const UpdateClient = ({ isOpen, onClose, clientId }: UpdateClientProps) => {
         size='lg'
         title='Update Client'
       >
-        <div className='p-6'>Loading client data...</div>
+        <div className='flex justify-center items-center h-screen'>
+          <Loader color="#1D9B5E" size="xl" />
+        </div>
       </Drawer>
     );
   }
@@ -165,7 +166,9 @@ const UpdateClient = ({ isOpen, onClose, clientId }: UpdateClientProps) => {
         size='lg'
         title='Update Client'
       >
-        <div className='p-6'>Client not found.</div>
+        <div className='flex justify-center items-center h-screen'>
+          <p className='text-primary'>Client not found.</p>
+        </div>
       </Drawer>
     );
   }

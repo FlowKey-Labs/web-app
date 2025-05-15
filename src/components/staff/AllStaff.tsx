@@ -20,6 +20,7 @@ import {
   Text,
   Button as MantineButton,
   Stack,
+  Loader,
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
@@ -27,6 +28,7 @@ import successIcon from '../../assets/icons/success.svg';
 import errorIcon from '../../assets/icons/error.svg';
 import { useExportStaff } from '../../hooks/useExport';
 import { navigateToStaffDetails } from '../../utils/navigationHelpers';
+import { useAuthStore } from '../../store/auth';
 
 const columnHelper = createColumnHelper<StaffResponse>();
 
@@ -39,6 +41,8 @@ const AllStaff = () => {
   );
   const [isActivating, setIsActivating] = useState(false);
   const [opened, { open, close }] = useDisclosure(false);
+
+  const permisions = useAuthStore((state) => state.role);
 
   const {
     data: staff = [],
@@ -310,15 +314,15 @@ const AllStaff = () => {
 
   if (isLoading) {
     return (
-      <div className='w-full space-y-6 bg-white rounded-lg p-6'>
-        <p className='text-primary'>Loading staff...</p>
+      <div className='flex justify-center items-center h-screen'>
+        <Loader color='#1D9B5E' size='xl' />
       </div>
     );
   }
 
   if (isError) {
     return (
-      <div className='w-full space-y-6 bg-white rounded-lg p-6'>
+      <div className='flex justify-center items-center h-screen'>
         <div className='space-y-4'>
           <p className='text-red-500'>Error loading staff: {error?.message}</p>
           <button
@@ -341,6 +345,7 @@ const AllStaff = () => {
           searchPlaceholder='Search by Name, Email or Phone Number'
           leftIcon={plusIcon}
           onButtonClick={openDrawer}
+          showButton={permisions?.can_create_staff}
         />
         {!isDrawerOpen && (
           <EmptyDataPage
@@ -350,6 +355,7 @@ const AllStaff = () => {
             onButtonClick={openDrawer}
             onClose={() => {}}
             opened={staff.length === 0 && !isLoading && !isError}
+            showButton={permisions?.can_create_staff}
           />
         )}
         {staff.length > 0 && (

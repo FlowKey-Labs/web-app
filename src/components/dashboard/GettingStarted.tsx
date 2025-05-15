@@ -3,14 +3,15 @@ import Header from '../headers/Header';
 
 import {
   navigateToCalendar,
-  navigateToStaff,
+  navigateToClientDetails,
+  navigateToClients,
 } from '../../utils/navigationHelpers';
 import './index.css';
 import {
   useGetUserProfile,
   useGetAnalytics,
   useGetUpcomingSessions,
-  useCancelSession,
+  useGetClients,
 } from '../../hooks/reactQuery';
 import { DateFilterOption } from '../../types/dashboard';
 
@@ -22,56 +23,63 @@ import totalStaffIcon from '../../assets/icons/totalStaff.svg';
 import rightIcon from '../../assets/icons/greenRight.svg';
 import { useState } from 'react';
 import { BarGraph } from '../common/BarGraph';
-import rescheduleIcon from '../../assets/icons/reschedule.svg';
-import cancelIcon from '../../assets/icons/cancelRed.svg';
 import donutIcon from '../../assets/icons/donutIcon.svg';
 
-import { StaffDashboard, staffDashboard } from '../../utils/dummyData';
 import Table from '../common/Table';
 import { createColumnHelper } from '@tanstack/react-table';
 import { useNavigate } from 'react-router-dom';
 import { DonutChart } from '@mantine/charts';
+import { format } from 'date-fns';
+import { Client } from '../../types/clientTypes';
+import { Progress } from '@mantine/core';
 
-const columnHelper = createColumnHelper<StaffDashboard>();
+const columnHelper = createColumnHelper<Client>();
 
 const columns = [
-  columnHelper.accessor('name', {
+  columnHelper.accessor((row) => `${row.first_name} ${row.last_name}`, {
+    id: 'name',
     header: 'Name',
+    cell: (info) => (
+      <div className='flex flex-col'>
+        <span className='text-sm text-primary'>{info.getValue()}</span>
+        <span className='text-xs text-[#8A8D8E]'>
+          {info.row.original.id}
+        </span>
+      </div>
+    ),
+  }),
+  columnHelper.accessor('phone_number', {
+    header: 'Phone',
+  }),
+  columnHelper.accessor('email', {
+    header: 'Email',
     cell: (info) => info.getValue(),
   }),
-  columnHelper.accessor('class', {
-    header: 'Classes',
-    cell: (info) => info.getValue(),
-  }),
-  columnHelper.accessor('capacity', {
-    header: 'Capacity',
-    cell: (info) => info.getValue(),
-  }),
-
-  columnHelper.accessor('availability', {
-    header: 'Availability',
+  columnHelper.accessor('active', {
+    header: 'Status',
     cell: (info) => (
       <span
-        className={`inline-block px-2 py-1 rounded-lg text-sm text-center min-w-[100px] ${
-          info.getValue() === 'Available'
-            ? 'bg-active text-secondary'
-            : 'bg-[#FFCFCC] text-[#FF3B30]'
+        className={`inline-block px-2 py-1 rounded-lg text-sm text-center min-w-[70px] ${
+          info.getValue()
+            ? 'bg-active text-green-700'
+            : 'bg-red-100 text-red-700'
         }`}
       >
-        {info.getValue()}
+        {info.getValue() ? 'Active' : 'Inactive'}
       </span>
+    ),
+  }),
+  columnHelper.display({
+    id: 'progress',
+    header: 'Progress',
+    cell: () => (
+      <Progress color='#A6EECB' size='sm' radius='xl' value={50} />
     ),
   }),
 ];
 
 const GettingStarted = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [dropdownCancelOpen, setDropdownCancelOpen] = useState<string | null>(
-    null
-  );
-  const [dropdownRescheduleOpen, setDropdownRescheduleOpen] = useState<
-    string | null
-  >(null);
   const [rowSelection, setRowSelection] = useState({});
 
   const [selectedTimeRange, setSelectedTimeRange] = useState('to_date');
@@ -82,7 +90,9 @@ const GettingStarted = () => {
     selectedTimeRange as DateFilterOption
   );
   const { data: upcomingSessions } = useGetUpcomingSessions();
-  const cancelSession = useCancelSession();
+  const {
+    data: clients = [],
+  } = useGetClients();
 
   const handleTimeRangeSelect = (range: string) => {
     setSelectedTimeRange(range);
@@ -256,7 +266,7 @@ const GettingStarted = () => {
         </div>
         <div className='flex p-4 mt-8 gap-8 '>
           <div className='flex flex-col w-[30%] space-y-6'>
-            <div className='flex justify-center items-center max-w-[350px] bg-white rounded-lg p-2'>
+            <div className='flex justify-center items-center bg-white rounded-lg p-2'>
               <div className='flex flex-col items-center w-full'>
                 <h4 className='text-[#08040C] text-[20px] font-[600] self-start mb-6'>
                   Clients Overview
@@ -277,7 +287,7 @@ const GettingStarted = () => {
                     size={200}
                     thickness={30}
                     w={300}
-                    h={250}
+                    h={300}
                     withLabels
                     withLabelsLine
                     labelsType='percent'
@@ -348,91 +358,14 @@ const GettingStarted = () => {
                     <div className='h-[80%] w-[3px] bg-gray-300'></div>
                     <div className='flex justify-between items-center py-4 px-4 w-full'>
                       <div className='space-y-1'>
-                        <p className='text-xs font-[400]'>{session?.title}</p>
+                        <p className='text-xs font-[400]'>{session?.staff?.name}</p>
                         <p className='text-sm font-[600]'>
-                          {session?.staff?.name}
+                          {session?.title}
                         </p>
                       </div>
-                      <div className='flex gap-1'>
-                        <DropDownMenu
-                          show={dropdownRescheduleOpen === session?.id}
-                          setShow={(show) =>
-                            setDropdownRescheduleOpen(show ? session?.id : null)
-                          }
-                          dropDownPosition='right'
-                          actionElement={
-                            <div
-                              id='viewSelect'
-                              className='p-2 text-primary rounded-full w-10 h-10 outline-none cursor-pointer flex items-center justify-between'
-                            >
-                              <img src={rescheduleIcon} />
-                            </div>
-                          }
-                        >
-                          <div className='flex flex-col rounded-lg  border-[1px] border-secondary w-[500px]'>
-                            <div className='flex flex-col space-y-10 p-6 justify-center items-center'>
-                              <p className='text-gray-500 text-base text-center'>
-                                Are you sure you want to reschedule this
-                                appointment?
-                              </p>
-                              <div className='flex gap-12'>
-                                <button className='text-red-500 text-base cursor-pointer font-bold'>
-                                  Reschedule
-                                </button>
-                                <button className='text-gray-500 text-base cursor-pointer font-bold'>
-                                  No
-                                </button>
-                              </div>
-                            </div>
-                          </div>
-                        </DropDownMenu>
-                        <DropDownMenu
-                          show={dropdownCancelOpen === session?.id}
-                          setShow={(show) =>
-                            setDropdownCancelOpen(show ? session?.id : null)
-                          }
-                          dropDownPosition='right'
-                          actionElement={
-                            <div
-                              id='viewSelect'
-                              className='p-2 text-primary rounded-full w-10 h-10 outline-none cursor-pointer flex items-center justify-between'
-                            >
-                              <img src={cancelIcon} />
-                            </div>
-                          }
-                        >
-                          <div className='flex flex-col rounded-lg  border-[1px] border-secondary w-[500px]'>
-                            <div className='flex flex-col space-y-10 p-6 justify-center items-center'>
-                              <p className='text-gray-500 text-base text-center'>
-                                Are you sure you want to cancel this
-                                appointment?
-                              </p>
-                              <div className='flex gap-12'>
-                                <button
-                                  className='text-red-500 text-base cursor-pointer font-bold'
-                                  onClick={() => {
-                                    if (session?.id) {
-                                      cancelSession.mutate(session.id, {
-                                        onSuccess: () => {
-                                          setDropdownCancelOpen(null);
-                                        },
-                                      });
-                                    }
-                                  }}
-                                >
-                                  Cancel
-                                </button>
-                                <button
-                                  className='text-gray-500 text-base cursor-pointer font-bold'
-                                  onClick={() => setDropdownCancelOpen(null)}
-                                >
-                                  No
-                                </button>
-                              </div>
-                            </div>
-                          </div>
-                        </DropDownMenu>
-                      </div>
+                    </div>
+                    <div className='w-64'>
+                      <p className='text-sm font-[400]'>{format(session?.date, 'PPPP')}</p>
                     </div>
                   </div>
                 ))}
@@ -440,10 +373,10 @@ const GettingStarted = () => {
             </div>
             <div className='flex flex-col mt-10 bg-white rounded-lg'>
               <div className='flex justify-between w-full px-4 mt-4'>
-                <h3 className='text-[18px] text-primary font-[600]'>Staff</h3>
+                <h3 className='text-[18px] text-primary font-[600]'>Clients</h3>
                 <div
                   className='flex gap-2 items-center cursor-pointer'
-                  onClick={() => navigateToStaff(navigate)}
+                  onClick={() => navigateToClients(navigate)}
                 >
                   <p className='text-secondary text-base font-[400]'>
                     View All
@@ -452,17 +385,17 @@ const GettingStarted = () => {
                 </div>
               </div>
               <div className='flex-1'>
-                <Table
-                  data={staffDashboard}
-                  columns={columns}
-                  rowSelection={rowSelection}
-                  onRowSelectionChange={setRowSelection}
-                  className='mt-4'
-                  pageSize={8}
-                  headerBg='white'
-                  showPagination={false}
-                  showHeaderDivider={true}
-                />
+              <Table
+                data={clients.slice(0, 8)}
+                columns={columns}
+                rowSelection={rowSelection}
+                onRowSelectionChange={setRowSelection}
+                className='mt-4'
+                pageSize={12}
+                onRowClick={(row: Client) =>
+                  navigateToClientDetails(navigate, row.id.toString())
+                }
+              />
               </div>
             </div>
           </div>

@@ -8,7 +8,7 @@ import {
   useActivateClient,
   useGetGroups,
 } from '../../hooks/reactQuery';
-import { createColumnHelper, ColumnDef } from '@tanstack/react-table'; // Added ColumnDef
+import { createColumnHelper, ColumnDef } from '@tanstack/react-table';
 import {
   Progress,
   Group,
@@ -31,6 +31,7 @@ import { useNavigate } from 'react-router-dom';
 import { navigateToClientDetails, navigateToGroupDetails } from '../../utils/navigationHelpers';
 import AddClients from './AddClient';
 import EmptyDataPage from '../common/EmptyDataPage';
+import { useAuthStore } from '../../store/auth';
 
 
 const clientColumnHelper = createColumnHelper<Client>();
@@ -49,6 +50,8 @@ const AllClients = () => {
   const navigate = useNavigate();
   const deactivateClientMutation = useDeactivateClient();
   const activateClientMutation = useActivateClient();
+
+  const permisions = useAuthStore((state) => state.role);
 
   const {
     data: clients = [],
@@ -558,9 +561,8 @@ const AllClients = () => {
               : 'Search by Group Name or Description'
           }
           leftIcon={plusIcon}
-          onButtonClick={
-            activeView === 'clients' ? openClientDrawer : openClientDrawer 
-          }
+          onButtonClick={openClientDrawer }
+          showButton={permisions?.can_create_clients}
         />
         <div className='px-6 pt-4 pb-2'>
           <Group>
@@ -602,6 +604,7 @@ const AllClients = () => {
                 ? clients.length === 0
                 : groups.length === 0) && !isLoadingCurrent
             }
+            showButton={permisions?.can_create_clients}
           />
         )}
         <div className='flex-1 px-6 py-3'>

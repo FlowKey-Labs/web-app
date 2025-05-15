@@ -36,7 +36,7 @@ import successIcon from '../../assets/icons/success.svg';
 import errorIcon from '../../assets/icons/error.svg';
 import { IconPlus } from '@tabler/icons-react';
 
-import CreateSkillModal from './createSkillModal';
+import CreateSkillModal from './CreateSkillModal';
 import UpdateSkillModal from './UpdateSkillModal';
 import { Subcategory, Skill, Category } from '../../types/profileCategories';
 
@@ -735,24 +735,28 @@ const CategoryDetails = ({
             className='w-4 h-4 rounded cursor-pointer bg-[#F7F8FA] accent-[#DBDEDF]'
           />
         ),
+        size: 40, // Fixed width for checkbox column
       }),
       columnHelper.accessor('name', {
         header: 'Subcategory',
         cell: (info) => info.getValue(),
+        size: 150, // Fixed width for subcategory column
       }),
       columnHelper.accessor('description', {
         header: 'Description',
         cell: (info) => info.getValue() || '-',
+        size: 200, // Fixed width for description column
       }),
       columnHelper.display({
         id: 'skills',
         header: 'Skills',
+        size: 300, // Fixed width for skills column
         cell: ({ row }) => {
           const subcategory = row.original;
           const skills = subcategorySkillsMap.get(subcategory.id) || [];
 
           return (
-            <div className='flex flex-wrap gap-2'>
+            <div className='flex flex-wrap gap-2 max-w-[300px] overflow-hidden'>
               {skills.length > 0 ? (
                 skills.map((skill) => (
                   <Badge
@@ -760,7 +764,8 @@ const CategoryDetails = ({
                     variant='light'
                     color='#1D9B5E'
                     radius='sm'
-                    className='cursor-default'
+                    className='cursor-default max-w-[120px] truncate'
+                    title={skill.name} // Show full name on hover
                   >
                     {skill.name}
                   </Badge>
@@ -806,6 +811,7 @@ const CategoryDetails = ({
             </Group>
           </div>
         ),
+        size: 80, // Fixed width for actions column
         cell: ({ row }) => {
           const subcategory = row.original;
           return (

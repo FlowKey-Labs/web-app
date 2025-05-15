@@ -4,11 +4,17 @@ import GeneralSettings from './GeneralSettings';
 import Notifications from './Notifications';
 import { NotificationsFormData } from './Notifications';
 import Policies from './Policies';
+import Roles from './Roles';
 
-type TabType = 'general' | 'notifications' | 'policies';
+type TabType = 'general' | 'notifications' | 'policies' | 'roles';
+
+const tabConfig = [
+  { id: 'policies', label: 'Policies' },
+  { id: 'roles', label: 'Roles' },
+];
 
 const Settings = () => {
-  const [activeTab, setActiveTab] = useState<TabType>('general');
+  const [activeTab, setActiveTab] = useState<TabType>('policies');
   const [openedAccordion, setOpenedAccordion] = useState<string | null>(null);
 
   const notificationsMethods = useForm<NotificationsFormData>({
@@ -16,11 +22,6 @@ const Settings = () => {
       sessionReminderSms: '',
     },
   });
-  const tabConfig = [
-    { id: 'general', label: 'General Settings' },
-    { id: 'notifications', label: 'Notifications' },
-    { id: 'policies', label: 'Policies' },
-  ];
 
   return (
     <div className='flex flex-col h-screen bg-cardsBg w-full overflow-y-auto'>
@@ -59,6 +60,7 @@ const Settings = () => {
             </FormProvider>
           )}
           {activeTab === 'policies' && <Policies />}
+          {activeTab === 'roles' && <Roles />}
         </div>
       </div>
     </div>

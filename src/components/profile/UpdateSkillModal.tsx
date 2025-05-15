@@ -118,7 +118,7 @@ const UpdateSkillModal = ({
                 render={({ field }) => (
                   <Input
                     {...field}
-                    label={`Skill Name ${index + 1}`}
+                    label='Skill Name'
                     placeholder='Enter skill name'
                   />
                 )}
