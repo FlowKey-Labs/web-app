@@ -83,12 +83,18 @@ import {
   updateRole,
   deleteRole,
   get_staff_sessions,
-
   // Makeup Session API functions
   getMakeupSessions,
   createMakeupSession,
   updateMakeupSession,
   deleteMakeupSession,
+  markOutcomeComplete,
+  markOutcomeIncomplete,
+  getSeries,
+  getClientProgress,
+  getOutcomes,
+  submitProgressFeedback,
+  getLevelFeedback,
 } from "../api/api";
 import { Role, useAuthStore } from "../store/auth";
 import { AddClient, Client } from "../types/clientTypes";
@@ -98,9 +104,14 @@ import {
   DateFilterOption,
   UpcomingSession,
 } from "../types/dashboard";
-import { MakeUpSession, Session } from "../types/sessionTypes";
+import {
+  MakeUpSession,
+  ProgressFeedback,
+  Session,
+} from "../types/sessionTypes";
 import { CreateLocationData } from "../types/location";
 import { Group, GroupData } from "../types/clientTypes";
+import { SeriesLevel, SeriesProgress } from "../store/progressStore";
 
 export const useRegisterUser = () => {
   const queryClient = useQueryClient();
@@ -896,7 +907,7 @@ export const useMarkClientAttended = () => {
       queryClient.invalidateQueries({
         queryKey: ["session", sessionId],
       });
-      
+
       // Invalidate client-related queries
       queryClient.invalidateQueries({
         queryKey: ["client_analytics", clientId],
@@ -910,7 +921,7 @@ export const useMarkClientAttended = () => {
       queryClient.invalidateQueries({
         queryKey: ["client", clientId],
       });
-      
+
       // Invalidate global analytics and sessions queries
       queryClient.invalidateQueries({
         queryKey: ["client_analytics"],
@@ -921,7 +932,7 @@ export const useMarkClientAttended = () => {
       queryClient.invalidateQueries({
         queryKey: ["sessions"],
       });
-      
+
       // Force a full refetch of the data
       queryClient.refetchQueries({
         queryKey: ["session_clients", sessionId],
@@ -929,7 +940,7 @@ export const useMarkClientAttended = () => {
       queryClient.refetchQueries({
         queryKey: ["client_sessions", clientId],
       });
-      
+
       return data;
     },
   });
@@ -956,7 +967,7 @@ export const useMarkClientNotAttended = () => {
       queryClient.invalidateQueries({
         queryKey: ["session", sessionId],
       });
-      
+
       // Invalidate client-related queries
       queryClient.invalidateQueries({
         queryKey: ["client_analytics", clientId],
@@ -970,7 +981,7 @@ export const useMarkClientNotAttended = () => {
       queryClient.invalidateQueries({
         queryKey: ["client", clientId],
       });
-      
+
       // Invalidate global analytics and sessions queries
       queryClient.invalidateQueries({
         queryKey: ["client_analytics"],
@@ -981,7 +992,7 @@ export const useMarkClientNotAttended = () => {
       queryClient.invalidateQueries({
         queryKey: ["sessions"],
       });
-      
+
       // Force a full refetch of the data
       queryClient.refetchQueries({
         queryKey: ["session_clients", sessionId],
@@ -989,7 +1000,7 @@ export const useMarkClientNotAttended = () => {
       queryClient.refetchQueries({
         queryKey: ["client_sessions", clientId],
       });
-      
+
       return data;
     },
   });
@@ -1018,7 +1029,7 @@ export const useUpdateAttendanceStatus = () => {
       queryClient.invalidateQueries({
         queryKey: ["session", sessionId],
       });
-      
+
       // Invalidate client-related queries
       queryClient.invalidateQueries({
         queryKey: ["client_analytics", clientId],
@@ -1032,7 +1043,7 @@ export const useUpdateAttendanceStatus = () => {
       queryClient.invalidateQueries({
         queryKey: ["client", clientId],
       });
-      
+
       // Invalidate global analytics and sessions queries
       queryClient.invalidateQueries({
         queryKey: ["client_analytics"],
@@ -1043,7 +1054,7 @@ export const useUpdateAttendanceStatus = () => {
       queryClient.invalidateQueries({
         queryKey: ["sessions"],
       });
-      
+
       // Force a full refetch of the data
       queryClient.refetchQueries({
         queryKey: ["session_clients", sessionId],
@@ -1051,7 +1062,7 @@ export const useUpdateAttendanceStatus = () => {
       queryClient.refetchQueries({
         queryKey: ["client_sessions", clientId],
       });
-      
+
       return data;
     },
   });
@@ -1097,7 +1108,7 @@ export const useRemoveClientFromSession = () => {
       queryClient.invalidateQueries({
         queryKey: ["session_analytics", sessionId],
       });
-      
+
       // Invalidate client-related queries
       queryClient.invalidateQueries({
         queryKey: ["client_analytics", clientId],
@@ -1105,7 +1116,7 @@ export const useRemoveClientFromSession = () => {
       queryClient.invalidateQueries({
         queryKey: ["client_sessions", clientId],
       });
-      
+
       // Invalidate global queries
       queryClient.invalidateQueries({ queryKey: ["dashboard_analytics"] });
       queryClient.invalidateQueries({
@@ -1276,16 +1287,90 @@ export const useUpdateMakeupSession = () => {
 export const useDeleteMakeupSession = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({
-      id,
-    }: {
-      id: string;
-    }) => deleteMakeupSession(id),
+    mutationFn: ({ id }: { id: string }) => deleteMakeupSession(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["makeup_sessions"] });
     },
     onError: (error) => {
       console.error("Failed to delete makeup session:", error);
     },
+  });
+};
+
+export const useGetProgressSeries = () => {
+  return useQuery<SeriesLevel[]>({
+    queryKey: ["series"],
+    queryFn: getSeries,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    refetchOnWindowFocus: false,
+  });
+};
+
+export const useGetClientProgress = (clientId: string) => {
+  return useQuery<SeriesProgress>({
+    queryKey: ["client_progress", clientId],
+    queryFn: () => getClientProgress(clientId),
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    refetchOnWindowFocus: false,
+  });
+};
+
+export const useGetOutcomes = (clientId: string) => {
+  return useQuery<SeriesLevel[]>({
+    queryKey: ["outcomes", clientId],
+    queryFn: () => getOutcomes(clientId),
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    refetchOnWindowFocus: false,
+  });
+};
+
+export const useMarkOutcomeCompleted = () => {
+  return useMutation({
+    mutationFn: ({
+      client_id,
+      subskill_id,
+    }: {
+      client_id: string;
+      subskill_id: string;
+    }) => markOutcomeComplete({ client_id, subskill_id }),
+  });
+};
+
+export const useUnmarkOutcomeIncomplete = () => {
+  return useMutation({
+    mutationFn: ({
+      client_id,
+      subskill_id,
+    }: {
+      client_id: string;
+      subskill_id: string;
+    }) => markOutcomeIncomplete({ client_id, subskill_id }),
+  });
+};
+
+export const useSubmitProgressFeedback = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: ProgressFeedback) => submitProgressFeedback(payload),
+    onSuccess: (_, { client_id, subcategory_id }) => {
+      queryClient.invalidateQueries({
+        queryKey: ["levelFeedback", client_id, subcategory_id],
+      });
+    },
+  });
+};
+
+export const useGetProgressFeedback = (
+  clientId: string,
+  subcategoryId: string
+) => {
+  return useQuery<{
+    feedback: string;
+    attachment: string;
+  }>({
+    queryKey: ["levelFeedback", clientId, subcategoryId],
+    queryFn: () => getLevelFeedback(clientId, subcategoryId),
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    refetchOnWindowFocus: false,
   });
 };

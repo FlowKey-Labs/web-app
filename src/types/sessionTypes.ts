@@ -1,5 +1,5 @@
-import { Location } from './location';
-import { Policy } from './policy';
+import { Location } from "./location";
+import { Policy } from "./policy";
 
 export interface Category {
   id: number;
@@ -15,11 +15,11 @@ export interface Staff {
 }
 
 export type AttendanceStatus =
-  | 'not_yet'
-  | 'attended'
-  | 'missed'
-  | 'make_up'
-  | 'cancelled';
+  | "not_yet"
+  | "attended"
+  | "missed"
+  | "make_up"
+  | "cancelled";
 
 export interface Attendance {
   id: number;
@@ -52,10 +52,10 @@ export interface AssignedStaff {
   isActive: boolean;
 }
 
-export type SessionType = 'class' | 'appointment' | 'event';
-export type ClassType = 'private' | 'regular' | 'workshop';
-export type RepeatUnit = 'days' | 'weeks' | 'months';
-export type EndType = 'never' | 'on' | 'after';
+export type SessionType = "class" | "appointment" | "event";
+export type ClassType = "private" | "regular" | "workshop";
+export type RepeatUnit = "days" | "weeks" | "months";
+export type EndType = "never" | "on" | "after";
 
 // For creating a new session
 export interface CreateSessionData {
@@ -78,7 +78,7 @@ export interface CreateSessionData {
   phone_number?: string; // optional, for appointments
   selected_class?: number; // optional, for appointments - references a class ID
   // Repetition fields (all optional)
-  repetition?: 'none' | 'daily' | 'weekly' | 'monthly' | 'custom'; // UI field for repetition type
+  repetition?: "none" | "daily" | "weekly" | "monthly" | "custom"; // UI field for repetition type
   repeat_every?: number;
   repeat_unit?: RepeatUnit;
   repeat_on?: string[]; // for weekly repeat, array of weekday strings
@@ -89,7 +89,7 @@ export interface CreateSessionData {
 
 // Session data as returned by the API
 export interface Session
-  extends Omit<CreateSessionData, 'category' | 'client_ids' | 'location_id'> {
+  extends Omit<CreateSessionData, "category" | "client_ids" | "location_id"> {
   id: number;
   assigned_staff: AssignedStaff | null;
   category: Category;
@@ -114,7 +114,7 @@ export interface SessionTableData {
 // Class session specific fields
 export interface ClassFields {
   title: string;
-  class_type: 'private' | 'regular' | 'workshop';
+  class_type: "private" | "regular" | "workshop";
   spots: number;
   client_ids?: number[];
 }
@@ -142,7 +142,7 @@ export interface MakeUpSession {
   id: number | string;
   session_title?: string;
   client_name?: string;
-  original_date: CreateSessionData['date'];
+  original_date: CreateSessionData["date"];
   new_date: string;
   new_start_time: string;
   new_end_time: string;
@@ -150,4 +150,11 @@ export interface MakeUpSession {
   updated_at?: string;
   session: number | string;
   client: number | string;
+}
+
+export interface ProgressFeedback {
+  client_id: string;
+  subcategory_id: string;
+  feedback: string;
+  attachment: File;
 }

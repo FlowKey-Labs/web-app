@@ -22,7 +22,6 @@ import {
   useGetSessionDetail,
   useGetSessionAnalytics,
   useGetSessionClients,
-  // useMarkClientAttended,
   useRemoveClientFromSession,
   useUpdateAttendanceStatus,
   useCreateMakeupSession,
