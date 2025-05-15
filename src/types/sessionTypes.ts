@@ -62,29 +62,29 @@ export interface CreateSessionData {
   title: string;
   session_type: SessionType;
   class_type: ClassType;
-  staff: number; // staff ID
-  date: string; // YYYY-MM-DD
-  start_time: string; // ISO datetime
-  end_time: string; // ISO datetime
+  staff: number; 
+  date: string; 
+  start_time: string; 
+  end_time: string; 
   spots: number;
-  category: number; // category ID
-  location_id?: number; // optional location ID
+  category: number; 
+  location_id?: number; 
   is_active?: boolean;
-  client_ids?: number[]; // optional list of client IDs
-  policy_ids?: number[]; // optional list of policy IDs
-  description?: string; // optional description for the session
+  client_ids?: number[]; 
+  policy_ids?: number[]; 
+  description?: string; 
   // Appointment specific fields
-  email?: string; // optional, for appointments
-  phone_number?: string; // optional, for appointments
-  selected_class?: number; // optional, for appointments - references a class ID
+  email?: string;
+  phone_number?: string;
+  selected_class?: number;
   // Repetition fields (all optional)
-  repetition?: 'none' | 'daily' | 'weekly' | 'monthly' | 'custom'; // UI field for repetition type
+  repetition?: 'none' | 'daily' | 'weekly' | 'monthly' | 'custom';
   repeat_every?: number;
   repeat_unit?: RepeatUnit;
-  repeat_on?: string[]; // for weekly repeat, array of weekday strings
+  repeat_on?: string[];
   repeat_end_type?: EndType;
-  repeat_end_date?: string; // YYYY-MM-DD, required if repeat_end_type is 'on'
-  repeat_occurrences?: number; // required if repeat_end_type is 'after'
+  repeat_end_date?: string; 
+  repeat_occurrences?: number;
 }
 
 // Session data as returned by the API
@@ -95,7 +95,7 @@ export interface Session
   category: Category;
   location?: Location;
   attendances?: Attendance[];
-  policies?: Policy[]; // To hold policy details when fetching a session
+  policies?: Policy[]; 
 }
 
 // For the frontend table display
@@ -139,7 +139,7 @@ export interface EventFields {
 }
 
 export interface MakeUpSession {
-  id: number | string;
+  id?: number | string;
   session_title?: string;
   client_name?: string;
   original_date: CreateSessionData['date'];
@@ -150,4 +150,26 @@ export interface MakeUpSession {
   updated_at?: string;
   session: number | string;
   client: number | string;
+}
+
+export interface AttendedSession {
+  id?: number | string;
+  session_title?: string;
+  client_name?: string;
+  date: string; 
+  created_at?: string; 
+  updated_at?: string; 
+  client: number | string; 
+  session: number | string; 
+}
+
+export interface CancelledSession {
+  id?: number | string;
+  client_name?: string;
+  session_title?: string;
+  date: string; 
+  created_at?: string;
+  updated_at?: string;
+  client: number | string; 
+  session: number | string; 
 }

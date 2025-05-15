@@ -26,6 +26,8 @@ import {
   useRemoveClientFromSession,
   useUpdateAttendanceStatus,
   useCreateMakeupSession,
+  useCreateCancelledSession,
+  useCreateAttendedSession,
 } from '../../hooks/reactQuery';
 
 import actionOptionIcon from '../../assets/icons/actionOption.svg';
@@ -36,7 +38,11 @@ import successIcon from '../../assets/icons/success.svg';
 import errorIcon from '../../assets/icons/error.svg';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
 import Input from '../common/Input';
-import { MakeUpSession } from '../../types/sessionTypes';
+import {
+  MakeUpSession,
+  AttendedSession,
+  CancelledSession,
+} from '../../types/sessionTypes';
 
 const columnHelper = createColumnHelper<Client>();
 
@@ -54,6 +60,8 @@ const SessionDetails = () => {
   const updateStatusMutation = useUpdateAttendanceStatus();
 
   const createMakeupSessionMutation = useCreateMakeupSession();
+  const createAttendedSessionMutation = useCreateAttendedSession();
+  const createCancelledSessionMutation = useCreateCancelledSession();
 
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'overview' | 'clients'>(
@@ -92,7 +100,7 @@ const SessionDetails = () => {
     });
   }, [rowSelection, clients]);
 
-  const methods = useForm<MakeUpSession>();
+  const methods = useForm<MakeUpSession | AttendedSession | CancelledSession>();
 
   const {
     exportModalOpened,
@@ -287,7 +295,6 @@ const SessionDetails = () => {
       {
         session_title: methods.getValues('session_title'),
         client_name: methods.getValues('client_name'),
-        id: '0',
         session: sessionId,
         client: selectedClient?.id || '',
         original_date: moment(session?.date).format('YYYY-MM-DD'),
@@ -337,10 +344,141 @@ const SessionDetails = () => {
     );
   };
 
+  const handleCreateAttendanceRecord = () => {
+    if (!sessionId) return;
+
+    createAttendedSessionMutation.mutate(
+      {
+        session_title: methods.getValues('session_title'),
+        client_name: methods.getValues('client_name'),
+        session: sessionId,
+        client: selectedClient?.id || '',
+        date: moment(session?.date).format('YYYY-MM-DD'),
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      },
+      {
+        onSuccess: () => {
+          notifications.show({
+            title: 'Success',
+            message: 'Attendance record created successfully!',
+            color: 'green',
+            radius: 'md',
+            icon: (
+              <span className='flex items-center justify-center w-6 h-6 rounded-full bg-green-200'>
+                <img src={successIcon} alt='Success' className='w-4 h-4' />
+              </span>
+            ),
+            withBorder: true,
+            autoClose: 3000,
+            position: 'top-right',
+          });
+          close();
+          refetchSession();
+        },
+        onError: () => {
+          notifications.show({
+            title: 'Error',
+            message: 'Failed to create attendance record. Please try again.',
+            color: 'red',
+            radius: 'md',
+            icon: (
+              <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+                <img src={errorIcon} alt='Error' className='w-4 h-4' />
+              </span>
+            ),
+            withBorder: true,
+            autoClose: 3000,
+            position: 'top-right',
+          });
+          close();
+        },
+      }
+    );
+  };
+
+  const handleCreateCancelledSession = () => {
+    if (!sessionId) return;
+
+    createCancelledSessionMutation.mutate(
+      {
+        session_title: methods.getValues('session_title'),
+        client_name: methods.getValues('client_name'),
+        session: sessionId,
+        client: selectedClient?.id || '',
+        date: moment(session?.date).format('YYYY-MM-DD'),
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      },
+      {
+        onSuccess: () => {
+          notifications.show({
+            title: 'Success',
+            message: 'Cancelled session created successfully!',
+            color: 'green',
+            radius: 'md',
+            icon: (
+              <span className='flex items-center justify-center w-6 h-6 rounded-full bg-green-200'>
+                <img src={successIcon} alt='Success' className='w-4 h-4' />
+              </span>
+            ),
+            withBorder: true,
+            autoClose: 3000,
+            position: 'top-right',
+          });
+          close();
+          refetchSession();
+        },
+        onError: () => {
+          notifications.show({
+            title: 'Error',
+            message: 'Failed to create cancelled session. Please try again.',
+            color: 'red',
+            radius: 'md',
+            icon: (
+              <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+                <img src={errorIcon} alt='Error' className='w-4 h-4' />
+              </span>
+            ),
+            withBorder: true,
+            autoClose: 3000,
+            position: 'top-right',
+          });
+          close();
+        },
+      }
+    );
+  };
+
+  const handleAttendanceStatusChange = () => {
+    if (sessionId) {
+      const fetchSessionDetails = async () => {
+        try {
+          const sessionDetails = await refetch();
+          methods.setValue(
+            'session_title',
+            sessionDetails?.data?.title || 'Unnamed Session'
+          );
+        } catch (error) {
+          console.error('Failed to fetch session details', error);
+          methods.setValue('session_title', `Session ${sessionId}`);
+        }
+      };
+
+      fetchSessionDetails();
+    }
+  };
+
   const onSubmit = async (data: MakeUpSession) => {
     console.log(data);
     try {
-      handleCreateMakeupSession();
+      if (selectedStatus === 'make_up') {
+        handleCreateMakeupSession();
+      } else if (selectedStatus === 'attended') {
+        handleCreateAttendanceRecord();
+      } else if (selectedStatus === 'cancelled') {
+        handleCreateCancelledSession();
+      }
     } catch (error) {
       console.error(error);
     }
@@ -460,6 +598,12 @@ const SessionDetails = () => {
                       setSelectedClient(client);
                       setSelectedStatus('attended');
                       setIsRemovingClient(false);
+                      handleAttendanceStatusChange();
+
+                      methods.setValue(
+                        'client_name',
+                        `${client.first_name} ${client.last_name}`
+                      );
                       open();
                     }}
                     className='text-sm'
@@ -474,28 +618,7 @@ const SessionDetails = () => {
                       setSelectedClient(client);
                       setSelectedStatus('make_up');
                       setIsRemovingClient(false);
-                      if (sessionId) {
-                        const fetchSessionDetails = async () => {
-                          try {
-                            const sessionDetails = await refetch();
-                            methods.setValue(
-                              'session_title',
-                              sessionDetails?.data?.title || 'Unnamed Session'
-                            );
-                          } catch (error) {
-                            console.error(
-                              'Failed to fetch session details',
-                              error
-                            );
-                            methods.setValue(
-                              'session_title',
-                              `Session ${sessionId}`
-                            );
-                          }
-                        };
-
-                        fetchSessionDetails();
-                      }
+                      handleAttendanceStatusChange();
 
                       methods.setValue(
                         'client_name',
@@ -514,6 +637,12 @@ const SessionDetails = () => {
                       setSelectedClient(client);
                       setSelectedStatus('cancelled');
                       setIsRemovingClient(false);
+                      handleAttendanceStatusChange();
+
+                      methods.setValue(
+                        'client_name',
+                        `${client.first_name} ${client.last_name}`
+                      );
                       open();
                     }}
                     className='text-sm'
@@ -852,7 +981,7 @@ const SessionDetails = () => {
         opened={opened}
         onClose={close}
         title={
-          <Text fw={600} size='lg'>
+          <Text fw={600} size='lg' color='#1D9B5E'>
             {isRemovingClient
               ? 'Remove Client from Session'
               : selectedStatus === 'attended'
@@ -862,7 +991,7 @@ const SessionDetails = () => {
               : selectedStatus === 'missed'
               ? 'Mark as Missed'
               : selectedStatus === 'make_up'
-              ? 'Request Make-up Class'
+              ? 'Reschedule Session'
               : selectedStatus === 'cancelled'
               ? 'Mark as Cancelled'
               : 'Update Attendance Status'}
@@ -872,57 +1001,40 @@ const SessionDetails = () => {
         radius='md'
       >
         <div className='space-y-4'>
-          <Text size='sm'>
-            {isRemovingClient
-              ? 'Are you sure you want to remove this client from this session? This action cannot be undone.'
-              : selectedStatus === 'attended'
-              ? 'Are you sure you want to mark this client as attended for this session?'
-              : selectedStatus === 'not_yet'
-              ? 'Are you sure you want to mark this client as not yet attended for this session?'
-              : selectedStatus === 'missed'
-              ? 'Are you sure you want to mark this client as missed for this session?'
-              : selectedStatus === 'make_up'
-              ? ''
-              : selectedStatus === 'cancelled'
-              ? "Are you sure you want to mark this client's attendance as cancelled for this session?"
-              : 'Are you sure you want to update the attendance status for this client?'}
-          </Text>
           <div className=''>
-            {selectedStatus === 'make_up' && (
-              <div className='flex flex-col gap-4'>
-                <h3 className='text-lg font-semibold text-secondary'>
-                  Reschedule Session
-                </h3>
-                <div className='flex flex-col w-full justify-start'>
-                  <FormProvider {...methods}>
-                    <div className=' space-y-4'>
-                      <Controller
-                        name='session_title'
-                        control={methods.control}
-                        render={({ field }) => (
-                          <Input
-                            {...field}
-                            label='Session Name'
-                            placeholder='Session Name'
-                            value={field.value || ''}
-                            readOnly
-                          />
-                        )}
-                      />
-                      <Controller
-                        name='client_name'
-                        control={methods.control}
-                        render={({ field }) => (
-                          <Input
-                            {...field}
-                            label='Client Name'
-                            placeholder='Client Name'
-                            value={field.value || ''}
-                            readOnly
-                          />
-                        )}
-                      />
+            {/* {selectedStatus === 'make_up' && ( */}
+            <div className='flex flex-col gap-4'>
+              <div className='flex flex-col w-full justify-start'>
+                <FormProvider {...methods}>
+                  <div className=' space-y-4'>
+                    <Controller
+                      name='session_title'
+                      control={methods.control}
+                      render={({ field }) => (
+                        <Input
+                          {...field}
+                          label='Session Name'
+                          placeholder='Session Name'
+                          value={field.value || ''}
+                          readOnly
+                        />
+                      )}
+                    />
+                    <Controller
+                      name='client_name'
+                      control={methods.control}
+                      render={({ field }) => (
+                        <Input
+                          {...field}
+                          label='Client Name'
+                          placeholder='Client Name'
+                          value={field.value || ''}
+                          readOnly
+                        />
+                      )}
+                    />
 
+                    {selectedStatus === 'make_up' && (
                       <Controller
                         name='original_date'
                         control={methods.control}
@@ -936,71 +1048,109 @@ const SessionDetails = () => {
                           />
                         )}
                       />
-                      <div className=' space-y-4'>
-                        <p className='text-base font-medium'>Move to </p>
-                        <Controller
-                          name='new_date'
-                          control={methods.control}
-                          render={({ field }) => (
-                            <Input
-                              {...field}
-                              label='New Date'
-                              placeholder='2025/03/12'
-                              value={field.value || ''}
-                              type='date'
+                    )}
+                    <div className=' space-y-4'>
+                      {selectedStatus === 'make_up' && (
+                        <>
+                          <p className='text-base font-medium'>Move to </p>
+                          <Controller
+                            name='new_date'
+                            control={methods.control}
+                            render={({ field }) => (
+                              <Input
+                                {...field}
+                                label='New Date'
+                                placeholder='2025/03/12'
+                                value={field.value || ''}
+                                type='date'
+                              />
+                            )}
+                          />
+                          <div className='flex gap-2'>
+                            <Controller
+                              name='new_start_time'
+                              control={methods.control}
+                              render={({ field }) => (
+                                <Input
+                                  {...field}
+                                  label='New Start Time'
+                                  placeholder='10:00'
+                                  value={field.value || ''}
+                                  type='time'
+                                />
+                              )}
                             />
-                          )}
-                        />
-                        <div className='flex gap-2'>
+                            <Controller
+                              name='new_end_time'
+                              control={methods.control}
+                              render={({ field }) => (
+                                <Input
+                                  {...field}
+                                  label='New End Time'
+                                  placeholder='12:00'
+                                  value={field.value || ''}
+                                  type='time'
+                                />
+                              )}
+                            />
+                          </div>
+                        </>
+                      )}
+                      {selectedStatus === 'attended' && (
+                        <>
                           <Controller
-                            name='new_start_time'
+                            name='date'
                             control={methods.control}
                             render={({ field }) => (
                               <Input
                                 {...field}
-                                label='New Start Time'
-                                placeholder='10:00'
+                                label='Date'
+                                placeholder='2025/03/12'
                                 value={field.value || ''}
-                                type='time'
+                                type='date'
                               />
                             )}
                           />
+                        </>
+                      )}
+                      {selectedStatus === 'cancelled' && (
+                        <>
                           <Controller
-                            name='new_end_time'
+                            name='date'
                             control={methods.control}
                             render={({ field }) => (
                               <Input
                                 {...field}
-                                label='New End Time'
-                                placeholder='12:00'
+                                label='Date'
+                                placeholder='2025/03/12'
                                 value={field.value || ''}
-                                type='time'
+                                type='date'
                               />
                             )}
                           />
-                        </div>
-                      </div>
-                      <div className='flex justify-end space-x-3 pt-2'>
-                        <Button variant='subtle' onClick={close} color='gray'>
-                          Cancel
-                        </Button>
-                        <Button
-                          onClick={() => {
-                            methods.handleSubmit((data) => {
-                              console.log(data);
-                              onSubmit(data);
-                            })();
-                          }}
-                          color='#1D9B5E'
-                        >
-                          Confirm
-                        </Button>
-                      </div>
+                        </>
+                      )}
                     </div>
-                  </FormProvider>
-                </div>
+                    <div className='flex justify-end space-x-3 pt-2'>
+                      <Button variant='subtle' onClick={close} color='gray'>
+                        Cancel
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          methods.handleSubmit((data) => {
+                            console.log(data);
+                            onSubmit(data as MakeUpSession);
+                          })();
+                        }}
+                        color='#1D9B5E'
+                      >
+                        Confirm
+                      </Button>
+                    </div>
+                  </div>
+                </FormProvider>
               </div>
-            )}
+            </div>
           </div>
           {selectedStatus !== 'make_up' && (
             <div className='flex justify-end space-x-3'>
