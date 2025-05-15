@@ -62,6 +62,7 @@ import {
         size={size}
         thickness={thickness}
         roundCaps={roundCaps}
+        rootColor="white"
         {...rest}
       />
     );

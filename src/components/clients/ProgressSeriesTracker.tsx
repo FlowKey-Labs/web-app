@@ -7,7 +7,6 @@ import {
   SeriesLevel,
   useProgressStore,
 } from '../../store/progressStore';
-import { useState } from 'react';
 
 const ProgressSeriesTracker = () => {
   const {
@@ -19,43 +18,30 @@ const ProgressSeriesTracker = () => {
     setViewMode,
     setActiveTab,
     seriesData,
-    currentSeriesIndex,
-    currentLevelIndex,
   } = useProgressStore();
-
-  const [isActive, setIsActive] = useState(false);
 
   const isSeriesComplete = (seriesIndex: number) => {
     if (seriesIndex === 0) return true;
     const prevSeries = seriesData[seriesIndex - 1];
     if (!prevSeries.levels) return true;
     return prevSeries.levels.every(
-      (level) => (levelProgress[level.value] || 0) === 100
+      (level) => (levelProgress[level.id] || 0) === 100
     );
   };
 
   const handleLevelSelect = (seriesTitle: string, level: SeriesLevel) => {
-    const seriesIndex = seriesData.findIndex((s) => s.title === seriesTitle);
-    const levelIndex =
-      seriesData[seriesIndex].levels?.findIndex(
-        (l) => l.value === level.value
-      ) || 0;
-
-    setSelectedLevel({ series: seriesTitle, level });
+    setSelectedLevel({ ...level });
     setExpandedSeries(seriesTitle);
-    setIsActive(true);
     setActiveTab('Progress Tracker');
     setViewMode('levels');
   };
 
   const calculateSeriesProgress = (series: Series) => {
     if (!series.levels || series.levels.length === 0) return 0;
-    const totalProgress = series.levels.reduce(
-      (sum, level) => sum + (levelProgress[level.value] || 0),
-      0
-    );
+    const totalProgress = series.levels.reduce((acc, level) => acc + (level.progress || 0), 0);
     return Math.round(totalProgress / series.levels.length);
   };
+  
 
   const handleAccordionChange = (value: string) => {
     const seriesIndex = seriesData.findIndex((s) => s.title === value);
@@ -72,7 +58,7 @@ const ProgressSeriesTracker = () => {
       );
     return progress && progress > 0 ? `${progress}%` : null;
   };
-
+  
   return (
     <Card padding='sm' radius='lg' w='90%' withBorder>
       <Accordion
@@ -115,8 +101,7 @@ const ProgressSeriesTracker = () => {
                         {series.title}
                       </Text>
                       {series.levels &&
-                        series.levels.length > 0 &&
-                        seriesProgress > 0 && (
+                        series.levels.length > 0 && (
                           <>
                             <Progress
                               value={seriesProgress}
@@ -151,11 +136,11 @@ const ProgressSeriesTracker = () => {
                   <Accordion.Panel>
                     {series.levels.map((level) => (
                       <Box
-                        key={level.value}
+                        key={level.id}
                         mb='sm'
                         style={{
                           borderRadius: '8px',
-                          backgroundColor: isActive ? '#1D9B5E14' : '#DEDEDE66',
+                          backgroundColor: level.id === selectedLevel?.id ? '#ccffcc' : '#f2f2f2',
                         }}
                       >
                         <Flex
@@ -166,8 +151,8 @@ const ProgressSeriesTracker = () => {
                             cursor: 'pointer',
                             borderRadius: '8px',
                             backgroundColor:
-                              selectedLevel?.series === series.title &&
-                              selectedLevel?.level.label === level.label
+                              selectedLevel?.label === series.title &&
+                              selectedLevel?.id === level.id
                                 ? '#f0fdf4'
                                 : '#DEDEDE66',
                           }}
@@ -175,12 +160,12 @@ const ProgressSeriesTracker = () => {
                           <Flex align='center' gap='xs'>
                             <CustomRingProgress
                               size={40}
-                              thickness={2}
+                              thickness={3}
                               roundCaps
                               sections={[
                                 {
                                   value:
-                                    levelProgress[level.value] ||
+                                    levelProgress[level.id] ||
                                     level.progress ||
                                     0,
                                   color: '#1D9B5E',

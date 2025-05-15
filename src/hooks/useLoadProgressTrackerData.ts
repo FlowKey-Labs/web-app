@@ -1,39 +1,38 @@
 import { api } from "../lib/axios";
-import { useProgressStore } from "../store/progressStore";
+import {
+  Series,
+  SeriesProgress,
+  useProgressStore,
+} from "../store/progressStore";
 
-export const useLoadProgressTrackerData = () => {
+export const useLoadProgressTrackerData = (clientId: string) => {
   const { setSeriesData, updateLevelProgress } = useProgressStore();
 
   const loadProgressData = async () => {
     try {
       const [seriesRes, progressRes, outcomesRes] = await Promise.all([
         api.get("/api/progress/series"),
-        api.get("/api/progress/progress"),
-        api.get("/api/progress/outcomes"),
+        api.get(`/api/progress/${clientId}/`),
+        api.get("/api/progress/outcomes?client_id=" + clientId),
       ]);
 
       const series = seriesRes.data;
-      const progress = progressRes.data; // array of { levelId, progress }
-      const outcomesData = outcomesRes.data; // keyed by levelId
-
-      console.log("Progress Tracker Data", {
-        series,
-        progress,
-        outcomesData,
-      });
-
+      const progress: SeriesProgress = progressRes.data;
+      const outcomesData = outcomesRes.data;
       // Map progress by levelId for easy lookup
-      const progressMap = progress.reduce((acc, item) => {
-        acc[item.levelId] = item.progress;
-        return acc;
-      }, {} as { [key: string]: number });
+      const progressMap = Array.isArray(progress)
+        ? progress.reduce((acc, item) => {
+            acc[String(item.levelId)] = item.progress;
+            return acc;
+          }, {} as { [key: string]: number })
+        : {};
 
       // Inject progress into levels
-      const formattedSeries = series.map((s: any) => ({
+      const formattedSeries = series?.map((s: Series) => ({
         ...s,
-        levels: s.levels.map((level: any) => {
-          const outcomes = outcomesData[level.value]?.outcomes ?? [];
-          const completed = outcomesData[level.value]?.completed ?? [];
+        levels: s?.levels?.map((level) => {
+          const outcomes = outcomesData?.[level.id]?.outcomes ?? [];
+          const completed = outcomesData?.[level.id]?.completed ?? [];
           const progress =
             outcomes.length > 0
               ? Math.round((completed.length / outcomes.length) * 100)
@@ -47,22 +46,21 @@ export const useLoadProgressTrackerData = () => {
           };
         }),
         progress: (() => {
-          const levelProgresses = s.levels.map(
-            (level: any) => progressMap[level.value] || 0
-          );
+          const levelProgresses =
+            s?.levels?.map((level) => level.progress || 0) || [];
           return Math.round(
-            levelProgresses.reduce((a, b) => a + b, 0) / levelProgresses.length
+            levelProgresses.reduce((a, b) => a + b, 0) /
+              (levelProgresses.length || 1)
           );
         })(),
       }));
-      console.log("Formatted Series", formattedSeries);
 
       // Update store
-      setSeriesData(formattedSeries);
+      setSeriesData(formattedSeries || []);
 
       // Populate levelProgress map in store too
-      Object.entries(progressMap).forEach(([levelId, prog]) => {
-        updateLevelProgress(levelId, prog);
+      Object.entries(progressMap || {}).forEach(([levelId, prog]) => {
+        updateLevelProgress(levelId, prog as number);
       });
     } catch (error) {
       console.error("Failed to load progress tracker data", error);

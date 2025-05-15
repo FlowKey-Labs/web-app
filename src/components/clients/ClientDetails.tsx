@@ -30,6 +30,17 @@ const ClientDetails = () => {
     error,
   } = useGetClient(clientId || '');
 
+  const {
+    levelProgress,
+  } = useProgressStore();
+
+  const averageProgress = useMemo(() => {
+    const values = Object.values(levelProgress);
+    const average = Math.round(values.reduce((sum, value) => sum + value, 0) / values.length);
+    return average
+  }, [levelProgress])
+  
+
   const { data: clientAnalytics, isLoading: analyticsLoading } =
     useGetClientAnalytics(clientId || '');
 
@@ -237,14 +248,14 @@ const ClientDetails = () => {
                   <div className='w-full pb-6'>
                     <div className='flex justify-between text-xs pb-2'>
                       <p className=''>Learning Progress</p>
-                      <p className=''>50%</p> {/* TODO: Use actual progress */}
+                      <p className=''>{averageProgress}%</p>
                     </div>
 
                     <Progress
-                      color='#FFAE0080' // Consider making color dynamic based on progress/status
+                      color="#1D9B5E" // Consider making color dynamic based on progress/status
                       size='md'
                       radius='xl'
-                      value={50} // TODO: Use actual progress
+                      value={averageProgress}
                     />
                   </div>
                 </div>
@@ -354,7 +365,7 @@ const ClientDetails = () => {
                 </>
               ) : activeTab === 'Progress Tracker' ? (
                 <div className='flex justify-center items-center p-8'>
-                  <ProgressTracker />
+                  <ProgressTracker clientId={clientId || ''} />
                 </div>
               ) : null}
             </div>

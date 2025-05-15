@@ -1,9 +1,15 @@
 import { create } from "zustand";
 
+export interface Outcome {
+  id: string;
+  label: string;
+}
+
 export interface SeriesLevel {
+  id: string;
   label: string;
   value: string;
-  outcomes?: string[];
+  outcomes?: Outcome[];
   completed?: string[];
   progress?: number;
 }
@@ -14,11 +20,13 @@ export interface Series {
   levels?: SeriesLevel[];
 }
 
+export interface SeriesProgress {
+  levelId: string;
+  progress: number;
+}
+
 interface ProgressState {
-  selectedLevel: {
-    series: string;
-    level: SeriesLevel;
-  };
+  selectedLevel: SeriesLevel | null;
   levelOutcomesCompleted: { [key: string]: string[] };
   levelProgress: { [key: string]: number };
   expandedSeries: string | null;
@@ -31,6 +39,7 @@ interface ProgressState {
   // Actions
   setSeriesData: (data: Series[]) => void;
   setSelectedLevel: (level: ProgressState["selectedLevel"]) => void;
+  getFirstIncompleteLevel: (data: Series[]) => SeriesLevel | null;
   setLevelOutcomesCompleted?: (levelId: string, completed: string[]) => void;
   updateLevelProgress: (levelId: string, progress: number) => void;
   setExpandedSeries: (series: string | null) => void;
@@ -43,10 +52,7 @@ interface ProgressState {
 }
 
 export const useProgressStore = create<ProgressState>((set, get) => ({
-  selectedLevel: {
-    series: "",
-    level: { label: "", value: "" },
-  },
+  selectedLevel: null,
   levelProgress: {},
   expandedSeries: "STARFISH Series",
   viewMode: "details",
@@ -67,6 +73,31 @@ export const useProgressStore = create<ProgressState>((set, get) => ({
   setExpandedSeries: (series) => set({ expandedSeries: series }),
   setViewMode: (mode) => set({ viewMode: mode }),
   setActiveTab: (tab) => set({ activeTab: tab }),
+  getFirstIncompleteLevel: (_seriesData) => {
+    for (const series of _seriesData) {
+      if (!series.levels) continue;
+      for (const level of series.levels) {
+        const { outcomes = [], completed = [] } = level;
+        const allCompleted = outcomes.every((outcome) =>
+          completed.includes(outcome.id)
+        );
+        if (!allCompleted) {
+          set(() => ({
+            selectedLevel: level,
+          }));
+          return level;
+        } else {
+          set(() => {
+            const lastLevel = series.levels?.[series.levels.length - 1];
+            return {
+              selectedLevel: lastLevel,
+            };
+          });
+        }
+      }
+    }
+    return null;
+  },
   goToNextLevel: () => {
     const {
       seriesData,
@@ -80,8 +111,10 @@ export const useProgressStore = create<ProgressState>((set, get) => ({
     if (!currentSeries || !currentSeries.levels) return;
 
     // Check if current level is 100% complete
-    const currentLevelId = selectedLevel.level.value;
-    const currentLevelProgress = levelProgress[currentLevelId] || 0;
+    const currentLevelId = selectedLevel?.value;
+    const currentLevelProgress = currentLevelId
+      ? levelProgress[currentLevelId]
+      : 0;
 
     if (currentLevelProgress < 100) {
       return;
@@ -92,10 +125,7 @@ export const useProgressStore = create<ProgressState>((set, get) => ({
       const nextLevel = currentSeries.levels[currentLevelIndex + 1];
       set({
         currentLevelIndex: currentLevelIndex + 1,
-        selectedLevel: {
-          series: currentSeries.title,
-          level: nextLevel,
-        },
+        selectedLevel: nextLevel,
         expandedSeries: currentSeries.title,
       });
     }
@@ -106,10 +136,7 @@ export const useProgressStore = create<ProgressState>((set, get) => ({
         set({
           currentSeriesIndex: currentSeriesIndex + 1,
           currentLevelIndex: 0,
-          selectedLevel: {
-            series: nextSeries.title,
-            level: nextSeries.levels[0],
-          },
+          selectedLevel: nextSeries.levels[0],
           expandedSeries: nextSeries.title,
         });
       }
@@ -126,10 +153,7 @@ export const useProgressStore = create<ProgressState>((set, get) => ({
       const previousLevel = currentSeries.levels[currentLevelIndex - 1];
       set({
         currentLevelIndex: currentLevelIndex - 1,
-        selectedLevel: {
-          series: currentSeries.title,
-          level: previousLevel,
-        },
+        selectedLevel: previousLevel,
         expandedSeries: currentSeries.title,
       });
     }
@@ -140,10 +164,8 @@ export const useProgressStore = create<ProgressState>((set, get) => ({
         set({
           currentSeriesIndex: currentSeriesIndex - 1,
           currentLevelIndex: previousSeries.levels.length - 1,
-          selectedLevel: {
-            series: previousSeries.title,
-            level: previousSeries.levels[previousSeries.levels.length - 1],
-          },
+          selectedLevel:
+            previousSeries.levels[previousSeries.levels.length - 1],
           expandedSeries: previousSeries.title,
         });
       }
