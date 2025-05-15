@@ -164,8 +164,8 @@ export const BusinessLocation = () => {
       </div>
 
       {isLoading ? (
-        <div className='flex justify-center items-center h-64'>
-          <Loader color='green' />
+        <div className='flex justify-center items-center h-screen'>
+          <Loader color='#1D9B5E' size='xl' />
         </div>
       ) : locations.length === 0 ? (
         <div className='text-center py-12 bg-gray-50 rounded-lg border border-gray-200 space-y-2'>

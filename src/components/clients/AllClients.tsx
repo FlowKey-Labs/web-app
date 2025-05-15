@@ -1,13 +1,14 @@
 import MembersHeader from '../headers/MembersHeader';
 import plusIcon from '../../assets/icons/plusWhite.svg';
-import { Client } from '../../types/clientTypes';
+import { Client, GroupData } from '../../types/clientTypes';
 import Table from '../common/Table';
 import {
   useGetClients,
   useDeactivateClient,
   useActivateClient,
+  useGetGroups,
 } from '../../hooks/reactQuery';
-import { createColumnHelper } from '@tanstack/react-table';
+import { createColumnHelper, ColumnDef } from '@tanstack/react-table';
 import {
   Progress,
   Group,
@@ -16,6 +17,7 @@ import {
   Button as MantineButton,
   Menu,
   Stack,
+  Loader,
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
@@ -24,19 +26,25 @@ import errorIcon from '../../assets/icons/error.svg';
 import actionOptionIcon from '../../assets/icons/actionOption.svg';
 import { useState, useMemo, useCallback } from 'react';
 import { useExportClients } from '../../hooks/useExport';
+import { useExportGroups } from '../../hooks/useExport';
 import { useNavigate } from 'react-router-dom';
-import { navigateToClientDetails } from '../../utils/navigationHelpers';
+import { navigateToClientDetails, navigateToGroupDetails } from '../../utils/navigationHelpers';
 import EmptyDataPage from '../common/EmptyDataPage';
 import { useAuthStore } from '../../store/auth';
 import { useUIStore } from '../../store/ui';
 
-const columnHelper = createColumnHelper<Client>();
+
+const clientColumnHelper = createColumnHelper<Client>();
+const groupColumnHelper = createColumnHelper<GroupData>();
 
 const AllClients = () => {
   const [rowSelection, setRowSelection] = useState({});
-  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+  const [selectedClient, setSelectedClient] = useState<
+    Client | GroupData | null
+  >(null); 
   const [opened, { open, close }] = useDisclosure(false);
   const [isActivating, setIsActivating] = useState(false);
+  const [activeView, setActiveView] = useState<'clients' | 'groups'>('clients'); 
 
   const navigate = useNavigate();
   const { openDrawer } = useUIStore();
@@ -44,7 +52,7 @@ const AllClients = () => {
   const activateClientMutation = useActivateClient();
 
   const permisions = useAuthStore((state) => state.role);
-  
+
   const {
     data: clients = [],
     isLoading,
@@ -53,14 +61,23 @@ const AllClients = () => {
     refetch,
   } = useGetClients();
 
-  const getSelectedClientIds = useCallback(() => {
-    if (!clients) return [];
+  const {
+    data: groups = [],
+    isLoading: groupsLoading,
+    isError: groupsError,
+    error: getGroupsError,
+    refetch: refetchGroups,
+  } = useGetGroups();
+
+  const getSelectedIds = useCallback(() => {
+    const currentData = activeView === 'clients' ? clients : groups;
+    if (!currentData) return [];
 
     return Object.keys(rowSelection).map((index) => {
-      const clientIndex = parseInt(index);
-      return clients[clientIndex].id;
+      const itemIndex = parseInt(index);
+      return currentData[itemIndex].id;
     });
-  }, [rowSelection, clients]);
+  }, [rowSelection, clients, groups, activeView]);
 
   const {
     exportModalOpened,
@@ -68,11 +85,19 @@ const AllClients = () => {
     closeExportModal,
     handleExport,
     isExporting,
-  } = useExportClients(clients || []);
+  } = useExportClients(activeView === 'clients' ? clients || [] : groups || []);
 
-  const columns = useMemo(
+  const {
+    exportModalOpened: groupExportModalOpened,
+    openExportModal: openGroupExportModal,
+    closeExportModal: closeGroupExportModal,
+    handleExport: handleGroupExport,
+    isExporting: groupIsExporting,
+  } = useExportGroups(groups || []);
+
+  const columns: ColumnDef<Client, any>[] = useMemo(
     () => [
-      columnHelper.display({
+      clientColumnHelper.display({
         id: 'select',
         header: ({ table }) => (
           <input
@@ -92,26 +117,29 @@ const AllClients = () => {
           />
         ),
       }),
-      columnHelper.accessor((row) => `${row.first_name} ${row.last_name}`, {
-        id: 'name',
-        header: 'Name',
-        cell: (info) => (
-          <div className='flex flex-col'>
-            <span className='text-sm text-primary'>{info.getValue()}</span>
-            <span className='text-xs text-[#8A8D8E]'>
-              {info.row.original.id}
-            </span>
-          </div>
-        ),
-      }),
-      columnHelper.accessor('phone_number', {
+      clientColumnHelper.accessor(
+        (row) => `${row.first_name} ${row.last_name}`,
+        {
+          id: 'name',
+          header: 'Name',
+          cell: (info) => (
+            <div className='flex flex-col'>
+              <span className='text-sm text-primary'>{info.getValue()}</span>
+              <span className='text-xs text-[#8A8D8E]'>
+                {info.row.original.id}
+              </span>
+            </div>
+          ),
+        }
+      ),
+      clientColumnHelper.accessor('phone_number', {
         header: 'Phone',
       }),
-      columnHelper.accessor('email', {
+      clientColumnHelper.accessor('email', {
         header: 'Email',
         cell: (info) => info.getValue(),
       }),
-      columnHelper.accessor('active', {
+      clientColumnHelper.accessor('active', {
         header: 'Status',
         cell: (info) => (
           <span
@@ -125,14 +153,14 @@ const AllClients = () => {
           </span>
         ),
       }),
-      columnHelper.display({
+      clientColumnHelper.display({
         id: 'progress',
         header: 'Progress',
         cell: () => (
           <Progress color='#A6EECB' size='sm' radius='xl' value={50} />
         ),
       }),
-      columnHelper.display({
+      clientColumnHelper.display({
         id: 'actions',
         header: () => (
           <div className='flex space-x-2' onClick={(e) => e.stopPropagation()}>
@@ -228,14 +256,172 @@ const AllClients = () => {
     [setSelectedClient, open]
   );
 
-  const handleDeactivateClient = () => {
-    if (!selectedClient) return;
+  const groupColumns: ColumnDef<GroupData, any>[] = useMemo(
+    () => [
+      groupColumnHelper.display({
+        id: 'select',
+        header: ({ table }) => (
+          <input
+            type='checkbox'
+            checked={table.getIsAllRowsSelected()}
+            onChange={table.getToggleAllRowsSelectedHandler()}
+            className='w-4 h-4 rounded cursor-pointer bg-[#F7F8FA] accent-[#DBDEDF]'
+          />
+        ),
+        cell: ({ row }) => (
+          <input
+            type='checkbox'
+            checked={row.getIsSelected()}
+            onClick={(e) => e.stopPropagation()}
+            onChange={row.getToggleSelectedHandler()}
+            className='w-4 h-4 rounded cursor-pointer bg-[#F7F8FA] accent-[#DBDEDF]'
+          />
+        ),
+      }),
+      groupColumnHelper.accessor('name', {
+        id: 'name',
+        header: 'Name',
+        cell: (info) => info.getValue(),
+      }),
+      groupColumnHelper.accessor('description', {
+        id: 'description',
+        header: 'Description',
+        cell: (info) => info.getValue(),
+      }),
+      groupColumnHelper.accessor('location', {
+        id: 'location',
+        header: 'Location',
+        cell: (info) => info.getValue(),
+      }),
+      groupColumnHelper.accessor(
+        (row) => row.contact_person,
+        {
+          id: 'contact_person',
+          header: 'Contact Person',
+          cell: (info) => {
+            const contactPerson = info.getValue();
+            if (contactPerson && contactPerson.first_name && contactPerson.last_name) {
+              return `${contactPerson.first_name} ${contactPerson.last_name}`;
+            }
+            return 'N/A';
+          },
+        }
+      ),
+      groupColumnHelper.accessor('active', {
+        id: 'active',
+        header: 'Status', 
+        cell: (
+          info 
+        ) => (
+          <span
+            className={`inline-block px-2 py-1 rounded-lg text-sm text-center min-w-[70px] ${
+              info.getValue()
+                ? 'bg-active text-green-700'
+                : 'bg-red-100 text-red-700'
+            }`}
+          >
+            {info.getValue() ? 'Active' : 'Inactive'}
+          </span>
+        ),
+      }),
+      groupColumnHelper.display({
+        id: 'actions',
+        header: () => (
+          <div className='flex space-x-2' onClick={(e) => e.stopPropagation()}>
+            <Group justify='center'>
+              <Menu
+                width={150}
+                shadow='md'
+                position='bottom'
+                radius='md'
+                withArrow
+                offset={4}
+              >
+                <Menu.Target>
+                  <img
+                    src={actionOptionIcon}
+                    alt='Options'
+                    className='w-4 h-4 cursor-pointer'
+                  />
+                </Menu.Target>
+                <Menu.Dropdown>
+                  <Menu.Item
+                    color='#162F3B'
+                    className='text-sm'
+                    style={{ textAlign: 'center' }}
+                    onClick={openGroupExportModal}
+                  >
+                    Export Groups
+                  </Menu.Item>
+                </Menu.Dropdown>
+              </Menu>
+            </Group>
+          </div>
+        ),
+        cell: (info) => (
+          <div className='flex space-x-2' onClick={(e) => e.stopPropagation()}>
+            <Group justify='center'>
+              <Menu
+                width={150}
+                shadow='md'
+                position='bottom'
+                radius='md'
+                withArrow
+                offset={4}
+              >
+                <Menu.Target>
+                  <img
+                    src={actionOptionIcon}
+                    alt='Options'
+                    className='w-4 h-4 cursor-pointer'
+                  />
+                </Menu.Target>
+                <Menu.Dropdown>
+                  <Menu.Item
+                    color='red'
+                    onClick={() => {
+                      setSelectedClient(info.row.original);
+                      setIsActivating(false);
+                      open();
+                    }}
+                    className='text-sm'
+                    style={{ textAlign: 'center' }}
+                  >
+                    Deactivate
+                  </Menu.Item>
+                </Menu.Dropdown>
+              </Menu>
+            </Group>
+          </div>
+        ),
+      }),
+    ],
+    [setSelectedClient, open, clients]
+  );
 
-    deactivateClientMutation.mutate(selectedClient.id.toString(), {
+  const handleDeactivateEntity = () => {
+    if (!selectedClient) return;
+    // TODO: Add deactivateGroupMutation if groups can be deactivated
+
+    const mutation = activeView === 'clients' ? deactivateClientMutation : null; // Replace null with deactivateGroupMutation
+    const entityId = selectedClient.id?.toString();
+    const entityType = activeView === 'clients' ? 'Client' : 'Group';
+
+    if (!mutation) {
+      notifications.show({
+        title: 'Error',
+        message: `Deactivation for ${entityType}s not implemented.`,
+        color: 'red',
+      });
+      close();
+      return;
+    }
+
+    mutation.mutate(entityId!, {
       onSuccess: () => {
         notifications.show({
           title: 'Success',
-          message: 'Client deactivated successfully!',
+          message: `${entityType} deactivated successfully!`,
           color: 'green',
           radius: 'md',
           icon: (
@@ -248,12 +434,13 @@ const AllClients = () => {
           position: 'top-right',
         });
         close();
-        refetch();
+        if (activeView === 'clients') refetch();
+        else refetchGroups();
       },
       onError: (_error: unknown) => {
         notifications.show({
           title: 'Error',
-          message: 'Failed to deactivate client. Please try again.',
+          message: `Failed to deactivate ${entityType}. Please try again.`,
           color: 'red',
           radius: 'md',
           icon: (
@@ -269,14 +456,27 @@ const AllClients = () => {
     });
   };
 
-  const handleActivateClient = () => {
+  const handleActivateEntity = () => {
     if (!selectedClient) return;
+    // TODO: Add activateGroupMutation if groups can be activated
+    const mutation = activeView === 'clients' ? activateClientMutation : null; // Replace null with activateGroupMutation
+    const entityId = selectedClient.id?.toString();
+    const entityType = activeView === 'clients' ? 'Client' : 'Group';
 
-    activateClientMutation.mutate(selectedClient.id.toString(), {
+    if (!mutation) {
+      notifications.show({
+        title: 'Error',
+        message: `Activation for ${entityType}s not implemented.`,
+        color: 'red',
+      });
+      close();
+      return;
+    }
+    mutation.mutate(entityId!, {
       onSuccess: () => {
         notifications.show({
           title: 'Success',
-          message: 'Client activated successfully!',
+          message: `${entityType} activated successfully!`,
           color: 'green',
           radius: 'md',
           icon: (
@@ -289,12 +489,13 @@ const AllClients = () => {
           position: 'top-right',
         });
         close();
-        refetch();
+        if (activeView === 'clients') refetch();
+        else refetchGroups();
       },
       onError: (_error: unknown) => {
         notifications.show({
           title: 'Error',
-          message: 'Failed to activate client. Please try again.',
+          message: `Failed to activate ${entityType}. Please try again.`,
           color: 'red',
           radius: 'md',
           icon: (
@@ -317,23 +518,28 @@ const AllClients = () => {
     });
   };
 
-  if (isLoading) {
+  const isLoadingCurrent = activeView === 'clients' ? isLoading : groupsLoading;
+  const isErrorCurrent = activeView === 'clients' ? isError : groupsError;
+  const errorCurrent = activeView === 'clients' ? error : getGroupsError;
+  const refetchCurrent = activeView === 'clients' ? refetch : refetchGroups;
+
+  if (isLoadingCurrent) {
     return (
-      <div className='w-full space-y-6 bg-white rounded-lg p-6'>
-        <p className='text-primary'>Loading clients...</p>
+      <div className='flex justify-center items-center h-screen p-6 pt-12'>
+        <Loader size='xl' color='#1D9B5E' />
       </div>
     );
   }
 
-  if (isError) {
+  if (isErrorCurrent) {
     return (
       <div className='w-full space-y-6 bg-white rounded-lg p-6'>
         <div className='space-y-4'>
           <p className='text-red-500'>
-            Error loading clients: {error?.message}
+            Error loading {activeView}: {errorCurrent?.message}
           </p>
           <button
-            onClick={() => refetch()}
+            onClick={() => refetchCurrent()}
             className='px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90'
           >
             Try Again
@@ -347,34 +553,85 @@ const AllClients = () => {
     <>
       <div className='flex flex-col h-screen bg-cardsBg w-full overflow-y-auto'>
         <MembersHeader
-          title='All Clients'
-          buttonText='Add Client'
-          searchPlaceholder='Search by Name, Email or Phone Number'
+          title={activeView === 'clients' ? 'All Clients' : 'All Groups'}
+          buttonText={activeView === 'clients' ? 'Add Client' : 'Add Group'}
+          searchPlaceholder={
+            activeView === 'clients'
+              ? 'Search by Name, Email or Phone Number'
+              : 'Search by Group Name or Description'
+          }
           leftIcon={plusIcon}
-          onButtonClick={handleOpenClientDrawer}
+          onButtonClick={handleOpenClientDrawer }
           showButton={permisions?.can_create_clients}
         />
+        <div className='px-6 pt-4 pb-2'>
+          <Group>
+            <MantineButton
+              variant={activeView === 'clients' ? 'filled' : 'outline'}
+              onClick={() => setActiveView('clients')}
+              color={activeView === 'clients' ? '#1D9B5E' : '#1D9B5E'}
+            >
+              Clients
+            </MantineButton>
+            <MantineButton
+              variant={activeView === 'groups' ? 'filled' : 'outline'}
+              onClick={() => setActiveView('groups')}
+              color={activeView === 'groups' ? '#1D9B5E' : '#1D9B5E'}
+            >
+              Groups
+            </MantineButton>
+          </Group>
+        </div>
         <EmptyDataPage
-          title='No Clients Found'
-          description="You don't have any clients yet"
-          buttonText='Add New Client'
+          title={
+            activeView === 'clients' ? 'No Clients Found' : 'No Groups Found'
+          }
+          description={
+            activeView === 'clients'
+              ? "You don't have any clients yet"
+              : "You don't have any groups yet"
+          }
+          buttonText={
+            activeView === 'clients' ? 'Add New Client' : 'Add New Group'
+          }
           onButtonClick={handleOpenClientDrawer}
           onClose={() => {}}
-          opened={clients.length === 0 && !isLoading}
+          opened={
+            (activeView === 'clients'
+              ? clients.length === 0
+              : groups.length === 0) && !isLoadingCurrent
+          }
           showButton={permisions?.can_create_clients}
         />
         <div className='flex-1 px-6 py-3'>
-          <Table
-            data={clients}
-            columns={columns}
-            rowSelection={rowSelection}
-            onRowSelectionChange={setRowSelection}
-            className='mt-4'
-            pageSize={12}
-            onRowClick={(row: Client) =>
-              navigateToClientDetails(navigate, row.id.toString())
-            }
-          />
+          {activeView === 'clients' && clients.length > 0 && (
+            <Table<Client>
+              data={clients}
+              columns={columns}
+              rowSelection={rowSelection}
+              onRowSelectionChange={setRowSelection}
+              className='mt-4'
+              pageSize={12}
+              onRowClick={(row: Client) => {
+                  navigateToClientDetails(navigate, row.id.toString());
+              }}
+            />
+          )}
+          {activeView === 'groups' && groups.length > 0 && (
+            <Table<GroupData>
+              data={groups}
+              columns={groupColumns}
+              rowSelection={rowSelection}
+              onRowSelectionChange={setRowSelection}
+              className='mt-4'
+              pageSize={12}
+              onRowClick={(row: GroupData) => {
+                if (row.id) { 
+                  navigateToGroupDetails(navigate, row.id.toString());
+                }
+              }}
+            />
+          )}
         </div>
       </div>
 
@@ -383,7 +640,9 @@ const AllClients = () => {
         onClose={close}
         title={
           <Text fw={600} size='lg'>
-            {isActivating ? 'Activate Client' : 'Deactivate Client'}
+            {isActivating
+              ? `Activate ${activeView === 'clients' ? 'Client' : 'Group'}`
+              : `Deactivate ${activeView === 'clients' ? 'Client' : 'Group'}`}
           </Text>
         }
         centered
@@ -411,12 +670,21 @@ const AllClients = () => {
           <div>
             <Text fw={500} size='md' mb={8} c='gray.8'>
               Are you sure you want to{' '}
-              {isActivating ? 'activate' : 'deactivate'} this client?
+              {isActivating ? 'activate' : 'deactivate'} this{' '}
+              {activeView === 'clients' ? 'client' : 'group'}?
             </Text>
             <Text size='sm' c='gray.6'>
               {isActivating
-                ? 'This action will make the client active in the system. They will appear in active client lists.'
-                : 'This action will make the client inactive in the system. They will no longer appear in active client lists.'}
+                ? `This action will make the ${
+                    activeView === 'clients' ? 'client' : 'group'
+                  } active in the system. They will appear in active ${
+                    activeView === 'clients' ? 'client' : 'group'
+                  } lists.`
+                : `This action will make the ${
+                    activeView === 'clients' ? 'client' : 'group'
+                  } inactive in the system. They will no longer appear in active ${
+                    activeView === 'clients' ? 'client' : 'group'
+                  } lists.`}
             </Text>
           </div>
         </div>
@@ -425,12 +693,15 @@ const AllClients = () => {
           <MantineButton
             color={isActivating ? 'green' : 'red'}
             onClick={
-              isActivating ? handleActivateClient : handleDeactivateClient
+              isActivating ? handleActivateEntity : handleDeactivateEntity
             }
             loading={
-              isActivating
-                ? activateClientMutation.isPending
-                : deactivateClientMutation.isPending
+              (isActivating &&
+                activeView === 'clients' &&
+                activateClientMutation.isPending) ||
+              (!isActivating &&
+                activeView === 'clients' &&
+                deactivateClientMutation.isPending)
             }
             radius='md'
           >
@@ -440,11 +711,11 @@ const AllClients = () => {
       </Modal>
 
       <Modal
-        opened={exportModalOpened}
-        onClose={closeExportModal}
+        opened={exportModalOpened || groupExportModalOpened}
+        onClose={activeView === 'clients' ? closeExportModal : closeGroupExportModal}
         title={
           <Text fw={600} size='lg'>
-            Export Clients
+            Export {activeView === 'clients' ? 'Clients' : 'Groups'}
           </Text>
         }
         centered
@@ -459,8 +730,17 @@ const AllClients = () => {
       >
         <div className='py-2'>
           <Text size='sm' style={{ marginBottom: '2rem' }}>
-            Select a format to export {Object.keys(rowSelection).length}{' '}
-            selected clients
+            Select the format to export your{' '}
+            {activeView === 'clients' ? 'clients' : 'groups'}. The export will
+            include all currently filtered{' '}
+            {activeView === 'clients' ? 'clients' : 'groups'} or selected{' '}
+            {activeView === 'clients' ? 'clients' : 'groups'} if any. Number of
+            selected {activeView === 'clients' ? 'clients' : 'groups'}:{' '}
+            {Object.keys(rowSelection).length > 0
+              ? Object.keys(rowSelection).length
+              : `All ${
+                  activeView === 'clients' ? clients.length : groups.length
+                } (if none selected)`}
           </Text>
 
           <Stack gap='md'>
@@ -468,22 +748,24 @@ const AllClients = () => {
               variant='outline'
               color='#1D9B5E'
               radius='md'
-              onClick={() => handleExport('excel', getSelectedClientIds())}
+              onClick={() => activeView === 'clients' ? handleExport ('excel', getSelectedIds()) : handleGroupExport('excel', getSelectedIds())}
               className='px-6'
-              loading={isExporting}
+              loading={activeView === 'clients' ? isExporting : groupIsExporting}
+              disabled={activeView === 'clients' ? isExporting : groupIsExporting}
             >
-              Export as Excel
+              Export as Excel (.xlsx)
             </MantineButton>
 
             <MantineButton
               variant='outline'
               color='#1D9B5E'
               radius='md'
-              onClick={() => handleExport('csv', getSelectedClientIds())}
+              onClick={() => activeView === 'clients' ? handleExport('csv', getSelectedIds()) : handleGroupExport('csv', getSelectedIds())}
               className='px-6'
-              loading={isExporting}
+              loading={activeView === 'clients' ? isExporting : groupIsExporting}
+              disabled={activeView === 'clients' ? isExporting : groupIsExporting}
             >
-              Export as CSV
+              Export as CSV (.csv)
             </MantineButton>
           </Stack>
 
@@ -492,7 +774,7 @@ const AllClients = () => {
               variant='outline'
               color='red'
               radius='md'
-              onClick={closeExportModal}
+              onClick={activeView === 'clients' ? closeExportModal : closeGroupExportModal}
               className='px-6'
             >
               Cancel

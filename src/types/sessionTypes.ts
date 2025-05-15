@@ -1,5 +1,5 @@
-import { Location } from './location';
-import { Policy } from './policy';
+import { Location } from "./location";
+import { Policy } from "./policy";
 
 export interface Category {
   id: number;
@@ -14,7 +14,12 @@ export interface Staff {
   email: string;
 }
 
-export type AttendanceStatus = 'not_yet' | 'attended' | 'missed' | 'make_up' | 'cancelled';
+export type AttendanceStatus =
+  | "not_yet"
+  | "attended"
+  | "missed"
+  | "make_up"
+  | "cancelled";
 
 export interface Attendance {
   id: number;
@@ -47,10 +52,10 @@ export interface AssignedStaff {
   isActive: boolean;
 }
 
-export type SessionType = 'class' | 'appointment' | 'event';
-export type ClassType = 'private' | 'regular' | 'workshop';
-export type RepeatUnit = 'days' | 'weeks' | 'months';
-export type EndType = 'never' | 'on' | 'after';
+export type SessionType = "class" | "appointment" | "event";
+export type ClassType = "private" | "regular" | "workshop";
+export type RepeatUnit = "days" | "weeks" | "months";
+export type EndType = "never" | "on" | "after";
 
 export interface CreateSessionData {
   title: string;
@@ -70,7 +75,7 @@ export interface CreateSessionData {
   email?: string;
   phone_number?: string;
   selected_class?: number;
-  repetition?: 'none' | 'daily' | 'weekly' | 'monthly' | 'custom';
+  repetition?: "none" | "daily" | "weekly" | "monthly" | "custom";
   repeat_every?: number;
   repeat_unit?: RepeatUnit;
   repeat_on?: string[];
@@ -79,9 +84,8 @@ export interface CreateSessionData {
   repeat_occurrences?: number;
 }
 
-
 export interface Session
-  extends Omit<CreateSessionData, 'category' | 'client_ids' | 'location_id'> {
+  extends Omit<CreateSessionData, "category" | "client_ids" | "location_id"> {
   id: number;
   assigned_staff: AssignedStaff | null;
   category: Category;
@@ -106,10 +110,9 @@ export interface SessionTableData {
   repeats: string[];
 }
 
-
 export interface ClassFields {
   title: string;
-  class_type: 'private' | 'regular' | 'workshop';
+  class_type: "private" | "regular" | "workshop";
   spots: number;
   client_ids?: number[];
 }
@@ -129,4 +132,25 @@ export interface EventFields {
   spots: number;
   category?: number;
   client_ids?: number[];
+}
+
+export interface MakeUpSession {
+  id: number | string;
+  session_title?: string;
+  client_name?: string;
+  original_date: CreateSessionData["date"];
+  new_date: string;
+  new_start_time: string;
+  new_end_time: string;
+  created_at?: string;
+  updated_at?: string;
+  session: number | string;
+  client: number | string;
+}
+
+export interface ProgressFeedback {
+  client_id: string;
+  subcategory_id: string;
+  feedback: string;
+  attachment: File;
 }

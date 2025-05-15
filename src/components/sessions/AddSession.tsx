@@ -1182,8 +1182,8 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
                             control={methods.control}
                             render={({ field }) => (
                               <DropdownSelectInput
-                                label='Assign Coach'
-                                placeholder='Select Coach'
+                                label='Assign Staff'
+                                placeholder='Select Staff'
                                 options={
                                   isStaffLoading
                                     ? [{ label: 'Loading...', value: '' }]

@@ -102,7 +102,7 @@ const CreateSkillModal = ({
                 render={({ field }) => (
                   <Input
                     {...field}
-                    label={`Skill Name ${index + 1}`}
+                    label='Skill Name'
                     placeholder='Enter skill name'
                     containerClassName={fields.length > 1 ? 'pt-4' : ''}
                   />

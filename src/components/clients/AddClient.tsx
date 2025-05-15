@@ -3,12 +3,30 @@ import { useForm, Controller, FormProvider } from 'react-hook-form';
 import Input from '../common/Input';
 import DropdownSelectInput from '../common/Dropdown';
 import Button from '../common/Button';
-import clientlocationIcons from '../../assets/icons/clientLocation.svg';
-import { useAddClient, useGetClassSessions, useGetGroups, useAddGroup, useGetLocations, useGetClients, useGetSessions } from '../../hooks/reactQuery';
-import React from 'react';
+import {
+  useAddClient,
+  useGetClassSessions,
+  useGetGroups,
+  useAddGroup,
+  useGetLocations,
+  useGetClients,
+  useGetSessions,
+} from '../../hooks/reactQuery';
+import React, { useEffect } from 'react';
 import moment from 'moment';
-import { AddClient, ClientData, GroupData, Client } from '../../types/clientTypes';
+import {
+  AddClient,
+  ClientData,
+  GroupData,
+  Client,
+} from '../../types/clientTypes';
 import { Location } from '../../types/location';
+
+interface GroupFormValues extends GroupData {
+  client_ids: number[];
+  session_ids: number[];
+  contact_person_id?: number;
+}
 import { Drawer } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import successIcon from '../../assets/icons/success.svg';
@@ -21,7 +39,7 @@ interface ClientsModalProps {
 
 const AddClients = ({ isOpen, onClose }: ClientsModalProps) => {
   const [activeTab, setActiveTab] = React.useState<string>('individual');
-  
+
   const handleTabChange = (value: string | null) => {
     if (value) setActiveTab(value);
   };
@@ -40,8 +58,8 @@ const AddClients = ({ isOpen, onClose }: ClientsModalProps) => {
       group_id: null,
     },
   });
-  
-  const groupFormMethods = useForm<GroupData & { client_ids: number[], session_ids: number[] }>({
+
+  const groupFormMethods = useForm<GroupFormValues>({
     defaultValues: {
       name: '',
       description: '',
@@ -52,69 +70,55 @@ const AddClients = ({ isOpen, onClose }: ClientsModalProps) => {
       contact_person_id: undefined,
     },
   });
-  
-  const { control: individualControl, handleSubmit: individualHandleSubmit, reset: individualReset } = individualMethods;
-  const { control: groupControl, handleSubmit: groupHandleSubmit, reset: groupReset } = groupFormMethods;
 
-  const { mutate: addClient, isPending: isAddingClient, isSuccess: isClientSuccess } = useAddClient();
-  const { mutate: addGroup, isPending: isAddingGroup, isSuccess: isGroupSuccess } = useAddGroup();
-  const { data: classSessionsData, isLoading: isClassSessionsLoading } = useGetClassSessions();
-  const { data: locationsData, isLoading: isLocationsLoading } = useGetLocations() as { data: Location[] | undefined, isLoading: boolean };
-  const { data: clientsData, isLoading: isClientsLoading } = useGetClients() as { data: Client[] | undefined, isLoading: boolean };
-  const { data: sessionsData, isLoading: isSessionsLoading } = useGetSessions() as { data: any[] | undefined, isLoading: boolean };
+  const {
+    control: individualControl,
+    handleSubmit: individualHandleSubmit,
+    reset: individualReset,
+  } = individualMethods;
+  const {
+    control: groupControl,
+    handleSubmit: groupHandleSubmit,
+    reset: groupReset,
+  } = groupFormMethods;
+
+  const {
+    mutate: addClient,
+    isPending: isAddingClient,
+    isSuccess: isClientSuccess,
+    reset: resetAddClient,
+  } = useAddClient();
+  const {
+    mutate: addGroup,
+    isPending: isAddingGroup,
+    isSuccess: isGroupSuccess,
+    reset: resetAddGroup,
+  } = useAddGroup();
+  const { data: classSessionsData, isLoading: isClassSessionsLoading } =
+    useGetClassSessions();
+  const { data: locationsData, isLoading: isLocationsLoading } =
+    useGetLocations() as { data: Location[] | undefined; isLoading: boolean };
+  const { data: clientsData, isLoading: isClientsLoading } =
+    useGetClients() as { data: Client[] | undefined; isLoading: boolean };
+  const { data: sessionsData, isLoading: isSessionsLoading } =
+    useGetSessions() as { data: any[] | undefined; isLoading: boolean };
   useGetGroups();
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (isClientSuccess) {
       individualReset();
-      groupReset();
+      resetAddClient();
       onClose();
     }
-  }, [isClientSuccess, individualReset, groupReset, onClose]);
-  
-  React.useEffect(() => {
+  }, [isClientSuccess, individualReset, resetAddClient, onClose]);
+
+  useEffect(() => {
     if (isGroupSuccess) {
       groupReset();
+      resetAddGroup();
       onClose();
     }
-  }, [isGroupSuccess, groupReset, onClose]);
-
-  // const handleCreateGroup = async (groupData: GroupData) => {
-  //   return new Promise<number>((resolve, reject) => {
-  //     addGroup(groupData, {
-  //       onSuccess: (response) => {
-  //         notifications.show({
-  //           title: 'Success',
-  //           message: 'Group created successfully',
-  //           color: 'green',
-  //           icon: (
-  //             <span className='flex items-center justify-center w-6 h-6 rounded-full bg-green-200'>
-  //               <img src={successIcon} alt='Success' className='w-4 h-4' />
-  //             </span>
-  //           ),
-  //           withBorder: true,
-  //           autoClose: 3000,
-  //         });
-  //         resolve(response.id);
-  //       },
-  //       onError: (error) => {
-  //         notifications.show({
-  //           title: 'Error',
-  //           message: 'Failed to create group. Please try again.',
-  //           color: 'red',
-  //           icon: (
-  //             <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
-  //               <img src={errorIcon} alt='Error' className='w-4 h-4' />
-  //             </span>
-  //           ),
-  //           withBorder: true,
-  //           autoClose: 3000,
-  //         });
-  //         reject(error);
-  //       }
-  //     });
-  //   });
-  // };
+  }, [isGroupSuccess, groupReset, resetAddGroup, onClose]);
 
   const handleSubmitIndividual = individualHandleSubmit(async (data) => {
     try {
@@ -139,7 +143,9 @@ const AddClients = ({ isOpen, onClose }: ClientsModalProps) => {
       };
 
       if (data.sessions && data.sessions.length > 0) {
-        clientData.session_ids = data.sessions.map((session) => parseInt(session.value));
+        clientData.session_ids = data.sessions.map((session) =>
+          parseInt(session.value)
+        );
       }
 
       addClient(clientData, {
@@ -177,8 +183,10 @@ const AddClients = ({ isOpen, onClose }: ClientsModalProps) => {
       console.error('Form submission error:', error);
     }
   });
-  
-  const [selectedClients, setSelectedClients] = React.useState<{id: number, name: string}[]>([]);
+
+  const [selectedClients, setSelectedClients] = React.useState<
+    { id: number; name: string }[]
+  >([]);
 
   React.useEffect(() => {
     const subscription = groupFormMethods.watch((value, { name }) => {
@@ -186,17 +194,21 @@ const AddClients = ({ isOpen, onClose }: ClientsModalProps) => {
         const clientIds = value.client_ids as number[];
         if (clientIds.length > 0 && clientsData) {
           const selectedClientsList = clientsData
-            .filter(client => clientIds.includes(client.id))
-            .map(client => ({
+            .filter((client) => clientIds.includes(client.id))
+            .map((client) => ({
               id: client.id,
-              name: `${client.first_name} ${client.last_name}`
+              name: `${client.first_name} ${client.last_name}`,
             }));
-          
+
           setSelectedClients(selectedClientsList);
-          
-          const currentContactPerson = groupFormMethods.getValues('contact_person_id');
+
+          const currentContactPerson =
+            groupFormMethods.getValues('contact_person_id');
           if (!currentContactPerson && selectedClientsList.length > 0) {
-            groupFormMethods.setValue('contact_person_id', selectedClientsList[0].id);
+            groupFormMethods.setValue(
+              'contact_person_id',
+              selectedClientsList[0].id
+            );
           }
         } else {
           setSelectedClients([]);
@@ -204,7 +216,7 @@ const AddClients = ({ isOpen, onClose }: ClientsModalProps) => {
         }
       }
     });
-    
+
     return () => subscription.unsubscribe();
   }, [groupFormMethods, clientsData]);
 
@@ -215,20 +227,38 @@ const AddClients = ({ isOpen, onClose }: ClientsModalProps) => {
           title: 'Error',
           message: 'A group must have at least one client',
           color: 'red',
+          icon: (
+            <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+              <img src={errorIcon} alt='Error' className='w-4 h-4' />
+            </span>
+          ),
+          withBorder: true,
+          autoClose: 3000,
         });
         return;
       }
-      
+
       if (!data.contact_person_id) {
         notifications.show({
           title: 'Error',
           message: 'Please select a contact person for the group',
           color: 'red',
+          icon: (
+            <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+              <img src={errorIcon} alt='Error' className='w-4 h-4' />
+            </span>
+          ),
+          withBorder: true,
+          autoClose: 3000,
         });
         return;
       }
-      
-      const groupData: GroupData & { client_ids: number[], session_ids: number[], contact_person_id: number } = {
+
+      const groupData: GroupData & {
+        client_ids: number[];
+        session_ids: number[];
+        contact_person_id: number;
+      } = {
         name: data.name,
         description: data.description || '',
         location: data.location || '',
@@ -237,7 +267,7 @@ const AddClients = ({ isOpen, onClose }: ClientsModalProps) => {
         session_ids: data.session_ids || [],
         contact_person_id: data.contact_person_id,
       };
-      
+
       addGroup(groupData, {
         onSuccess: () => {
           notifications.show({
@@ -307,7 +337,7 @@ const AddClients = ({ isOpen, onClose }: ClientsModalProps) => {
                 : 'text-gray-500 bg-gray-100'
             }`}
           >
-            Individual Client
+            Client
           </button>
           <button
             type='button'
@@ -333,7 +363,7 @@ const AddClients = ({ isOpen, onClose }: ClientsModalProps) => {
                 <h4 className='text-lg font-semibold text-gray-700'>
                   Client Information
                 </h4>
-                
+
                 <div className='grid grid-cols-2 gap-4'>
                   <Controller
                     name='first_name'
@@ -360,7 +390,7 @@ const AddClients = ({ isOpen, onClose }: ClientsModalProps) => {
                     )}
                   />
                 </div>
-                
+
                 <Controller
                   name='phone_number'
                   control={individualControl}
@@ -368,8 +398,8 @@ const AddClients = ({ isOpen, onClose }: ClientsModalProps) => {
                     required: 'Phone number is required',
                     pattern: {
                       value: /^[0-9+\s-]+$/,
-                      message: 'Invalid phone number'
-                    }
+                      message: 'Invalid phone number',
+                    },
                   }}
                   render={({ field }) => (
                     <Input
@@ -405,21 +435,26 @@ const AddClients = ({ isOpen, onClose }: ClientsModalProps) => {
                   name='location'
                   control={individualControl}
                   render={({ field }) => (
-                    <div className='relative'>
-                      <Input
-                        {...field}
-                        label='Location'
-                        placeholder='Enter location'
-                        className='pr-10'
-                      />
-                      <div className='absolute right-3 top-1/2 transform -translate-y-1/2'>
-                        <img
-                          src={clientlocationIcons}
-                          alt=''
-                          className='w-5 h-5 text-gray-400'
-                        />
-                      </div>
-                    </div>
+                    <DropdownSelectInput
+                      label='Location'
+                      placeholder={
+                        isLocationsLoading
+                          ? 'Loading locations...'
+                          : 'Select business location'
+                      }
+                      options={
+                        isLocationsLoading
+                          ? [{ label: 'Loading...', value: '' }]
+                          : locationsData?.map((location) => ({
+                              label: location.name,
+                              value: location.name,
+                            })) || []
+                      }
+                      value={field.value}
+                      onSelectItem={(selected) => {
+                        field.onChange(selected.value);
+                      }}
+                    />
                   )}
                 />
 
@@ -513,7 +548,7 @@ const AddClients = ({ isOpen, onClose }: ClientsModalProps) => {
                 <h4 className='text-lg font-semibold text-gray-700'>
                   Group Information
                 </h4>
-                
+
                 <Controller
                   name='name'
                   control={groupControl}
@@ -526,7 +561,7 @@ const AddClients = ({ isOpen, onClose }: ClientsModalProps) => {
                     />
                   )}
                 />
-                
+
                 <Controller
                   name='description'
                   control={groupControl}
@@ -540,22 +575,25 @@ const AddClients = ({ isOpen, onClose }: ClientsModalProps) => {
                     />
                   )}
                 />
-                
+
                 <Controller
                   name='location'
                   control={groupControl}
                   render={({ field }) => (
                     <DropdownSelectInput
                       label='Location'
-                      placeholder={isLocationsLoading ? 'Loading locations...' : 'Select business location'}
+                      placeholder={
+                        isLocationsLoading
+                          ? 'Loading locations...'
+                          : 'Select business location'
+                      }
                       options={
                         isLocationsLoading
                           ? [{ label: 'Loading...', value: '' }]
-                          : locationsData
-                              ?.map((location) => ({
-                                label: location.name,
-                                value: location.name,
-                              })) || []
+                          : locationsData?.map((location) => ({
+                              label: location.name,
+                              value: location.name,
+                            })) || []
                       }
                       value={field.value}
                       onSelectItem={(selected) => {
@@ -564,58 +602,78 @@ const AddClients = ({ isOpen, onClose }: ClientsModalProps) => {
                     />
                   )}
                 />
-                
+
                 <Controller
                   name='client_ids'
                   control={groupControl}
-                  rules={{ required: 'At least one client is required for a group' }}
+                  rules={{
+                    required: 'At least one client is required for a group',
+                  }}
                   render={({ field }) => (
                     <DropdownSelectInput
                       label='Group Members'
-                      placeholder={isClientsLoading ? 'Loading clients...' : 'Select clients to add to this group'}
+                      placeholder={
+                        isClientsLoading
+                          ? 'Loading clients...'
+                          : 'Select clients to add to this group'
+                      }
                       singleSelect={false}
                       options={
                         isClientsLoading
                           ? [{ label: 'Loading...', value: '' }]
-                          : clientsData
-                              ?.map((client) => ({
-                                label: `${client.first_name} ${client.last_name}`,
-                                value: client.id.toString(),
-                              })) || []
+                          : clientsData?.map((client) => ({
+                              label: `${client.first_name} ${client.last_name}`,
+                              value: client.id.toString(),
+                            })) || []
                       }
-                      value={field.value?.map((id: number) => id.toString()) || []}
+                      value={
+                        field.value?.map((id: number) => id.toString()) || []
+                      }
                       onSelectItem={(selectedItems) => {
-                        field.onChange(selectedItems.map((item: { value: string }) => parseInt(item.value)));
+                        field.onChange(
+                          selectedItems.map((item: { value: string }) =>
+                            parseInt(item.value)
+                          )
+                        );
                       }}
                     />
                   )}
                 />
-                
+
                 <Controller
                   name='session_ids'
                   control={groupControl}
                   render={({ field }) => (
                     <DropdownSelectInput
                       label='Sessions'
-                      placeholder={isSessionsLoading ? 'Loading sessions...' : 'Select sessions for this group'}
+                      placeholder={
+                        isSessionsLoading
+                          ? 'Loading sessions...'
+                          : 'Select sessions for this group'
+                      }
                       singleSelect={false}
                       options={
                         isSessionsLoading
                           ? [{ label: 'Loading...', value: '' }]
-                          : sessionsData
-                              ?.map((session) => ({
-                                label: session.title,
-                                value: session.id.toString(),
-                              })) || []
+                          : sessionsData?.map((session) => ({
+                              label: session.title,
+                              value: session.id.toString(),
+                            })) || []
                       }
-                      value={field.value?.map((id: number) => id.toString()) || []}
+                      value={
+                        field.value?.map((id: number) => id.toString()) || []
+                      }
                       onSelectItem={(selectedItems) => {
-                        field.onChange(selectedItems.map((item: { value: string }) => parseInt(item.value)));
+                        field.onChange(
+                          selectedItems.map((item: { value: string }) =>
+                            parseInt(item.value)
+                          )
+                        );
                       }}
                     />
                   )}
                 />
-                
+
                 <Controller
                   name='contact_person_id'
                   control={groupControl}
@@ -623,7 +681,11 @@ const AddClients = ({ isOpen, onClose }: ClientsModalProps) => {
                   render={({ field }) => (
                     <DropdownSelectInput
                       label='Contact Person'
-                      placeholder={selectedClients.length === 0 ? 'First select group members' : 'Select contact person'}
+                      placeholder={
+                        selectedClients.length === 0
+                          ? 'First select group members'
+                          : 'Select contact person'
+                      }
                       options={
                         selectedClients.length === 0
                           ? [{ label: 'First select group members', value: '' }]
@@ -634,7 +696,9 @@ const AddClients = ({ isOpen, onClose }: ClientsModalProps) => {
                       }
                       value={field.value ? field.value.toString() : ''}
                       onSelectItem={(selected) => {
-                        field.onChange(selected.value ? parseInt(selected.value) : null);
+                        field.onChange(
+                          selected.value ? parseInt(selected.value) : null
+                        );
                       }}
                     />
                   )}
