@@ -17,7 +17,6 @@ import Table from '../common/Table';
 import { createColumnHelper } from '@tanstack/react-table';
 import { useExportSessionClients } from '../../hooks/useExport';
 import moment from 'moment';
-import MakeUp from './MakeUp';
 
 import {
   useGetSessionDetail,
@@ -50,7 +49,6 @@ const SessionDetails = () => {
   const [isRemovingClient, setIsRemovingClient] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
   const [opened, { open, close }] = useDisclosure(false);
-  const [isMakeupOpen, setIsMakeupOpen] = useState(false);
 
   const removeClientMutation = useRemoveClientFromSession();
   const updateStatusMutation = useUpdateAttendanceStatus();
@@ -390,53 +388,6 @@ const SessionDetails = () => {
             {info.getValue() ? 'Active' : 'Inactive'}
           </span>
         ),
-      }),
-      columnHelper.display({
-        id: 'attendance',
-        header: 'Attendance',
-        cell: ({ row }) => {
-          const client = row.original;
-
-          const sessionAttendance = client.sessions?.find(
-            (session) => session.session_id === currentSessionId
-          );
-
-          const getStatusColor = (status: string) => {
-            switch (status) {
-              case 'attended':
-                return 'bg-active text-green-700';
-              case 'not_yet':
-                return 'bg-yellow-100 text-yellow-700';
-              case 'make_up':
-                return 'bg-blue-100 text-blue-700';
-              case 'cancelled':
-                return 'bg-gray-100 text-gray-700';
-              default:
-                return 'bg-yellow-100 text-yellow-700';
-            }
-          };
-
-          const status = sessionAttendance?.status || 'not_yet';
-          const statusDisplay =
-            sessionAttendance?.status_display ||
-            (status === 'attended'
-              ? 'Attended'
-              : status === 'make_up'
-              ? 'Make-up'
-              : status === 'cancelled'
-              ? 'Cancelled'
-              : 'Not Yet');
-
-          return (
-            <span
-              className={`inline-block px-2 py-1 rounded-lg text-sm text-center min-w-[80px] ${getStatusColor(
-                status
-              )}`}
-            >
-              {statusDisplay}
-            </span>
-          );
-        },
       }),
       columnHelper.display({
         id: 'progress',
@@ -838,12 +789,6 @@ const SessionDetails = () => {
                   >
                     Overview
                   </button>
-                  <h3 className='font-semibold text-xl relative cursor-pointer transition-all duration-200 hover:text-secondary '>
-                    Attendance
-                  </h3>
-                  <h3 className='font-semibold text-xl relative cursor-pointer transition-all duration-200 hover:text-secondary '>
-                    Progress Tracker
-                  </h3>
                 </div>
                 <div className='h-[1px] bg-gray-300 w-full opacity-60'></div>
               </div>
@@ -876,36 +821,19 @@ const SessionDetails = () => {
               <div className='flex-1 mt-6'>
                 <div className=''>
                   <div className='flex space-x-4 mb-3'>
-                    <Button
-                      onClick={() => setIsMakeupOpen(false)}
-                      variant={isMakeupOpen ? 'outline' : 'filled'}
-                      color='#1D9B5E'
-                      radius='md'
-                    >
+                    <h3 className='font-semibold text-xl relative cursor-pointer transition-all duration-200 hover:text-secondary '>
                       Clients
-                    </Button>
-                    <Button
-                      onClick={() => setIsMakeupOpen(true)}
-                      variant={isMakeupOpen ? 'filled' : 'outline'}
-                      color='#1D9B5E'
-                      radius='md'
-                        >
-                      Make-up Sessions
-                    </Button>
+                    </h3>
                   </div>
                   <div className='flex-1 py-2'>
-                    {isMakeupOpen ? (
-                      <MakeUp sessionId={sessionId || ''} />
-                    ) : (
-                      <Table
-                        data={clients}
-                        columns={columns}
-                        rowSelection={rowSelection}
-                        onRowSelectionChange={setRowSelection}
-                        className='mt-4'
-                        pageSize={5}
-                      />
-                    )}
+                    <Table
+                      data={clients}
+                      columns={columns}
+                      rowSelection={rowSelection}
+                      onRowSelectionChange={setRowSelection}
+                      className='mt-4'
+                      pageSize={5}
+                    />
                   </div>
                 </div>
               </div>

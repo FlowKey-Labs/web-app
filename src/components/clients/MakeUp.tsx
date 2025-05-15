@@ -18,7 +18,7 @@ import { notifications } from '@mantine/notifications';
 
 const columnHelper = createColumnHelper<MakeUpSession>();
 
-const MakeUp = ({ sessionId }: { sessionId: string | number }) => {
+const MakeUp = ({ clientId }: { clientId: string | number }) => {
   const [rowSelection, setRowSelection] = useState({});
   const [selectedMakeupSession, setSelectedMakeupSession] =
     useState<MakeUpSession | null>(null);
@@ -37,7 +37,7 @@ const MakeUp = ({ sessionId }: { sessionId: string | number }) => {
   const removeMakeupSessionMutation = useDeleteMakeupSession();
 
   const filteredMakeupSessions = makeupSessions?.filter((s: MakeUpSession) => {
-    return s.session?.toString() === sessionId.toString();
+    return s.client?.toString() === clientId.toString();
   });
 
   const {
@@ -82,8 +82,8 @@ const MakeUp = ({ sessionId }: { sessionId: string | number }) => {
         />
       ),
     }),
-    columnHelper.accessor('client_name', {
-      header: 'Client Name',
+    columnHelper.accessor('session_title', {
+      header: 'Sessions',
       cell: (info) => info.getValue(),
     }),
     columnHelper.accessor('original_date', {

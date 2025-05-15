@@ -1,6 +1,6 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import MembersHeader from '../headers/MembersHeader';
-import { Loader, Progress } from '@mantine/core';
+import { Button, Loader, Progress } from '@mantine/core';
 import { useMemo, useState } from 'react';
 import Table from '../common/Table';
 import { createColumnHelper } from '@tanstack/react-table';
@@ -11,6 +11,9 @@ import { navigateToSessionDetails } from '../../utils/navigationHelpers';
 import ProgressTracker from './ProgressTracker';
 import ProgressSeriesTracker from './ProgressSeriesTracker';
 import { useProgressStore } from '../../store/progressStore';
+import MakeUp from './MakeUp';
+
+type isActiveType = 'Client Sessions' | 'Make-up';
 
 const ClientDetails = () => {
   const { id: clientId } = useParams();
@@ -19,6 +22,7 @@ const ClientDetails = () => {
 
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [rowSelection, setRowSelection] = useState({});
+  const [isActive, setIsActive] = useState<isActiveType>('Client Sessions');
 
   const openDrawer = () => setIsDrawerOpen(true);
   const closeDrawer = () => setIsDrawerOpen(false);
@@ -86,20 +90,6 @@ const ClientDetails = () => {
           const date = new Date(info.getValue());
           return date.toLocaleDateString();
         },
-      }),
-      columnHelper.accessor('attended', {
-        header: 'Status',
-        cell: (info) => (
-          <span
-            className={`inline-block px-2 py-1 rounded-lg text-sm text-center min-w-[100px] ${
-              info.getValue()
-                ? 'bg-active text-secondary'
-                : 'bg-[#FFCFCC] text-[#FF3B30]'
-            }`}
-          >
-            {info.getValue() ? 'Attended' : 'Not Attended'}
-          </span>
-        ),
       }),
     ],
     [clientDetails]
@@ -320,35 +310,58 @@ const ClientDetails = () => {
                   </div>
                   <div className='flex-1 mt-6'>
                     <div className=''>
-                      <div className='flex justify-between'>
-                        <h3 className='text-primary text-xl font-semibold'>
+                      <div className='flex gap-4 mb-3'>
+                        <Button
+                          color='#1D9B5E'
+                          radius='md'
+                          variant={
+                            isActive === 'Client Sessions'
+                              ? 'filled'
+                              : 'outline'
+                          }
+                          onClick={() => setIsActive('Client Sessions')}
+                        >
                           Client Sessions
-                        </h3>
+                        </Button>
+                        <Button
+                          color='#1D9B5E'
+                          radius='md'
+                          variant={
+                            isActive === 'Make-up' ? 'filled' : 'outline'
+                          }
+                          onClick={() => setIsActive('Make-up')}
+                        >
+                          Make-Up Sessions
+                        </Button>
                       </div>
-                      {clientSessions && clientSessions.length > 0 ? (
-                        <div className='flex-1 py-2'>
-                          <Table
-                            data={clientSessions}
-                            columns={columns}
-                            rowSelection={rowSelection}
-                            onRowSelectionChange={setRowSelection}
-                            onRowClick={(row: ClientSession) =>
-                              navigateToSessionDetails(
-                                navigate,
-                                row.session_id.toString()
-                              )
-                            }
-                            className='mt-4'
-                            pageSize={5}
-                          />
-                        </div>
-                      ) : (
-                        <div className='flex justify-center items-center p-8'>
-                          <h2 className='text-xl font-bold text-primary'>
-                            No sessions found for this client
-                          </h2>
-                        </div>
-                      )}
+                      <div className='flex-1 py-2'>
+                        {isActive === 'Client Sessions' ? (
+                          clientSessions && clientSessions.length > 0 ? (
+                            <Table
+                              data={clientSessions}
+                              columns={columns}
+                              rowSelection={rowSelection}
+                              onRowSelectionChange={setRowSelection}
+                              onRowClick={(row: ClientSession) =>
+                                navigateToSessionDetails(
+                                  navigate,
+                                  row.session_id.toString()
+                                )
+                              }
+                              className='mt-4'
+                              pageSize={5}
+                            />
+                          ) : (
+                            <div className='flex justify-center items-center p-8'>
+                              <h2 className='text-xl font-bold text-primary'>
+                                No sessions found for this client
+                              </h2>
+                            </div>
+                          )
+                        ) : (
+                          <MakeUp clientId={clientId || ''} />
+                        )}
+                      </div>
                     </div>
                   </div>
                 </>
