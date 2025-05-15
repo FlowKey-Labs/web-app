@@ -83,6 +83,11 @@ import {
   updateRole,
   deleteRole,
   get_staff_sessions,
+  // Makeup Session API functions
+  getMakeupSessions,
+  createMakeupSession,
+  updateMakeupSession,
+  deleteMakeupSession,
   markOutcomeComplete,
   markOutcomeIncomplete,
   getSeries,
@@ -99,7 +104,11 @@ import {
   DateFilterOption,
   UpcomingSession,
 } from "../types/dashboard";
-import { ProgressFeedback, Session } from "../types/sessionTypes";
+import {
+  MakeUpSession,
+  ProgressFeedback,
+  Session,
+} from "../types/sessionTypes";
 import { CreateLocationData } from "../types/location";
 import { Group, GroupData } from "../types/clientTypes";
 import { SeriesLevel, SeriesProgress } from "../store/progressStore";
@@ -887,13 +896,52 @@ export const useMarkClientAttended = () => {
       clientId: string;
       sessionId: string;
     }) => mark_client_attended(clientId, sessionId),
-    onSuccess: (_, { sessionId }) => {
+    onSuccess: (data, { clientId, sessionId }) => {
+      // Invalidate session-related queries
       queryClient.invalidateQueries({
         queryKey: ["session_clients", sessionId],
       });
       queryClient.invalidateQueries({
         queryKey: ["session_analytics", sessionId],
       });
+      queryClient.invalidateQueries({
+        queryKey: ["session", sessionId],
+      });
+
+      // Invalidate client-related queries
+      queryClient.invalidateQueries({
+        queryKey: ["client_analytics", clientId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["client_sessions", clientId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["client_session_details", clientId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["client", clientId],
+      });
+
+      // Invalidate global analytics and sessions queries
+      queryClient.invalidateQueries({
+        queryKey: ["client_analytics"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["class_sessions"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["sessions"],
+      });
+
+      // Force a full refetch of the data
+      queryClient.refetchQueries({
+        queryKey: ["session_clients", sessionId],
+      });
+      queryClient.refetchQueries({
+        queryKey: ["client_sessions", clientId],
+      });
+
+      return data;
     },
   });
 };
@@ -908,13 +956,52 @@ export const useMarkClientNotAttended = () => {
       clientId: string;
       sessionId: string;
     }) => mark_client_not_attended(clientId, sessionId),
-    onSuccess: (_, { sessionId }) => {
+    onSuccess: (data, { clientId, sessionId }) => {
+      // Invalidate session-related queries
       queryClient.invalidateQueries({
         queryKey: ["session_clients", sessionId],
       });
       queryClient.invalidateQueries({
         queryKey: ["session_analytics", sessionId],
       });
+      queryClient.invalidateQueries({
+        queryKey: ["session", sessionId],
+      });
+
+      // Invalidate client-related queries
+      queryClient.invalidateQueries({
+        queryKey: ["client_analytics", clientId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["client_sessions", clientId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["client_session_details", clientId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["client", clientId],
+      });
+
+      // Invalidate global analytics and sessions queries
+      queryClient.invalidateQueries({
+        queryKey: ["client_analytics"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["class_sessions"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["sessions"],
+      });
+
+      // Force a full refetch of the data
+      queryClient.refetchQueries({
+        queryKey: ["session_clients", sessionId],
+      });
+      queryClient.refetchQueries({
+        queryKey: ["client_sessions", clientId],
+      });
+
+      return data;
     },
   });
 };
@@ -931,13 +1018,52 @@ export const useUpdateAttendanceStatus = () => {
       sessionId: string;
       status: string;
     }) => update_attendance_status(clientId, sessionId, status),
-    onSuccess: (_, { sessionId }) => {
+    onSuccess: (data, { clientId, sessionId }) => {
+      // Invalidate session-related queries
       queryClient.invalidateQueries({
         queryKey: ["session_clients", sessionId],
       });
       queryClient.invalidateQueries({
         queryKey: ["session_analytics", sessionId],
       });
+      queryClient.invalidateQueries({
+        queryKey: ["session", sessionId],
+      });
+
+      // Invalidate client-related queries
+      queryClient.invalidateQueries({
+        queryKey: ["client_analytics", clientId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["client_sessions", clientId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["client_session_details", clientId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["client", clientId],
+      });
+
+      // Invalidate global analytics and sessions queries
+      queryClient.invalidateQueries({
+        queryKey: ["client_analytics"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["class_sessions"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["sessions"],
+      });
+
+      // Force a full refetch of the data
+      queryClient.refetchQueries({
+        queryKey: ["session_clients", sessionId],
+      });
+      queryClient.refetchQueries({
+        queryKey: ["client_sessions", clientId],
+      });
+
+      return data;
     },
   });
 };
@@ -974,14 +1100,31 @@ export const useRemoveClientFromSession = () => {
       clientId: string;
       sessionId: string;
     }) => remove_client_from_session(clientId, sessionId),
-    onSuccess: (_, { sessionId }) => {
+    onSuccess: (_, { clientId, sessionId }) => {
+      // Invalidate session-related queries
       queryClient.invalidateQueries({
         queryKey: ["session_clients", sessionId],
       });
       queryClient.invalidateQueries({
         queryKey: ["session_analytics", sessionId],
       });
+
+      // Invalidate client-related queries
+      queryClient.invalidateQueries({
+        queryKey: ["client_analytics", clientId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["client_sessions", clientId],
+      });
+
+      // Invalidate global queries
       queryClient.invalidateQueries({ queryKey: ["dashboard_analytics"] });
+      queryClient.invalidateQueries({
+        queryKey: ["client_analytics"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["class_sessions"],
+      });
     },
   });
 };
@@ -1095,6 +1238,61 @@ export const useRemoveMemberFromGroup = () => {
     onSuccess: (_, { groupId }) => {
       queryClient.invalidateQueries({ queryKey: ["group_members", groupId] });
       queryClient.invalidateQueries({ queryKey: ["group", groupId] });
+    },
+  });
+};
+
+// Makeup Session related hooks
+export const useGetMakeupSessions = () => {
+  return useQuery({
+    queryKey: ["makeup_sessions"],
+    queryFn: getMakeupSessions,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    refetchOnWindowFocus: false,
+  });
+};
+
+export const useCreateMakeupSession = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: createMakeupSession,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["makeup_sessions"] });
+    },
+    onError: (error) => {
+      console.error("Failed to create makeup session:", error);
+    },
+  });
+};
+
+export const useUpdateMakeupSession = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      id,
+      makeupSessionData,
+    }: {
+      id: string;
+      makeupSessionData: MakeUpSession;
+    }) => updateMakeupSession(id, makeupSessionData),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["makeup_sessions"] });
+    },
+    onError: (error) => {
+      console.error("Failed to update makeup session:", error);
+    },
+  });
+};
+
+export const useDeleteMakeupSession = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id }: { id: string }) => deleteMakeupSession(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["makeup_sessions"] });
+    },
+    onError: (error) => {
+      console.error("Failed to delete makeup session:", error);
     },
   });
 };

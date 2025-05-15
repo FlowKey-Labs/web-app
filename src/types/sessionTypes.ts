@@ -138,6 +138,20 @@ export interface EventFields {
   client_ids?: number[];
 }
 
+export interface MakeUpSession {
+  id: number | string;
+  session_title?: string;
+  client_name?: string;
+  original_date: CreateSessionData["date"];
+  new_date: string;
+  new_start_time: string;
+  new_end_time: string;
+  created_at?: string;
+  updated_at?: string;
+  session: number | string;
+  client: number | string;
+}
+
 export interface ProgressFeedback {
   client_id: string;
   subcategory_id: string;
