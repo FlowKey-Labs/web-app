@@ -35,9 +35,10 @@ import LogoutSuccess from "./components/authentication/Logout";
 import Settings from "./components/accountSettings";
 import ClientDetails from "./components/clients/ClientDetails";
 import ComingSoon from "./components/common/ComingSoon";
-import "./App.css";
 import SetPassword from "./components/authentication/SetPassword";
 import { useAuthStore } from "./store/auth";
+import GroupDetails from './components/clients/GroupDetails';
+import "./App.css";
 
 function App() {
   const user = useAuthStore((state) => state.user);
@@ -84,10 +85,11 @@ function App() {
                     <Route path="calendar" element={<CalendarView />} />
                   )}
                   {permisions?.can_view_clients && (
+                    <>
                     <Route path="clients" element={<AllClients />} />
-                  )}
-                  {permisions?.can_view_clients && (
+                    <Route path='groups/:id' element={<GroupDetails />} />
                     <Route path="clients/:id" element={<ClientDetails />} />
+                    </>
                   )}
                   {permisions?.can_manage_profile && (
                     <Route path="profile" element={<Profile />} />

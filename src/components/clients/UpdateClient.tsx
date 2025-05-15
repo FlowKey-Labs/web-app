@@ -2,15 +2,16 @@ import { useForm, Controller, FormProvider } from 'react-hook-form';
 import Input from '../common/Input';
 import DropdownSelectInput from '../common/Dropdown';
 import Button from '../common/Button';
-import clientlocationIcons from '../../assets/icons/clientLocation.svg';
 import {
   useGetClassSessions,
   useUpdateClient,
   useGetClient,
+  useGetLocations,
 } from '../../hooks/reactQuery';
-import React from 'react';
+import { useEffect } from 'react';
 import moment from 'moment';
 import { AddClient, ClientData } from '../../types/clientTypes';
+import { Location } from '../../types/location';
 import { Drawer, Loader } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import successIcon from '../../assets/icons/success.svg';
@@ -42,8 +43,10 @@ const UpdateClient = ({ isOpen, onClose, clientId }: UpdateClientProps) => {
   const { mutate: updateClient, isPending, isSuccess } = useUpdateClient();
   const { data: classSessionsData, isLoading: isClassSessionsLoading } =
     useGetClassSessions();
+  const { data: locationsData, isLoading: isLocationsLoading } =
+    useGetLocations() as { data: Location[] | undefined; isLoading: boolean }; // Added
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (clientData && isOpen) {
       reset({
         first_name: clientData.first_name || '',
@@ -63,7 +66,7 @@ const UpdateClient = ({ isOpen, onClose, clientId }: UpdateClientProps) => {
     }
   }, [clientData, isOpen, reset]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (isSuccess) {
       onClose();
     }
@@ -87,14 +90,11 @@ const UpdateClient = ({ isOpen, onClose, clientId }: UpdateClientProps) => {
         gender: data.gender,
       };
 
-      if (data.sessions?.length) {
-        const sessionIds = data.sessions.map((session) =>
-          parseInt(session.value)
-        );
-        if (sessionIds.every((id) => !isNaN(id))) {
-          updateData.session_ids = sessionIds;
-        }
-      }
+      const selectedSessions = data.sessions || [];
+      const sessionIds = selectedSessions
+        .map((session) => parseInt(session.value))
+        .filter((id) => !isNaN(id));
+      updateData.session_ids = sessionIds;
 
       updateClient(
         { id: clientId, updateData },
@@ -275,21 +275,26 @@ const UpdateClient = ({ isOpen, onClose, clientId }: UpdateClientProps) => {
                 name='location'
                 control={control}
                 render={({ field }) => (
-                  <div className='relative'>
-                    <Input
-                      {...field}
-                      label='Location'
-                      placeholder='Enter location'
-                      className='pr-10'
-                    />
-                    <div className='absolute right-3 top-1/2 transform -translate-y-1/2'>
-                      <img
-                        src={clientlocationIcons}
-                        alt=''
-                        className='w-5 h-5 text-gray-400'
-                      />
-                    </div>
-                  </div>
+                  <DropdownSelectInput
+                    label='Location'
+                    placeholder={
+                      isLocationsLoading
+                        ? 'Loading locations...'
+                        : 'Select business location'
+                    }
+                    options={
+                      isLocationsLoading
+                        ? [{ label: 'Loading...', value: '' }]
+                        : locationsData?.map((location) => ({
+                            label: location.name,
+                            value: location.name,
+                          })) || []
+                    }
+                    value={field.value}
+                    onSelectItem={(selected) => {
+                      field.onChange(selected.value);
+                    }}
+                  />
                 )}
               />
 

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useForm, FormProvider, Controller } from 'react-hook-form';
-import { ActionIcon, Drawer, Group, Modal, Text } from '@mantine/core';
+import { ActionIcon, Drawer, Group, Loader, Modal, Text } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import successIcon from '../../assets/icons/success.svg';
 import errorIcon from '../../assets/icons/error.svg';
@@ -209,8 +209,8 @@ const Categories = () => {
           onBack={() => setSelectedCategoryId(null)}
         />
       ) : isLoading ? (
-        <div className='flex justify-center items-center h-64'>
-          <p>Loading categories...</p>
+        <div className='flex justify-center items-center h-screen p-6 pt-12'>
+          <Loader size='xl' color='#1D9B5E' />
         </div>
       ) : (
         <div className='bg-white rounded-lg p-4'>

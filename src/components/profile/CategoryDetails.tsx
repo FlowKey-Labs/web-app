@@ -896,8 +896,8 @@ const CategoryDetails = ({
 
   if (isLoading)
     return (
-      <div className='flex justify-center items-center h-screen'>
-        <Loader size='xl' color='#192F3B' />
+      <div className='flex justify-center items-center h-screen p-6 pt-12'>
+        <Loader size='xl' color='#1D9B5E' />
       </div>
     );
   if (isError)

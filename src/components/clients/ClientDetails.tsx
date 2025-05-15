@@ -48,7 +48,6 @@ const ClientDetails = () => {
   const { data: clientAnalytics, isLoading: analyticsLoading } =
     useGetClientAnalytics(clientId || '');
 
-  // Define the type for client sessions
   type ClientSession = {
     session_id: number;
     session_title: string;
@@ -66,7 +65,6 @@ const ClientDetails = () => {
     class_type: string;
   };
 
-  // Get client sessions from the client details
   const clientSessions = useMemo(() => {
     return clientDetails?.sessions || [];
   }, [clientDetails]);
@@ -149,7 +147,6 @@ const ClientDetails = () => {
             <div className='flex flex-col w-[30%] items-center mt-6'>
               {/* Conditional Rendering for Left Panel */}
               {viewMode === 'details' ? (
-                // Client Details View
                 <div className='flex flex-col px-4 py-8 items-center justify-center border bg-white rounded-xl w-[290px]'>
                   <img
                     src={clientDetails.profileImage || avatar}
@@ -242,7 +239,6 @@ const ClientDetails = () => {
                   </div>
                 </div>
               ) : (
-                // Progress Levels View
                 <ProgressSeriesTracker />
               )}
               {/* End Conditional Rendering */}

@@ -97,7 +97,7 @@ import {
   getLevelFeedback,
 } from "../api/api";
 import { Role, useAuthStore } from "../store/auth";
-import { AddClient, Client } from "../types/clientTypes";
+import { AddClient, Client, ClientData } from "../types/clientTypes";
 import { CreateStaffRequest, StaffResponse } from "../types/staffTypes";
 import {
   AnalyticsData,
@@ -856,11 +856,15 @@ export const useUpdateClient = () => {
       updateData,
     }: {
       id: string;
-      updateData: Partial<Client>;
+      updateData: Partial<ClientData>;
     }) => update_client(id, updateData),
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: ["clients"] });
       queryClient.invalidateQueries({ queryKey: ["client", id] });
+      queryClient.invalidateQueries({ queryKey: ["client_members", id] });
+      queryClient.invalidateQueries({ queryKey: ["sessions"] });
+      queryClient.invalidateQueries({ queryKey: ["class_sessions"] });
+      queryClient.invalidateQueries({ queryKey: ["upcoming_sessions"] });
     },
     onError: (error) => console.error("Update client error:", error),
   });
@@ -1193,6 +1197,7 @@ export const useUpdateGroup = () => {
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: ["groups"] });
       queryClient.invalidateQueries({ queryKey: ["group", id] });
+      queryClient.invalidateQueries({ queryKey: ["group_members", id] });
     },
     onError: (error) => {
       console.error("Failed to update group:", error);
