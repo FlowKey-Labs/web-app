@@ -1,7 +1,11 @@
 import { api } from "../lib/axios";
 import axios from "axios";
 
-import { CreateSessionData, Session } from "../types/sessionTypes";
+import {
+  CreateSessionData,
+  ProgressFeedback,
+  Session,
+} from "../types/sessionTypes";
 import { CreateLocationData } from "../types/location";
 import { Role } from "../store/auth";
 
@@ -69,6 +73,21 @@ const END_POINTS = {
   },
   GOOGLE: {
     PLACES_AUTOCOMPLETE: `https://maps.googleapis.com/maps/api/place/autocomplete/json`,
+  },
+  PROGRESS: {
+    SERIES: `${BASE_URL}/api/progress/series`,
+    OUTCOMES: (client_id: string) =>
+      `${BASE_URL}/api/progress/outcomes?client_id=` + client_id,
+    CLIENT_PROGRESS: (clientId: string) =>
+      `${BASE_URL}/api/progress/${clientId}/`,
+    MARK_OUTCOME_COMPLETED: `${BASE_URL}/api/progress/mark/`,
+    MARK_OUTCOME_INCOMPLETE: `${BASE_URL}/api/progress/unmark/`,
+    FEEDBACK: `${BASE_URL}/api/progress/feedback/`,
+    LEVEL_FEEDBACK: (client_id: string, subcategory_id: string) =>
+      `${BASE_URL}/api/progress/get-feedback/?client_id=` +
+      client_id +
+      `&subcategory_id=` +
+      subcategory_id,
   },
 };
 
@@ -778,6 +797,64 @@ const deleteRole = async (id: string) => {
   return data;
 };
 
+// Progress tracker API functions
+
+const getSeries = async () => {
+  const { data } = await api.get(END_POINTS.PROGRESS.SERIES);
+  return data;
+};
+
+const getClientProgress = async (clientId: string) => {
+  const { data } = await api.get(END_POINTS.PROGRESS.CLIENT_PROGRESS(clientId));
+  return data;
+};
+
+const getOutcomes = async (clientId: string) => {
+  const { data } = await api.get(END_POINTS.PROGRESS.OUTCOMES(clientId));
+  return data;
+};
+
+const markOutcomeComplete = async (payload: {
+  client_id: string;
+  subskill_id: string;
+}) => {
+  const { data } = await api.post(
+    END_POINTS.PROGRESS.MARK_OUTCOME_COMPLETED,
+    payload
+  );
+  return data;
+};
+
+const markOutcomeIncomplete = async (payload: {
+  client_id: string;
+  subskill_id: string;
+}) => {
+  const { data } = await api.post(
+    END_POINTS.PROGRESS.MARK_OUTCOME_INCOMPLETE,
+    payload
+  );
+  return data;
+};
+
+const submitProgressFeedback = async (payload: ProgressFeedback) => {
+  const formData = new FormData();
+  formData.append("client_id", payload.client_id);
+  formData.append("subcategory_id", payload.subcategory_id);
+  formData.append("feedback", payload.feedback);
+  formData.append("attachment", payload.attachment);
+  const { data } = await api.post(END_POINTS.PROGRESS.FEEDBACK, payload, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+  return data;
+};
+
+const getLevelFeedback = async (clientId: string, subcategory_id: string) => {
+  const { data } = await api.get(
+    END_POINTS.PROGRESS.LEVEL_FEEDBACK(clientId, subcategory_id)
+  );
+  return data;
+};
+
 export {
   END_POINTS,
   registerUser,
@@ -855,4 +932,11 @@ export {
   createRole,
   updateRole,
   deleteRole,
+  getSeries,
+  markOutcomeComplete,
+  markOutcomeIncomplete,
+  submitProgressFeedback,
+  getClientProgress,
+  getOutcomes,
+  getLevelFeedback,
 };

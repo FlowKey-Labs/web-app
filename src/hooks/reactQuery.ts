@@ -83,6 +83,13 @@ import {
   updateRole,
   deleteRole,
   get_staff_sessions,
+  markOutcomeComplete,
+  markOutcomeIncomplete,
+  getSeries,
+  getClientProgress,
+  getOutcomes,
+  submitProgressFeedback,
+  getLevelFeedback,
 } from "../api/api";
 import { Role, useAuthStore } from "../store/auth";
 import { AddClient, Client } from "../types/clientTypes";
@@ -92,9 +99,10 @@ import {
   DateFilterOption,
   UpcomingSession,
 } from "../types/dashboard";
-import { Session } from "../types/sessionTypes";
+import { ProgressFeedback, Session } from "../types/sessionTypes";
 import { CreateLocationData } from "../types/location";
 import { Group, GroupData } from "../types/clientTypes";
+import { SeriesLevel, SeriesProgress } from "../store/progressStore";
 
 export const useRegisterUser = () => {
   const queryClient = useQueryClient();
@@ -1088,5 +1096,83 @@ export const useRemoveMemberFromGroup = () => {
       queryClient.invalidateQueries({ queryKey: ["group_members", groupId] });
       queryClient.invalidateQueries({ queryKey: ["group", groupId] });
     },
+  });
+};
+
+export const useGetProgressSeries = () => {
+  return useQuery<SeriesLevel[]>({
+    queryKey: ["series"],
+    queryFn: getSeries,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    refetchOnWindowFocus: false,
+  });
+};
+
+export const useGetClientProgress = (clientId: string) => {
+  return useQuery<SeriesProgress>({
+    queryKey: ["client_progress", clientId],
+    queryFn: () => getClientProgress(clientId),
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    refetchOnWindowFocus: false,
+  });
+};
+
+export const useGetOutcomes = (clientId: string) => {
+  return useQuery<SeriesLevel[]>({
+    queryKey: ["outcomes", clientId],
+    queryFn: () => getOutcomes(clientId),
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    refetchOnWindowFocus: false,
+  });
+};
+
+export const useMarkOutcomeCompleted = () => {
+  return useMutation({
+    mutationFn: ({
+      client_id,
+      subskill_id,
+    }: {
+      client_id: string;
+      subskill_id: string;
+    }) => markOutcomeComplete({ client_id, subskill_id }),
+  });
+};
+
+export const useUnmarkOutcomeIncomplete = () => {
+  return useMutation({
+    mutationFn: ({
+      client_id,
+      subskill_id,
+    }: {
+      client_id: string;
+      subskill_id: string;
+    }) => markOutcomeIncomplete({ client_id, subskill_id }),
+  });
+};
+
+export const useSubmitProgressFeedback = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: ProgressFeedback) => submitProgressFeedback(payload),
+    onSuccess: (_, { client_id, subcategory_id }) => {
+      queryClient.invalidateQueries({
+        queryKey: ["levelFeedback", client_id, subcategory_id],
+      });
+    },
+  });
+};
+
+export const useGetProgressFeedback = (
+  clientId: string,
+  subcategoryId: string
+) => {
+  return useQuery<{
+    feedback: string;
+    attachment: string;
+  }>({
+    queryKey: ["levelFeedback", clientId, subcategoryId],
+    queryFn: () => getLevelFeedback(clientId, subcategoryId),
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    refetchOnWindowFocus: false,
   });
 };
