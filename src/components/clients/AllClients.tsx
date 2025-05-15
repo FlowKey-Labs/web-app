@@ -29,9 +29,9 @@ import { useExportClients } from '../../hooks/useExport';
 import { useExportGroups } from '../../hooks/useExport';
 import { useNavigate } from 'react-router-dom';
 import { navigateToClientDetails, navigateToGroupDetails } from '../../utils/navigationHelpers';
-import AddClients from './AddClient';
 import EmptyDataPage from '../common/EmptyDataPage';
 import { useAuthStore } from '../../store/auth';
+import { useUIStore } from '../../store/ui';
 
 
 const clientColumnHelper = createColumnHelper<Client>();
@@ -39,7 +39,6 @@ const groupColumnHelper = createColumnHelper<GroupData>();
 
 const AllClients = () => {
   const [rowSelection, setRowSelection] = useState({});
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [selectedClient, setSelectedClient] = useState<
     Client | GroupData | null
   >(null); 
@@ -48,6 +47,7 @@ const AllClients = () => {
   const [activeView, setActiveView] = useState<'clients' | 'groups'>('clients'); 
 
   const navigate = useNavigate();
+  const { openDrawer } = useUIStore();
   const deactivateClientMutation = useDeactivateClient();
   const activateClientMutation = useActivateClient();
 
@@ -511,11 +511,12 @@ const AllClients = () => {
     });
   };
 
-  const openClientDrawer = () => {
-    setIsDrawerOpen(true);
+  const handleOpenClientDrawer = () => {
+    openDrawer({
+      type: 'client',
+      isEditing: false
+    });
   };
-
-  const closeDrawer = () => setIsDrawerOpen(false);
 
   const isLoadingCurrent = activeView === 'clients' ? isLoading : groupsLoading;
   const isErrorCurrent = activeView === 'clients' ? isError : groupsError;
@@ -560,7 +561,7 @@ const AllClients = () => {
               : 'Search by Group Name or Description'
           }
           leftIcon={plusIcon}
-          onButtonClick={openClientDrawer }
+          onButtonClick={handleOpenClientDrawer }
           showButton={permisions?.can_create_clients}
         />
         <div className='px-6 pt-4 pb-2'>
@@ -581,31 +582,27 @@ const AllClients = () => {
             </MantineButton>
           </Group>
         </div>
-        {!isDrawerOpen && (
-          <EmptyDataPage
-            title={
-              activeView === 'clients' ? 'No Clients Found' : 'No Groups Found'
-            }
-            description={
-              activeView === 'clients'
-                ? "You don't have any clients yet"
-                : "You don't have any groups yet"
-            }
-            buttonText={
-              activeView === 'clients' ? 'Add New Client' : 'Add New Group'
-            }
-            onButtonClick={
-              activeView === 'clients' ? openClientDrawer : openClientDrawer
-            }
-            onClose={() => {}}
-            opened={
-              (activeView === 'clients'
-                ? clients.length === 0
-                : groups.length === 0) && !isLoadingCurrent
-            }
-            showButton={permisions?.can_create_clients}
-          />
-        )}
+        <EmptyDataPage
+          title={
+            activeView === 'clients' ? 'No Clients Found' : 'No Groups Found'
+          }
+          description={
+            activeView === 'clients'
+              ? "You don't have any clients yet"
+              : "You don't have any groups yet"
+          }
+          buttonText={
+            activeView === 'clients' ? 'Add New Client' : 'Add New Group'
+          }
+          onButtonClick={handleOpenClientDrawer}
+          onClose={() => {}}
+          opened={
+            (activeView === 'clients'
+              ? clients.length === 0
+              : groups.length === 0) && !isLoadingCurrent
+          }
+          showButton={permisions?.can_create_clients}
+        />
         <div className='flex-1 px-6 py-3'>
           {activeView === 'clients' && clients.length > 0 && (
             <Table<Client>
@@ -637,11 +634,6 @@ const AllClients = () => {
           )}
         </div>
       </div>
-      {/* Conditional rendering for AddClient or AddGroup modal/drawer */}
-      {activeView === 'clients' && (
-        <AddClients isOpen={isDrawerOpen} onClose={closeDrawer} />
-      )}
-      {activeView === 'groups' && <AddClients isOpen={isDrawerOpen} onClose={closeDrawer} />}
 
       <Modal
         opened={opened}

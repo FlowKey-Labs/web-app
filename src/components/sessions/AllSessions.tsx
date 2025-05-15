@@ -22,7 +22,6 @@ import classesFilterIcon from '../../assets/icons/classesFilter.svg';
 import resetIcon from '../../assets/icons/resetIcon.svg';
 import dropdownIcon from '../../assets/icons/dropIcon.svg';
 import Button from '../common/Button';
-import AddSession from './AddSession';
 
 import EmptyDataPage from '../common/EmptyDataPage';
 import {
@@ -39,13 +38,13 @@ import { notifications } from '@mantine/notifications';
 import successIcon from '../../assets/icons/success.svg';
 import errorIcon from '../../assets/icons/error.svg';
 import { useAuthStore } from '../../store/auth';
+import { useUIStore } from '../../store/ui';
 
 const columnHelper = createColumnHelper<Session>();
 
 const AllSessions = () => {
   const navigate = useNavigate();
   const [rowSelection, setRowSelection] = useState({});
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [classTypeDropdownOpen, setClassTypeDropdownOpen] = useState(false);
   const [categoryTypeDropdownOpen, setCategoryTypeDropdownOpen] =
     useState(false);
@@ -64,8 +63,7 @@ const AllSessions = () => {
     null,
   ]);
 
-  const openDrawer = () => setIsModalOpen(true);
-  const closeDrawer = () => setIsModalOpen(false);
+  const { openDrawer } = useUIStore();
 
   const activateSessionMutation = useActivateSession();
   const deactivateSessionMutation = useDeactivateSession();
@@ -514,6 +512,8 @@ const AllSessions = () => {
     });
   };
 
+  const handleOpenAddSession = () => openDrawer({ type: 'session', isEditing: false });
+
   if (isLoadingSessions) {
     return (
       <div className='flex justify-center items-center h-screen'>
@@ -538,7 +538,7 @@ const AllSessions = () => {
           buttonText='New Session'
           searchPlaceholder='Search by Session, Staff Name or Session Type'
           leftIcon={plusIcon}
-          onButtonClick={openDrawer}
+          onButtonClick={handleOpenAddSession}
           showButton={permisions?.can_create_sessions}
         />
         <div className='flex h-[70px] w-[80%] ml-6 text-sm p-2 border rounded-md bg-white'>
@@ -768,42 +768,39 @@ const AllSessions = () => {
             </div>
           </div>
         </div>
-        {!isModalOpen && (
-          <EmptyDataPage
-            title='No Sessions Found!'
-            description="You don't have any sessions yet"
-            buttonText='Create New Session'
-            onButtonClick={openDrawer}
-            showButton={permisions?.can_create_sessions}
-            onClose={() => {
-              if (
-                selectedTypes.length > 0 ||
-                selectedCategories.length > 0 ||
-                (dateRange[0] && dateRange[1])
-              ) {
-                resetFilters();
-              }
-            }}
-            opened={
-              (!filteredSessions || filteredSessions.length === 0) &&
-              !isLoadingSessions
+        <EmptyDataPage
+          title='No Sessions Found!'
+          description="You don't have any sessions yet"
+          buttonText='Create New Session'
+          onButtonClick={handleOpenAddSession}
+          showButton={permisions?.can_create_sessions}
+          onClose={() => {
+            if (
+              selectedTypes.length > 0 ||
+              selectedCategories.length > 0 ||
+              (dateRange[0] && dateRange[1])
+            ) {
+              resetFilters();
             }
-            filterType={
-              selectedTypes.length === 1
-                ? 'sessionType'
-                : selectedCategories.length === 1
-                ? 'category'
-                : undefined
-            }
-            filterValue={
-              selectedTypes.length === 1
-                ? selectedTypes[0]
-                : selectedCategories.length === 1
-                ? selectedCategories[0]
-                : undefined
-            }
-          />
-        )}
+          }}
+          opened={
+            (!filteredSessions || filteredSessions.length === 0) && !isLoadingSessions
+          }
+          filterType={
+            selectedTypes.length === 1
+              ? 'sessionType'
+              : selectedCategories.length === 1
+              ? 'category'
+              : undefined
+          }
+          filterValue={
+            selectedTypes.length === 1
+              ? selectedTypes[0]
+              : selectedCategories.length === 1
+              ? selectedCategories[0]
+              : undefined
+          }
+        />
         <div className='flex-1 px-6 py-2'>
           {isLoadingSessions || isLoadingCategories ? (
             <div className='flex justify-center items-center'>
@@ -824,7 +821,6 @@ const AllSessions = () => {
           )}
         </div>
       </div>
-      <AddSession isOpen={isModalOpen} onClose={closeDrawer} />
 
       <Modal
         opened={opened}

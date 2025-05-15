@@ -35,6 +35,9 @@ interface SessionModalProps {
   onClose: () => void;
   sessionId: string;
   onUpdateSuccess?: () => void;
+  zIndex?: number;
+  fromClientDrawer?: boolean;
+  pendingClientData?: Record<string, any>;
 }
 
 const UpdateSession = ({
@@ -42,6 +45,9 @@ const UpdateSession = ({
   onClose,
   sessionId,
   onUpdateSuccess,
+  zIndex,
+  fromClientDrawer,
+  pendingClientData,
 }: SessionModalProps) => {
   const { data: sessionData } = useGetSessionDetail(sessionId || '');
   const updateSessionMutation = useUpdateSession();
@@ -132,6 +138,8 @@ const UpdateSession = ({
 
   useEffect(() => {
     if (sessionData && isOpen) {
+      console.log('%c Session Update - Data received from API:', 'background: #2ecc71; color: white; padding: 4px; border-radius: 4px;', sessionData);
+
       if (sessionData.repeat_on && Array.isArray(sessionData.repeat_on)) {
         setSelectedWeekdays(sessionData.repeat_on);
       }
@@ -205,21 +213,59 @@ const UpdateSession = ({
         }
       }
 
+      const formattedDate = sessionData.date 
+        ? moment(sessionData.date).format('YYYY-MM-DD')
+        : '';
+
+      const clientIds = sessionData.attendances?.map(a => {
+        return typeof a.client === 'object' && a.client !== null
+          ? a.client.id 
+          : typeof a.client === 'number'
+          ? a.client
+          : null;
+      }).filter(id => id !== null) || [];
+      
+      console.log("Extracted client IDs:", clientIds);
+
+      const policyIds = sessionData.policy_ids || sessionData.policies?.map(p => p.id) || [];
+      console.log("Extracted policy IDs:", policyIds);
+
+      let staffId = null;
+      if (sessionData.staff) {
+        if (typeof sessionData.staff === 'object' && sessionData.staff !== null) {
+          const staffObj = sessionData.staff as Record<string, any>;
+          if ('id' in staffObj) {
+            staffId = staffObj.id;
+          }
+        } else if (typeof sessionData.staff === 'number') {
+          staffId = sessionData.staff;
+        }
+      }
+
+      console.log("Staff ID extracted:", staffId);
+
+      const formattedStartTime = sessionData._frontend_start_time || 
+        (sessionData.start_time ? moment(sessionData.start_time).format('HH:mm') : '');
+      const formattedEndTime = sessionData._frontend_end_time || 
+        (sessionData.end_time ? moment(sessionData.end_time).format('HH:mm') : '');
+      
+      console.log("Formatted times:", formattedStartTime, formattedEndTime);
+
       methods.reset({
         title: sessionData.title || '',
         description: sessionData.description || '',
         session_type: sessionData.session_type || 'class',
         class_type: sessionData.class_type || 'regular',
-        date: moment(sessionData.date).format('YYYY-MM-DD'),
-        start_time: sessionData.start_time,
-        end_time: sessionData.end_time,
+        date: formattedDate,
+        start_time: formattedStartTime,
+        end_time: formattedEndTime,
         spots: sessionData.spots,
         category: sessionData.category?.id,
         location_id: sessionData.location?.id,
         is_active: sessionData.is_active,
-        client_ids: sessionData.attendances?.map((a) => a.client.id) || [],
-        email: sessionData.email,
-        phone_number: sessionData.phone_number,
+        client_ids: clientIds,
+        email: sessionData.email || '',
+        phone_number: sessionData.phone_number || '',
         selected_class: sessionData.selected_class,
         repetition: repetitionValue as any,
         repeat_every: sessionData.repeat_every,
@@ -228,8 +274,26 @@ const UpdateSession = ({
         repeat_end_type: sessionData.repeat_end_type,
         repeat_end_date: sessionData.repeat_end_date,
         repeat_occurrences: sessionData.repeat_occurrences,
-        policy_ids: sessionData.policies?.map((p) => p.id) || [],
+        policy_ids: policyIds,
+        staff: staffId,
       });
+
+      console.log("Form reset with values:", {
+        client_ids: clientIds,
+        date: formattedDate,
+        start_time: formattedStartTime,
+        end_time: formattedEndTime,
+        staff: staffId,
+        policy_ids: policyIds,
+        location_id: sessionData.location?.id,
+      });
+
+      methods.setValue('date', formattedDate);
+      methods.setValue('start_time', formattedStartTime);
+      methods.setValue('end_time', formattedEndTime);
+      methods.setValue('client_ids', clientIds);
+      methods.setValue('policy_ids', policyIds);
+      methods.setValue('staff', staffId);
 
       if (sessionData.repeat_on && Array.isArray(sessionData.repeat_on)) {
         const dayNames = sessionData.repeat_on.map((day) => {
@@ -256,6 +320,12 @@ const UpdateSession = ({
       }
     }
   }, [sessionData, isOpen]);
+
+  useEffect(() => {
+    if (fromClientDrawer && pendingClientData) {
+      console.log('Update Session drawer opened from client drawer with data:', pendingClientData);
+    }
+  }, [fromClientDrawer, pendingClientData]);
 
   const onSubmit = async (data: Partial<CustomSessionData>) => {
     if (!sessionId) return;
@@ -363,15 +433,22 @@ const UpdateSession = ({
         repeat_end_date: repeatEndDate,
         repeat_occurrences: repeatOccurrences,
         is_active: true,
-        start_time: data.start_time,
-        end_time: data.end_time,
+        start_time: data.start_time && dateOnly ? `${dateOnly}T${data.start_time}:00.000Z` : undefined,
+        end_time: data.end_time && dateOnly ? `${dateOnly}T${data.end_time}:00.000Z` : undefined,
         email: data.email,
         phone_number: data.phone_number,
         selected_class: data.selected_class,
         client_ids: [],
+        policy_ids: data.policy_ids || [],
       };
+      
+      console.log("Formatted date:", dateOnly);
+      console.log("Formatted start_time:", formattedData.start_time);
+      console.log("Formatted end_time:", formattedData.end_time);
 
       formattedData.client_ids = clientIds;
+      
+      console.log('%c Session Update - Data being sent to API:', 'background: #3498db; color: white; padding: 4px; border-radius: 4px;', formattedData);
 
       await updateSessionMutation.mutateAsync({
         id: sessionId,
@@ -474,6 +551,24 @@ const UpdateSession = ({
     }
   };
 
+  const pendingClientNotice = fromClientDrawer ? (
+    <div className="bg-blue-50 p-3 mb-4 rounded-md border border-blue-200">
+      <div className="flex items-start">
+        <div className="flex-shrink-0 pt-0.5">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-500" viewBox="0 0 20 20" fill="currentColor">
+            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+          </svg>
+        </div>
+        <div className="ml-3">
+          <h3 className="text-sm font-medium text-blue-800">Updating Session for Client</h3>
+          <div className="mt-1 text-sm text-blue-700">
+            <p>You are updating a session that was created from a client record.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  ) : null;
+
   return (
     <>
       <Drawer
@@ -488,6 +583,7 @@ const UpdateSession = ({
             : 'Update Event'
         }
         position='right'
+        zIndex={zIndex}
         styles={{
           header: {
             padding: '1.5rem 2rem',
@@ -508,13 +604,11 @@ const UpdateSession = ({
         <div className='flex flex-col'>
           <FormProvider {...methods}>
             <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                methods.handleSubmit((formData) => onSubmit(formData))(e);
-              }}
+              onSubmit={methods.handleSubmit(onSubmit)}
               className='flex-1 flex flex-col'
             >
               <div className='flex-1 p-8'>
+                {pendingClientNotice}
                 <div className='space-y-6'>
                   {methods.watch('session_type') === 'class' ? (
                     <div className='space-y-4'>
@@ -557,6 +651,8 @@ const UpdateSession = ({
                                 onSelectItem={(selectedItem) =>
                                   field.onChange(selectedItem)
                                 }
+                                createLabel="Create new class type"
+                                createDrawerType="session"
                               />
                             );
                           }}
@@ -610,6 +706,8 @@ const UpdateSession = ({
                                     selectedItem ? selectedItem.value : ''
                                   );
                                 }}
+                                createLabel="Create new category"
+                                createDrawerType="category"
                               />
                             );
                           }}
@@ -622,13 +720,26 @@ const UpdateSession = ({
                             name='date'
                             control={methods.control}
                             render={({ field }) => (
-                              <Input
-                                {...field}
-                                label='Date'
-                                placeholder='YYYY-MM-DD'
-                                type='date'
-                                value={field.value}
-                              />
+                              <div className="w-full mt-4 mb-6">
+                                <div className="relative w-full">
+                                  <input
+                                    type="date"
+                                    id="date"
+                                    value={field.value || ''}
+                                    onChange={(e) => {
+                                      field.onChange(e.target.value);
+                                      console.log("Date changed:", e.target.value);
+                                    }}
+                                    className="w-full h-[58px] border border-gray-300 rounded-lg px-4 pt-6 pb-2 text-xs focus:outline-none focus:ring-[1px] focus:border-none focus:ring-secondary focus:border-secondary"
+                                  />
+                                  <label
+                                    htmlFor="date"
+                                    className="absolute top-2 text-xs left-4 transition-all duration-200 text-primary"
+                                  >
+                                    Date
+                                  </label>
+                                </div>
+                              </div>
                             )}
                           />
                           <div className='grid grid-cols-2 gap-4'>
@@ -636,26 +747,52 @@ const UpdateSession = ({
                               name='start_time'
                               control={methods.control}
                               render={({ field }) => (
-                                <Input
-                                  {...field}
-                                  label='Start Time'
-                                  placeholder='HH:MM'
-                                  type='time'
-                                  value={field.value}
-                                />
+                                <div className="w-full mt-4">
+                                  <div className="relative w-full">
+                                    <input
+                                      type="time"
+                                      id="start_time"
+                                      value={field.value || ''}
+                                      onChange={(e) => {
+                                        field.onChange(e.target.value);
+                                        console.log("Start time changed:", e.target.value);
+                                      }}
+                                      className="w-full h-[58px] border border-gray-300 rounded-lg px-4 pt-6 pb-2 text-xs focus:outline-none focus:ring-[1px] focus:border-none focus:ring-secondary focus:border-secondary"
+                                    />
+                                    <label
+                                      htmlFor="start_time"
+                                      className="absolute top-2 text-xs left-4 transition-all duration-200 text-primary"
+                                    >
+                                      Start Time
+                                    </label>
+                                  </div>
+                                </div>
                               )}
                             />
                             <Controller
                               name='end_time'
                               control={methods.control}
                               render={({ field }) => (
-                                <Input
-                                  {...field}
-                                  label='End Time'
-                                  placeholder='HH:MM'
-                                  type='time'
-                                  value={field.value}
-                                />
+                                <div className="w-full mt-4">
+                                  <div className="relative w-full">
+                                    <input
+                                      type="time"
+                                      id="end_time"
+                                      value={field.value || ''}
+                                      onChange={(e) => {
+                                        field.onChange(e.target.value);
+                                        console.log("End time changed:", e.target.value);
+                                      }}
+                                      className="w-full h-[58px] border border-gray-300 rounded-lg px-4 pt-6 pb-2 text-xs focus:outline-none focus:ring-[1px] focus:border-none focus:ring-secondary focus:border-secondary"
+                                    />
+                                    <label
+                                      htmlFor="end_time"
+                                      className="absolute top-2 text-xs left-4 transition-all duration-200 text-primary"
+                                    >
+                                      End Time
+                                    </label>
+                                  </div>
+                                </div>
                               )}
                             />
                           </div>
@@ -675,7 +812,6 @@ const UpdateSession = ({
                                   { label: 'Weekly', value: 'weekly' },
                                   { label: 'Monthly', value: 'monthly' },
                                   { label: 'Custom', value: 'custom' },
-                                  // Add a dynamic option for custom repetition if it exists
                                   ...(field.value &&
                                   ![
                                     'none',
@@ -789,24 +925,88 @@ const UpdateSession = ({
                                   : '';
 
                                 return (
-                                  <DropdownSelectInput
-                                    label='Assign Staff'
-                                    placeholder='Select Staff'
-                                    options={
-                                      isStaffLoading
-                                        ? [{ label: 'Loading...', value: '' }]
-                                        : staffData?.map((staff: any) => ({
-                                            label: `${staff.user?.first_name} ${staff.user?.last_name}`,
-                                            value: staff.id.toString(),
-                                          })) || []
-                                    }
-                                    value={staffValue}
-                                    onSelectItem={(selectedItem) => {
-                                      field.onChange(
-                                        selectedItem ? selectedItem.value : ''
+                                  <div className='flex flex-col'>
+                                    <DropdownSelectInput
+                                      label='Assign Staff'
+                                      placeholder='Select Staff'
+                                      options={
+                                        isStaffLoading
+                                          ? []
+                                          : staffData?.map((staff: any) => {
+                                              if (!staff || !staff.id) {
+                                                console.warn('Invalid staff data:', staff);
+                                                return null;
+                                              }
+                                              
+                                              const userData = staff.user || {};
+                                              const email = userData.email || staff.email || '';
+                                              const isActive = staff.isActive ?? false;
+                                              const status = isActive ? 'active' : 'inactive';
+                                              
+                                              if (userData.first_name && userData.last_name) {
+                                                return {
+                                                  label: `${userData.first_name} ${userData.last_name}`,
+                                                  value: staff.id.toString(),
+                                                  subLabel: email,
+                                                  status
+                                                };
+                                              } else if (email) {
+                                                return {
+                                                  label: email,
+                                                  value: staff.id.toString(),
+                                                  subLabel: `Staff ${staff.id}`,
+                                                  status
+                                                };
+                                              } else {
+                                                return {
+                                                  label: `Staff ${staff.id}`,
+                                                  value: staff.id.toString(),
+                                                  status
+                                                };
+                                              }
+                                            }).filter(Boolean) || []
+                                      }
+                                      value={staffValue}
+                                      onSelectItem={(selectedItem) => {
+                                        field.onChange(selectedItem.value)}
+                                      }
+                                      createLabel="Add new staff member"
+                                      createDrawerType="staff"
+                                    />
+                                    {(() => {
+                                      if (!staffId) return null;
+                                      
+                                      let staffIdValue: string | null = null;
+                                      if (typeof staffId === 'object' && staffId !== null) {
+                                        if ('value' in staffId) {
+                                          staffIdValue = String(staffId.value);
+                                        } else if ('id' in staffId) {
+                                          staffIdValue = String(staffId.id);
+                                        }
+                                      } else if (staffId) {
+                                        staffIdValue = String(staffId);
+                                      }
+                                      
+                                      if (!staffIdValue) return null;
+                                      
+                                      const selectedStaff = staffData?.find((staff: any) => 
+                                        staff.id.toString() === staffIdValue
                                       );
-                                    }}
-                                  />
+                                      
+                                      if (selectedStaff && !(selectedStaff.isActive ?? true)) {
+                                        return (
+                                          <div className="mt-1 text-amber-600 text-xs flex items-center">
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                            </svg>
+                                            Note: This staff member has not completed their account setup yet.
+                                          </div>
+                                        );
+                                      }
+                                      
+                                      return null;
+                                    })()}
+                                  </div>
                                 );
                               }}
                             />
@@ -817,15 +1017,16 @@ const UpdateSession = ({
                         name='client_ids'
                         control={methods.control}
                         render={({ field }) => {
+                          console.log("Client field value:", field.value);
                           return (
                             <DropdownSelectInput
-                              label='Clients'
-                              placeholder='Select clients'
+                              label='Name'
+                              placeholder='Select client'
                               singleSelect={false}
                               options={
                                 isClientsLoading
                                   ? [{ label: 'Loading...', value: '' }]
-                                  : clientsData?.map((client: any) => ({
+                                  : clientsData?.filter(Boolean).map((client: any) => ({
                                       label: `${client.first_name} ${client.last_name}`,
                                       value: client.id.toString(),
                                     })) || []
@@ -838,6 +1039,7 @@ const UpdateSession = ({
                                   : []
                               }
                               onSelectItem={(selectedItems) => {
+                                console.log("Selected clients:", selectedItems);
                                 const values = Array.isArray(selectedItems)
                                   ? selectedItems.map((item) =>
                                       parseInt(item.value)
@@ -847,6 +1049,8 @@ const UpdateSession = ({
                                   : [];
                                 field.onChange(values);
                               }}
+                              createLabel="Add new client"
+                              createDrawerType="client"
                             />
                           );
                         }}
@@ -862,7 +1066,6 @@ const UpdateSession = ({
                               : field.value
                             : null;
 
-                          // Use type assertion to avoid conflicts
                           const selectedLocation = locationsData?.find(
                             (location: any) =>
                               location.id?.toString() === locationId?.toString()
@@ -881,18 +1084,20 @@ const UpdateSession = ({
                               placeholder='Select Location'
                               options={
                                 isLocationsLoading
-                                  ? [{ label: 'Loading...', value: '' }]
+                                  ? []
                                   : locationsData?.map((location: any) => ({
                                       label: location.name,
                                       value: location.id.toString(),
                                     })) || []
                               }
-                              value={locationValue}
+                              value={
+                                field.value ? field.value.toString() : ''
+                              }
                               onSelectItem={(selectedItem) => {
-                                field.onChange(
-                                  selectedItem ? selectedItem.value : ''
-                                );
-                              }}
+                                field.onChange(selectedItem.value)}
+                              }
+                              createLabel="Create new location"
+                              createDrawerType="location"
                             />
                           );
                         }}
@@ -900,7 +1105,9 @@ const UpdateSession = ({
                       <Controller
                         name='policy_ids'
                         control={methods.control}
-                        render={({ field }) => (
+                        render={({ field }) => {
+                          console.log("Policy field value:", field.value);
+                          return (
                           <DropdownSelectInput
                             label='Policies'
                             placeholder='Select Policies'
@@ -913,8 +1120,9 @@ const UpdateSession = ({
                                     value: policy.id.toString(),
                                   })) || []
                             }
-                            value={field.value ? field.value.map(String) : []}
+                            value={field.value ? Array.isArray(field.value) ? field.value.map(String) : [String(field.value)] : []}
                             onSelectItem={(selectedItems) => {
+                              console.log("Selected policies:", selectedItems);
                               const values = (
                                 Array.isArray(selectedItems)
                                   ? selectedItems
@@ -928,8 +1136,11 @@ const UpdateSession = ({
                                 );
                               field.onChange(values);
                             }}
+                            createLabel="Create new policy"
+                            createDrawerType="policy"
                           />
-                        )}
+                        );
+                        }}
                       />
                     </div>
                   ) : methods.watch('session_type') === 'appointment' ? (
@@ -970,14 +1181,16 @@ const UpdateSession = ({
                         name='client_ids'
                         control={methods.control}
                         render={({ field }) => {
+                          console.log("Client field value:", field.value);
                           return (
                             <DropdownSelectInput
                               label='Name'
                               placeholder='Select client'
+                              singleSelect={false}
                               options={
                                 isClientsLoading
                                   ? [{ label: 'Loading...', value: '' }]
-                                  : clientsData?.map((client: any) => ({
+                                  : clientsData?.filter(Boolean).map((client: any) => ({
                                       label: `${client.first_name} ${client.last_name}`,
                                       value: client.id.toString(),
                                     })) || []
@@ -990,6 +1203,7 @@ const UpdateSession = ({
                                   : []
                               }
                               onSelectItem={(selectedItems) => {
+                                console.log("Selected clients:", selectedItems);
                                 const values = Array.isArray(selectedItems)
                                   ? selectedItems.map((item) =>
                                       parseInt(item.value)
@@ -999,6 +1213,8 @@ const UpdateSession = ({
                                   : [];
                                 field.onChange(values);
                               }}
+                              createLabel="Add new client"
+                              createDrawerType="client"
                             />
                           );
                         }}
@@ -1015,7 +1231,6 @@ const UpdateSession = ({
                               : field.value
                             : null;
 
-                          // Use type assertion to avoid conflicts
                           const selectedLocation = locationsData?.find(
                             (location: any) =>
                               location.id?.toString() === locationId?.toString()
@@ -1079,12 +1294,26 @@ const UpdateSession = ({
                         name='date'
                         control={methods.control}
                         render={({ field }) => (
-                          <Input
-                            {...field}
-                            label='Date'
-                            placeholder='YYYY-MM-DD'
-                            type='date'
-                          />
+                          <div className="w-full mt-4 mb-6">
+                            <div className="relative w-full">
+                              <input
+                                type="date"
+                                id="date"
+                                value={field.value || ''}
+                                onChange={(e) => {
+                                  field.onChange(e.target.value);
+                                  console.log("Date changed:", e.target.value);
+                                }}
+                                className="w-full h-[58px] border border-gray-300 rounded-lg px-4 pt-6 pb-2 text-xs focus:outline-none focus:ring-[1px] focus:border-none focus:ring-secondary focus:border-secondary"
+                              />
+                              <label
+                                htmlFor="date"
+                                className="absolute top-2 text-xs left-4 transition-all duration-200 text-primary"
+                              >
+                                Date
+                              </label>
+                            </div>
+                          </div>
                         )}
                       />
 
@@ -1093,24 +1322,52 @@ const UpdateSession = ({
                           name='start_time'
                           control={methods.control}
                           render={({ field }) => (
-                            <Input
-                              {...field}
-                              label='Start Time'
-                              placeholder='HH:MM'
-                              type='time'
-                            />
+                            <div className="w-full mt-4">
+                              <div className="relative w-full">
+                                <input
+                                  type="time"
+                                  id="start_time"
+                                  value={field.value || ''}
+                                  onChange={(e) => {
+                                    field.onChange(e.target.value);
+                                    console.log("Start time changed:", e.target.value);
+                                  }}
+                                  className="w-full h-[58px] border border-gray-300 rounded-lg px-4 pt-6 pb-2 text-xs focus:outline-none focus:ring-[1px] focus:border-none focus:ring-secondary focus:border-secondary"
+                                />
+                                <label
+                                  htmlFor="start_time"
+                                  className="absolute top-2 text-xs left-4 transition-all duration-200 text-primary"
+                                >
+                                  Start Time
+                                </label>
+                              </div>
+                            </div>
                           )}
                         />
                         <Controller
                           name='end_time'
                           control={methods.control}
                           render={({ field }) => (
-                            <Input
-                              {...field}
-                              label='End Time'
-                              placeholder='HH:MM'
-                              type='time'
-                            />
+                            <div className="w-full mt-4">
+                              <div className="relative w-full">
+                                <input
+                                  type="time"
+                                  id="end_time"
+                                  value={field.value || ''}
+                                  onChange={(e) => {
+                                    field.onChange(e.target.value);
+                                    console.log("End time changed:", e.target.value);
+                                  }}
+                                  className="w-full h-[58px] border border-gray-300 rounded-lg px-4 pt-6 pb-2 text-xs focus:outline-none focus:ring-[1px] focus:border-none focus:ring-secondary focus:border-secondary"
+                                />
+                                <label
+                                  htmlFor="end_time"
+                                  className="absolute top-2 text-xs left-4 transition-all duration-200 text-primary"
+                                >
+                                  End Time
+                                </label>
+                              </div>
+                            </div>
                           )}
                         />
                       </div>
@@ -1142,31 +1399,97 @@ const UpdateSession = ({
                             : '';
 
                           return (
-                            <DropdownSelectInput
-                              label='Assign Staff'
-                              placeholder='Select Staff'
-                              options={
-                                isStaffLoading
-                                  ? [{ label: 'Loading...', value: '' }]
-                                  : staffData?.map((staff: any) => ({
-                                      label: `${staff.user?.first_name} ${staff.user?.last_name}`,
-                                      value: staff.id.toString(),
-                                    })) || []
-                              }
-                              value={staffValue}
-                              onSelectItem={(selectedItem) => {
-                                field.onChange(
-                                  selectedItem ? selectedItem.value : ''
+                            <div className='flex flex-col'>
+                              <DropdownSelectInput
+                                label='Assign Staff'
+                                placeholder='Select Staff'
+                                options={
+                                  isStaffLoading
+                                    ? []
+                                    : staffData?.map((staff: any) => {
+                                        if (!staff || !staff.id) {
+                                          console.warn('Invalid staff data:', staff);
+                                          return null;
+                                        }
+                                        
+                                        const userData = staff.user || {};
+                                        const email = userData.email || staff.email || '';
+                                        const isActive = staff.isActive ?? false;
+                                        const status = isActive ? 'active' : 'inactive';
+                                        
+                                        if (userData.first_name && userData.last_name) {
+                                          return {
+                                            label: `${userData.first_name} ${userData.last_name}`,
+                                            value: staff.id.toString(),
+                                            subLabel: email,
+                                            status
+                                          };
+                                        } else if (email) {
+                                          return {
+                                            label: email,
+                                            value: staff.id.toString(),
+                                            subLabel: `Staff ${staff.id}`,
+                                            status
+                                          };
+                                        } else {
+                                          return {
+                                            label: `Staff ${staff.id}`,
+                                            value: staff.id.toString(),
+                                            status
+                                          };
+                                        }
+                                      }).filter(Boolean) || []
+                                }
+                                value={staffValue}
+                                onSelectItem={(selectedItem) => {
+                                  field.onChange(selectedItem.value)}
+                                }
+                                createLabel="Add new staff member"
+                                createDrawerType="staff"
+                              />
+                              {(() => {
+                                if (!staffId) return null;
+                                
+                                let staffIdValue: string | null = null;
+                                if (typeof staffId === 'object' && staffId !== null) {
+                                  if ('value' in staffId) {
+                                    staffIdValue = String(staffId.value);
+                                  } else if ('id' in staffId) {
+                                    staffIdValue = String(staffId.id);
+                                  }
+                                } else if (staffId) {
+                                  staffIdValue = String(staffId);
+                                }
+                                
+                                if (!staffIdValue) return null;
+                                
+                                const selectedStaff = staffData?.find((staff: any) => 
+                                  staff.id.toString() === staffIdValue
                                 );
-                              }}
-                            />
+                                
+                                if (selectedStaff && !(selectedStaff.isActive ?? true)) {
+                                  return (
+                                    <div className="mt-1 text-amber-600 text-xs flex items-center">
+                                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                      </svg>
+                                      Note: This staff member has not completed their account setup yet.
+                                    </div>
+                                  );
+                                }
+                                
+                                return null;
+                              })()}
+                            </div>
                           );
                         }}
                       />
                       <Controller
                         name='policy_ids'
                         control={methods.control}
-                        render={({ field }) => (
+                        render={({ field }) => {
+                          console.log("Policy field value:", field.value);
+                          return (
                           <DropdownSelectInput
                             label='Policies'
                             placeholder='Select Policies'
@@ -1179,8 +1502,9 @@ const UpdateSession = ({
                                     value: policy.id.toString(),
                                   })) || []
                             }
-                            value={field.value ? field.value.map(String) : []}
+                            value={field.value ? Array.isArray(field.value) ? field.value.map(String) : [String(field.value)] : []}
                             onSelectItem={(selectedItems) => {
+                              console.log("Selected policies:", selectedItems);
                               const values = (
                                 Array.isArray(selectedItems)
                                   ? selectedItems
@@ -1194,8 +1518,11 @@ const UpdateSession = ({
                                 );
                               field.onChange(values);
                             }}
+                            createLabel="Create new policy"
+                            createDrawerType="policy"
                           />
-                        )}
+                        );
+                        }}
                       />
                     </div>
                   ) : methods.watch('session_type') === 'event' ? (
@@ -1242,7 +1569,6 @@ const UpdateSession = ({
                               : field.value
                             : null;
 
-                          // Use type assertion to avoid conflicts
                           const selectedLocation = locationsData?.find(
                             (location: any) =>
                               location.id?.toString() === locationId?.toString()
@@ -1286,12 +1612,26 @@ const UpdateSession = ({
                           name='date'
                           control={methods.control}
                           render={({ field }) => (
-                            <Input
-                              {...field}
-                              label='Date'
-                              placeholder='YYYY-MM-DD'
-                              type='date'
-                            />
+                            <div className="w-full mt-4 mb-6">
+                              <div className="relative w-full">
+                                <input
+                                  type="date"
+                                  id="date"
+                                  value={field.value || ''}
+                                  onChange={(e) => {
+                                    field.onChange(e.target.value);
+                                    console.log("Date changed:", e.target.value);
+                                  }}
+                                  className="w-full h-[58px] border border-gray-300 rounded-lg px-4 pt-6 pb-2 text-xs focus:outline-none focus:ring-[1px] focus:border-none focus:ring-secondary focus:border-secondary"
+                                />
+                                <label
+                                  htmlFor="date"
+                                  className="absolute top-2 text-xs left-4 transition-all duration-200 text-primary"
+                                >
+                                  Date
+                                </label>
+                              </div>
+                            </div>
                           )}
                         />
                         <div className='grid grid-cols-2 gap-4'>
@@ -1299,24 +1639,52 @@ const UpdateSession = ({
                             name='start_time'
                             control={methods.control}
                             render={({ field }) => (
-                              <Input
-                                {...field}
-                                label='Start Time'
-                                placeholder='HH:MM'
-                                type='time'
-                              />
+                              <div className="w-full mt-4">
+                                <div className="relative w-full">
+                                  <input
+                                    type="time"
+                                    id="start_time"
+                                    value={field.value || ''}
+                                    onChange={(e) => {
+                                      field.onChange(e.target.value);
+                                      console.log("Start time changed:", e.target.value);
+                                    }}
+                                    className="w-full h-[58px] border border-gray-300 rounded-lg px-4 pt-6 pb-2 text-xs focus:outline-none focus:ring-[1px] focus:border-none focus:ring-secondary focus:border-secondary"
+                                  />
+                                  <label
+                                    htmlFor="start_time"
+                                    className="absolute top-2 text-xs left-4 transition-all duration-200 text-primary"
+                                  >
+                                    Start Time
+                                  </label>
+                                </div>
+                              </div>
                             )}
                           />
                           <Controller
                             name='end_time'
                             control={methods.control}
                             render={({ field }) => (
-                              <Input
-                                {...field}
-                                label='End Time'
-                                placeholder='HH:MM'
-                                type='time'
-                              />
+                              <div className="w-full mt-4">
+                                <div className="relative w-full">
+                                  <input
+                                    type="time"
+                                    id="end_time"
+                                    value={field.value || ''}
+                                    onChange={(e) => {
+                                      field.onChange(e.target.value);
+                                      console.log("End time changed:", e.target.value);
+                                    }}
+                                    className="w-full h-[58px] border border-gray-300 rounded-lg px-4 pt-6 pb-2 text-xs focus:outline-none focus:ring-[1px] focus:border-none focus:ring-secondary focus:border-secondary"
+                                  />
+                                  <label
+                                    htmlFor="end_time"
+                                    className="absolute top-2 text-xs left-4 transition-all duration-200 text-primary"
+                                  >
+                                    End Time
+                                  </label>
+                                </div>
+                              </div>
                             )}
                           />
                         </div>
@@ -1354,7 +1722,6 @@ const UpdateSession = ({
                               ]}
                               onSelectItem={(selectedItem) => {
                                 if (selectedItem) {
-                                  // Handle custom repetition
                                   if (selectedItem.value === 'custom') {
                                     openRepetitionModal();
                                   } else {
@@ -1378,7 +1745,7 @@ const UpdateSession = ({
                             options={
                               isClientsLoading
                                 ? [{ label: 'Loading...', value: '' }]
-                                : clientsData?.map((client: any) => ({
+                                : clientsData?.filter(Boolean).map((client: any) => ({
                                     label: `${client.first_name} ${client.last_name}`,
                                     value: client.id.toString(),
                                   })) || []
@@ -1391,6 +1758,7 @@ const UpdateSession = ({
                                 : []
                             }
                             onSelectItem={(selectedItems) => {
+                              console.log("Selected clients:", selectedItems);
                               const values = Array.isArray(selectedItems)
                                 ? selectedItems.map((item) =>
                                     parseInt(item.value)
@@ -1400,13 +1768,17 @@ const UpdateSession = ({
                                 : [];
                               field.onChange(values);
                             }}
+                            createLabel="Add new client"
+                            createDrawerType="client"
                           />
                         )}
                       />
                       <Controller
                         name='policy_ids'
                         control={methods.control}
-                        render={({ field }) => (
+                        render={({ field }) => {
+                          console.log("Policy field value:", field.value);
+                          return (
                           <DropdownSelectInput
                             label='Policies'
                             placeholder='Select Policies'
@@ -1419,8 +1791,9 @@ const UpdateSession = ({
                                     value: policy.id.toString(),
                                   })) || []
                             }
-                            value={field.value ? field.value.map(String) : []}
+                            value={field.value ? Array.isArray(field.value) ? field.value.map(String) : [String(field.value)] : []}
                             onSelectItem={(selectedItems) => {
+                              console.log("Selected policies:", selectedItems);
                               const values = (
                                 Array.isArray(selectedItems)
                                   ? selectedItems
@@ -1434,8 +1807,11 @@ const UpdateSession = ({
                                 );
                               field.onChange(values);
                             }}
+                            createLabel="Create new policy"
+                            createDrawerType="policy"
                           />
-                        )}
+                        );
+                        }}
                       />
                     </div>
                   ) : null}

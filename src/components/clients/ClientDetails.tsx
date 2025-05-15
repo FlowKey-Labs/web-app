@@ -6,8 +6,8 @@ import Table from '../common/Table';
 import { createColumnHelper } from '@tanstack/react-table';
 import { useGetClient, useGetClientAnalytics } from '../../hooks/reactQuery';
 import avatar from '../../assets/icons/newAvatar.svg';
-import UpdateClient from './UpdateClient';
 import { navigateToSessionDetails } from '../../utils/navigationHelpers';
+import { useUIStore } from '../../store/ui';
 import ProgressTracker from './ProgressTracker';
 import ProgressSeriesTracker from './ProgressSeriesTracker';
 import { useProgressStore } from '../../store/progressStore';
@@ -18,14 +18,10 @@ type isActiveType = 'Client Sessions' | 'Make-up';
 const ClientDetails = () => {
   const { id: clientId } = useParams();
   const navigate = useNavigate();
+  const { openDrawer } = useUIStore();
   const { viewMode, setViewMode, activeTab, setActiveTab } = useProgressStore();
-
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [rowSelection, setRowSelection] = useState({});
   const [isActive, setIsActive] = useState<isActiveType>('Client Sessions');
-
-  const openDrawer = () => setIsDrawerOpen(true);
-  const closeDrawer = () => setIsDrawerOpen(false);
 
   const {
     data: clientDetails,
@@ -104,6 +100,16 @@ const ClientDetails = () => {
     [clientDetails]
   );
 
+  const handleOpenUpdateDrawer = () => {
+    if (clientId) {
+      openDrawer({
+        type: 'client',
+        entityId: clientId,
+        isEditing: true
+      });
+    }
+  };
+
   if (isLoading) {
     return (
       <div className='flex justify-center items-center h-screen'>
@@ -139,7 +145,7 @@ const ClientDetails = () => {
           title='Client Details'
           buttonText='Update Client'
           searchPlaceholder='Search by ID, Name or Subject'
-          onButtonClick={openDrawer}
+          onButtonClick={handleOpenUpdateDrawer}
           showFilterIcons={false}
         />
         <div className='items-center gap-4 p-6'>
@@ -373,11 +379,6 @@ const ClientDetails = () => {
           </div>
         </div>
       </div>
-      <UpdateClient
-        isOpen={isDrawerOpen}
-        onClose={closeDrawer}
-        clientId={clientId}
-      />
     </>
   );
 };

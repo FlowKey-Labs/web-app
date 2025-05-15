@@ -30,9 +30,9 @@ import {
 import actionOptionIcon from '../../assets/icons/actionOption.svg';
 import { Client } from '../../types/clientTypes';
 import avatar from '../../assets/icons/newAvatar.svg';
-import UpdateSession from './UpdateSession';
 import successIcon from '../../assets/icons/success.svg';
 import errorIcon from '../../assets/icons/error.svg';
+import { useUIStore } from '../../store/ui';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
 import Input from '../common/Input';
 import { MakeUpSession } from '../../types/sessionTypes';
@@ -54,7 +54,6 @@ const SessionDetails = () => {
 
   const createMakeupSessionMutation = useCreateMakeupSession();
 
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'overview' | 'clients'>(
     'overview'
   );
@@ -71,7 +70,6 @@ const SessionDetails = () => {
   const {
     data: sessionAnalytics,
     isLoading: analyticsLoading,
-    refetch: refetchAnalytics,
   } = useGetSessionAnalytics(sessionId || '');
 
   const {
@@ -101,15 +99,14 @@ const SessionDetails = () => {
     isExporting,
   } = useExportSessionClients(clients || []);
 
-  const openDrawer = () => setIsDrawerOpen(true);
-  const closeDrawer = () => {
-    setIsDrawerOpen(false);
-  };
+  const { openDrawer } = useUIStore();
 
-  const refreshSessionData = () => {
-    refetchSession();
-    refetchClients();
-    refetchAnalytics();
+  const handleOpenUpdateSession = () => {
+    openDrawer({ 
+      type: 'session', 
+      entityId: sessionId, 
+      isEditing: true 
+    });
   };
 
   const formatDate = (dateString: string) => {
@@ -598,7 +595,7 @@ const SessionDetails = () => {
           title='Session Details'
           buttonText='Update Session'
           searchPlaceholder='Search by ID, Name or Subject'
-          onButtonClick={openDrawer}
+          onButtonClick={handleOpenUpdateSession}
           showFilterIcons={false}
           showSearch={false}
         />
@@ -840,13 +837,6 @@ const SessionDetails = () => {
           </div>
         </div>
       </div>
-      <UpdateSession
-        isOpen={isDrawerOpen}
-        onClose={closeDrawer}
-        sessionId={sessionId || ''}
-        onUpdateSuccess={refreshSessionData}
-      />
-
       <Modal
         opened={opened}
         onClose={close}

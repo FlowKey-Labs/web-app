@@ -3,6 +3,7 @@ import Sidebar from '../sidebar/Sidebar';
 import { useGetUserProfile } from '../../hooks/reactQuery';
 import { useEffect } from 'react';
 import { useAuthStore } from '../../store/auth';
+import { GlobalDrawerManager } from '../drawers';
 
 const Home = () => {
   const location = useLocation();
@@ -26,6 +27,7 @@ const Home = () => {
           <Outlet />
         </div>
       </div>
+      <GlobalDrawerManager />
     </div>
   );
 };

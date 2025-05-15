@@ -8,6 +8,8 @@ import { payTypeOptions } from "../../utils/dummyData";
 import { PayType } from "../../types/staffTypes";
 import { useGetRoles } from "../../hooks/reactQuery";
 import { Role } from "../../store/auth";
+import { notifications } from "@mantine/notifications";
+import { useUIStore } from "../../store/ui";
 
 interface RoleData {
   role: string;
@@ -57,6 +59,7 @@ const NewStaffRoles = ({ onNext, onBack, initialData }: NewStaffRolesProps) => {
   const [showHourlyRate, setShowHourlyRate] = useState(
     initialData?.payType === "hourly"
   );
+  const { openDrawer } = useUIStore();
 
   const methods = useForm<RoleFormData>({
     resolver: yupResolver(formSchema),
@@ -72,6 +75,19 @@ const NewStaffRoles = ({ onNext, onBack, initialData }: NewStaffRolesProps) => {
     },
   });
 
+  const handleCreateNewRole = () => {
+    notifications.show({
+      title: "Create New Role",
+      message: "Opening role creation form...",
+      color: "green",
+    });
+    
+    openDrawer({
+      type: 'role',
+      isEditing: false
+    });
+  };
+
   const onSubmit: SubmitHandler<RoleFormData> = (data) => {
     onNext(data.roles[0]);
   };
@@ -81,7 +97,7 @@ const NewStaffRoles = ({ onNext, onBack, initialData }: NewStaffRolesProps) => {
       <div className="flex flex-col space-y-6 w-[100%] h-full">
         <h3 className="text-[32px] font-semibold text-primary px-4">Role</h3>
         <p className="text-primary text-sm px-4">
-          Manage staff’s role and compensation
+          Manage staff's role and compensation
         </p>
         <form
           onSubmit={methods.handleSubmit(onSubmit)}
@@ -95,11 +111,13 @@ const NewStaffRoles = ({ onNext, onBack, initialData }: NewStaffRolesProps) => {
                   label: role.name,
                   value: role.id,
                 }))}
-                placeholder="Select or create new role"
+                placeholder="Select role"
                 value={methods.watch("roles.0.role")}
                 onSelectItem={(selectedItem) =>
                   methods.setValue(`roles.0.role`, selectedItem.value)
                 }
+                createLabel="Create new role"
+                createDrawerType="role"
                 hasError={!!methods.formState.errors.roles?.[0]?.role}
                 errorMessage={
                   methods.formState.errors.roles?.[0]?.role?.message

@@ -11,7 +11,6 @@ import {
   useDeactivateStaff,
 } from '../../hooks/reactQuery';
 import { StaffResponse } from '../../types/staffTypes';
-import AddStaff from './AddStaff';
 import EmptyDataPage from '../common/EmptyDataPage';
 import {
   Group,
@@ -29,13 +28,13 @@ import errorIcon from '../../assets/icons/error.svg';
 import { useExportStaff } from '../../hooks/useExport';
 import { navigateToStaffDetails } from '../../utils/navigationHelpers';
 import { useAuthStore } from '../../store/auth';
+import { useUIStore } from '../../store/ui';
 
 const columnHelper = createColumnHelper<StaffResponse>();
 
 const AllStaff = () => {
   const navigate = useNavigate();
   const [rowSelection, setRowSelection] = useState({});
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [selectedStaff, setSelectedStaff] = useState<StaffResponse | null>(
     null
   );
@@ -43,6 +42,7 @@ const AllStaff = () => {
   const [opened, { open, close }] = useDisclosure(false);
 
   const permisions = useAuthStore((state) => state.role);
+  const { openDrawer } = useUIStore();
 
   const {
     data: staff = [],
@@ -72,8 +72,12 @@ const AllStaff = () => {
     isExporting,
   } = useExportStaff(staff || []);
 
-  const openDrawer = () => setIsDrawerOpen(true);
-  const closeDrawer = () => setIsDrawerOpen(false);
+  const handleOpenStaffDrawer = () => {
+    openDrawer({
+      type: 'staff',
+      isEditing: false
+    });
+  };
 
   const handleDeactivateStaff = () => {
     if (!selectedStaff) return;
@@ -344,20 +348,18 @@ const AllStaff = () => {
           buttonText='New Staff'
           searchPlaceholder='Search by Name, Email or Phone Number'
           leftIcon={plusIcon}
-          onButtonClick={openDrawer}
+          onButtonClick={handleOpenStaffDrawer}
           showButton={permisions?.can_create_staff}
         />
-        {!isDrawerOpen && (
-          <EmptyDataPage
-            title='No Staff Found'
-            description="You don't have any staff yet"
-            buttonText='Add New Staff'
-            onButtonClick={openDrawer}
-            onClose={() => {}}
-            opened={staff.length === 0 && !isLoading && !isError}
-            showButton={permisions?.can_create_staff}
-          />
-        )}
+        <EmptyDataPage
+          title='No Staff Found'
+          description="You don't have any staff yet"
+          buttonText='Add New Staff'
+          onButtonClick={handleOpenStaffDrawer}
+          onClose={() => {}}
+          opened={staff.length === 0 && !isLoading && !isError}
+          showButton={permisions?.can_create_staff}
+        />
         {staff.length > 0 && (
           <div className='flex-1 px-6 py-3'>
             <Table
@@ -374,8 +376,6 @@ const AllStaff = () => {
           </div>
         )}
       </div>
-
-      <AddStaff isOpen={isDrawerOpen} onClose={closeDrawer} />
 
       <Modal
         opened={opened}

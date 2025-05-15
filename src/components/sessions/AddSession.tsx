@@ -24,7 +24,6 @@ import { useCreateSession } from '../../hooks/reactQuery';
 import moment from 'moment';
 import { Modal, Drawer } from '@mantine/core';
 
-// Define Client interface for type safety
 interface Client {
   id: number;
   first_name: string;
@@ -36,6 +35,9 @@ interface Client {
 interface SessionModalProps {
   isOpen: boolean;
   onClose: () => void;
+  zIndex?: number;
+  fromClientDrawer?: boolean;
+  pendingClientData?: Record<string, any>;
 }
 
 import { DropDownItem } from '../common/Dropdown';
@@ -72,9 +74,11 @@ type FormData = Omit<
   repeat_end_type: 'never' | 'on' | 'after';
   repeat_end_date?: string;
   repeat_occurrences?: number;
+  
+  _pendingClientFromDrawer?: boolean;
 };
 
-const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
+const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientData }: SessionModalProps) => {
   const methods = useForm<FormData>({
     mode: 'onSubmit',
     defaultValues: {
@@ -139,7 +143,7 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
       methods.reset({
         ...currentValues,
         spots: 0,
-        class_type: undefined, // Clear the class_type when not in class mode
+        class_type: undefined, 
       });
     }
   }, [methods.watch('session_type')]);
@@ -153,6 +157,15 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
       setValue(null);
     }
   }, [isOpen]);
+
+  useEffect(() => {
+    if (fromClientDrawer && pendingClientData) {
+      
+      console.log('Session drawer opened from client drawer with data:', pendingClientData);
+      
+      methods.setValue('_pendingClientFromDrawer', true);
+    }
+  }, [fromClientDrawer, pendingClientData, methods]);
 
   const handleWeekdayClick = (weekday: string) => {
     setSelectedWeekdays((prev) =>
@@ -181,12 +194,19 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
         }
       }
 
+      
       const dateOnly = moment(dateObj).format('YYYY-MM-DD');
-      const timeOnly = moment(data.start_time).format('HH:mm:ss');
-      const actualStartTime = `${dateOnly}T${timeOnly}Z`;
+      
+      
+      const formattedStartTime = data.start_time && dateOnly ? `${dateOnly}T${data.start_time}:00.000Z` : null;
+      const formattedEndTime = data.end_time && dateOnly ? `${dateOnly}T${data.end_time}:00.000Z` : null;
 
-      const timeOnlyEnd = moment(data.end_time).format('HH:mm:ss');
-      const actualEndTime = `${dateOnly}T${timeOnlyEnd}Z`;
+      
+      console.log("Date value:", dateOnly);
+      console.log("Start time input:", data.start_time);
+      console.log("End time input:", data.end_time);
+      console.log("Formatted start time:", formattedStartTime);
+      console.log("Formatted end time:", formattedEndTime);
 
       let repeatEndDateObj = null;
       if (data.repeat_end_date) {
@@ -207,7 +227,7 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
         return field;
       };
 
-      // Create the base formatted data object
+      
       const formattedData: any = {
         title: data.title,
         session_type: data.session_type,
@@ -223,16 +243,20 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
         repeat_on: data.repeat_on,
         repeat_end_type: data.repeat_end_type,
         repeat_occurrences: data.repeat_occurrences,
-        start_time: actualStartTime,
-        end_time: actualEndTime,
+        start_time: formattedStartTime,
+        end_time: formattedEndTime,
         email: data.email,
         phone_number: data.phone_number,
         selected_class: extractValue(data.selected_class),
         location_id: extractValue(data.location_id),
         policy_ids: data.policy_ids || [],
+        _pendingClientFromDrawer: fromClientDrawer ? true : undefined,
       };
 
-      // Include class_type for class and appointment session types
+
+      console.log('Session creation payload:', formattedData);
+
+
       if (
         data.session_type === 'class' ||
         data.session_type === 'appointment'
@@ -300,6 +324,21 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
         console.error('API Error Status:', error.response.status);
         console.error('API Error Headers:', error.response.headers);
         console.error('API Error Response:', error.response.data);
+        
+
+        console.error('Request payload that caused error:', error.config?.data ? JSON.parse(error.config.data) : 'No payload data');
+        
+        if (error.response.data?.start_time) {
+          console.error('Start time error:', error.response.data.start_time);
+        }
+        
+        if (error.response.data?.end_time) {
+          console.error('End time error:', error.response.data.end_time);
+        }
+        
+        if (error.response.data?.date) {
+          console.error('Date error:', error.response.data.date);
+        }
 
         if (typeof error.response.data === 'object') {
           const errorMessages = Object.entries(error.response.data)
@@ -393,6 +432,24 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
     }
   };
 
+  const pendingClientNotice = fromClientDrawer ? (
+    <div className="bg-blue-50 p-3 mb-4 rounded-md border border-blue-200">
+      <div className="flex items-start">
+        <div className="flex-shrink-0 pt-0.5">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-500" viewBox="0 0 20 20" fill="currentColor">
+            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+          </svg>
+        </div>
+        <div className="ml-3">
+          <h3 className="text-sm font-medium text-blue-800">Creating Session for New Client</h3>
+          <div className="mt-1 text-sm text-blue-700">
+            <p>This session will be automatically assigned to the client you're creating.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  ) : null;
+
   return (
     <>
       <Drawer
@@ -401,6 +458,7 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
         title='New Session'
         size='lg'
         position='right'
+        zIndex={zIndex}
         styles={{
           header: {
             padding: '1rem 1.5rem',
@@ -456,6 +514,7 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
               className='flex-1 flex flex-col'
             >
               <div className='flex-1 p-8'>
+                {pendingClientNotice}
                 <div className='space-y-4'>
                   <div className='space-y-6'>
                     {methods.watch('session_type') === 'class' ? (
@@ -496,6 +555,8 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
                                   onSelectItem={(selectedItem) =>
                                     field.onChange(selectedItem)
                                   }
+                                  createLabel="Create new class type"
+                                  createDrawerType="session"
                                 />
                               );
                             }}
@@ -555,6 +616,8 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
                                   onSelectItem={(selectedItem) => {
                                     field.onChange(selectedItem);
                                   }}
+                                  createLabel="Create new category"
+                                  createDrawerType="category"
                                 />
                               )}
                             />
@@ -569,16 +632,26 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
                               name='date'
                               control={methods.control}
                               render={({ field }) => (
-                                <Input
-                                  {...field}
-                                  type='date'
-                                  value={
-                                    field.value ? field.value.toString() : ''
-                                  }
-                                  label='Date'
-                                  placeholder='2020/12/12'
-                                  containerClassName='mb-4'
-                                />
+                                <div className="w-full mt-4 mb-6">
+                                  <div className="relative w-full">
+                                    <input
+                                      type="date"
+                                      id="date"
+                                      value={field.value || ''}
+                                      onChange={(e) => {
+                                        field.onChange(e.target.value);
+                                        console.log("Date changed:", e.target.value);
+                                      }}
+                                      className="w-full h-[58px] border border-gray-300 rounded-lg px-4 pt-6 pb-2 text-xs focus:outline-none focus:ring-[1px] focus:border-none focus:ring-secondary focus:border-secondary"
+                                    />
+                                    <label
+                                      htmlFor="date"
+                                      className="absolute top-2 text-xs left-4 transition-all duration-200 text-primary"
+                                    >
+                                      Date
+                                    </label>
+                                  </div>
+                                </div>
                               )}
                             />
                             <div className='grid grid-cols-2 gap-4'>
@@ -693,15 +766,31 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
                                               }
 
                                               const userData = staff.user || {};
-
-                                              return {
-                                                label:
-                                                  userData.first_name &&
-                                                  userData.last_name
-                                                    ? `${userData.first_name} ${userData.last_name}`
-                                                    : `Staff ${staff.id}`,
-                                                value: staff.id.toString(),
-                                              };
+                                              const email = userData.email || staff.email || '';
+                                              const isActive = staff.isActive ?? false;
+                                              const status = isActive ? 'active' : 'inactive';
+                                              
+                                              if (userData.first_name && userData.last_name) {
+                                                return {
+                                                  label: `${userData.first_name} ${userData.last_name}`,
+                                                  value: staff.id.toString(),
+                                                  subLabel: email,
+                                                  status
+                                                };
+                                              } else if (email) {
+                                                return {
+                                                  label: email,
+                                                  value: staff.id.toString(),
+                                                  subLabel: `Staff ${staff.id}`,
+                                                  status
+                                                };
+                                              } else {
+                                                return {
+                                                  label: `Staff ${staff.id}`,
+                                                  value: staff.id.toString(),
+                                                  status
+                                                };
+                                              }
                                             })
                                             .filter(Boolean) || []
                                     }
@@ -718,9 +807,33 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
                                         value ? parseInt(value) : undefined
                                       );
                                     }}
+                                    createLabel="Create new staff"
+                                    createDrawerType="staff"
                                   />
                                 )}
                               />
+                              {(() => {
+                                const staffId = methods.watch('staff');
+                                if (!staffId) return null;
+                                
+                                const selectedStaff = staffData?.find((staff: any) => 
+                                  staff.id.toString() === (typeof staffId === 'object' ? 
+                                    staffId.value?.toString() : staffId.toString())
+                                );
+                                
+                                if (selectedStaff && !(selectedStaff.isActive ?? true)) {
+                                  return (
+                                    <div className="mt-1 text-amber-600 text-xs flex items-center">
+                                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                      </svg>
+                                      Note: This staff member has not completed their account setup yet.
+                                    </div>
+                                  );
+                                }
+                                
+                                return null;
+                              })()}
                             </div>
                           </div>
                         </div>
@@ -728,28 +841,44 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
                           name='client_ids'
                           control={methods.control}
                           render={({ field }) => (
-                            <DropdownSelectInput
-                              label='Clients'
-                              placeholder='Select Clients'
-                              singleSelect={false}
-                              options={
-                                isClientsLoading
-                                  ? [{ label: 'Loading...', value: '' }]
-                                  : clientsData?.map((client: Client) => ({
-                                      label: `${client.first_name} ${client.last_name}`,
-                                      value: client.id.toString(),
-                                    })) || []
-                              }
-                              value={field.value ? field.value.map(String) : []}
-                              onSelectItem={(selectedItems) => {
-                                const values = Array.isArray(selectedItems)
-                                  ? selectedItems.map((item) => item.value)
-                                  : selectedItems
-                                  ? [selectedItems.value]
-                                  : [];
-                                field.onChange(values);
-                              }}
-                            />
+                            <>
+                              {fromClientDrawer ? (
+                                <div className="mb-4">
+                                  <label className="block text-sm mb-1 text-gray-700">Clients</label>
+                                  <div className="flex items-center p-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-700">
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                                    </svg>
+                                    <span>Will be assigned to the client you're creating</span>
+                                  </div>
+                                </div>
+                              ) : (
+                                <DropdownSelectInput
+                                  label='Clients'
+                                  placeholder='Select Clients'
+                                  singleSelect={false}
+                                  options={
+                                    isClientsLoading
+                                      ? [{ label: 'Loading...', value: '' }]
+                                      : clientsData?.map((client: Client) => ({
+                                          label: `${client.first_name} ${client.last_name}`,
+                                          value: client.id.toString(),
+                                        })) || []
+                                  }
+                                  value={field.value ? field.value.map(String) : []}
+                                  onSelectItem={(selectedItems) => {
+                                    const values = Array.isArray(selectedItems)
+                                      ? selectedItems.map((item) => item.value)
+                                      : selectedItems
+                                      ? [selectedItems.value]
+                                      : [];
+                                    field.onChange(values);
+                                  }}
+                                  createLabel="Add new client"
+                                  createDrawerType="client"
+                                />
+                              )}
+                            </>
                           )}
                         />
                         <Controller
@@ -791,6 +920,8 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
                               onSelectItem={(selectedItem) => {
                                 field.onChange(selectedItem);
                               }}
+                              createLabel="Create new location"
+                              createDrawerType="location"
                             />
                           )}
                         />
@@ -827,6 +958,8 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
                                   );
                                 field.onChange(values);
                               }}
+                              createLabel="Create new policy"
+                              createDrawerType="policy"
                             />
                           )}
                         />
@@ -838,43 +971,59 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
                             name='client_ids'
                             control={methods.control}
                             render={({ field }) => (
-                              <DropdownSelectInput
-                                label='Client Name'
-                                placeholder='Select or create Clients'
-                                options={
-                                  isClientsLoading
-                                    ? [{ label: 'Loading...', value: '' }]
-                                    : clientsData?.map((client: any) => ({
-                                        label: `${client.first_name} ${client.last_name}`,
-                                        value: client.id.toString(),
-                                      })) || []
-                                }
-                                onSelectItem={(selectedItems) => {
-                                  const values = Array.isArray(selectedItems)
-                                    ? selectedItems.map((item) => item.value)
-                                    : selectedItems
-                                    ? [selectedItems.value]
-                                    : [];
-                                  field.onChange(values);
-                                  if (values.length > 0) {
-                                    const clientId = values[0];
-                                    const selectedClient = clientsData?.find(
-                                      (client: Client) =>
-                                        client.id.toString() === clientId
-                                    );
-                                    if (selectedClient) {
-                                      methods.setValue(
-                                        'email',
-                                        selectedClient.email || ''
-                                      );
-                                      methods.setValue(
-                                        'phone_number',
-                                        selectedClient.phone_number || ''
-                                      );
+                              <>
+                                {fromClientDrawer ? (
+                                  <div className="mb-4">
+                                    <label className="block text-sm mb-1 text-gray-700">Client Name</label>
+                                    <div className="flex items-center p-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-700">
+                                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                                      </svg>
+                                      <span>Will be assigned to the client you're creating</span>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <DropdownSelectInput
+                                    label='Client Name'
+                                    placeholder='Select or create Clients'
+                                    options={
+                                      isClientsLoading
+                                        ? [{ label: 'Loading...', value: '' }]
+                                        : clientsData?.map((client: any) => ({
+                                            label: `${client.first_name} ${client.last_name}`,
+                                            value: client.id.toString(),
+                                          })) || []
                                     }
-                                  }
-                                }}
-                              />
+                                    onSelectItem={(selectedItems) => {
+                                      const values = Array.isArray(selectedItems)
+                                        ? selectedItems.map((item) => item.value)
+                                        : selectedItems
+                                        ? [selectedItems.value]
+                                        : [];
+                                      field.onChange(values);
+                                      if (values.length > 0) {
+                                        const clientId = values[0];
+                                        const selectedClient = clientsData?.find(
+                                          (client: Client) =>
+                                            client.id.toString() === clientId
+                                        );
+                                        if (selectedClient) {
+                                          methods.setValue(
+                                            'email',
+                                            selectedClient.email || ''
+                                          );
+                                          methods.setValue(
+                                            'phone_number',
+                                            selectedClient.phone_number || ''
+                                          );
+                                        }
+                                      }
+                                    }}
+                                    createLabel="Add new client"
+                                    createDrawerType="client"
+                                  />
+                                )}
+                              </>
                             )}
                           />
                           <div className='flex items-center gap-4'>
@@ -954,6 +1103,8 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
                                     onSelectItem={(selectedItem) =>
                                       field.onChange(selectedItem)
                                     }
+                                    createLabel="Create new session type"
+                                    createDrawerType="session"
                                   />
                                 );
                               }}
@@ -977,16 +1128,26 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
                               name='date'
                               control={methods.control}
                               render={({ field }) => (
-                                <Input
-                                  {...field}
-                                  type='date'
-                                  value={
-                                    field.value ? field.value.toString() : ''
-                                  }
-                                  label='Date'
-                                  placeholder='2020/12/12'
-                                  containerClassName='mb-4'
-                                />
+                                <div className="w-full mt-4 mb-6">
+                                  <div className="relative w-full">
+                                    <input
+                                      type="date"
+                                      id="appointment-date"
+                                      value={field.value || ''}
+                                      onChange={(e) => {
+                                        field.onChange(e.target.value);
+                                        console.log("Date changed:", e.target.value);
+                                      }}
+                                      className="w-full h-[58px] border border-gray-300 rounded-lg px-4 pt-6 pb-2 text-xs focus:outline-none focus:ring-[1px] focus:border-none focus:ring-secondary focus:border-secondary"
+                                    />
+                                    <label
+                                      htmlFor="appointment-date"
+                                      className="absolute top-2 text-xs left-4 transition-all duration-200 text-primary"
+                                    >
+                                      Date
+                                    </label>
+                                  </div>
+                                </div>
                               )}
                             />
                             <div className='grid grid-cols-2 gap-4'>
@@ -1035,10 +1196,33 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
                                             );
                                             return null;
                                           }
-                                          return {
-                                            label: `${staff.user?.first_name} ${staff.user?.last_name}`,
-                                            value: staff.id.toString(),
-                                          };
+                                          
+                                          const userData = staff.user || {};
+                                          const email = userData.email || staff.email || '';
+                                          const isActive = staff.isActive ?? false;
+                                          const status = isActive ? 'active' : 'inactive';
+
+                                          if (userData.first_name && userData.last_name) {
+                                            return {
+                                              label: `${userData.first_name} ${userData.last_name}`,
+                                              value: staff.id.toString(),
+                                              subLabel: email,
+                                              status
+                                            };
+                                          } else if (email) {
+                                            return {
+                                              label: email,
+                                              value: staff.id.toString(),
+                                              subLabel: `Staff ${staff.id}`,
+                                              status
+                                            };
+                                          } else {
+                                            return {
+                                              label: `Staff ${staff.id}`,
+                                              value: staff.id.toString(),
+                                              status
+                                            };
+                                          }
                                         })
                                         .filter(Boolean) || []
                                 }
@@ -1052,89 +1236,33 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
                                 onSelectItem={(selectedItem) => {
                                   field.onChange(selectedItem);
                                 }}
+                                createLabel="Create new staff"
+                                createDrawerType="staff"
                               />
                             )}
                           />
-                          <Controller
-                            name='location_id'
-                            control={methods.control}
-                            render={({ field }) => (
-                              <DropdownSelectInput
-                                label='Location'
-                                placeholder='Select Location'
-                                options={
-                                  isLocationsLoading
-                                    ? [{ label: 'Loading...', value: '' }]
-                                    : locationsData
-                                        ?.map((location: any) => {
-                                          if (!location || !location.id) {
-                                            console.warn(
-                                              'Invalid location data:',
-                                              location
-                                            );
-                                            return null;
-                                          }
-                                          return {
-                                            label: location.name,
-                                            value: location.id.toString(),
-                                          };
-                                        })
-                                        .filter(
-                                          (item): item is DropDownItem =>
-                                            item !== null
-                                        ) || []
-                                }
-                                value={
-                                  field.value?.toString
-                                    ? field.value?.toString()
-                                    : field.value?.toString
-                                    ? field.value.toString()
-                                    : ''
-                                }
-                                onSelectItem={(selectedItem) => {
-                                  field.onChange(selectedItem);
-                                }}
-                              />
-                            )}
-                          />
-                          <Controller
-                            name='policy_ids'
-                            control={methods.control}
-                            render={({ field }) => (
-                              <DropdownSelectInput
-                                label='Policies'
-                                placeholder='Select Policies'
-                                singleSelect={false}
-                                options={
-                                  isPoliciesLoading
-                                    ? [{ label: 'Loading...', value: '' }]
-                                    : policiesData?.map((policy: Policy) => ({
-                                        label: policy.title,
-                                        value: policy.id.toString(),
-                                      })) || []
-                                }
-                                value={
-                                  field.value ? field.value.map(String) : []
-                                }
-                                onSelectItem={(selectedItems) => {
-                                  const values = (
-                                    Array.isArray(selectedItems)
-                                      ? selectedItems
-                                      : [selectedItems]
-                                  )
-                                    .filter(Boolean)
-                                    .map((item) =>
-                                      Number(
-                                        typeof item === 'string'
-                                          ? item
-                                          : item.value
-                                      )
-                                    );
-                                  field.onChange(values);
-                                }}
-                              />
-                            )}
-                          />
+                          {(() => {
+                            const staffId = methods.watch('staff');
+                            if (!staffId) return null;
+                            
+                            const selectedStaff = staffData?.find((staff: any) => 
+                              staff.id.toString() === (typeof staffId === 'object' ? 
+                                staffId.value?.toString() : staffId.toString())
+                            );
+                            
+                            if (selectedStaff && !(selectedStaff.isActive ?? true)) {
+                              return (
+                                <div className="mt-1 text-amber-600 text-xs flex items-center">
+                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                  </svg>
+                                  Note: This staff member has not completed their account setup yet.
+                                </div>
+                              );
+                            }
+                            
+                            return null;
+                          })()}
                         </div>
                       </>
                     ) : (
@@ -1191,6 +1319,8 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
                                 onSelectItem={(selectedItem) => {
                                   field.onChange(selectedItem);
                                 }}
+                                createLabel="Create new location"
+                                createDrawerType="location"
                               />
                             )}
                           />
@@ -1237,6 +1367,8 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
                                   onSelectItem={(selectedItem) => {
                                     field.onChange(selectedItem);
                                   }}
+                                  createLabel="Create new category"
+                                  createDrawerType="category"
                                 />
                               )}
                             />
@@ -1251,16 +1383,26 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
                               name='date'
                               control={methods.control}
                               render={({ field }) => (
-                                <Input
-                                  {...field}
-                                  type='date'
-                                  value={
-                                    field.value ? field.value.toString() : ''
-                                  }
-                                  label='Date'
-                                  placeholder='2020/12/12'
-                                  containerClassName='mb-4'
-                                />
+                                <div className="w-full mt-4 mb-6">
+                                  <div className="relative w-full">
+                                    <input
+                                      type="date"
+                                      id="event-date"
+                                      value={field.value || ''}
+                                      onChange={(e) => {
+                                        field.onChange(e.target.value);
+                                        console.log("Date changed:", e.target.value);
+                                      }}
+                                      className="w-full h-[58px] border border-gray-300 rounded-lg px-4 pt-6 pb-2 text-xs focus:outline-none focus:ring-[1px] focus:border-none focus:ring-secondary focus:border-secondary"
+                                    />
+                                    <label
+                                      htmlFor="event-date"
+                                      className="absolute top-2 text-xs left-4 transition-all duration-200 text-primary"
+                                    >
+                                      Date
+                                    </label>
+                                  </div>
+                                </div>
                               )}
                             />
                             <div className='grid grid-cols-2 gap-4'>
@@ -1326,10 +1468,33 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
                                                 );
                                                 return null;
                                               }
-                                              return {
-                                                label: `${staff.user?.first_name} ${staff.user?.last_name}`,
-                                                value: staff.id.toString(),
-                                              };
+                                              
+                                              const userData = staff.user || {};
+                                              const email = userData.email || staff.email || '';
+                                              const isActive = staff.isActive ?? false;
+                                              const status = isActive ? 'active' : 'inactive';
+                                              
+                                              if (userData.first_name && userData.last_name) {
+                                                return {
+                                                  label: `${userData.first_name} ${userData.last_name}`,
+                                                  value: staff.id.toString(),
+                                                  subLabel: email,
+                                                  status
+                                                };
+                                              } else if (email) {
+                                                return {
+                                                  label: email,
+                                                  value: staff.id.toString(),
+                                                  subLabel: `Staff ${staff.id}`,
+                                                  status
+                                                };
+                                              } else {
+                                                return {
+                                                  label: `Staff ${staff.id}`,
+                                                  value: staff.id.toString(),
+                                                  status
+                                                };
+                                              }
                                             })
                                             .filter(Boolean) || []
                                     }
@@ -1343,9 +1508,33 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
                                     onSelectItem={(selectedItem) => {
                                       field.onChange(selectedItem);
                                     }}
+                                    createLabel="Create new staff"
+                                    createDrawerType="staff"
                                   />
                                 )}
                               />
+                              {(() => {
+                                const staffId = methods.watch('staff');
+                                if (!staffId) return null;
+                                
+                                const selectedStaff = staffData?.find((staff: any) => 
+                                  staff.id.toString() === (typeof staffId === 'object' ? 
+                                    staffId.value?.toString() : staffId.toString())
+                                );
+                                
+                                if (selectedStaff && !(selectedStaff.isActive ?? true)) {
+                                  return (
+                                    <div className="mt-1 text-amber-600 text-xs flex items-center">
+                                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                      </svg>
+                                      Note: This staff member has not completed their account setup yet.
+                                    </div>
+                                  );
+                                }
+                                
+                                return null;
+                              })()}
                             </div>
                           </div>
                         </div>
@@ -1353,28 +1542,44 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
                           name='client_ids'
                           control={methods.control}
                           render={({ field }) => (
-                            <DropdownSelectInput
-                              label='Clients'
-                              placeholder='Select Clients'
-                              singleSelect={false}
-                              options={
-                                isClientsLoading
-                                  ? [{ label: 'Loading...', value: '' }]
-                                  : clientsData?.map((client: Client) => ({
-                                      label: `${client.first_name} ${client.last_name}`,
-                                      value: client.id.toString(),
-                                    })) || []
-                              }
-                              value={field.value ? field.value.map(String) : []}
-                              onSelectItem={(selectedItems) => {
-                                const values = Array.isArray(selectedItems)
-                                  ? selectedItems.map((item) => item.value)
-                                  : selectedItems
-                                  ? [selectedItems.value]
-                                  : [];
-                                field.onChange(values);
-                              }}
-                            />
+                            <>
+                              {fromClientDrawer ? (
+                                <div className="mb-4">
+                                  <label className="block text-sm mb-1 text-gray-700">Clients</label>
+                                  <div className="flex items-center p-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-700">
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                                    </svg>
+                                    <span>Will be assigned to the client you're creating</span>
+                                  </div>
+                                </div>
+                              ) : (
+                                <DropdownSelectInput
+                                  label='Clients'
+                                  placeholder='Select Clients'
+                                  singleSelect={false}
+                                  options={
+                                    isClientsLoading
+                                      ? [{ label: 'Loading...', value: '' }]
+                                      : clientsData?.map((client: Client) => ({
+                                          label: `${client.first_name} ${client.last_name}`,
+                                          value: client.id.toString(),
+                                        })) || []
+                                  }
+                                  value={field.value ? field.value.map(String) : []}
+                                  onSelectItem={(selectedItems) => {
+                                    const values = Array.isArray(selectedItems)
+                                      ? selectedItems.map((item) => item.value)
+                                      : selectedItems
+                                      ? [selectedItems.value]
+                                      : [];
+                                    field.onChange(values);
+                                  }}
+                                  createLabel="Add new client"
+                                  createDrawerType="client"
+                                />
+                              )}
+                            </>
                           )}
                         />
                         <Controller
@@ -1410,6 +1615,8 @@ const AddSession = ({ isOpen, onClose }: SessionModalProps) => {
                                   );
                                 field.onChange(values);
                               }}
+                              createLabel="Create new policy"
+                              createDrawerType="policy"
                             />
                           )}
                         />
