@@ -40,6 +40,7 @@ const AllStaff = () => {
   );
   const [isActivating, setIsActivating] = useState(false);
   const [opened, { open, close }] = useDisclosure(false);
+  const [activationLoading, setActivationLoading] = useState(false);
 
   const permisions = useAuthStore((state) => state.role);
   const { openDrawer } = useUIStore();
@@ -79,86 +80,95 @@ const AllStaff = () => {
     });
   };
 
-  const handleDeactivateStaff = () => {
-    if (!selectedStaff) return;
-
-    deactivateStaffMutation.mutate(selectedStaff.id.toString(), {
-      onSuccess: () => {
-        notifications.show({
-          title: 'Success',
-          message: 'Staff member deactivated successfully!',
-          color: 'green',
-          radius: 'md',
-          icon: (
-            <span className='flex items-center justify-center w-6 h-6 rounded-full bg-green-200'>
-              <img src={successIcon} alt='Success' className='w-4 h-4' />
-            </span>
-          ),
-          withBorder: true,
-          autoClose: 3000,
-          position: 'top-right',
-        });
-        close();
-        refetch();
-      },
-      onError: (_error: unknown) => {
-        notifications.show({
-          title: 'Error',
-          message: 'Failed to deactivate staff member. Please try again.',
-          color: 'red',
-          radius: 'md',
-          icon: (
-            <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
-              <img src={errorIcon} alt='Error' className='w-4 h-4' />
-            </span>
-          ),
-          withBorder: true,
-          autoClose: 3000,
-          position: 'top-right',
-        });
-      },
-    });
-  };
-
-  const handleActivateStaff = () => {
-    if (!selectedStaff) return;
-
-    activateStaffMutation.mutate(selectedStaff.id.toString(), {
-      onSuccess: () => {
-        notifications.show({
-          title: 'Success',
-          message: 'Staff member activated successfully!',
-          color: 'green',
-          radius: 'md',
-          icon: (
-            <span className='flex items-center justify-center w-6 h-6 rounded-full bg-green-200'>
-              <img src={successIcon} alt='Success' className='w-4 h-4' />
-            </span>
-          ),
-          withBorder: true,
-          autoClose: 3000,
-          position: 'top-right',
-        });
-        close();
-        refetch();
-      },
-      onError: (_error: unknown) => {
-        notifications.show({
-          title: 'Error',
-          message: 'Failed to activate staff member. Please try again.',
-          color: 'red',
-          radius: 'md',
-          icon: (
-            <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
-              <img src={errorIcon} alt='Error' className='w-4 h-4' />
-            </span>
-          ),
-          withBorder: true,
-          autoClose: 3000,
-          position: 'top-right',
-        });
-      },
-    });
+  const handleActivateDeactivateStaff = () => {
+    setActivationLoading(true);
+    if (selectedStaff) {
+      if (isActivating) {
+        activateStaffMutation.mutate(
+          selectedStaff.id.toString(),
+          {
+            onSuccess: () => {
+              notifications.show({
+                title: 'Success',
+                message: 'Staff activated successfully!',
+                color: 'green',
+                radius: 'md',
+                icon: (
+                  <span className='flex items-center justify-center w-6 h-6 rounded-full bg-green-200'>
+                    <img src={successIcon} alt='Success' className='w-4 h-4' />
+                  </span>
+                ),
+                withBorder: true,
+                autoClose: 3000,
+                position: 'top-right',
+              });
+              close();
+              refetch();
+              setActivationLoading(false);
+            },
+            onError: () => {
+              notifications.show({
+                title: 'Error',
+                message: 'Failed to activate staff member. Please try again.',
+                color: 'red',
+                radius: 'md',
+                icon: (
+                  <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+                    <img src={errorIcon} alt='Error' className='w-4 h-4' />
+                  </span>
+                ),
+                withBorder: true,
+                autoClose: 3000,
+                position: 'top-right',
+              });
+              setActivationLoading(false);
+            },
+          }
+        );
+      } else {
+        deactivateStaffMutation.mutate(
+          selectedStaff.id.toString(),
+          {
+            onSuccess: () => {
+              notifications.show({
+                title: 'Success',
+                message: 'Staff deactivated successfully!',
+                color: 'green',
+                radius: 'md',
+                icon: (
+                  <span className='flex items-center justify-center w-6 h-6 rounded-full bg-green-200'>
+                    <img src={successIcon} alt='Success' className='w-4 h-4' />
+                  </span>
+                ),
+                withBorder: true,
+                autoClose: 3000,
+                position: 'top-right',
+              });
+              close();
+              refetch();
+              setActivationLoading(false);
+            },
+            onError: () => {
+              notifications.show({
+                title: 'Error',
+                message: 'Failed to deactivate staff member. Please try again.',
+                color: 'red',
+                radius: 'md',
+                icon: (
+                  <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+                    <img src={errorIcon} alt='Error' className='w-4 h-4' />
+                  </span>
+                ),
+                withBorder: true,
+                autoClose: 3000,
+                position: 'top-right',
+              });
+              setActivationLoading(false);
+            },
+          }
+        );
+      }
+    }
   };
 
   const columns = useMemo(
@@ -422,13 +432,19 @@ const AllStaff = () => {
 
         <div className='flex justify-end gap-2 mt-4'>
           <MantineButton
+            variant='outline'
+            color='gray'
+            radius='md'
+            onClick={close}
+            disabled={activationLoading}
+          >
+            Cancel
+          </MantineButton>
+          <MantineButton
             color={isActivating ? 'green' : 'red'}
-            onClick={isActivating ? handleActivateStaff : handleDeactivateStaff}
-            loading={
-              isActivating
-                ? activateStaffMutation.isPending
-                : deactivateStaffMutation.isPending
-            }
+            onClick={handleActivateDeactivateStaff}
+            loading={activationLoading}
+            disabled={activationLoading}
             radius='md'
           >
             {isActivating ? 'Activate' : 'Deactivate'}

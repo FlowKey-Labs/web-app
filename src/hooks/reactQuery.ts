@@ -88,6 +88,16 @@ import {
   createMakeupSession,
   updateMakeupSession,
   deleteMakeupSession,
+  // Attended Session API functions
+  getAttendedSessions,
+  createAttendedSession,
+  updateAttendedSession,
+  deleteAttendedSession,
+  // Cancelled Session API functions
+  getCancelledSessions,
+  createCancelledSession,
+  updateCancelledSession,
+  deleteCancelledSession,
   markOutcomeComplete,
   markOutcomeIncomplete,
   getSeries,
@@ -104,11 +114,9 @@ import {
   DateFilterOption,
   UpcomingSession,
 } from "../types/dashboard";
-import {
-  MakeUpSession,
+import { AttendedSession, CancelledSession, MakeUpSession,
   ProgressFeedback,
-  Session,
-} from "../types/sessionTypes";
+  Session, } from "../types/sessionTypes";
 import { CreateLocationData } from "../types/location";
 import { Group, GroupData } from "../types/clientTypes";
 import { SeriesLevel, SeriesProgress } from "../store/progressStore";
@@ -1311,11 +1319,80 @@ export const useDeleteMakeupSession = () => {
   });
 };
 
+// Attended Session related hooks
+export const useGetAttendedSessions = () => {
+  return useQuery({
+    queryKey: ["attended_sessions"],
+    queryFn: getAttendedSessions,
+    staleTime: 1000 * 60 * 5, 
+    refetchOnWindowFocus: false,
+  });
+};
+
 export const useGetProgressSeries = () => {
   return useQuery<SeriesLevel[]>({
     queryKey: ["series"],
     queryFn: getSeries,
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    staleTime: 1000 * 60 * 5, 
+    refetchOnWindowFocus: false,
+  });
+};
+
+export const useCreateAttendedSession = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: createAttendedSession,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["attended_sessions"] });
+    },
+    onError: (error) => {
+      console.error("Failed to create attended session:", error);
+    },
+  });
+};
+
+export const useUpdateAttendedSession = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      id,
+      attendedSessionData,
+    }: {
+      id: string;
+      attendedSessionData: AttendedSession;
+    }) => updateAttendedSession(id, attendedSessionData),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["attended_sessions"] });
+    },
+    onError: (error) => {
+      console.error("Failed to update attended session:", error);
+    },
+  });
+};
+
+export const useDeleteAttendedSession = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      id,
+    }: {
+      id: string;
+    }) => deleteAttendedSession(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["attended_sessions"] });
+    },
+    onError: (error) => {
+      console.error("Failed to delete attended session:", error);
+    },
+  });
+};
+
+// Cancelled Session related hooks
+export const useGetCancelledSessions = () => {
+  return useQuery({
+    queryKey: ["cancelled_sessions"],
+    queryFn: getCancelledSessions,
+    staleTime: 1000 * 60 * 5, 
     refetchOnWindowFocus: false,
   });
 };
@@ -1324,8 +1401,21 @@ export const useGetClientProgress = (clientId: string) => {
   return useQuery<SeriesProgress>({
     queryKey: ["client_progress", clientId],
     queryFn: () => getClientProgress(clientId),
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    staleTime: 1000 * 60 * 5, 
     refetchOnWindowFocus: false,
+  });
+};
+
+export const useCreateCancelledSession = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: createCancelledSession,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["cancelled_sessions"] });
+    },
+    onError: (error) => {
+      console.error("Failed to create cancelled session:", error);
+    },
   });
 };
 
@@ -1374,6 +1464,41 @@ export const useSubmitProgressFeedback = () => {
   });
 };
 
+export const useUpdateCancelledSession = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      id,
+      cancelledSessionData,
+    }: {
+      id: string;
+      cancelledSessionData: CancelledSession;
+    }) => updateCancelledSession(id, cancelledSessionData),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["cancelled_sessions"] });
+    },
+    onError: (error) => {
+      console.error("Failed to update cancelled session:", error);
+    },
+  });
+};
+
+export const useDeleteCancelledSession = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      id,
+    }: {
+      id: string;
+    }) => deleteCancelledSession(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["cancelled_sessions"] });
+    },
+    onError: (error) => {
+      console.error("Failed to delete cancelled session:", error);
+    },
+  });
+};
 export const useGetProgressFeedback = (
   clientId: string,
   subcategoryId: string

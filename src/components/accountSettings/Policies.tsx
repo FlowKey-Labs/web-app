@@ -54,7 +54,7 @@ const Policies = () => {
       policyType: "TEXT",
     },
   });
-  const { control, handleSubmit, reset, watch } = methods;
+  const { reset, watch } = methods;
 
   const editor = useEditor({
     extensions: [

@@ -9,7 +9,11 @@ import { exportDataToFile } from '../utils/exportUtils';
 import { Subcategory } from '../types/profileCategories';
 import { Skill } from '../types/profileCategories';
 import { GroupData } from '../types/clientTypes';
-import { MakeUpSession } from '../types/sessionTypes';
+import {
+  MakeUpSession,
+  AttendedSession,
+  CancelledSession,
+} from '../types/sessionTypes';
 
 import successIcon from '../assets/icons/success.svg';
 import errorIcon from '../assets/icons/error.svg';
@@ -802,7 +806,7 @@ export const useExportGroups = (groups: GroupData[]) => {
         });
         return;
       }
-      
+
       if (groups.length === 0) {
         notifications.show({
           title: 'No groups available',
@@ -821,14 +825,16 @@ export const useExportGroups = (groups: GroupData[]) => {
         closeExportModal();
         return;
       }
-      
+
       setIsExporting(true);
       try {
         const dataToExport = processGroupsForExport(selectedIds);
         exportDataToFile(dataToExport, type, 'groups', ['id']);
         notifications.show({
           title: 'Export successful',
-          message: `${dataToExport.length} group(s) exported successfully as ${type.toUpperCase()}`,
+          message: `${
+            dataToExport.length
+          } group(s) exported successfully as ${type.toUpperCase()}`,
           color: 'green',
           radius: 'md',
           withBorder: true,
@@ -870,114 +876,342 @@ export const useExportGroups = (groups: GroupData[]) => {
     handleExport,
     isExporting,
   };
-}
+};
 
-  export const useExportMakeupSessions = (makeupSessions: MakeUpSession[]) => {
-    const [isExporting, setIsExporting] = useState(false);
-    const [
-      exportModalOpened,
-      { open: openExportModal, close: closeExportModal },
-    ] = useDisclosure(false);
-  
-    const processMakeupSessionsForExport = (selectedIds: string[]) => {
-      const makeupSessionsToExport = makeupSessions.filter((session) =>
-        selectedIds.includes(session.id.toString())
-      );
-  
-      return makeupSessionsToExport.map((makeupSession) => ({
-        id: makeupSession.id,
-        client_name: makeupSession.client_name,
-        original_session_date: makeupSession.original_date,
-        new_session_date: makeupSession.new_date,
-        new_start_time: makeupSession.new_start_time,
-        new_end_time: makeupSession.new_end_time,
-      }));
-    };
-  
-    const handleExport = useCallback(
-      (type: 'csv' | 'excel', selectedIds: string[]) => {
-        if (selectedIds.length === 0) {
-          console.warn('No makeup sessions selected');
-          notifications.show({
-            title: 'No makeup sessions selected',
-            message: 'Please select at least one makeup session to export',
-            color: 'red',
-            radius: 'md',
-            withBorder: true,
-            autoClose: 3000,
-            position: 'top-right',
-            icon: (
-              <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
-                <img src={errorIcon} alt='Error' className='w-4 h-4' />
-              </span>
-            ),
-          });
-          closeExportModal();
-          return;
-        }
-  
-        if (makeupSessions.length === 0) {
-          notifications.show({
-            title: 'No makeup sessions available',
-            message: 'There are no makeup sessions to export',
-            color: 'red',
-            radius: 'md',
-            withBorder: true,
-            autoClose: 3000,
-            position: 'top-right',
-            icon: (
-              <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
-                <img src={errorIcon} alt='Error' className='w-4 h-4' />
-              </span>
-            ),
-          });
-          closeExportModal();
-          return;
-        }
-  
-        setIsExporting(true);
-        try {
-          const dataToExport = processMakeupSessionsForExport(selectedIds);
-          exportDataToFile(dataToExport, type, 'makeup_sessions', ['id']);
-  
-          notifications.show({
-            title: 'Export successful',
-            message: `${
-              dataToExport.length
-            } makeup session(s) exported successfully as ${type.toUpperCase()}`,
-            color: 'green',
-            radius: 'md',
-            withBorder: true,
-            autoClose: 3000,
-            position: 'top-right',
-            icon: (
-              <span className='flex items-center justify-center w-6 h-6 rounded-full bg-green-200'>
-                <img src={successIcon} alt='Success' className='w-4 h-4' />
-              </span>
-            ),
-          });
-        } catch {
-          notifications.show({
-            title: 'Export failed',
-            message: 'An error occurred while exporting makeup sessions',
-            color: 'red',
-            radius: 'md',
-            withBorder: true,
-            autoClose: 3000,
-            position: 'top-right',
-            icon: (
-              <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
-                <img src={errorIcon} alt='Error' className='w-4 h-4' />
-              </span>
-            ),
-          });
-        } finally {
-          setIsExporting(false);
-          closeExportModal();
-        }
-      },
-      [makeupSessions, closeExportModal]
+export const useExportMakeupSessions = (makeupSessions: MakeUpSession[]) => {
+  const [isExporting, setIsExporting] = useState(false);
+  const [
+    exportModalOpened,
+    { open: openExportModal, close: closeExportModal },
+  ] = useDisclosure(false);
+
+  const processMakeupSessionsForExport = (selectedIds: string[]) => {
+    const makeupSessionsToExport = makeupSessions.filter((session) =>
+      selectedIds.includes(session?.id?.toString() || '')
     );
+
+    return makeupSessionsToExport.map((makeupSession) => ({
+      id: makeupSession?.id || '',
+      client_name: makeupSession?.client_name || '',
+      original_session_date: makeupSession?.original_date || '',
+      new_session_date: makeupSession?.new_date || '',
+      new_start_time: makeupSession?.new_start_time || '',
+      new_end_time: makeupSession?.new_end_time || '',
+    }));
+  };
+
+  const handleExport = useCallback(
+    (type: 'csv' | 'excel', selectedIds: string[]) => {
+      if (selectedIds.length === 0) {
+        console.warn('No makeup sessions selected');
+        notifications.show({
+          title: 'No makeup sessions selected',
+          message: 'Please select at least one makeup session to export',
+          color: 'red',
+          radius: 'md',
+          withBorder: true,
+          autoClose: 3000,
+          position: 'top-right',
+          icon: (
+            <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+              <img src={errorIcon} alt='Error' className='w-4 h-4' />
+            </span>
+          ),
+        });
+        closeExportModal();
+        return;
+      }
+
+      if (makeupSessions.length === 0) {
+        notifications.show({
+          title: 'No makeup sessions available',
+          message: 'There are no makeup sessions to export',
+          color: 'red',
+          radius: 'md',
+          withBorder: true,
+          autoClose: 3000,
+          position: 'top-right',
+          icon: (
+            <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+              <img src={errorIcon} alt='Error' className='w-4 h-4' />
+            </span>
+          ),
+        });
+        closeExportModal();
+        return;
+      }
+
+      setIsExporting(true);
+      try {
+        const dataToExport = processMakeupSessionsForExport(selectedIds);
+        exportDataToFile(dataToExport, type, 'makeup_sessions', ['id']);
+
+        notifications.show({
+          title: 'Export successful',
+          message: `${
+            dataToExport.length
+          } makeup session(s) exported successfully as ${type.toUpperCase()}`,
+          color: 'green',
+          radius: 'md',
+          withBorder: true,
+          autoClose: 3000,
+          position: 'top-right',
+          icon: (
+            <span className='flex items-center justify-center w-6 h-6 rounded-full bg-green-200'>
+              <img src={successIcon} alt='Success' className='w-4 h-4' />
+            </span>
+          ),
+        });
+      } catch {
+        notifications.show({
+          title: 'Export failed',
+          message: 'An error occurred while exporting makeup sessions',
+          color: 'red',
+          radius: 'md',
+          withBorder: true,
+          autoClose: 3000,
+          position: 'top-right',
+          icon: (
+            <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+              <img src={errorIcon} alt='Error' className='w-4 h-4' />
+            </span>
+          ),
+        });
+      } finally {
+        setIsExporting(false);
+        closeExportModal();
+      }
+    },
+    [makeupSessions, closeExportModal]
+  );
+
+  return {
+    exportModalOpened,
+    openExportModal,
+    closeExportModal,
+    handleExport,
+    isExporting,
+  };
+};
+
+export const useExportAttendedSessions = (
+  attendedSessions: AttendedSession[]
+) => {
+  const [isExporting, setIsExporting] = useState(false);
+  const [
+    exportModalOpened,
+    { open: openExportModal, close: closeExportModal },
+  ] = useDisclosure(false);
+
+  const processAttendedSessionsForExport = (selectedIds: string[]) => {
+    const attendedSessionsToExport = attendedSessions.filter((session) =>
+      selectedIds.includes(session?.id?.toString() || '')
+    );
+
+    return attendedSessionsToExport.map((attendedSession) => ({
+      id: attendedSession.id,
+      client_name: attendedSession.client_name,
+    }));
+  };
+
+  const handleExport = useCallback(
+    (type: 'csv' | 'excel', selectedIds: string[]) => {
+      if (selectedIds.length === 0) {
+        console.warn('No attended sessions selected');
+        notifications.show({
+          title: 'No attended sessions selected',
+          message: 'Please select at least one attended session to export',
+          color: 'red',
+          radius: 'md',
+          withBorder: true,
+          autoClose: 3000,
+          position: 'top-right',
+          icon: (
+            <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+              <img src={errorIcon} alt='Error' className='w-4 h-4' />
+            </span>
+          ),
+        });
+        closeExportModal();
+        return;
+      }
+
+      if (attendedSessions.length === 0) {
+        notifications.show({
+          title: 'No attended sessions available',
+          message: 'There are no attended sessions to export',
+          color: 'red',
+          radius: 'md',
+          withBorder: true,
+          autoClose: 3000,
+          position: 'top-right',
+          icon: (
+            <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+              <img src={errorIcon} alt='Error' className='w-4 h-4' />
+            </span>
+          ),
+        });
+        closeExportModal();
+        return;
+      }
+
+      setIsExporting(true);
+      try {
+        const dataToExport = processAttendedSessionsForExport(selectedIds);
+        exportDataToFile(dataToExport, type, 'attended_sessions', ['id']);
+
+        notifications.show({
+          title: 'Export successful',
+          message: `${
+            dataToExport.length
+          } attended session(s) exported successfully as ${type.toUpperCase()}`,
+          color: 'green',
+          radius: 'md',
+          withBorder: true,
+          autoClose: 3000,
+          position: 'top-right',
+          icon: (
+            <span className='flex items-center justify-center w-6 h-6 rounded-full bg-green-200'>
+              <img src={successIcon} alt='Success' className='w-4 h-4' />
+            </span>
+          ),
+        });
+      } catch (error) {
+        notifications.show({
+          title: 'Export failed',
+          message: 'An error occurred while exporting attended sessions',
+          color: 'red',
+          radius: 'md',
+          withBorder: true,
+          autoClose: 3000,
+          position: 'top-right',
+          icon: (
+            <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+              <img src={errorIcon} alt='Error' className='w-4 h-4' />
+            </span>
+          ),
+        });
+      } finally {
+        setIsExporting(false);
+        closeExportModal();
+      }
+    },
+    [attendedSessions, closeExportModal]
+  );
+
+  return {
+    exportModalOpened,
+    openExportModal,
+    closeExportModal,
+    handleExport,
+    isExporting,
+  };
+};
+
+export const useExportCancelledSessions = (
+  cancelledSessions: CancelledSession[]
+) => {
+  const [isExporting, setIsExporting] = useState(false);
+  const [
+    exportModalOpened,
+    { open: openExportModal, close: closeExportModal },
+  ] = useDisclosure(false);
+
+  const processCancelledSessionsForExport = (selectedIds: string[]) => {
+    const cancelledSessionsToExport = cancelledSessions.filter((session) =>
+      selectedIds.includes(session?.id?.toString() || '')
+    );
+
+    return cancelledSessionsToExport.map((cancelledSession) => ({
+      id: cancelledSession.id,
+      client_name: cancelledSession.client_name,
+    }));
+  };
+
+  const handleExport = useCallback(
+    (type: 'csv' | 'excel', selectedIds: string[]) => {
+      if (selectedIds.length === 0) {
+        console.warn('No cancelled sessions selected');
+        notifications.show({
+          title: 'No cancelled sessions selected',
+          message: 'Please select at least one cancelled session to export',
+          color: 'red',
+          radius: 'md',
+          withBorder: true,
+          autoClose: 3000,
+          position: 'top-right',
+          icon: (
+            <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+              <img src={errorIcon} alt='Error' className='w-4 h-4' />
+            </span>
+          ),
+        });
+        closeExportModal();
+        return;
+      }
+
+      if (cancelledSessions.length === 0) {
+        notifications.show({
+          title: 'No cancelled sessions available',
+          message: 'There are no cancelled sessions to export',
+          color: 'red',
+          radius: 'md',
+          withBorder: true,
+          autoClose: 3000,
+          position: 'top-right',
+          icon: (
+            <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+              <img src={errorIcon} alt='Error' className='w-4 h-4' />
+            </span>
+          ),
+        });
+        closeExportModal();
+        return;
+      }
+
+      setIsExporting(true);
+      try {
+        const dataToExport = processCancelledSessionsForExport(selectedIds);
+        exportDataToFile(dataToExport, type, 'cancelled_sessions', ['id']);
+
+        notifications.show({
+          title: 'Export successful',
+          message: `${
+            dataToExport.length
+          } cancelled session(s) exported successfully as ${type.toUpperCase()}`,
+          color: 'green',
+          radius: 'md',
+          withBorder: true,
+          autoClose: 3000,
+          position: 'top-right',
+          icon: (
+            <span className='flex items-center justify-center w-6 h-6 rounded-full bg-green-200'>
+              <img src={successIcon} alt='Success' className='w-4 h-4' />
+            </span>
+          ),
+        });
+      } catch (error) {
+        notifications.show({
+          title: 'Export failed',
+          message: 'An error occurred while exporting cancelled sessions',
+          color: 'red',
+          radius: 'md',
+          withBorder: true,
+          autoClose: 3000,
+          position: 'top-right',
+          icon: (
+            <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+              <img src={errorIcon} alt='Error' className='w-4 h-4' />
+            </span>
+          ),
+        });
+      } finally {
+        setIsExporting(false);
+        closeExportModal();
+      }
+    },
+    [cancelledSessions, closeExportModal]
+  );
 
   return {
     exportModalOpened,

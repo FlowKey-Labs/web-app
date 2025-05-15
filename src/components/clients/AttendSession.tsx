@@ -1,14 +1,14 @@
 import Table from '../common/Table';
 import {
-  useGetMakeupSessions,
-  useDeleteMakeupSession,
+  useGetAttendedSessions,
+  useDeleteAttendedSession,
 } from '../../hooks/reactQuery';
 import { createColumnHelper } from '@tanstack/react-table';
-import { MakeUpSession } from '../../types/sessionTypes';
+import { AttendedSession } from '../../types/sessionTypes';
 import { Loader, Menu, Text, Group, Modal, Button, Stack } from '@mantine/core';
 import moment from 'moment';
 import { useCallback, useMemo, useState } from 'react';
-import { useExportMakeupSessions } from '../../hooks/useExport';
+import { useExportAttendedSessions } from '../../hooks/useExport';
 
 import actionOptionIcon from '../../assets/icons/actionOption.svg';
 import successIcon from '../../assets/icons/success.svg';
@@ -16,29 +16,32 @@ import errorIcon from '../../assets/icons/error.svg';
 import { useDisclosure } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
 
-const columnHelper = createColumnHelper<MakeUpSession>();
+const columnHelper = createColumnHelper<AttendedSession>();
 
-const MakeUp = ({ clientId }: { clientId: string | number }) => {
+const AttendSession = ({ clientId }: { clientId: string | number }) => {
   const [rowSelection, setRowSelection] = useState({});
-  const [selectedMakeupSession, setSelectedMakeupSession] =
-    useState<MakeUpSession | null>(null);
-  const [isRemovingMakeupSession, setIsRemovingMakeupSession] = useState(false);
+  const [selectedAttendedSession, setSelectedAttendedSession] =
+    useState<AttendedSession | null>(null);
+  const [isRemovingAttendedSession, setIsRemovingAttendedSession] =
+    useState(false);
 
   const [opened, { open, close }] = useDisclosure(false);
 
+  const removeAttendedSessionMutation = useDeleteAttendedSession();
+
   const {
-    data: makeupSessions,
-    isLoading: makeupSessionsLoading,
-    isError: makeupSessionsError,
-    error: makeupSessionsErrorDetails,
-    refetch: refetchMakeupSessions,
-  } = useGetMakeupSessions();
+    data: attendedSessions,
+    isLoading: attendedSessionsLoading,
+    isError: attendedSessionsError,
+    error: attendedSessionsErrorDetails,
+    refetch: refetchAttendedSessions,
+  } = useGetAttendedSessions();
 
-  const removeMakeupSessionMutation = useDeleteMakeupSession();
-
-  const filteredMakeupSessions = makeupSessions?.filter((s: MakeUpSession) => {
-    return s.client?.toString() === clientId.toString();
-  });
+  const filteredAttendedSessions = attendedSessions?.filter(
+    (s: AttendedSession) => {
+      return s.client?.toString() === clientId.toString();
+    }
+  );
 
   const {
     exportModalOpened,
@@ -46,21 +49,21 @@ const MakeUp = ({ clientId }: { clientId: string | number }) => {
     closeExportModal,
     handleExport,
     isExporting,
-  } = useExportMakeupSessions(makeupSessions || []);
+  } = useExportAttendedSessions(attendedSessions || []);
 
-  const getSelectedMakeupSessionIds = useCallback(() => {
-    if (!makeupSessions) return [];
+  const getSelectedAttendedSessionIds = useCallback(() => {
+    if (!attendedSessions) return [];
 
     const selectedIds = Object.keys(rowSelection)
       .map((index) => {
-        const makeupSessionIndex = parseInt(index);
-        const selectedSession = makeupSessions[makeupSessionIndex];
+        const attendedSessionIndex = parseInt(index);
+        const selectedSession = attendedSessions[attendedSessionIndex];
         return selectedSession?.id.toString();
       })
       .filter(Boolean);
 
     return selectedIds;
-  }, [rowSelection, makeupSessions]);
+  }, [rowSelection, attendedSessions]);
 
   const columns = useMemo(() => [
     columnHelper.display({
@@ -86,21 +89,9 @@ const MakeUp = ({ clientId }: { clientId: string | number }) => {
       header: 'Session',
       cell: (info) => info.getValue(),
     }),
-    columnHelper.accessor('original_date', {
-      header: 'Original Date',
+    columnHelper.accessor('date', {
+      header: 'Date',
       cell: (info) => moment(info.getValue()).format('YYYY-MM-DD'),
-    }),
-    columnHelper.accessor('new_date', {
-      header: 'New Date',
-      cell: (info) => moment(info.getValue()).format('YYYY-MM-DD'),
-    }),
-    columnHelper.accessor('new_start_time', {
-      header: 'New Start Time',
-      cell: (info) => moment(info.getValue()).format('HH:mm'),
-    }),
-    columnHelper.accessor('new_end_time', {
-      header: 'New End Time',
-      cell: (info) => moment(info.getValue()).format('HH:mm'),
     }),
     columnHelper.display({
       id: 'actions',
@@ -127,7 +118,7 @@ const MakeUp = ({ clientId }: { clientId: string | number }) => {
                   color='#162F3B'
                   className='text-sm'
                   style={{ textAlign: 'center' }}
-                  onClick={openExportModal}
+                    onClick={openExportModal}
                 >
                   Export Makeup Session
                 </Menu.Item>
@@ -160,8 +151,8 @@ const MakeUp = ({ clientId }: { clientId: string | number }) => {
                 <Menu.Item
                   color='red'
                   onClick={() => {
-                    setSelectedMakeupSession(client);
-                    setIsRemovingMakeupSession(true);
+                    setSelectedAttendedSession(client);
+                    // setIsRemovingAttendedSession(true);
                     open();
                   }}
                   className='text-sm'
@@ -177,37 +168,37 @@ const MakeUp = ({ clientId }: { clientId: string | number }) => {
     }),
   ], [open]);
 
-  if (makeupSessionsLoading) {
-    return (
-      <div className='flex items-center justify-center h-full'>
-        <Loader color='#1D9B5E' size='xl' />
-      </div>
-    );
-  }
-
-  if (makeupSessionsError) {
-    return (
-      <div className='flex items-center justify-center h-full flex-col'>
-        <Text>
-          Error fetching makeup sessions {makeupSessionsErrorDetails?.message}
-        </Text>
-        <div className='mt-4'>
-          <button
-            onClick={() => refetchMakeupSessions()}
-            className='bg-secondary text-white px-4 py-2 rounded'
-          >
-            Retry
-          </button>
+  if (attendedSessionsLoading) {
+      return (
+        <div className='flex items-center justify-center h-full'>
+          <Loader color='#1D9B5E' size='xl' />
         </div>
-      </div>
-    );
-  }
+      );
+    }
+  
+    if (attendedSessionsError) {
+      return (
+        <div className='flex items-center justify-center h-full flex-col'>
+          <Text>
+            Error fetching attended sessions {attendedSessionsErrorDetails?.message}
+          </Text>
+          <div className='mt-4'>
+            <button
+              onClick={() => refetchAttendedSessions()}
+              className='bg-secondary text-white px-4 py-2 rounded'
+            >
+              Retry
+            </button>
+          </div>
+        </div>
+      );
+    }
 
   return (
     <>
       <Table
         columns={columns}
-        data={filteredMakeupSessions || []}
+        data={filteredAttendedSessions || []}
         pageSize={5}
         rowSelection={rowSelection}
         onRowSelectionChange={setRowSelection}
@@ -217,7 +208,7 @@ const MakeUp = ({ clientId }: { clientId: string | number }) => {
         onClose={close}
         title={
           <Text fw={600} size='lg'>
-            Remove Makeup Session
+            Remove Attended Session
           </Text>
         }
         centered
@@ -238,11 +229,11 @@ const MakeUp = ({ clientId }: { clientId: string | number }) => {
           </div>
           <div>
             <Text fw={500} size='md' mb={8} c='gray.8'>
-              Are you sure you want to remove this makeup session?
+              Are you sure you want to remove this attended session?
             </Text>
             <Text size='sm' c='gray.6'>
-              This action will remove the makeup session from the system. They
-              will no longer appear in makeup session lists.
+              This action will remove the attended session from the system. They
+              will no longer appear in attended session lists.
             </Text>
           </div>
         </div>
@@ -251,16 +242,16 @@ const MakeUp = ({ clientId }: { clientId: string | number }) => {
           <Button
             color='red'
             onClick={() => {
-              removeMakeupSessionMutation.mutateAsync(
+              removeAttendedSessionMutation.mutateAsync(
                 {
-                  id: selectedMakeupSession?.id?.toString() || '',
+                  id: selectedAttendedSession?.id?.toString() || '',
                 },
                 {
                   onSuccess: () => {
-                    setIsRemovingMakeupSession(false);
+                    setIsRemovingAttendedSession(false);
                     notifications.show({
                       title: 'Success',
-                      message: 'Makeup session removed successfully',
+                      message: 'Attended session removed successfully',
                       color: 'green',
                       icon: (
                         <span className='flex items-center justify-center w-6 h-6 rounded-full bg-green-200'>
@@ -277,11 +268,11 @@ const MakeUp = ({ clientId }: { clientId: string | number }) => {
                     close();
                   },
                   onError: (error) => {
-                    console.error('Failed to remove makeup session:', error);
+                    console.error('Failed to remove attended session:', error);
                     notifications.show({
                       title: 'Error',
                       message:
-                        'Failed to remove makeup session. Please try again.',
+                        'Failed to remove attended session. Please try again.',
                       color: 'red',
                       icon: (
                         <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
@@ -300,8 +291,8 @@ const MakeUp = ({ clientId }: { clientId: string | number }) => {
               );
             }}
             loading={
-              isRemovingMakeupSession
-                ? removeMakeupSessionMutation.isPending
+              isRemovingAttendedSession
+                ? removeAttendedSessionMutation.isPending
                 : false
             }
             radius='md'
@@ -315,7 +306,7 @@ const MakeUp = ({ clientId }: { clientId: string | number }) => {
         onClose={closeExportModal}
         title={
           <Text fw={600} size='lg'>
-            Export Makeup Sessions
+            Export Attended Sessions
           </Text>
         }
         centered
@@ -331,7 +322,7 @@ const MakeUp = ({ clientId }: { clientId: string | number }) => {
         <div className='py-2'>
           <Text size='sm' style={{ marginBottom: '2rem' }}>
             Select a format to export {Object.keys(rowSelection).length}{' '}
-            selected makeup sessions
+            selected attended sessions
           </Text>
 
           <Stack gap='md'>
@@ -340,7 +331,7 @@ const MakeUp = ({ clientId }: { clientId: string | number }) => {
               color='#1D9B5E'
               radius='md'
               onClick={() => {
-                const selectedIds = getSelectedMakeupSessionIds();
+                const selectedIds = getSelectedAttendedSessionIds();
                 handleExport('excel', selectedIds);
               }}
               className='px-6'
@@ -353,7 +344,7 @@ const MakeUp = ({ clientId }: { clientId: string | number }) => {
               variant='outline'
               color='#1D9B5E'
               radius='md'
-              onClick={() => handleExport('csv', getSelectedMakeupSessionIds())}
+              onClick={() => handleExport('csv', getSelectedAttendedSessionIds())}
               className='px-6'
               loading={isExporting}
             >
@@ -378,4 +369,4 @@ const MakeUp = ({ clientId }: { clientId: string | number }) => {
   );
 };
 
-export default MakeUp;
+export default AttendSession;

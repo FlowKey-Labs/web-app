@@ -12,8 +12,10 @@ import ProgressTracker from './ProgressTracker';
 import ProgressSeriesTracker from './ProgressSeriesTracker';
 import { useProgressStore } from '../../store/progressStore';
 import MakeUp from './MakeUp';
+import CancelSession from './CancelSession';
+import AttendSession from './AttendSession';
 
-type isActiveType = 'Client Sessions' | 'Make-up';
+type isActiveType = 'Client Sessions' | 'attended' | 'Make-up' | 'cancelled';
 
 const ClientDetails = () => {
   const { id: clientId } = useParams();
@@ -332,11 +334,31 @@ const ClientDetails = () => {
                           color='#1D9B5E'
                           radius='md'
                           variant={
+                            isActive === 'attended' ? 'filled' : 'outline'
+                          }
+                          onClick={() => setIsActive('attended')}
+                        >
+                          Attended Sessions
+                        </Button>
+                        <Button
+                          color='#1D9B5E'
+                          radius='md'
+                          variant={
                             isActive === 'Make-up' ? 'filled' : 'outline'
                           }
                           onClick={() => setIsActive('Make-up')}
                         >
                           Make-Up Sessions
+                        </Button>
+                        <Button
+                          color='#1D9B5E'
+                          radius='md'
+                          variant={
+                            isActive === 'cancelled' ? 'filled' : 'outline'
+                          }
+                          onClick={() => setIsActive('cancelled')}
+                        >
+                          Cancelled Sessions
                         </Button>
                       </div>
                       <div className='flex-1 py-2'>
@@ -364,7 +386,15 @@ const ClientDetails = () => {
                             </div>
                           )
                         ) : (
-                          <MakeUp clientId={clientId || ''} />
+                          isActive === 'attended' ? (
+                            <AttendSession clientId={clientId || ''} />
+                          ) : (
+                            isActive === 'cancelled' ? (
+                              <CancelSession clientId={clientId || ''} />
+                            ) : (
+                              <MakeUp clientId={clientId || ''} />
+                            )
+                          )
                         )}
                       </div>
                     </div>

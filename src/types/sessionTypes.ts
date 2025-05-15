@@ -135,7 +135,7 @@ export interface EventFields {
 }
 
 export interface MakeUpSession {
-  id: number | string;
+  id?: number | string;
   session_title?: string;
   client_name?: string;
   original_date: CreateSessionData["date"];
@@ -148,6 +148,27 @@ export interface MakeUpSession {
   client: number | string;
 }
 
+export interface AttendedSession {
+  id?: number | string;
+  session_title?: string;
+  client_name?: string;
+  date: string; 
+  created_at?: string; 
+  updated_at?: string; 
+  client: number | string; 
+  session: number | string; 
+}
+
+export interface CancelledSession {
+  id?: number | string;
+  client_name?: string;
+  session_title?: string;
+  date: string; 
+  created_at?: string;
+  updated_at?: string;
+  client: number | string; 
+  session: number | string; 
+}
 export interface ProgressFeedback {
   client_id: string;
   subcategory_id: string;
