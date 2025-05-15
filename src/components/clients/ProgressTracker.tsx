@@ -71,14 +71,11 @@ const ProgressTracker = ({ clientId }: { clientId: string }) => {
     clientId || "",
     selectedLevel?.id || ""
   );
-  console.log("selectedLevel?.id==>", selectedLevel?.id);
-  console.log("levelFeedback==>", levelFeedback);
 
   useEffect(() => {
     if (levelFeedback) {
       reset({
         feedback: levelFeedback.feedback || "",
-        // attachments: [],
       });
     }
   }, [levelFeedback, reset]);
