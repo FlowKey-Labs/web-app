@@ -6,7 +6,7 @@ import Table from '../common/Table';
 import { createColumnHelper } from '@tanstack/react-table';
 import { useGetGroup, useGetGroupMembers } from '../../hooks/reactQuery';
 import avatar from '../../assets/icons/newAvatar.svg';
-import { Client, GroupData } from '../../types/clientTypes'; // Added GroupData
+import { Client, GroupData } from '../../types/clientTypes';
 import { useNavigate } from 'react-router-dom';
 import UpdateGroup from './updateGroup';
 
@@ -15,26 +15,22 @@ const GroupDetails = () => {
   const navigate = useNavigate();
 
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  // const [activeTab, setActiveTab] = useState<'overview' | 'members'>('overview'); // Example tabs
   const [rowSelection, setRowSelection] = useState({});
 
   const openDrawer = () => setIsDrawerOpen(true);
   const closeDrawer = () => setIsDrawerOpen(false);
 
-  // Fetch Group Details - Assuming useGetGroup hook exists and returns GroupData or similar
   const {
-    data: groupDetails, // Explicitly type groupDetails if needed, e.g., data: groupDetails as GroupData,
+    data: groupDetails,
     isLoading,
     isError,
     error,
     refetch: refetchGroup,
   } = useGetGroup(groupId || '') as { data: GroupData | undefined, isLoading: boolean, isError: boolean, error: any, refetch: () => void };
 
-  // Fetch Group Members
   const {
-    data: groupMembers = [], // Default to empty array
+    data: groupMembers = [],
     isLoading: membersLoading,
-    isError: membersIsError,
     error: membersError,
   } = useGetGroupMembers(groupId || '');
 
@@ -65,7 +61,6 @@ const GroupDetails = () => {
     []
   );
 
-  // Combined loading state
   const isPageLoading = isLoading || membersLoading;
 
   if (isPageLoading) {

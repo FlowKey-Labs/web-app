@@ -21,7 +21,6 @@ import {
 } from '../../types/clientTypes';
 import { Location } from '../../types/location';
 
-// Define a specific type for the group form values
 interface GroupFormValues extends GroupData {
   client_ids: number[];
   session_ids: number[];

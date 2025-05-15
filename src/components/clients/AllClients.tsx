@@ -85,7 +85,7 @@ const AllClients = () => {
     closeExportModal,
     handleExport,
     isExporting,
-  } = useExportClients(activeView === 'clients' ? clients || [] : groups || []); // TODO: Adapt useExportClients for groups or create useExportGroups
+  } = useExportClients(activeView === 'clients' ? clients || [] : groups || []);
 
   const {
     exportModalOpened: groupExportModalOpened,
@@ -294,16 +294,16 @@ const AllClients = () => {
         cell: (info) => info.getValue(),
       }),
       groupColumnHelper.accessor(
-        (row) => row.contact_person, // Access the nested object
+        (row) => row.contact_person,
         {
-          id: 'contact_person', // Updated ID
+          id: 'contact_person',
           header: 'Contact Person',
           cell: (info) => {
-            const contactPerson = info.getValue(); // This is the contact_person object
+            const contactPerson = info.getValue();
             if (contactPerson && contactPerson.first_name && contactPerson.last_name) {
               return `${contactPerson.first_name} ${contactPerson.last_name}`;
             }
-            return 'N/A'; // Handle cases where contact_person or names are missing
+            return 'N/A';
           },
         }
       ),
@@ -435,7 +435,7 @@ const AllClients = () => {
         });
         close();
         if (activeView === 'clients') refetch();
-        else refetchGroups(); // Assuming refetchGroups exists
+        else refetchGroups();
       },
       onError: (_error: unknown) => {
         notifications.show({
@@ -490,7 +490,7 @@ const AllClients = () => {
         });
         close();
         if (activeView === 'clients') refetch();
-        else refetchGroups(); // Assuming refetchGroups exists
+        else refetchGroups();
       },
       onError: (_error: unknown) => {
         notifications.show({
@@ -512,7 +512,6 @@ const AllClients = () => {
   };
 
   const openClientDrawer = () => {
-    // setSelectedEntityType('client'); // If using a generic Add modal
     setIsDrawerOpen(true);
   };
 
@@ -711,8 +710,6 @@ const AllClients = () => {
               (!isActivating &&
                 activeView === 'clients' &&
                 deactivateClientMutation.isPending)
-
-              // TODO: Add loading states for group mutations
             }
             radius='md'
           >
@@ -757,24 +754,24 @@ const AllClients = () => {
           <Stack gap='md'>
             <MantineButton
               variant='outline'
-              color='#1D9B5E' // Or your primary color
+              color='#1D9B5E'
               radius='md'
               onClick={() => activeView === 'clients' ? handleExport ('excel', getSelectedIds()) : handleGroupExport('excel', getSelectedIds())}
-              className='px-6' // Consider if fullWidth is better
+              className='px-6'
               loading={activeView === 'clients' ? isExporting : groupIsExporting}
-              disabled={activeView === 'clients' ? isExporting : groupIsExporting} // Add disabled state
+              disabled={activeView === 'clients' ? isExporting : groupIsExporting}
             >
               Export as Excel (.xlsx)
             </MantineButton>
 
             <MantineButton
               variant='outline'
-              color='#1D9B5E' // Or your primary color
+              color='#1D9B5E'
               radius='md'
               onClick={() => activeView === 'clients' ? handleExport('csv', getSelectedIds()) : handleGroupExport('csv', getSelectedIds())}
-              className='px-6' // Consider if fullWidth is better
+              className='px-6'
               loading={activeView === 'clients' ? isExporting : groupIsExporting}
-              disabled={activeView === 'clients' ? isExporting : groupIsExporting} // Add disabled state
+              disabled={activeView === 'clients' ? isExporting : groupIsExporting}
             >
               Export as CSV (.csv)
             </MantineButton>
