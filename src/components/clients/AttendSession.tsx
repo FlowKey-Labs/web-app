@@ -8,6 +8,7 @@ import { AttendedSession } from '../../types/sessionTypes';
 import { Loader, Menu, Text, Group, Modal, Button, Stack } from '@mantine/core';
 import moment from 'moment';
 import { useCallback, useMemo, useState } from 'react';
+import { useExportAttendedSessions } from '../../hooks/useExport';
 
 import actionOptionIcon from '../../assets/icons/actionOption.svg';
 import successIcon from '../../assets/icons/success.svg';
@@ -42,6 +43,14 @@ const AttendSession = ({ clientId }: { clientId: string | number }) => {
     }
   );
 
+  const {
+    exportModalOpened,
+    openExportModal,
+    closeExportModal,
+    handleExport,
+    isExporting,
+  } = useExportAttendedSessions(attendedSessions || []);
+
   const getSelectedAttendedSessionIds = useCallback(() => {
     if (!attendedSessions) return [];
 
@@ -56,7 +65,7 @@ const AttendSession = ({ clientId }: { clientId: string | number }) => {
     return selectedIds;
   }, [rowSelection, attendedSessions]);
 
-  const columns = [
+  const columns = useMemo(() => [
     columnHelper.display({
       id: 'select',
       header: ({ table }) => (
@@ -77,7 +86,7 @@ const AttendSession = ({ clientId }: { clientId: string | number }) => {
       ),
     }),
     columnHelper.accessor('session_title', {
-      header: 'Sessions',
+      header: 'Session',
       cell: (info) => info.getValue(),
     }),
     columnHelper.accessor('date', {
@@ -109,7 +118,7 @@ const AttendSession = ({ clientId }: { clientId: string | number }) => {
                   color='#162F3B'
                   className='text-sm'
                   style={{ textAlign: 'center' }}
-                  //   onClick={openExportModal}
+                    onClick={openExportModal}
                 >
                   Export Makeup Session
                 </Menu.Item>
@@ -157,7 +166,7 @@ const AttendSession = ({ clientId }: { clientId: string | number }) => {
         );
       },
     }),
-  ];
+  ], [open]);
 
   if (attendedSessionsLoading) {
       return (
@@ -290,6 +299,70 @@ const AttendSession = ({ clientId }: { clientId: string | number }) => {
           >
             Remove
           </Button>
+        </div>
+      </Modal>
+      <Modal
+        opened={exportModalOpened}
+        onClose={closeExportModal}
+        title={
+          <Text fw={600} size='lg'>
+            Export Attended Sessions
+          </Text>
+        }
+        centered
+        radius='md'
+        size='md'
+        withCloseButton={false}
+        overlayProps={{
+          backgroundOpacity: 0.55,
+          blur: 3,
+        }}
+        shadow='xl'
+      >
+        <div className='py-2'>
+          <Text size='sm' style={{ marginBottom: '2rem' }}>
+            Select a format to export {Object.keys(rowSelection).length}{' '}
+            selected attended sessions
+          </Text>
+
+          <Stack gap='md'>
+            <Button
+              variant='outline'
+              color='#1D9B5E'
+              radius='md'
+              onClick={() => {
+                const selectedIds = getSelectedAttendedSessionIds();
+                handleExport('excel', selectedIds);
+              }}
+              className='px-6'
+              loading={isExporting}
+            >
+              Export as Excel
+            </Button>
+
+            <Button
+              variant='outline'
+              color='#1D9B5E'
+              radius='md'
+              onClick={() => handleExport('csv', getSelectedAttendedSessionIds())}
+              className='px-6'
+              loading={isExporting}
+            >
+              Export as CSV
+            </Button>
+          </Stack>
+
+          <div className='flex justify-end space-x-4 mt-8'>
+            <Button
+              variant='outline'
+              color='red'
+              radius='md'
+              onClick={closeExportModal}
+              className='px-6'
+            >
+              Cancel
+            </Button>
+          </div>
         </div>
       </Modal>
     </>

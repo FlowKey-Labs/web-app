@@ -7,7 +7,7 @@ import { createColumnHelper } from '@tanstack/react-table';
 import { MakeUpSession } from '../../types/sessionTypes';
 import { Loader, Menu, Text, Group, Modal, Button, Stack } from '@mantine/core';
 import moment from 'moment';
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useExportMakeupSessions } from '../../hooks/useExport';
 
 import actionOptionIcon from '../../assets/icons/actionOption.svg';
@@ -62,7 +62,7 @@ const MakeUp = ({ clientId }: { clientId: string | number }) => {
     return selectedIds;
   }, [rowSelection, makeupSessions]);
 
-  const columns = [
+  const columns = useMemo(() => [
     columnHelper.display({
       id: 'select',
       header: ({ table }) => (
@@ -83,7 +83,7 @@ const MakeUp = ({ clientId }: { clientId: string | number }) => {
       ),
     }),
     columnHelper.accessor('session_title', {
-      header: 'Sessions',
+      header: 'Session',
       cell: (info) => info.getValue(),
     }),
     columnHelper.accessor('original_date', {
@@ -175,7 +175,7 @@ const MakeUp = ({ clientId }: { clientId: string | number }) => {
         );
       },
     }),
-  ];
+  ], [open]);
 
   if (makeupSessionsLoading) {
     return (

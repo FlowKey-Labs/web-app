@@ -7,7 +7,8 @@ import { createColumnHelper } from '@tanstack/react-table';
 import { CancelledSession } from '../../types/sessionTypes';
 import { Loader, Menu, Text, Group, Modal, Button, Stack } from '@mantine/core';
 import moment from 'moment';
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
+import { useExportCancelledSessions } from '../../hooks/useExport';
 
 import actionOptionIcon from '../../assets/icons/actionOption.svg';
 import successIcon from '../../assets/icons/success.svg';
@@ -42,6 +43,14 @@ const CancelSession = ({ clientId }: { clientId: string | number }) => {
     }
   );
 
+  const {
+    exportModalOpened,
+    openExportModal,
+    closeExportModal,
+    handleExport,
+    isExporting,
+  } = useExportCancelledSessions(cancelledSessions || []);
+
   const getSelectedCancelledSessionIds = useCallback(() => {
     if (!cancelledSessions) return [];
 
@@ -56,108 +65,114 @@ const CancelSession = ({ clientId }: { clientId: string | number }) => {
     return selectedIds;
   }, [rowSelection, cancelledSessions]);
 
-  const columns = [
-    columnHelper.display({
-      id: 'select',
-      header: ({ table }) => (
-        <input
-          type='checkbox'
-          checked={table.getIsAllRowsSelected()}
-          onChange={table.getToggleAllRowsSelectedHandler()}
-          className='w-4 h-4 rounded cursor-pointer bg-[#F7F8FA] accent-[#DBDEDF]'
-        />
-      ),
-      cell: ({ row }) => (
-        <input
-          type='checkbox'
-          checked={row.getIsSelected()}
-          onChange={row.getToggleSelectedHandler()}
-          className='w-4 h-4 rounded cursor-pointer bg-[#F7F8FA] accent-[#DBDEDF]'
-        />
-      ),
-    }),
-    columnHelper.accessor('session_title', {
-      header: 'Sessions',
-      cell: (info) => info.getValue(),
-    }),
-    columnHelper.accessor('date', {
-      header: 'Date',
-      cell: (info) => moment(info.getValue()).format('YYYY-MM-DD'),
-    }),
-    columnHelper.display({
-      id: 'actions',
-      header: () => (
-        <div className='flex space-x-2' onClick={(e) => e.stopPropagation()}>
-          <Group justify='center'>
-            <Menu
-              width={150}
-              shadow='md'
-              position='bottom'
-              radius='md'
-              withArrow
-              offset={4}
-            >
-              <Menu.Target>
-                <img
-                  src={actionOptionIcon}
-                  alt='Options'
-                  className='w-4 h-4 cursor-pointer'
-                />
-              </Menu.Target>
-              <Menu.Dropdown>
-                <Menu.Item
-                  color='#162F3B'
-                  className='text-sm'
-                  style={{ textAlign: 'center' }}
-                  //   onClick={openExportModal}
-                >
-                  Export Makeup Session
-                </Menu.Item>
-              </Menu.Dropdown>
-            </Menu>
-          </Group>
-        </div>
-      ),
-      cell: ({ row }) => {
-        const client = row.original;
-
-        return (
+  const columns = useMemo(
+    () => [
+      columnHelper.display({
+        id: 'select',
+        header: ({ table }) => (
+          <input
+            type='checkbox'
+            checked={table.getIsAllRowsSelected()}
+            onChange={table.getToggleAllRowsSelectedHandler()}
+            className='w-4 h-4 rounded cursor-pointer bg-[#F7F8FA] accent-[#DBDEDF]'
+          />
+        ),
+        cell: ({ row }) => (
+          <input
+            type='checkbox'
+            checked={row.getIsSelected()}
+            onChange={row.getToggleSelectedHandler()}
+            className='w-4 h-4 rounded cursor-pointer bg-[#F7F8FA] accent-[#DBDEDF]'
+          />
+        ),
+      }),
+      columnHelper.accessor('session_title', {
+        header: 'Session',
+        cell: (info) => info.getValue(),
+      }),
+      columnHelper.accessor('date', {
+        header: 'Date',
+        cell: (info) => moment(info.getValue()).format('YYYY-MM-DD'),
+      }),
+      columnHelper.display({
+        id: 'actions',
+        header: () => (
           <div className='flex space-x-2' onClick={(e) => e.stopPropagation()}>
-            <Menu
-              width={150}
-              shadow='md'
-              position='bottom'
-              radius='md'
-              withArrow
-              offset={4}
-            >
-              <Menu.Target>
-                <img
-                  src={actionOptionIcon}
-                  alt='Options'
-                  className='w-4 h-4 cursor-pointer'
-                />
-              </Menu.Target>
-              <Menu.Dropdown>
-                <Menu.Item
-                  color='red'
-                  onClick={() => {
-                    setSelectedCancelledSession(client);
-                    setIsRemovingCancelledSession(true);
-                    open();
-                  }}
-                  className='text-sm'
-                  style={{ textAlign: 'center' }}
-                >
-                  Remove
-                </Menu.Item>
-              </Menu.Dropdown>
-            </Menu>
+            <Group justify='center'>
+              <Menu
+                width={150}
+                shadow='md'
+                position='bottom'
+                radius='md'
+                withArrow
+                offset={4}
+              >
+                <Menu.Target>
+                  <img
+                    src={actionOptionIcon}
+                    alt='Options'
+                    className='w-4 h-4 cursor-pointer'
+                  />
+                </Menu.Target>
+                <Menu.Dropdown>
+                  <Menu.Item
+                    color='#162F3B'
+                    className='text-sm'
+                    style={{ textAlign: 'center' }}
+                    onClick={openExportModal}
+                  >
+                    Export Makeup Session
+                  </Menu.Item>
+                </Menu.Dropdown>
+              </Menu>
+            </Group>
           </div>
-        );
-      },
-    }),
-  ];
+        ),
+        cell: ({ row }) => {
+          const client = row.original;
+
+          return (
+            <div
+              className='flex space-x-2'
+              onClick={(e) => e.stopPropagation()}
+            >
+              <Menu
+                width={150}
+                shadow='md'
+                position='bottom'
+                radius='md'
+                withArrow
+                offset={4}
+              >
+                <Menu.Target>
+                  <img
+                    src={actionOptionIcon}
+                    alt='Options'
+                    className='w-4 h-4 cursor-pointer'
+                  />
+                </Menu.Target>
+                <Menu.Dropdown>
+                  <Menu.Item
+                    color='red'
+                    onClick={() => {
+                      setSelectedCancelledSession(client);
+                      setIsRemovingCancelledSession(true);
+                      open();
+                    }}
+                    className='text-sm'
+                    style={{ textAlign: 'center' }}
+                  >
+                    Remove
+                  </Menu.Item>
+                </Menu.Dropdown>
+              </Menu>
+            </div>
+          );
+        },
+      }),
+    ],
+    [open]
+  );
 
   if (cancelledSessionsLoading) {
     return (
@@ -263,9 +278,72 @@ const CancelSession = ({ clientId }: { clientId: string | number }) => {
           >
             Remove
           </Button>
-          <Button variant='outline' onClick={close}>
-            Cancel
-          </Button>
+        </div>
+      </Modal>
+      <Modal
+        opened={exportModalOpened}
+        onClose={closeExportModal}
+        title={
+          <Text fw={600} size='lg'>
+            Export Cancelled Sessions
+          </Text>
+        }
+        centered
+        radius='md'
+        size='md'
+        withCloseButton={false}
+        overlayProps={{
+          backgroundOpacity: 0.55,
+          blur: 3,
+        }}
+        shadow='xl'
+      >
+        <div className='py-2'>
+          <Text size='sm' style={{ marginBottom: '2rem' }}>
+            Select a format to export {Object.keys(rowSelection).length}{' '}
+            selected cancelled sessions
+          </Text>
+
+          <Stack gap='md'>
+            <Button
+              variant='outline'
+              color='#1D9B5E'
+              radius='md'
+              onClick={() => {
+                const selectedIds = getSelectedCancelledSessionIds();
+                handleExport('excel', selectedIds);
+              }}
+              className='px-6'
+              loading={isExporting}
+            >
+              Export as Excel
+            </Button>
+
+            <Button
+              variant='outline'
+              color='#1D9B5E'
+              radius='md'
+              onClick={() =>
+                handleExport('csv', getSelectedCancelledSessionIds())
+              }
+              className='px-6'
+              loading={isExporting}
+            >
+              Export as CSV
+            </Button>
+          </Stack>
+
+          <div className='flex justify-end space-x-4 mt-8'>
+            <Button
+              variant='outline'
+              color='red'
+              radius='md'
+              onClick={closeExportModal}
+              className='px-6'
+            >
+              Cancel
+            </Button>
+          </div>
         </div>
       </Modal>
     </>
