@@ -16,6 +16,7 @@ export interface SeriesLevel {
 
 export interface Series {
   title: string;
+  description?: string;
   progress?: number;
   levels?: SeriesLevel[];
 }
@@ -38,6 +39,8 @@ interface ProgressState {
 
   // Actions
   setSeriesData: (data: Series[]) => void;
+  setCurrentSeriesIndex: (index: number) => void;
+  setCurrentLevelIndex: (index: number) => void;
   setSelectedLevel: (level: ProgressState["selectedLevel"]) => void;
   getFirstIncompleteLevel: (data: Series[]) => SeriesLevel | null;
   setLevelOutcomesCompleted?: (levelId: string, completed: string[]) => void;
@@ -61,6 +64,8 @@ export const useProgressStore = create<ProgressState>((set, get) => ({
   currentSeriesIndex: 0,
   seriesData: [],
   levelOutcomesCompleted: {},
+  setCurrentSeriesIndex: (index: number) => set({ currentSeriesIndex: index }),
+  setCurrentLevelIndex: (index: number) => set({ currentLevelIndex: index }),
   setSeriesData: (data: Series[]) => set({ seriesData: data }),
   setSelectedLevel: (level) => set({ selectedLevel: level }),
   updateLevelProgress: (levelId, progress) =>
@@ -107,11 +112,10 @@ export const useProgressStore = create<ProgressState>((set, get) => ({
       selectedLevel,
     } = get();
     const currentSeries = seriesData[currentSeriesIndex];
-
     if (!currentSeries || !currentSeries.levels) return;
 
     // Check if current level is 100% complete
-    const currentLevelId = selectedLevel?.value;
+    const currentLevelId = selectedLevel?.id;
     const currentLevelProgress = currentLevelId
       ? levelProgress[currentLevelId]
       : 0;

@@ -89,6 +89,7 @@ import {
   getClientProgress,
   getOutcomes,
   submitProgressFeedback,
+  getLevelFeedback,
 } from "../api/api";
 import { Role, useAuthStore } from "../store/auth";
 import { AddClient, Client } from "../types/clientTypes";
@@ -1150,7 +1151,28 @@ export const useUnmarkOutcomeIncomplete = () => {
 };
 
 export const useSubmitProgressFeedback = () => {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (payload: ProgressFeedback) => submitProgressFeedback(payload),
+    onSuccess: (_, { client_id, subcategory_id }) => {
+      queryClient.invalidateQueries({
+        queryKey: ["levelFeedback", client_id, subcategory_id],
+      });
+    },
+  });
+};
+
+export const useGetProgressFeedback = (
+  clientId: string,
+  subcategoryId: string
+) => {
+  return useQuery<{
+    feedback: string;
+    attachment: string;
+  }>({
+    queryKey: ["levelFeedback", clientId, subcategoryId],
+    queryFn: () => getLevelFeedback(clientId, subcategoryId),
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    refetchOnWindowFocus: false,
   });
 };

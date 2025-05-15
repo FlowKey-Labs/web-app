@@ -83,6 +83,11 @@ const END_POINTS = {
     MARK_OUTCOME_COMPLETED: `${BASE_URL}/api/progress/mark/`,
     MARK_OUTCOME_INCOMPLETE: `${BASE_URL}/api/progress/unmark/`,
     FEEDBACK: `${BASE_URL}/api/progress/feedback/`,
+    LEVEL_FEEDBACK: (client_id: string, subcategory_id: string) =>
+      `${BASE_URL}/api/progress/get-feedback/?client_id=` +
+      client_id +
+      `&subcategory_id=` +
+      subcategory_id,
   },
 };
 
@@ -843,6 +848,13 @@ const submitProgressFeedback = async (payload: ProgressFeedback) => {
   return data;
 };
 
+const getLevelFeedback = async (clientId: string, subcategory_id: string) => {
+  const { data } = await api.get(
+    END_POINTS.PROGRESS.LEVEL_FEEDBACK(clientId, subcategory_id)
+  );
+  return data;
+};
+
 export {
   END_POINTS,
   registerUser,
@@ -926,4 +938,5 @@ export {
   submitProgressFeedback,
   getClientProgress,
   getOutcomes,
+  getLevelFeedback,
 };

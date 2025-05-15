@@ -24,12 +24,18 @@ import dropZoneIcon from "../../assets/icons/dropZone.svg";
 import styles from "../accountSettings/GeneralSettings.module.css";
 import previewEyeIcon from "../../assets/icons/previewEye.svg";
 import Input from "../common/Input";
-import { Outcome, Series, SeriesLevel, useProgressStore } from "../../store/progressStore";
+import {
+  Outcome,
+  Series,
+  SeriesLevel,
+  useProgressStore,
+} from "../../store/progressStore";
 
 import errorIcon from "../../assets/icons/error.svg";
 import { notifications } from "@mantine/notifications";
 import { useLoadProgressTrackerData } from "../../hooks/useLoadProgressTrackerData";
 import {
+  useGetProgressFeedback,
   useMarkOutcomeCompleted,
   useSubmitProgressFeedback,
   useUnmarkOutcomeIncomplete,
@@ -52,23 +58,36 @@ const ProgressTracker = ({ clientId }: { clientId: string }) => {
   const methods = useForm({
     defaultValues: { feedback: "", attachments: [] as File[] },
   });
-  
-  const {
-    mutate: markComplete,
-    isPending: markInProgress,
-  } = useMarkOutcomeCompleted();
-  const {
-    mutate: markIncomplete,
-    isPending: unmarkInProgress,
-  } = useUnmarkOutcomeIncomplete();
-  const {
-    mutate: submitFeedback,
-    isPending: submitFeedbackInProgress,
-  } = useSubmitProgressFeedback();
 
+  const { reset } = methods;
+
+  const { mutate: markComplete, isPending: markInProgress } =
+    useMarkOutcomeCompleted();
+  const { mutate: markIncomplete, isPending: unmarkInProgress } =
+    useUnmarkOutcomeIncomplete();
+  const { mutate: submitFeedback, isPending: submitFeedbackInProgress } =
+    useSubmitProgressFeedback();
+  const { data: levelFeedback } = useGetProgressFeedback(
+    clientId || "",
+    selectedLevel?.id || ""
+  );
+  console.log("selectedLevel?.id==>", selectedLevel?.id);
+  console.log("levelFeedback==>", levelFeedback);
+
+  useEffect(() => {
+    if (levelFeedback) {
+      reset({
+        feedback: levelFeedback.feedback || "",
+        // attachments: [],
+      });
+    }
+  }, [levelFeedback, reset]);
 
   const { loadProgressData } = useLoadProgressTrackerData(clientId);
-  const [shouldUpdateFirstIncompleteLevel, setShouldUpdateFirstIncompleteLevel] = useState(true);
+  const [
+    shouldUpdateFirstIncompleteLevel,
+    setShouldUpdateFirstIncompleteLevel,
+  ] = useState(true);
 
   useEffect(() => {
     setShouldUpdateFirstIncompleteLevel(true);
@@ -115,10 +134,12 @@ const ProgressTracker = ({ clientId }: { clientId: string }) => {
   // Calculate series progress for the current series
   const currentSeriesProgress = useMemo(() => {
     if (!selectedLevel) return 0;
-    
+
     const findLevelById = (data: Series[], targetId: string) => {
       for (const series of data) {
-        const level = series?.levels?.find((lvl: SeriesLevel) => lvl.id === targetId);
+        const level = series?.levels?.find(
+          (lvl: SeriesLevel) => lvl.id === targetId
+        );
         if (level) return level;
       }
       return null;
@@ -130,21 +151,21 @@ const ProgressTracker = ({ clientId }: { clientId: string }) => {
 
   useEffect(() => {
     if (!seriesData || seriesData.length === 0) return;
-  
+
     const newStatus: { [id: string]: boolean } = {};
-  
+
     seriesData.forEach((series) => {
       series?.levels?.forEach((level) => {
         const outcomes: Outcome[] = level.outcomes || [];
         const completed: string[] = level.completed || [];
-  
+
         outcomes.forEach((outcome) => {
           const isCompleted = completed.some((c) => c === outcome.id);
           newStatus[outcome.id] = isCompleted;
         });
       });
     });
-  
+
     setOutcomeStatus(newStatus);
   }, [seriesData]);
 
@@ -156,11 +177,11 @@ const ProgressTracker = ({ clientId }: { clientId: string }) => {
 
   const handleOutcomeToggle = (outcome: Outcome) => {
     const isCompleted = outcomeStatus[outcome.id];
-  
+
     const mutation = isCompleted ? markIncomplete : markComplete;
 
-    setShouldUpdateFirstIncompleteLevel(false); 
-  
+    setShouldUpdateFirstIncompleteLevel(false);
+
     mutation(
       { client_id: clientId, subskill_id: outcome.id },
       {
@@ -184,13 +205,11 @@ const ProgressTracker = ({ clientId }: { clientId: string }) => {
     updateLevelProgress(selectedLevel?.id, percentage);
   }, [outcomeStatus, previewLevelData, selectedLevel, updateLevelProgress]);
 
-
   const onSubmit = (data: { feedback: string; attachments: File[] }) => {
     if (previewLevelOutcomePercentage < 100) {
       notifications.show({
         title: "Error",
-        message:
-          "Please complete all outcomes before moving to the next level",
+        message: "Please complete all outcomes before moving to the next level",
         color: "red",
         radius: "md",
         icon: (
@@ -204,16 +223,19 @@ const ProgressTracker = ({ clientId }: { clientId: string }) => {
       });
       return;
     }
-    if (!data.attachments || data.attachments.length === 0 || !data.feedback) {
+    if (
+      !data.attachments?.length &&
+      (!data.feedback || levelFeedback?.attachment)
+    ) {
       goToNextLevel();
-      return
-    };
+      return;
+    }
     submitFeedback(
       {
-        client_id: clientId, 
+        client_id: clientId,
         subcategory_id: selectedLevel?.id || "",
-        feedback: data.feedback, 
-        attachment: data.attachments[0],
+        feedback: data.feedback,
+        attachment: data.attachments?.[0],
       },
       {
         onSuccess: () => {
@@ -231,6 +253,7 @@ const ProgressTracker = ({ clientId }: { clientId: string }) => {
             autoClose: 3000,
             position: "top-right",
           });
+          reset({ feedback: "", attachments: [] });
           goToNextLevel();
         },
         onError: (error) => {
@@ -251,7 +274,7 @@ const ProgressTracker = ({ clientId }: { clientId: string }) => {
           });
         },
       }
-    )
+    );
   };
 
   if (isPreviewMode && previewLevelData) {
@@ -263,9 +286,6 @@ const ProgressTracker = ({ clientId }: { clientId: string }) => {
               <Text size="2rem" fw={700}>
                 {previewLevelData.title}
               </Text>
-              <Text size="sm" c="dimmed">
-                Due Date: {previewLevelData.dueDate}
-              </Text>
             </Flex>
             <Text size="lg" fw={600} mb="xs">
               Learning Outcomes
@@ -276,9 +296,7 @@ const ProgressTracker = ({ clientId }: { clientId: string }) => {
             <div className="space-y-3 mb-6">
               {previewLevelData.outcomes.map(
                 (outcome: Outcome, index: number) => {
-                  const isCompleted =
-                    outcomeStatus[outcome.id] ||
-                    false;
+                  const isCompleted = outcomeStatus[outcome.id] || false;
                   return (
                     <Card
                       key={index}
@@ -336,34 +354,48 @@ const ProgressTracker = ({ clientId }: { clientId: string }) => {
             <Text size="sm" fw={500} mb="xs">
               Attach Photos or videos
             </Text>
-            <Controller
-              name="attachments"
-              control={methods.control}
-              render={({ field: { onChange, value } }) => (
-                <Dropzone
-                  onDrop={(files) => onChange([...(value || []), ...files])}
-                  onReject={(files) => console.log("rejected files", files)}
-                  maxSize={20 * 1024 ** 2}
-                  className={styles.dropzoneRoot}
-                  accept={IMAGE_MIME_TYPE}
-                >
-                  <Flex justify="center" align="center" gap="md">
-                    <img src={dropZoneIcon} className="text-gray-500 w-8 h-8" />
-                    <Box>
-                      <Text size="sm" c="dimmed">
-                        Drag and drop a file here, or{" "}
-                        <Text component="span" c="secondary" fw={500}>
-                          Browse
+            {levelFeedback?.attachment ? (
+              <a
+                href={levelFeedback.attachment}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm text-blue-500 underline"
+              >
+                View existing attachment
+              </a>
+            ) : (
+              <Controller
+                name="attachments"
+                control={methods.control}
+                render={({ field: { onChange, value } }) => (
+                  <Dropzone
+                    onDrop={(files) => onChange([...(value || []), ...files])}
+                    onReject={(files) => console.log("rejected files", files)}
+                    maxSize={20 * 1024 ** 2}
+                    className={styles.dropzoneRoot}
+                    accept={IMAGE_MIME_TYPE}
+                  >
+                    <Flex justify="center" align="center" gap="md">
+                      <img
+                        src={dropZoneIcon}
+                        className="text-gray-500 w-8 h-8"
+                      />
+                      <Box>
+                        <Text size="sm" c="dimmed">
+                          Drag and drop a file here, or{" "}
+                          <Text component="span" c="secondary" fw={500}>
+                            Browse
+                          </Text>
                         </Text>
-                      </Text>
-                      <Text size="xs" c="dimmed">
-                        Max size: 20MB
-                      </Text>
-                    </Box>
-                  </Flex>
-                </Dropzone>
-              )}
-            />
+                        <Text size="xs" c="dimmed">
+                          Max size: 20MB
+                        </Text>
+                      </Box>
+                    </Flex>
+                  </Dropzone>
+                )}
+              />
+            )}
             <Controller
               name="attachments"
               control={methods.control}
@@ -407,13 +439,8 @@ const ProgressTracker = ({ clientId }: { clientId: string }) => {
               >
                 Back
               </Button>
-              <Button
-                color="#1D9B5E"
-                radius="md"
-                size="sm"
-                type="submit"
-              >
-                Next
+              <Button color="#1D9B5E" radius="md" size="sm" type="submit">
+                {submitFeedbackInProgress ? "Submitting feedback..." : "Next"}
               </Button>
             </Flex>
           </Box>
@@ -492,7 +519,7 @@ const ProgressTracker = ({ clientId }: { clientId: string }) => {
           </Flex>
           <Progress
             value={currentSeriesProgress}
-            color="#1D9B5E"
+            color={currentSeriesProgress === 100 ? "#1D9B5E" : "#FF9500"}
             radius="sm"
             mb="sm"
           />
@@ -514,7 +541,11 @@ const ProgressTracker = ({ clientId }: { clientId: string }) => {
                   </Text>
                   <Progress
                     value={previewLevelOutcomePercentage}
-                    color="#FF9500"
+                    color={
+                      previewLevelOutcomePercentage === 100
+                        ? "#1D9B5E"
+                        : "#FF9500"
+                    }
                     radius="sm"
                     mt="sm"
                   />

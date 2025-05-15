@@ -204,14 +204,6 @@ const ClientDetails = () => {
                   <div className='w-full px-4 space-y-4'>
                     <div className='flex justify-between items-center w-full text-sm'>
                       <span className='text-gray-400 font-bold text-xs'>
-                        CLIENT ID
-                      </span>
-                      <span className='text-gray-400  text-xs'>
-                        {clientDetails.id || 'N/A'}
-                      </span>
-                    </div>
-                    <div className='flex justify-between items-center w-full text-sm'>
-                      <span className='text-gray-400 font-bold text-xs'>
                         SESSIONS
                       </span>
                       <span className='text-gray-400  text-xs'>
@@ -247,12 +239,12 @@ const ClientDetails = () => {
                   <div className='h-[1px] bg-gray-300 w-full my-6'></div>
                   <div className='w-full pb-6'>
                     <div className='flex justify-between text-xs pb-2'>
-                      <p className=''>Learning Progress</p>
+                      <p className=''>Average Learning Progress</p>
                       <p className=''>{averageProgress}%</p>
                     </div>
 
                     <Progress
-                      color="#1D9B5E" // Consider making color dynamic based on progress/status
+                      color={averageProgress === 100 ? "#1D9B5E" : '#FF9500'}
                       size='md'
                       radius='xl'
                       value={averageProgress}
