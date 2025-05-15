@@ -39,6 +39,13 @@ export const navigateToClientDetails = (
   navigate(`/clients/${clientId}`);
 };
 
+export const navigateToGroupDetails = (
+  navigate: ReturnType<typeof useNavigate>,
+  groupId: string
+) => {
+  navigate(`/groups/${groupId}`);
+};
+
 export const navigateToCalendar = (
   navigate: ReturnType<typeof useNavigate>
 ) => {

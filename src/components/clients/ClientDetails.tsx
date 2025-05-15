@@ -6,8 +6,8 @@ import Table from '../common/Table';
 import { createColumnHelper } from '@tanstack/react-table';
 import { useGetClient, useGetClientAnalytics } from '../../hooks/reactQuery';
 import avatar from '../../assets/icons/newAvatar.svg';
-import UpdateClient from './UpdateClient';
 import { navigateToSessionDetails } from '../../utils/navigationHelpers';
+import { useUIStore } from '../../store/ui';
 import ProgressTracker from './ProgressTracker';
 import ProgressSeriesTracker from './ProgressSeriesTracker';
 import { useProgressStore } from '../../store/progressStore';
@@ -20,14 +20,10 @@ type isActiveType = 'Client Sessions' | 'attended' | 'Make-up' | 'cancelled';
 const ClientDetails = () => {
   const { id: clientId } = useParams();
   const navigate = useNavigate();
+  const { openDrawer } = useUIStore();
   const { viewMode, setViewMode, activeTab, setActiveTab } = useProgressStore();
-
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [rowSelection, setRowSelection] = useState({});
   const [isActive, setIsActive] = useState<isActiveType>('Client Sessions');
-
-  const openDrawer = () => setIsDrawerOpen(true);
-  const closeDrawer = () => setIsDrawerOpen(false);
 
   const {
     data: clientDetails,
@@ -36,10 +32,20 @@ const ClientDetails = () => {
     error,
   } = useGetClient(clientId || '');
 
+  const {
+    levelProgress,
+  } = useProgressStore();
+
+  const averageProgress = useMemo(() => {
+    const values = Object.values(levelProgress);
+    const average = Math.round(values.reduce((sum, value) => sum + value, 0) / values.length);
+    return average
+  }, [levelProgress])
+  
+
   const { data: clientAnalytics, isLoading: analyticsLoading } =
     useGetClientAnalytics(clientId || '');
 
-  // Define the type for client sessions
   type ClientSession = {
     session_id: number;
     session_title: string;
@@ -57,7 +63,6 @@ const ClientDetails = () => {
     class_type: string;
   };
 
-  // Get client sessions from the client details
   const clientSessions = useMemo(() => {
     return clientDetails?.sessions || [];
   }, [clientDetails]);
@@ -97,6 +102,16 @@ const ClientDetails = () => {
     [clientDetails]
   );
 
+  const handleOpenUpdateDrawer = () => {
+    if (clientId) {
+      openDrawer({
+        type: 'client',
+        entityId: clientId,
+        isEditing: true
+      });
+    }
+  };
+
   if (isLoading) {
     return (
       <div className='flex justify-center items-center h-screen'>
@@ -132,7 +147,7 @@ const ClientDetails = () => {
           title='Client Details'
           buttonText='Update Client'
           searchPlaceholder='Search by ID, Name or Subject'
-          onButtonClick={openDrawer}
+          onButtonClick={handleOpenUpdateDrawer}
           showFilterIcons={false}
         />
         <div className='items-center gap-4 p-6'>
@@ -140,7 +155,6 @@ const ClientDetails = () => {
             <div className='flex flex-col w-[30%] items-center mt-6'>
               {/* Conditional Rendering for Left Panel */}
               {viewMode === 'details' ? (
-                // Client Details View
                 <div className='flex flex-col px-4 py-8 items-center justify-center border bg-white rounded-xl w-[290px]'>
                   <img
                     src={clientDetails.profileImage || avatar}
@@ -185,14 +199,6 @@ const ClientDetails = () => {
                   <div className='w-full px-4 space-y-4'>
                     <div className='flex justify-between items-center w-full text-sm'>
                       <span className='text-gray-400 font-bold text-xs'>
-                        CLIENT ID
-                      </span>
-                      <span className='text-gray-400  text-xs'>
-                        {clientDetails.id || 'N/A'}
-                      </span>
-                    </div>
-                    <div className='flex justify-between items-center w-full text-sm'>
-                      <span className='text-gray-400 font-bold text-xs'>
                         SESSIONS
                       </span>
                       <span className='text-gray-400  text-xs'>
@@ -228,20 +234,19 @@ const ClientDetails = () => {
                   <div className='h-[1px] bg-gray-300 w-full my-6'></div>
                   <div className='w-full pb-6'>
                     <div className='flex justify-between text-xs pb-2'>
-                      <p className=''>Learning Progress</p>
-                      <p className=''>50%</p> {/* TODO: Use actual progress */}
+                      <p className=''>Average Learning Progress</p>
+                      <p className=''>{averageProgress}%</p>
                     </div>
 
                     <Progress
-                      color='#FFAE0080' // Consider making color dynamic based on progress/status
+                      color={averageProgress === 100 ? "#1D9B5E" : '#FF9500'}
                       size='md'
                       radius='xl'
-                      value={50} // TODO: Use actual progress
+                      value={averageProgress}
                     />
                   </div>
                 </div>
               ) : (
-                // Progress Levels View
                 <ProgressSeriesTracker />
               )}
               {/* End Conditional Rendering */}
@@ -397,18 +402,13 @@ const ClientDetails = () => {
                 </>
               ) : activeTab === 'Progress Tracker' ? (
                 <div className='flex justify-center items-center p-8'>
-                  <ProgressTracker />
+                  <ProgressTracker clientId={clientId || ''} />
                 </div>
               ) : null}
             </div>
           </div>
         </div>
       </div>
-      <UpdateClient
-        isOpen={isDrawerOpen}
-        onClose={closeDrawer}
-        clientId={clientId}
-      />
     </>
   );
 };

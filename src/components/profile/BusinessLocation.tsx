@@ -23,12 +23,11 @@ import errorIcon from '../../assets/icons/error.svg';
 
 import {
   useGetLocations,
-  useCreateLocation,
-  useUpdateLocation,
   useDeleteLocation,
   useSetPrimaryLocation,
 } from '../../hooks/reactQuery';
-import { CreateLocationData, Location } from '../../types/location';
+import { Location, CreateLocationData } from '../../types/location';
+import { useUIStore } from '../../store/ui';
 
 const emptyLocation: CreateLocationData = {
   name: '',
@@ -42,41 +41,27 @@ const emptyLocation: CreateLocationData = {
 };
 
 export const BusinessLocation = () => {
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const [editingId, setEditingId] = useState<number | null>(null);
+  const { openDrawer } = useUIStore();
   const [locationToDelete, setLocationToDelete] = useState<number | null>(null);
   const [opened, { open, close }] = useDisclosure(false);
 
-  const methods = useForm<CreateLocationData>({
-    defaultValues: emptyLocation,
-  });
-  const { handleSubmit, reset } = methods;
-
   const { data: locations = [], isLoading } = useGetLocations();
-  const createLocationMutation = useCreateLocation();
-  const updateLocationMutation = useUpdateLocation();
   const deleteLocationMutation = useDeleteLocation();
   const setPrimaryLocationMutation = useSetPrimaryLocation();
 
   const handleAddLocation = () => {
-    reset(emptyLocation);
-    setEditingId(null);
-    setIsDrawerOpen(true);
+    openDrawer({
+      type: 'location',
+      isEditing: false
+    });
   };
 
   const handleEditLocation = (location: Location) => {
-    reset({
-      name: location.name,
-      address: location.address,
-      city: location.city,
-      state: location.state,
-      zip_code: location.zip_code,
-      country: location.country,
-      is_primary: location.is_primary,
-      notes: location.notes || '',
+    openDrawer({
+      type: 'location',
+      entityId: location.id,
+      isEditing: true
     });
-    setEditingId(location.id);
-    setIsDrawerOpen(true);
   };
 
   const handleDeleteClick = (id: number) => {
@@ -84,55 +69,13 @@ export const BusinessLocation = () => {
     open();
   };
 
-  const onSubmit = (data: CreateLocationData) => {
-    if (editingId) {
-      updateLocationMutation.mutate(
-        {
-          id: editingId,
-          data: data,
-        },
-        {
-          onSuccess: () => {
-            notifications.show({
-              title: 'Success',
-              message: 'Location updated successfully!',
-              color: 'green',
-              radius: 'md',
-              icon: (
-                <span className='flex items-center justify-center w-6 h-6 rounded-full bg-green-200'>
-                  <img src={successIcon} alt='Success' className='w-4 h-4' />
-                </span>
-              ),
-              withBorder: true,
-              autoClose: 3000,
-              position: 'top-right',
-            });
-            setIsDrawerOpen(false);
-          },
-          onError: (_error) => {
-            notifications.show({
-              title: 'Error',
-              message: 'Failed to update location. Please try again.',
-              color: 'red',
-              radius: 'md',
-              icon: (
-                <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
-                  <img src={errorIcon} alt='Error' className='w-4 h-4' />
-                </span>
-              ),
-              withBorder: true,
-              autoClose: 3000,
-              position: 'top-right',
-            });
-          },
-        }
-      );
-    } else {
-      createLocationMutation.mutate(data, {
+  const handleDeleteConfirm = () => {
+    if (locationToDelete) {
+      deleteLocationMutation.mutate(locationToDelete, {
         onSuccess: () => {
           notifications.show({
             title: 'Success',
-            message: 'Location created successfully!',
+            message: 'Location deleted successfully!',
             color: 'green',
             radius: 'md',
             icon: (
@@ -144,12 +87,12 @@ export const BusinessLocation = () => {
             autoClose: 3000,
             position: 'top-right',
           });
-          setIsDrawerOpen(false);
+          close();
         },
         onError: (_error) => {
           notifications.show({
             title: 'Error',
-            message: 'Failed to create location. Please try again.',
+            message: 'Failed to delete location. Please try again.',
             color: 'red',
             radius: 'md',
             icon: (
@@ -166,51 +109,12 @@ export const BusinessLocation = () => {
     }
   };
 
-  const handleDeleteConfirm = () => {
-    if (!locationToDelete) return;
-    deleteLocationMutation.mutate(locationToDelete, {
-      onSuccess: () => {
-        notifications.show({
-          title: 'Success',
-          message: 'Location deleted successfully!',
-          color: 'green',
-          radius: 'md',
-          icon: (
-            <span className='flex items-center justify-center w-6 h-6 rounded-full bg-green-200'>
-              <img src={successIcon} alt='Success' className='w-4 h-4' />
-            </span>
-          ),
-          withBorder: true,
-          autoClose: 3000,
-          position: 'top-right',
-        });
-        close();
-      },
-      onError: (_error) => {
-        notifications.show({
-          title: 'Error',
-          message: 'Failed to delete location. Please try again.',
-          color: 'red',
-          radius: 'md',
-          icon: (
-            <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
-              <img src={errorIcon} alt='Error' className='w-4 h-4' />
-            </span>
-          ),
-          withBorder: true,
-          autoClose: 3000,
-          position: 'top-right',
-        });
-      },
-    });
-  };
-
   const handleSetPrimary = (id: number) => {
     setPrimaryLocationMutation.mutate(id, {
       onSuccess: () => {
         notifications.show({
           title: 'Success',
-          message: 'Primary location updated successfully!',
+          message: 'Primary location set successfully!',
           color: 'green',
           radius: 'md',
           icon: (
@@ -226,7 +130,7 @@ export const BusinessLocation = () => {
       onError: (_error) => {
         notifications.show({
           title: 'Error',
-          message: 'Failed to update primary location. Please try again.',
+          message: 'Failed to set primary location. Please try again.',
           color: 'red',
           radius: 'md',
           icon: (
@@ -324,6 +228,7 @@ export const BusinessLocation = () => {
                     size='xs'
                     radius='md'
                     onClick={() => handleSetPrimary(location.id)}
+                    loading={setPrimaryLocationMutation.isPending}
                   >
                     Set as Primary
                   </Button>
@@ -357,126 +262,6 @@ export const BusinessLocation = () => {
           ))}
         </div>
       )}
-
-      <Drawer
-        opened={isDrawerOpen}
-        onClose={() => setIsDrawerOpen(false)}
-        title={editingId ? 'Edit Location' : 'Add New Location'}
-        position='right'
-        size='md'
-        padding='xl'
-      >
-        <FormProvider {...methods}>
-          <form onSubmit={handleSubmit(onSubmit)} className='space-y-4'>
-            <Controller
-              name='name'
-              control={methods.control}
-              rules={{ required: 'Location name is required' }}
-              render={({ field }) => (
-                <Input
-                  {...field}
-                  label='Location Name'
-                  placeholder='Main Office'
-                  containerClassName='mb-4'
-                />
-              )}
-            />
-            <Controller
-              name='address'
-              control={methods.control}
-              rules={{ required: 'Address is required' }}
-              render={({ field }) => (
-                <Input
-                  {...field}
-                  label='Address'
-                  placeholder='123 Business St'
-                  containerClassName='mb-4'
-                />
-              )}
-            />
-            <div className='grid grid-cols-2 gap-4 mb-4'>
-              <Controller
-                name='city'
-                control={methods.control}
-                rules={{ required: 'City is required' }}
-                render={({ field }) => (
-                  <Input {...field} label='City' placeholder='Nairobi' />
-                )}
-              />
-              <Controller
-                name='state'
-                control={methods.control}
-                rules={{ required: 'State is required' }}
-                render={({ field }) => (
-                  <Input
-                    {...field}
-                    label='State/Province'
-                    placeholder='Nairobi'
-                  />
-                )}
-              />
-            </div>
-            <div className='grid grid-cols-2 gap-4 mb-4'>
-              <Controller
-                name='zip_code'
-                control={methods.control}
-                rules={{ required: 'ZIP code is required' }}
-                render={({ field }) => (
-                  <Input
-                    {...field}
-                    label='ZIP/Postal Code'
-                    placeholder='00100'
-                  />
-                )}
-              />
-              <Controller
-                name='country'
-                control={methods.control}
-                rules={{ required: 'Country is required' }}
-                render={({ field }) => (
-                  <Input {...field} label='Country' placeholder='Kenya' />
-                )}
-              />
-            </div>
-
-            <Controller
-              name='notes'
-              control={methods.control}
-              render={({ field }) => (
-                <Input
-                  {...field}
-                  label='Notes'
-                  placeholder='Additional information about this location'
-                  type='textarea'
-                  rows={3}
-                  containerClassName='mb-4'
-                />
-              )}
-            />
-            <div className='flex items-center space-x-2 mb-8'>
-              <Controller
-                name='is_primary'
-                control={methods.control}
-                render={({ field: { value, onChange } }) => (
-                  <Checkbox
-                    id='is_primary'
-                    checked={value}
-                    onChange={(e) => onChange(e.currentTarget.checked)}
-                    label='Set as primary location'
-                    color='#1D9B5E'
-                  />
-                )}
-              />
-            </div>
-
-            <Group justify='flex-end' mt='xl'>
-              <Button color='#1D9B5E' type='submit' radius='md' size='sm'>
-                {editingId ? 'Update' : 'Add'} Location
-              </Button>
-            </Group>
-          </form>
-        </FormProvider>
-      </Drawer>
 
       <Modal
         opened={opened}
@@ -512,6 +297,9 @@ export const BusinessLocation = () => {
         </div>
 
         <div className='flex justify-end gap-2 mt-4'>
+          <Button variant="default" onClick={close}>
+            Cancel
+          </Button>
           <Button
             color='red'
             onClick={handleDeleteConfirm}

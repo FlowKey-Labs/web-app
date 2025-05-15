@@ -1,18 +1,11 @@
 import { JSX, useState } from 'react';
-
 import Header from '../headers/Header';
-import Services from './Services';
 import Schedule from './Schedule';
 import BusinessInformation from './BusinessInformation';
 import { BusinessLocation } from './BusinessLocation';
 import Categories from './Categories';
 
-type TabType =
-  | 'business'
-  | 'services'
-  | 'locations'
-  | 'schedule'
-  | 'categories';
+type TabType = 'business' | 'locations' | 'schedule' | 'categories';
 
   const tabConfig = [
     { id: 'business', label: 'Business Information' },
@@ -33,7 +26,6 @@ const Profile = () => {
         setOpenedAccordion={setOpenedAccordion}
       />
     ),
-    services: <Services />,
     locations: <BusinessLocation />,
     schedule: <Schedule />,
     categories: <Categories />,

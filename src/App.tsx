@@ -2,7 +2,12 @@ import { MantineProvider } from "@mantine/core";
 import "@mantine/core/styles.css";
 import "@mantine/notifications/styles.css";
 import { Notifications } from "@mantine/notifications";
-import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Route,
+  Routes,
+  Navigate,
+} from "react-router-dom";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { queryClient } from "./lib/react-query";
@@ -30,13 +35,15 @@ import LogoutSuccess from "./components/authentication/Logout";
 import Settings from "./components/accountSettings";
 import ClientDetails from "./components/clients/ClientDetails";
 import ComingSoon from "./components/common/ComingSoon";
-import "./App.css";
 import SetPassword from "./components/authentication/SetPassword";
 import { useAuthStore } from "./store/auth";
+import GroupDetails from './components/clients/GroupDetails';
+import "./App.css";
 
 function App() {
   const user = useAuthStore((state) => state.user);
   const permisions = useAuthStore((state) => state.role);
+
   return (
     <MantineProvider
       theme={{
@@ -48,27 +55,18 @@ function App() {
         <ReactQueryDevtools initialIsOpen={false} />
         <Router>
           <Routes>
-            {import.meta.env.VITE_APP_ENVIRONMENT === "development" && (
-              <Route path="/signup" element={<Signup />} />
-            )}
-            <Route path="/login" element={<Login />} />
-            <Route path="/set-password" element={<SetPassword />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
-            <Route path="/password-reset" element={<PasswordResetLink />} />
-            <Route path="/reset-password" element={<ResetPassword />} />
             <Route
-              path="/successful-password-reset"
-              element={<SuccessfulPassReset />}
-            />
-            {user && (
-              <>
-                <Route path="/welcome" element={<Welcome />} />
-                <Route path="/team-members" element={<TeamMembers />} />
-                <Route path="/business-type" element={<BusinessType />} />
-                <Route path="/logout" element={<LogoutSuccess />} />
-                <Route path="/monthly-clients" element={<MonthlyClients />} />
-                <Route path="/purpose" element={<Purpose />} />
-                <Route path="/" element={<Home />}>
+              path="/"
+              element={user ? <Home /> : <Navigate to="/login" replace />}
+            >
+              {user && (
+                <>
+                  <Route path="/welcome" element={<Welcome />} />
+                  <Route path="/team-members" element={<TeamMembers />} />
+                  <Route path="/business-type" element={<BusinessType />} />
+                  <Route path="/logout" element={<LogoutSuccess />} />
+                  <Route path="/monthly-clients" element={<MonthlyClients />} />
+                  <Route path="/purpose" element={<Purpose />} />
                   <Route index element={<GettingStarted />} />
                   <Route path="dashboard" element={<GettingStarted />} />
                   {permisions?.can_view_staff && (
@@ -87,10 +85,11 @@ function App() {
                     <Route path="calendar" element={<CalendarView />} />
                   )}
                   {permisions?.can_view_clients && (
+                    <>
                     <Route path="clients" element={<AllClients />} />
-                  )}
-                  {permisions?.can_view_clients && (
+                    <Route path='groups/:id' element={<GroupDetails />} />
                     <Route path="clients/:id" element={<ClientDetails />} />
+                    </>
                   )}
                   {permisions?.can_manage_profile && (
                     <Route path="profile" element={<Profile />} />
@@ -99,9 +98,21 @@ function App() {
                     <Route path="settings" element={<Settings />} />
                   )}
                   <Route path="*" element={<ComingSoon />} />
-                </Route>
-              </>
+                </>
+              )}
+            </Route>
+            {import.meta.env.VITE_APP_ENVIRONMENT === "development" && (
+              <Route path="/signup" element={<Signup />} />
             )}
+            <Route path="/login" element={<Login />} />
+            <Route path="/set-password" element={<SetPassword />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/password-reset" element={<PasswordResetLink />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
+            <Route
+              path="/successful-password-reset"
+              element={<SuccessfulPassReset />}
+            />
           </Routes>
         </Router>
       </QueryClientProvider>

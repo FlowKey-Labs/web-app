@@ -1,3 +1,4 @@
+
 import { useForm, Controller, FormProvider } from 'react-hook-form';
 import Input from '../common/Input';
 import DropdownSelectInput from '../common/Dropdown';
@@ -11,7 +12,7 @@ import {
   useGetClients,
   useGetSessions,
 } from '../../hooks/reactQuery';
-import React from 'react';
+import React, { useEffect } from 'react';
 import moment from 'moment';
 import {
   AddClient,
@@ -20,6 +21,12 @@ import {
   Client,
 } from '../../types/clientTypes';
 import { Location } from '../../types/location';
+
+interface GroupFormValues extends GroupData {
+  client_ids: number[];
+  session_ids: number[];
+  contact_person_id?: number;
+}
 import { Drawer } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import successIcon from '../../assets/icons/success.svg';
@@ -52,9 +59,7 @@ const AddClients = ({ isOpen, onClose }: ClientsModalProps) => {
     },
   });
 
-  const groupFormMethods = useForm<
-    GroupData & { client_ids: number[]; session_ids: number[] }
-  >({
+  const groupFormMethods = useForm<GroupFormValues>({
     defaultValues: {
       name: '',
       description: '',
@@ -81,11 +86,13 @@ const AddClients = ({ isOpen, onClose }: ClientsModalProps) => {
     mutate: addClient,
     isPending: isAddingClient,
     isSuccess: isClientSuccess,
+    reset: resetAddClient,
   } = useAddClient();
   const {
     mutate: addGroup,
     isPending: isAddingGroup,
     isSuccess: isGroupSuccess,
+    reset: resetAddGroup,
   } = useAddGroup();
   const { data: classSessionsData, isLoading: isClassSessionsLoading } =
     useGetClassSessions();
@@ -97,56 +104,21 @@ const AddClients = ({ isOpen, onClose }: ClientsModalProps) => {
     useGetSessions() as { data: any[] | undefined; isLoading: boolean };
   useGetGroups();
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (isClientSuccess) {
       individualReset();
-      groupReset();
+      resetAddClient();
       onClose();
     }
-  }, [isClientSuccess, individualReset, groupReset, onClose]);
+  }, [isClientSuccess, individualReset, resetAddClient, onClose]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (isGroupSuccess) {
       groupReset();
+      resetAddGroup();
       onClose();
     }
-  }, [isGroupSuccess, groupReset, onClose]);
-
-  //   return new Promise<number>((resolve, reject) => {
-  //     addGroup(groupData, {
-  //       onSuccess: (response) => {
-  //         notifications.show({
-  //           title: 'Success',
-  //           message: 'Group created successfully',
-  //           color: 'green',
-  //           icon: (
-  //             <span className='flex items-center justify-center w-6 h-6 rounded-full bg-green-200'>
-  //               <img src={successIcon} alt='Success' className='w-4 h-4' />
-  //             </span>
-  //           ),
-  //           withBorder: true,
-  //           autoClose: 3000,
-  //         });
-  //         resolve(response.id);
-  //       },
-  //       onError: (error) => {
-  //         notifications.show({
-  //           title: 'Error',
-  //           message: 'Failed to create group. Please try again.',
-  //           color: 'red',
-  //           icon: (
-  //             <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
-  //               <img src={errorIcon} alt='Error' className='w-4 h-4' />
-  //             </span>
-  //           ),
-  //           withBorder: true,
-  //           autoClose: 3000,
-  //         });
-  //         reject(error);
-  //       }
-  //     });
-  //   });
-  // };
+  }, [isGroupSuccess, groupReset, resetAddGroup, onClose]);
 
   const handleSubmitIndividual = individualHandleSubmit(async (data) => {
     try {
@@ -365,7 +337,7 @@ const AddClients = ({ isOpen, onClose }: ClientsModalProps) => {
                 : 'text-gray-500 bg-gray-100'
             }`}
           >
-            Individual Client
+            Client
           </button>
           <button
             type='button'
@@ -464,19 +436,24 @@ const AddClients = ({ isOpen, onClose }: ClientsModalProps) => {
                   control={individualControl}
                   render={({ field }) => (
                     <DropdownSelectInput
-                      {...field}
                       label='Location'
-                      placeholder='Select location'
-                      options={
-                        locationsData?.map((location: any) => ({
-                          label: location.name,
-                          value: location.id,
-                        })) || []
+                      placeholder={
+                        isLocationsLoading
+                          ? 'Loading locations...'
+                          : 'Select business location'
                       }
-                      onSelectItem={(item) => {
-                        field.onChange(item.value);
-                      }}
+                      options={
+                        isLocationsLoading
+                          ? [{ label: 'Loading...', value: '' }]
+                          : locationsData?.map((location) => ({
+                              label: location.name,
+                              value: location.name,
+                            })) || []
+                      }
                       value={field.value}
+                      onSelectItem={(selected) => {
+                        field.onChange(selected.value);
+                      }}
                     />
                   )}
                 />

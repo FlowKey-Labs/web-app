@@ -4,7 +4,6 @@ import {
   Group,
   Badge,
   Menu,
-  Drawer,
   Modal,
   Text,
   Stack,
@@ -19,17 +18,15 @@ import {
   useGetSessionCategories,
   useGetSessionSubCategories,
   useGetSessionSkills,
-  useCreateSessionSubCategory,
-  useUpdateSessionSubCategory,
   useDeleteSessionSubCategory,
   useCreateSessionSkill,
   useUpdateSessionSkill,
   useDeleteSessionSkill,
 } from '../../hooks/reactQuery';
+import { useUIStore } from '../../store/ui';
 import Table from '../common/Table';
-import { Controller, FormProvider, useFieldArray } from 'react-hook-form';
+import { useFieldArray } from 'react-hook-form';
 import { useForm } from 'react-hook-form';
-import Input from '../common/Input';
 import { useExportSubcategories } from '../../hooks/useExport';
 import { notifications } from '@mantine/notifications';
 import successIcon from '../../assets/icons/success.svg';
@@ -65,8 +62,6 @@ const CategoryDetails = ({
     isLoading: isLoadingSubcategories,
     refetch: refetchSubcategories,
   } = useGetSessionSubCategories();
-  const { mutateAsync: createSubcategory } = useCreateSessionSubCategory();
-  const { mutateAsync: updateSubcategory } = useUpdateSessionSubCategory();
   const { mutateAsync: deleteSubcategory } = useDeleteSessionSubCategory();
   const {
     data: allSkills,
@@ -76,6 +71,12 @@ const CategoryDetails = ({
   const { mutateAsync: createSkill } = useCreateSessionSkill();
   const { mutateAsync: updateSkill } = useUpdateSessionSkill();
   const { mutateAsync: deleteSkill } = useDeleteSessionSkill();
+
+  // Use the global UI store
+  const { openDrawer } = useUIStore();
+
+  // Add isSubmitting state for skill operations
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [currentSubcategoryForSkill, setCurrentSubcategoryForSkill] =
     useState<Subcategory | null>(null);
@@ -108,30 +109,14 @@ const CategoryDetails = ({
     isExporting,
   } = useExportSubcategories(allSubcategories || [], allSkills || []);
 
-  const methods = useForm<Subcategory>({
-    defaultValues: {
-      id: 0,
-      name: '',
-      description: '',
-      category: categoryId,
-    },
-  });
-
-  const { reset } = methods;
-
   const category: Category | undefined = useMemo(
     () => categoriesData?.find((cat: Category) => cat.id === categoryId),
     [categoriesData, categoryId]
   );
 
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
-  const [currentSubcategory, setCurrentSubcategory] =
-    useState<Subcategory | null>(null);
   const [subcategoryToDelete, setSubcategoryToDelete] =
     useState<Subcategory | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const subcategories: Subcategory[] = useMemo(
     () =>
@@ -158,27 +143,20 @@ const CategoryDetails = ({
   }, [allSkills]);
 
   const handleAddSubcategory = () => {
-    reset({
-      id: 0,
-      name: '',
-      description: '',
-      category: categoryId,
+    openDrawer({
+      type: 'subcategory',
+      isEditing: false,
+      extraData: { categoryId }
     });
-    setIsEditing(false);
-    setCurrentSubcategory(null);
-    setIsDrawerOpen(true);
   };
 
   const handleEditSubcategory = (subcategory: Subcategory) => {
-    reset({
-      id: subcategory.id,
-      name: subcategory.name,
-      description: subcategory.description || '',
-      category: categoryId,
+    openDrawer({
+      type: 'subcategory',
+      entityId: subcategory.id,
+      isEditing: true,
+      extraData: { categoryId }
     });
-    setIsEditing(true);
-    setCurrentSubcategory(subcategory);
-    setIsDrawerOpen(true);
   };
 
   const handleDeleteSubcategory = (subcategory: Subcategory) => {
@@ -226,68 +204,6 @@ const CategoryDetails = ({
       setIsDeleteModalOpen(false);
       setSubcategoryToDelete(null);
       refetchSubcategories();
-    }
-  };
-
-  const onSubmit = async (formData: Subcategory) => {
-    try {
-      if (isEditing && currentSubcategory) {
-        await updateSubcategory({
-          ...formData,
-          category: categoryId,
-        });
-        notifications.show({
-          color: 'green',
-          title: 'Success',
-          message: 'Subcategory updated successfully',
-          radius: 'md',
-          icon: (
-            <span className='flex items-center justify-center w-6 h-6 rounded-full bg-green-200'>
-              <img src={successIcon} alt='Success' className='w-4 h-4' />
-            </span>
-          ),
-          withBorder: true,
-          autoClose: 3000,
-          position: 'top-right',
-        });
-      } else {
-        await createSubcategory({
-          ...formData,
-          category: categoryId,
-        });
-        notifications.show({
-          color: 'green',
-          title: 'Success',
-          message: 'Subcategory created successfully',
-          radius: 'md',
-          icon: (
-            <span className='flex items-center justify-center w-6 h-6 rounded-full bg-green-200'>
-              <img src={successIcon} alt='Success' className='w-4 h-4' />
-            </span>
-          ),
-          withBorder: true,
-          autoClose: 3000,
-          position: 'top-right',
-        });
-      }
-      setIsDrawerOpen(false);
-      refetchSubcategories();
-    } catch (error) {
-      console.error('Error saving subcategory:', error);
-      notifications.show({
-        color: 'red',
-        title: 'Error',
-        message: 'Failed to save subcategory. Please try again.',
-        radius: 'md',
-        icon: (
-          <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
-            <img src={errorIcon} alt='Error' className='w-4 h-4' />
-          </span>
-        ),
-        withBorder: true,
-        autoClose: 3000,
-        position: 'top-right',
-      });
     }
   };
 
@@ -896,8 +812,8 @@ const CategoryDetails = ({
 
   if (isLoading)
     return (
-      <div className='flex justify-center items-center h-screen'>
-        <Loader size='xl' color='#192F3B' />
+      <div className='flex justify-center items-center h-screen p-6 pt-12'>
+        <Loader size='xl' color='#1D9B5E' />
       </div>
     );
   if (isError)
@@ -969,57 +885,6 @@ const CategoryDetails = ({
           />
         )}
       </div>
-
-      <Drawer
-        opened={isDrawerOpen}
-        onClose={() => setIsDrawerOpen(false)}
-        title={isEditing ? 'Edit Subcategory' : 'Add Subcategory'}
-        padding='xl'
-        size='md'
-        position='right'
-      >
-        <FormProvider {...methods}>
-          <form onSubmit={methods.handleSubmit(onSubmit)} className='space-y-4'>
-            <Controller
-              name='name'
-              control={methods.control}
-              rules={{ required: 'Subcategory name is required' }}
-              render={({ field }) => (
-                <Input
-                  {...field}
-                  label='Subcategory Name'
-                  placeholder='Enter subcategory name'
-                />
-              )}
-            />
-            <Controller
-              name='description'
-              control={methods.control}
-              render={({ field }) => (
-                <Input
-                  {...field}
-                  label='Description (Optional)'
-                  placeholder='Enter subcategory description'
-                  type='textarea'
-                  rows={4}
-                />
-              )}
-            />
-
-            <div className='flex justify-end gap-4 mt-6'>
-              <Button
-                type='submit'
-                variant='filled'
-                color='#1D9B5E'
-                radius='md'
-                size='sm'
-              >
-                {isEditing ? 'Update' : 'Create'} Subcategory
-              </Button>
-            </div>
-          </form>
-        </FormProvider>
-      </Drawer>
 
       <Modal
         opened={isDeleteModalOpen}

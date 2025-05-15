@@ -1,101 +1,54 @@
-import { Card, Text, Flex, Box, Accordion, Progress } from '@mantine/core';
-import CustomRingProgress from '../common/CustomRingProgress';
-import lockIcon from '../../assets/icons/Lock.svg';
-import { IconChevronUp, IconChevronDown } from '@tabler/icons-react';
+import { Card, Text, Flex, Box, Accordion, Progress } from "@mantine/core";
+import CustomRingProgress from "../common/CustomRingProgress";
+import lockIcon from "../../assets/icons/Lock.svg";
+import { IconChevronUp, IconChevronDown } from "@tabler/icons-react";
 import {
   Series,
   SeriesLevel,
   useProgressStore,
-} from '../../store/progressStore';
-import { useState } from 'react';
+} from "../../store/progressStore";
 
 const ProgressSeriesTracker = () => {
   const {
     selectedLevel,
     levelProgress,
     expandedSeries,
+    seriesData,
     setSelectedLevel,
     setExpandedSeries,
     setViewMode,
     setActiveTab,
-    seriesData,
-    currentSeriesIndex,
-    currentLevelIndex,
+    setCurrentSeriesIndex,
+    setCurrentLevelIndex,
   } = useProgressStore();
-
-  const [isActive, setIsActive] = useState(false);
-
-  // const seriesData: Series[] = [
-  //   {
-  //     title: 'STARFISH Series',
-  //     levels: [
-  //       { label: 'Level 1', value: 'starfish-1', progress: levelProgress['starfish-1'] || 0 },
-  //       { label: 'Level 2', value: 'starfish-2', progress: levelProgress['starfish-2'] || 0 },
-  //       { label: 'Level 3', value: 'starfish-3', progress: levelProgress['starfish-3'] || 0 },
-  //     ],
-  //   },
-  //   {
-  //     title: 'STANLEY Series',
-  //     levels: [
-  //       { label: 'Level 1', value: 'stanley-1', progress: levelProgress['stanley-1'] || 0 },
-  //       { label: 'Level 2', value: 'stanley-2', progress: levelProgress['stanley-2'] || 0 },
-  //       { label: 'Level 3', value: 'stanley-3', progress: levelProgress['stanley-3'] || 0 },
-  //       { label: 'Level 4', value: 'stanley-4', progress: levelProgress['stanley-4'] || 0 },
-  //       { label: 'Level 5', value: 'stanley-5', progress: levelProgress['stanley-5'] || 0 },
-  //       { label: 'Level 6', value: 'stanley-6', progress: levelProgress['stanley-6'] || 0 },
-  //     ],
-  //   },
-  //   {
-  //     title: 'Octopus Series',
-  //     levels: [
-  //       { label: 'Level 1', value: 'octopus-1', progress: levelProgress['octopus-1'] || 0 },
-  //       { label: 'Level 2', value: 'octopus-2', progress: levelProgress['octopus-2'] || 0 },
-  //       { label: 'Level 3', value: 'octopus-3', progress: levelProgress['octopus-3'] || 0 },
-  //       { label: 'Level 4', value: 'octopus-4', progress: levelProgress['octopus-4'] || 0 },
-  //       { label: 'Level 5', value: 'octopus-5', progress: levelProgress['octopus-5'] || 0 },
-  //       { label: 'Level 6', value: 'octopus-6', progress: levelProgress['octopus-6'] || 0 },
-  //     ],
-  //   },
-  //   {
-  //     title: 'Jellyfish Series',
-  //     levels: [
-  //       { label: 'Level 1', value: 'jellyfish-1', progress: levelProgress['jellyfish-1'] || 0 },
-  //       { label: 'Level 2', value: 'jellyfish-2', progress: levelProgress['jellyfish-2'] || 0 },
-  //       { label: 'Level 3', value: 'jellyfish-3', progress: levelProgress['jellyfish-3'] || 0 },
-  //       { label: 'Level 4', value: 'jellyfish-4', progress: levelProgress['jellyfish-4'] || 0 },
-  //       { label: 'Level 5', value: 'jellyfish-5', progress: levelProgress['jellyfish-5'] || 0 },
-  //       { label: 'Level 6', value: 'jellyfish-6', progress: levelProgress['jellyfish-6'] || 0 },
-  //     ],
-  //   },
-  // ];
 
   const isSeriesComplete = (seriesIndex: number) => {
     if (seriesIndex === 0) return true;
     const prevSeries = seriesData[seriesIndex - 1];
     if (!prevSeries.levels) return true;
     return prevSeries.levels.every(
-      (level) => (levelProgress[level.value] || 0) === 100
+      (level) => (levelProgress[level.id] || 0) === 100
     );
   };
 
-  const handleLevelSelect = (seriesTitle: string, level: SeriesLevel) => {
-    const seriesIndex = seriesData.findIndex((s) => s.title === seriesTitle);
-    const levelIndex =
-      seriesData[seriesIndex].levels?.findIndex(
-        (l) => l.value === level.value
-      ) || 0;
-
-    setSelectedLevel({ series: seriesTitle, level });
+  const handleLevelSelect = (
+    seriesTitle: string,
+    level: SeriesLevel,
+    seriesIndex: number,
+    levelIndex: number
+  ) => {
+    setCurrentLevelIndex(levelIndex);
+    setCurrentSeriesIndex(seriesIndex);
+    setSelectedLevel({ ...level });
     setExpandedSeries(seriesTitle);
-    setIsActive(true);
-    setActiveTab('Progress Tracker');
-    setViewMode('levels');
+    setActiveTab("Progress Tracker");
+    setViewMode("levels");
   };
 
   const calculateSeriesProgress = (series: Series) => {
     if (!series.levels || series.levels.length === 0) return 0;
     const totalProgress = series.levels.reduce(
-      (sum, level) => sum + (levelProgress[level.value] || 0),
+      (acc, level) => acc + (level.progress || 0),
       0
     );
     return Math.round(totalProgress / series.levels.length);
@@ -110,7 +63,7 @@ const ProgressSeriesTracker = () => {
   const renderProgressText = (progress?: number) => {
     if (progress === 100)
       return (
-        <Text color='#1D9B5E' size='xs'>
+        <Text component="span" color="#1D9B5E" size="xs">
           Completed
         </Text>
       );
@@ -118,25 +71,25 @@ const ProgressSeriesTracker = () => {
   };
 
   return (
-    <Card padding='sm' radius='lg' w='90%' withBorder>
+    <Card padding="sm" radius="lg" w="90%" withBorder>
       <Accordion
         value={expandedSeries}
-        onChange={(value) => handleAccordionChange(value || '')}
+        onChange={(value) => handleAccordionChange(value || "")}
         chevron={null}
         styles={{
           item: {
-            width: '100%',
-            border: 'none',
-            marginBottom: '8px',
-            backgroundColor: '#F8F8EF',
-            borderRadius: '8px',
-            '&[dataActive]': {
-              backgroundColor: '#ffffff',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+            width: "100%",
+            border: "none",
+            marginBottom: "8px",
+            backgroundColor: "#F8F8EF",
+            borderRadius: "8px",
+            "&[dataActive]": {
+              backgroundColor: "#ffffff",
+              boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
             },
           },
-          control: { backgroundColor: 'transparent' },
-          content: { padding: '8px 16px 18px' },
+          control: { backgroundColor: "transparent" },
+          content: { padding: "8px 16px 18px" },
         }}
       >
         {seriesData.map((series, index) => {
@@ -149,35 +102,38 @@ const ProgressSeriesTracker = () => {
               key={series.title}
               value={series.title}
               aria-disabled={!canExpand}
-              bg={isExpanded ? '#ffffff' : '#F8F8EF'}
+              bg={isExpanded ? "#ffffff" : "#F8F8EF"}
             >
-              <Box className='w-full flex flex-col'>
+              <Box className="w-full flex flex-col">
                 <Accordion.Control>
-                  <Flex justify='space-between' align='center' w='100%'>
-                    <Flex direction='column' style={{ flex: 1 }}>
-                      <Text fw={500} size='sm'>
+                  <Flex justify="space-between" align="center" w="100%">
+                    <Flex direction="column" style={{ flex: 1 }}>
+                      <Text fw={500} size="sm">
                         {series.title}
                       </Text>
-                      {series.levels &&
-                        series.levels.length > 0 &&
-                        seriesProgress > 0 && (
-                          <>
-                            <Progress
-                              value={seriesProgress}
-                              color='#1D9B5E'
-                              size='sm'
-                              radius='xl'
-                              style={{ width: '70%', marginTop: '8px' }}
-                            />
-                            <Text size='14px' c='dimmed' mt='xs'>
-                              {seriesProgress === 100 ? (
-                                <Text color='#1D9B5E'>Completed</Text>
-                              ) : (
-                                `${Math.round(seriesProgress)}% Completed`
-                              )}
-                            </Text>
-                          </>
-                        )}
+                      {series.description && <Text size="xs">
+                        {series.description}
+                      </Text>}
+                      {series.levels && series.levels.length > 0 && (
+                        <>
+                          <Progress
+                            value={seriesProgress}
+                            color={seriesProgress === 100 ? "#1D9B5E" : '#FF9500'}
+                            size="sm"
+                            radius="xl"
+                            style={{ width: "70%", marginTop: "8px" }}
+                          />
+                          <Text size="14px" c="dimmed" mt="xs">
+                            {seriesProgress === 100 ? (
+                              <Text component="span" color="#1D9B5E">
+                                Completed
+                              </Text>
+                            ) : (
+                              `${Math.round(seriesProgress)}% Completed`
+                            )}
+                          </Text>
+                        </>
+                      )}
                     </Flex>
                     {canExpand ? (
                       isExpanded ? (
@@ -186,57 +142,67 @@ const ProgressSeriesTracker = () => {
                         <IconChevronDown size={16} />
                       )
                     ) : (
-                      <img src={lockIcon} alt='Lock' width={16} />
+                      <img src={lockIcon} alt="Lock" width={16} />
                     )}
                   </Flex>
                 </Accordion.Control>
 
                 {series.levels && canExpand && (
                   <Accordion.Panel>
-                    {series.levels.map((level) => (
+                    {series.levels.map((level, levelIndex) => (
                       <Box
-                        key={level.value}
-                        mb='sm'
+                        key={level.id}
+                        mb="sm"
                         style={{
-                          borderRadius: '8px',
-                          backgroundColor: isActive ? '#1D9B5E14' : '#DEDEDE66',
+                          borderRadius: "8px",
+                          backgroundColor:
+                            level.id === selectedLevel?.id
+                              ? "#ccffcc"
+                              : "#F8F7F7",
                         }}
                       >
                         <Flex
-                          gap='xs'
-                          p='xs'
-                          onClick={() => handleLevelSelect(series.title, level)}
+                          gap="xs"
+                          p="xs"
+                          onClick={() =>
+                            handleLevelSelect(
+                              series.title,
+                              level,
+                              index,
+                              levelIndex
+                            )
+                          }
                           style={{
-                            cursor: 'pointer',
-                            borderRadius: '8px',
+                            cursor: "pointer",
+                            borderRadius: "8px",
                             backgroundColor:
-                              selectedLevel?.series === series.title &&
-                              selectedLevel?.level.label === level.label
-                                ? '#f0fdf4'
-                                : '#DEDEDE66',
+                              selectedLevel?.label === series.title &&
+                              selectedLevel?.id === level.id
+                                ? "#f0fdf4"
+                                : "#DEDEDE66",
                           }}
                         >
-                          <Flex align='center' gap='xs'>
+                          <Flex align="center" gap="xs">
                             <CustomRingProgress
                               size={40}
-                              thickness={2}
+                              thickness={3}
                               roundCaps
                               sections={[
                                 {
                                   value:
-                                    levelProgress[level.value] ||
+                                    levelProgress[level.id] ||
                                     level.progress ||
                                     0,
-                                  color: '#1D9B5E',
+                                  color: "#1D9B5E",
                                 },
                               ]}
                             />
-                            <Flex direction='column'>
-                              <Text size='md'>{level.label}</Text>
+                            <Flex direction="column">
+                              <Text size="md">{level.label}</Text>
                               <Text
-                                size='xs'
+                                size="xs"
                                 c={
-                                  level.progress === 100 ? '#1D9B5E' : 'dimmed'
+                                  level.progress === 100 ? "#1D9B5E" : "dimmed"
                                 }
                               >
                                 {renderProgressText(level.progress)}

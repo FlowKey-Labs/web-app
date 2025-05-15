@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useForm, FormProvider, Controller } from 'react-hook-form';
-import { ActionIcon, Drawer, Group, Modal, Text } from '@mantine/core';
+import { ActionIcon, Drawer, Group, Loader, Modal, Text } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import successIcon from '../../assets/icons/success.svg';
 import errorIcon from '../../assets/icons/error.svg';
@@ -12,6 +12,7 @@ import {
   useUpdateSessionCategory,
   useDeleteSessionCategory,
 } from '../../hooks/reactQuery';
+import { useUIStore } from '../../store/ui';
 
 import Button from '../common/Button';
 import { IconEdit, IconPlus, IconTrash } from '@tabler/icons-react';
@@ -33,49 +34,33 @@ const Categories = () => {
     null
   );
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
-  const [currentCategory, setCurrentCategory] = useState<Category | null>(null);
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(
     null
   );
+
+  // Global UI store for drawer management
+  const { openDrawer } = useUIStore();
 
   const {
     data: categoriesData,
     isLoading,
     refetch,
   } = useGetSessionCategories();
-  const { mutateAsync: createCategory } = useCreateSessionCategory();
-  const { mutateAsync: updateCategory } = useUpdateSessionCategory();
   const { mutateAsync: deleteCategory } = useDeleteSessionCategory();
 
-  const methods = useForm<CategoryFormData>({
-    defaultValues: {
-      name: '',
-      description: '',
-    },
-  });
-
-  const { reset } = methods;
-
   const handleAddCategory = () => {
-    reset({
-      name: '',
-      description: '',
+    openDrawer({
+      type: 'category',
+      isEditing: false
     });
-    setIsEditing(false);
-    setCurrentCategory(null);
-    setIsDrawerOpen(true);
   };
 
   const handleEditCategory = (category: Category) => {
-    reset({
-      name: category.name,
-      description: category.description || '',
+    openDrawer({
+      type: 'category',
+      entityId: category.id,
+      isEditing: true
     });
-    setIsEditing(true);
-    setCurrentCategory(category);
-    setIsDrawerOpen(true);
   };
 
   const handleDeleteCategory = (category: Category) => {
@@ -125,62 +110,6 @@ const Categories = () => {
     }
   };
 
-  const onSubmit = async (formData: CategoryFormData) => {
-    try {
-      if (isEditing && currentCategory) {
-        await updateCategory({ id: currentCategory.id, ...formData });
-        notifications.show({
-          color: 'green',
-          title: 'Success',
-          message: 'Category updated successfully',
-          radius: 'md',
-          icon: (
-            <span className='flex items-center justify-center w-6 h-6 rounded-full bg-green-200'>
-              <img src={successIcon} alt='Success' className='w-4 h-4' />
-            </span>
-          ),
-          withBorder: true,
-          autoClose: 3000,
-          position: 'top-right',
-        });
-      } else {
-        await createCategory(formData);
-        notifications.show({
-          color: 'green',
-          title: 'Success',
-          message: 'Category created successfully',
-          radius: 'md',
-          icon: (
-            <span className='flex items-center justify-center w-6 h-6 rounded-full bg-green-200'>
-              <img src={successIcon} alt='Success' className='w-4 h-4' />
-            </span>
-          ),
-          withBorder: true,
-          autoClose: 3000,
-          position: 'top-right',
-        });
-      }
-      setIsDrawerOpen(false);
-      refetch();
-    } catch (error) {
-      console.error('Error saving category:', error);
-      notifications.show({
-        color: 'red',
-        title: 'Error',
-        message: 'Failed to save category. Please try again.',
-        radius: 'md',
-        icon: (
-          <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
-            <img src={errorIcon} alt='Error' className='w-4 h-4' />
-          </span>
-        ),
-        withBorder: true,
-        autoClose: 3000,
-        position: 'top-right',
-      });
-    }
-  };
-
   return (
     <div className='w-full bg-white rounded-lg p-6 shadow-sm'>
       <div className='flex justify-between items-center mb-6'>
@@ -209,8 +138,8 @@ const Categories = () => {
           onBack={() => setSelectedCategoryId(null)}
         />
       ) : isLoading ? (
-        <div className='flex justify-center items-center h-64'>
-          <p>Loading categories...</p>
+        <div className='flex justify-center items-center h-screen p-6 pt-12'>
+          <Loader size='xl' color='#1D9B5E' />
         </div>
       ) : (
         <div className='bg-white rounded-lg p-4'>
@@ -264,56 +193,7 @@ const Categories = () => {
           </div>
         </div>
       )}
-      <Drawer
-        opened={isDrawerOpen}
-        onClose={() => setIsDrawerOpen(false)}
-        title={isEditing ? 'Edit Category' : 'Add Category'}
-        padding='xl'
-        size='md'
-        position='right'
-      >
-        <FormProvider {...methods}>
-          <form onSubmit={methods.handleSubmit(onSubmit)} className='space-y-4'>
-            <Controller
-              name='name'
-              control={methods.control}
-              rules={{ required: 'Category name is required' }}
-              render={({ field }) => (
-                <Input
-                  {...field}
-                  label='Category Name'
-                  placeholder='Enter category name'
-                />
-              )}
-            />
-            <Controller
-              name='description'
-              control={methods.control}
-              render={({ field }) => (
-                <Input
-                  {...field}
-                  label='Description (Optional)'
-                  placeholder='Enter category description'
-                  type='textarea'
-                  rows={4}
-                />
-              )}
-            />
-
-            <div className='flex justify-end gap-4 mt-6'>
-              <Button
-                type='submit'
-                variant='filled'
-                color='#1D9B5E'
-                radius='md'
-                size='sm'
-              >
-                {isEditing ? 'Update' : 'Create'} Category
-              </Button>
-            </div>
-          </form>
-        </FormProvider>
-      </Drawer>
+      
       <Modal
         opened={deleteModalOpen}
         className='font-sans'
@@ -348,6 +228,15 @@ const Categories = () => {
           </div>
         </div>
         <div className='flex justify-end gap-2 mt-4'>
+          <Button
+            variant="default"
+            onClick={() => {
+              setDeleteModalOpen(false);
+              setCategoryToDelete(null);
+            }}
+          >
+            Cancel
+          </Button>
           <Button color='red' onClick={confirmDeleteCategory} radius='md'>
             Delete
           </Button>

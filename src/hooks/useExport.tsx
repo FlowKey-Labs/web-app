@@ -8,6 +8,7 @@ import { Policy } from '../types/policy';
 import { exportDataToFile } from '../utils/exportUtils';
 import { Subcategory } from '../types/profileCategories';
 import { Skill } from '../types/profileCategories';
+import { GroupData } from '../types/clientTypes';
 import {
   MakeUpSession,
   AttendedSession,
@@ -731,7 +732,7 @@ export const useExportSessionClients = (clients: Client[]) => {
             </span>
           ),
         });
-      } catch (error) {
+      } catch {
         notifications.show({
           title: 'Export failed',
           message: 'An error occurred while exporting clients',
@@ -763,6 +764,120 @@ export const useExportSessionClients = (clients: Client[]) => {
   };
 };
 
+export const useExportGroups = (groups: GroupData[]) => {
+  const [isExporting, setIsExporting] = useState(false);
+  const [
+    exportModalOpened,
+    { open: openExportModal, close: closeExportModal },
+  ] = useDisclosure(false);
+
+  const processGroupsForExport = (selectedIds: number[]) => {
+    const groupsToExport = groups.filter((group) =>
+      selectedIds.includes(group.id || 0)
+    );
+
+    return groupsToExport.map((group) => ({
+      id: group.id,
+      name: group.name || '',
+      description: group.description || '',
+      location: group.location || '',
+      active: group.active ? 'Active' : 'Inactive',
+      client_ids: group.client_ids || [],
+      session_ids: group.session_ids || [],
+      contact_person_id: group.contact_person || null,
+    }));
+  };
+  const handleExport = useCallback(
+    (type: 'csv' | 'excel', selectedIds: number[]) => {
+      if (selectedIds.length === 0) {
+        notifications.show({
+          title: 'No groups selected',
+          message: 'Please select at least one group to export',
+          color: 'red',
+          radius: 'md',
+          withBorder: true,
+          autoClose: 3000,
+          position: 'top-right',
+          icon: (
+            <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+              <img src={errorIcon} alt='Error' className='w-4 h-4' />
+            </span>
+          ),
+        });
+        return;
+      }
+
+      if (groups.length === 0) {
+        notifications.show({
+          title: 'No groups available',
+          message: 'There are no groups to export',
+          color: 'red',
+          radius: 'md',
+          withBorder: true,
+          autoClose: 3000,
+          position: 'top-right',
+          icon: (
+            <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+              <img src={errorIcon} alt='Error' className='w-4 h-4' />
+            </span>
+          ),
+        });
+        closeExportModal();
+        return;
+      }
+
+      setIsExporting(true);
+      try {
+        const dataToExport = processGroupsForExport(selectedIds);
+        exportDataToFile(dataToExport, type, 'groups', ['id']);
+        notifications.show({
+          title: 'Export successful',
+          message: `${
+            dataToExport.length
+          } group(s) exported successfully as ${type.toUpperCase()}`,
+          color: 'green',
+          radius: 'md',
+          withBorder: true,
+          autoClose: 3000,
+          position: 'top-right',
+          icon: (
+            <span className='flex items-center justify-center w-6 h-6 rounded-full bg-green-200'>
+              <img src={successIcon} alt='Success' className='w-4 h-4' />
+            </span>
+          ),
+        });
+      } catch {
+        notifications.show({
+          title: 'Export failed',
+          message: 'An error occurred while exporting groups',
+          color: 'red',
+          radius: 'md',
+          withBorder: true,
+          autoClose: 3000,
+          position: 'top-right',
+          icon: (
+            <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+              <img src={errorIcon} alt='Error' className='w-4 h-4' />
+            </span>
+          ),
+        });
+      } finally {
+        setIsExporting(false);
+        closeExportModal();
+      }
+    },
+    [groups, closeExportModal]
+  );
+
+  return {
+    exportModalOpened,
+    openExportModal,
+    closeExportModal,
+    handleExport,
+    isExporting,
+  };
+};
+
 export const useExportMakeupSessions = (makeupSessions: MakeUpSession[]) => {
   const [isExporting, setIsExporting] = useState(false);
   const [
@@ -776,12 +891,12 @@ export const useExportMakeupSessions = (makeupSessions: MakeUpSession[]) => {
     );
 
     return makeupSessionsToExport.map((makeupSession) => ({
-      id: makeupSession.id,
-      client_name: makeupSession.client_name,
-      original_session_date: makeupSession.original_date,
-      new_session_date: makeupSession.new_date,
-      new_start_time: makeupSession.new_start_time,
-      new_end_time: makeupSession.new_end_time,
+      id: makeupSession?.id || '',
+      client_name: makeupSession?.client_name || '',
+      original_session_date: makeupSession?.original_date || '',
+      new_session_date: makeupSession?.new_date || '',
+      new_start_time: makeupSession?.new_start_time || '',
+      new_end_time: makeupSession?.new_end_time || '',
     }));
   };
 
@@ -847,7 +962,7 @@ export const useExportMakeupSessions = (makeupSessions: MakeUpSession[]) => {
             </span>
           ),
         });
-      } catch (error) {
+      } catch {
         notifications.show({
           title: 'Export failed',
           message: 'An error occurred while exporting makeup sessions',
@@ -993,7 +1108,9 @@ export const useExportAttendedSessions = (
   };
 };
 
-export const useExportCancelledSessions = (cancelledSessions: CancelledSession[]) => {
+export const useExportCancelledSessions = (
+  cancelledSessions: CancelledSession[]
+) => {
   const [isExporting, setIsExporting] = useState(false);
   const [
     exportModalOpened,
@@ -1010,7 +1127,7 @@ export const useExportCancelledSessions = (cancelledSessions: CancelledSession[]
       client_name: cancelledSession.client_name,
     }));
   };
-    
+
   const handleExport = useCallback(
     (type: 'csv' | 'excel', selectedIds: string[]) => {
       if (selectedIds.length === 0) {

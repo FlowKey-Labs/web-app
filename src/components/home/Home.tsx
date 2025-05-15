@@ -1,8 +1,9 @@
 import { useLocation, Outlet } from 'react-router-dom';
 import Sidebar from '../sidebar/Sidebar';
 import { useGetUserProfile } from '../../hooks/reactQuery';
-import { useMemo } from 'react';
+import { useEffect } from 'react';
 import { useAuthStore } from '../../store/auth';
+import { GlobalDrawerManager } from '../drawers';
 
 const Home = () => {
   const location = useLocation();
@@ -12,16 +13,11 @@ const Home = () => {
   const { data: userProfile } = useGetUserProfile();
   const setRole = useAuthStore((state) => state.setRole);
 
-  const permissions = useMemo(() => {
+  useEffect(() => {
     if (userProfile?.role) {
       setRole(userProfile.role)
-      return userProfile.role;
     }
-    return null;
   }, [userProfile]);
-
-  console.log('permissions', permissions);
-  
 
   return (
     <div className='flex min-h-screen bg-[#F8F9FA] justify-center'>
@@ -31,6 +27,7 @@ const Home = () => {
           <Outlet />
         </div>
       </div>
+      <GlobalDrawerManager />
     </div>
   );
 };

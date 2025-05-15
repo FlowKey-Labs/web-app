@@ -1,6 +1,7 @@
 import { useNavigate, useParams } from "react-router-dom";
 import { useState, useEffect, useMemo } from "react";
 import MembersHeader from "../headers/MembersHeader";
+import { Loader } from '@mantine/core';
 import Button from "../common/Button";
 import Input from "../common/Input";
 import { useForm, Controller, FormProvider } from "react-hook-form";
@@ -23,7 +24,6 @@ import Table from "../common/Table";
 import { navigateToSessionDetails } from "../../utils/navigationHelpers";
 import { Session } from "../../types/sessionTypes";
 import { createColumnHelper } from "@tanstack/react-table";
-import { Loader } from "@mantine/core";
 
 interface PersonalFormData {
   firstName: string;
@@ -268,7 +268,7 @@ const StaffDetails = () => {
             position: "top-right",
           });
         },
-        onError: (_error) => {
+        onError: () => {
           notifications.show({
             title: "Error",
             message: "Failed to update staff member. Please try again.",
