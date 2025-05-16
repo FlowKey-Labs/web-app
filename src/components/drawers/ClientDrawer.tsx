@@ -79,7 +79,7 @@ export default function ClientDrawer({ entityId, isEditing, zIndex }: ClientDraw
       active: true,
       client_ids: [],
       session_ids: [],
-      contact_person_id: undefined,
+      contact_person: undefined,
     },
   });
   
@@ -171,13 +171,17 @@ export default function ClientDrawer({ entityId, isEditing, zIndex }: ClientDraw
           
           setSelectedClients(selectedClientsList);
           
-          const currentContactPerson = groupFormMethods.getValues('contact_person_id');
+          const currentContactPerson = groupFormMethods.getValues('contact_person');
           if (!currentContactPerson && selectedClientsList.length > 0) {
-            groupFormMethods.setValue('contact_person_id', selectedClientsList[0].id);
+            groupFormMethods.setValue('contact_person', {
+              id: selectedClientsList[0].id,
+              first_name: selectedClientsList[0].name.split(' ')[0],
+              last_name: selectedClientsList[0].name.split(' ')[1],
+            });
           }
         } else {
           setSelectedClients([]);
-          groupFormMethods.setValue('contact_person_id', undefined);
+          groupFormMethods.setValue('contact_person', undefined);
         }
       }
     });
@@ -385,8 +389,8 @@ export default function ClientDrawer({ entityId, isEditing, zIndex }: ClientDraw
         return;
       }
       
-      if (!data.contact_person_id) {
-        setFormErrors({ contact_person_id: 'Please select a contact person for the group' });
+      if (!data.contact_person) {
+        setFormErrors({ contact_person: 'Please select a contact person for the group' });
         notifications.show({
           title: 'Error',
           message: 'Please select a contact person for the group',
@@ -403,7 +407,7 @@ export default function ClientDrawer({ entityId, isEditing, zIndex }: ClientDraw
         active: data.active !== undefined ? data.active : true,
         client_ids: data.client_ids,
         session_ids: data.session_ids || [],
-        contact_person_id: data.contact_person_id,
+        contact_person_id: data.contact_person.id,
       };
       
       if (isFromSessionDrawer && parentDrawer?.entityId) {
@@ -1013,7 +1017,7 @@ export default function ClientDrawer({ entityId, isEditing, zIndex }: ClientDraw
                 )}
                 
                 <Controller
-                  name='contact_person_id'
+                  name='contact_person'
                   control={groupControl}
                   rules={{ required: 'Contact person is required' }}
                   render={({ field }) => (
