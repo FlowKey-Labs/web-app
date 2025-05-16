@@ -1,22 +1,9 @@
 import { useState } from 'react';
-import {
-  Button,
-  Drawer,
-  Modal,
-  ActionIcon,
-  Card,
-  Text,
-  Group,
-  Loader,
-  Checkbox,
-} from '@mantine/core';
-import { useForm, FormProvider, Controller } from 'react-hook-form';
+import { Button, Modal, ActionIcon, Card, Text, Group, Loader } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
 
 import { IconEdit, IconTrash, IconPlus, IconMapPin } from '@tabler/icons-react';
-
-import Input from '../common/Input';
 
 import successIcon from '../../assets/icons/success.svg';
 import errorIcon from '../../assets/icons/error.svg';
@@ -26,19 +13,9 @@ import {
   useDeleteLocation,
   useSetPrimaryLocation,
 } from '../../hooks/reactQuery';
-import { Location, CreateLocationData } from '../../types/location';
+import { Location } from '../../types/location';
 import { useUIStore } from '../../store/ui';
 
-const emptyLocation: CreateLocationData = {
-  name: '',
-  address: '',
-  city: '',
-  state: '',
-  zip_code: '',
-  country: '',
-  is_primary: false,
-  notes: '',
-};
 
 export const BusinessLocation = () => {
   const { openDrawer } = useUIStore();

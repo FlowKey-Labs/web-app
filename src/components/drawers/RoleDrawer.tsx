@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Drawer, Group, Checkbox, Text } from "@mantine/core";
 import { useForm, FormProvider, Controller } from "react-hook-form";
 import { notifications } from "@mantine/notifications";
@@ -76,7 +76,7 @@ export default function RoleDrawer({ entityId, isEditing, zIndex }: RoleDrawerPr
 
   useEffect(() => {
     if (editingId && roles.length > 0) {
-      const roleToEdit = roles.find(role => role.id === editingId);
+      const roleToEdit = roles.find((role: Role) => role.id === editingId);
       if (roleToEdit) {
         reset({
           name: roleToEdit.name,
@@ -115,7 +115,7 @@ export default function RoleDrawer({ entityId, isEditing, zIndex }: RoleDrawerPr
     };
 
     if (editingId) {
-      const roleToEdit = roles.find(role => role.id === editingId);
+      const roleToEdit = roles.find((role: Role) => role.id === editingId);
       
       updateRoleMutation.mutate(
         {
@@ -236,7 +236,6 @@ export default function RoleDrawer({ entityId, isEditing, zIndex }: RoleDrawerPr
                 {...field}
                 label="Role Name"
                 placeholder="Enter role name"
-                error={fieldState.error?.message}
                 containerClassName="mb-4"
               />
             )}
@@ -251,7 +250,6 @@ export default function RoleDrawer({ entityId, isEditing, zIndex }: RoleDrawerPr
                 {...field}
                 label="Role Description"
                 placeholder="Enter role description"
-                error={fieldState.error?.message}
                 containerClassName="mb-4"
               />
             )}

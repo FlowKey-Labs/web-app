@@ -1,4 +1,4 @@
-import { Checkbox, Accordion } from '@mantine/core';
+import { Checkbox, Accordion, Loader } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import Button from '../common/Button';
 import { FormData } from '../../types/staffTypes';
@@ -36,12 +36,14 @@ interface NewStaffReviewProps {
   formData: FormData;
   onBack: () => void;
   onSubmit: () => void;
+  isSubmitting?: boolean;
 }
 
 const NewStaffReview = ({
   formData,
   onBack,
   onSubmit,
+  isSubmitting = false,
 }: NewStaffReviewProps) => {
   const sections = [
     {
@@ -208,6 +210,7 @@ const NewStaffReview = ({
             fontSize: '14px',
             fontWeight: '700',
           }}
+          disabled={isSubmitting}
         >
           Back
         </Button>
@@ -223,6 +226,8 @@ const NewStaffReview = ({
             fontSize: '14px',
             fontWeight: '700',
           }}
+          disabled={isSubmitting}
+          loading={isSubmitting}
         >
           Finish
         </Button>

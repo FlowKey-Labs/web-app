@@ -4,12 +4,16 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import Button from "../common/Button";
 import DropdownSelectInput from "../common/Dropdown";
-import { payTypeOptions } from "../../utils/dummyData";
-import { PayType } from "../../types/staffTypes";
 import { useGetRoles } from "../../hooks/reactQuery";
 import { Role } from "../../store/auth";
-import { notifications } from "@mantine/notifications";
-import { useUIStore } from "../../store/ui";
+
+type PayType = "hourly" | "salary" | "commission";
+
+const payTypeOptions = [
+  { value: "hourly", label: "Hourly" },
+  { value: "salary", label: "Salary" },
+  { value: "commission", label: "Commission" },
+];
 
 interface RoleData {
   role: string;
@@ -59,7 +63,6 @@ const NewStaffRoles = ({ onNext, onBack, initialData }: NewStaffRolesProps) => {
   const [showHourlyRate, setShowHourlyRate] = useState(
     initialData?.payType === "hourly"
   );
-  const { openDrawer } = useUIStore();
 
   const methods = useForm<RoleFormData>({
     resolver: yupResolver(formSchema),
@@ -74,19 +77,6 @@ const NewStaffRoles = ({ onNext, onBack, initialData }: NewStaffRolesProps) => {
       ],
     },
   });
-
-  const handleCreateNewRole = () => {
-    notifications.show({
-      title: "Create New Role",
-      message: "Opening role creation form...",
-      color: "green",
-    });
-    
-    openDrawer({
-      type: 'role',
-      isEditing: false
-    });
-  };
 
   const onSubmit: SubmitHandler<RoleFormData> = (data) => {
     onNext(data.roles[0]);

@@ -816,10 +816,11 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
                                 const staffId = methods.watch('staff');
                                 if (!staffId) return null;
                                 
-                                const selectedStaff = staffData?.find((staff: any) => 
-                                  staff.id.toString() === (typeof staffId === 'object' ? 
-                                    staffId.value?.toString() : staffId.toString())
-                                );
+                                const selectedStaff = staffData?.find((staff: any) => {
+                                  const staffIdStr = typeof staffId === 'object' && staffId !== null ? 
+                                    String((staffId as any).value || staffId) : String(staffId);
+                                  return staff.id.toString() === staffIdStr;
+                                });
                                 
                                 if (selectedStaff && !(selectedStaff.isActive ?? true)) {
                                   return (
@@ -1245,10 +1246,11 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
                             const staffId = methods.watch('staff');
                             if (!staffId) return null;
                             
-                            const selectedStaff = staffData?.find((staff: any) => 
-                              staff.id.toString() === (typeof staffId === 'object' ? 
-                                staffId.value?.toString() : staffId.toString())
-                            );
+                            const selectedStaff = staffData?.find((staff: any) => {
+                              const staffIdStr = typeof staffId === 'object' && staffId !== null ? 
+                                String((staffId as any).value || staffId) : String(staffId);
+                              return staff.id.toString() === staffIdStr;
+                            });
                             
                             if (selectedStaff && !(selectedStaff.isActive ?? true)) {
                               return (
@@ -1517,10 +1519,11 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
                                 const staffId = methods.watch('staff');
                                 if (!staffId) return null;
                                 
-                                const selectedStaff = staffData?.find((staff: any) => 
-                                  staff.id.toString() === (typeof staffId === 'object' ? 
-                                    staffId.value?.toString() : staffId.toString())
-                                );
+                                const selectedStaff = staffData?.find((staff: any) => {
+                                  const staffIdStr = typeof staffId === 'object' && staffId !== null ? 
+                                    String((staffId as any).value || staffId) : String(staffId);
+                                  return staff.id.toString() === staffIdStr;
+                                });
                                 
                                 if (selectedStaff && !(selectedStaff.isActive ?? true)) {
                                   return (

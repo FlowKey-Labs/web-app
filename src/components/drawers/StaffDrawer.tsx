@@ -1,4 +1,4 @@
-import { Drawer } from '@mantine/core';
+import { Drawer, Loader } from '@mantine/core';
 import { FormProvider, useForm } from 'react-hook-form';
 import { useCreateStaffMember, useGetStaffMember, useUpdateStaffMember } from '../../hooks/reactQuery';
 import { useStaffFormStore } from '../../store/staffForm';
@@ -34,12 +34,11 @@ interface StaffDrawerProps {
 
 export default function StaffDrawer({ entityId, isEditing, zIndex }: StaffDrawerProps) {
   const { closeDrawer } = useUIStore();
-  const { mutate: createStaff } = useCreateStaffMember();
-  const { mutate: updateStaff } = useUpdateStaffMember();
+  const { mutate: createStaff, isPending: isCreatingStaff } = useCreateStaffMember();
+  const { mutate: updateStaff, isPending: isUpdatingStaff } = useUpdateStaffMember();
   
   const { data: staffDetails, isLoading: isLoadingStaff } = useGetStaffMember(
-    isEditing && entityId ? String(entityId) : '',
-    { enabled: isEditing && !!entityId }
+    isEditing && entityId ? String(entityId) : ''
   );
 
   const { formData, activeSection, setFormData, setActiveSection, resetForm } =
@@ -208,6 +207,7 @@ export default function StaffDrawer({ entityId, isEditing, zIndex }: StaffDrawer
         formData={formData}
         onBack={handleBack}
         onSubmit={handleSubmit}
+        isSubmitting={isCreatingStaff || isUpdatingStaff}
       />
     ),
   };
@@ -226,7 +226,8 @@ export default function StaffDrawer({ entityId, isEditing, zIndex }: StaffDrawer
       >
         <div className="flex items-center justify-center p-8">
           <div className="text-center">
-            <p>Loading staff data...</p>
+            <Loader color="#1D9B5E" size="xl" />
+            <p className="mt-4">Loading staff data...</p>
           </div>
         </div>
       </Drawer>

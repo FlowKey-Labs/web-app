@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Drawer } from '@mantine/core';
+import { Drawer, Loader } from '@mantine/core';
 import { useForm, FormProvider, Controller } from 'react-hook-form';
 import { notifications } from '@mantine/notifications';
 import moment from 'moment';
@@ -21,16 +21,6 @@ import DropdownSelectInput from '../common/Dropdown';
 import Button from '../common/Button';
 import successIcon from '../../assets/icons/success.svg';
 import errorIcon from '../../assets/icons/error.svg';
-
-
-interface ClientSession {
-  session_id: number;
-  session_title: string;
-  start_time: string;
-  end_time: string;
-  attended: boolean;
-  session_type: string;
-}
 
 const emptyClient: AddClient = {
   first_name: '',
@@ -71,7 +61,7 @@ export default function ClientDrawer({ entityId, isEditing, zIndex }: ClientDraw
     defaultValues: emptyClient,
   });
   
-  const groupFormMethods = useForm<GroupData & { client_ids: number[], session_ids: number[] }>({
+  const groupFormMethods = useForm<GroupData & { client_ids: number[], session_ids: number[], contact_person_id?: number }>({
     defaultValues: {
       name: '',
       description: '',
@@ -83,7 +73,7 @@ export default function ClientDrawer({ entityId, isEditing, zIndex }: ClientDraw
     },
   });
   
-  const { control: individualControl, handleSubmit: individualHandleSubmit, reset: individualReset, setValue } = methods;
+  const { control: individualControl, handleSubmit: individualHandleSubmit, reset: individualReset } = methods;
   const { control: groupControl, handleSubmit: groupHandleSubmit, reset: groupReset } = groupFormMethods;
 
   const { data: clientData, isLoading: isClientLoading } = useGetClient(editingId ? String(editingId) : '');
@@ -92,7 +82,7 @@ export default function ClientDrawer({ entityId, isEditing, zIndex }: ClientDraw
   const { data: locationsData, isLoading: isLocationsLoading } = useGetLocations() as { data: Location[] | undefined, isLoading: boolean };
   const { data: clientsData, isLoading: isClientsLoading } = useGetClients() as { data: Client[] | undefined, isLoading: boolean };
   const { data: sessionsData, isLoading: isSessionsLoading } = useGetSessions() as { data: any[] | undefined, isLoading: boolean };
-  const { mutate: addGroup } = useAddGroup();
+  const { mutate: addGroup, isPending: isAddingGroup } = useAddGroup();
 
   const handleTabChange = (value: string) => {
     setActiveTab(value);
@@ -188,14 +178,6 @@ export default function ClientDrawer({ entityId, isEditing, zIndex }: ClientDraw
     
     return () => subscription.unsubscribe();
   }, [groupFormMethods, clientsData]);
-
-  const updateClientSessions = (clientSessions: ClientSession[]) => {
-    if (!clientSessions || clientSessions.length === 0) return [];
-    return clientSessions.map((session: ClientSession) => ({
-      label: session.session_title,
-      value: session.session_id.toString(),
-    }));
-  };
 
   const handleSubmitIndividual = individualHandleSubmit(async (data) => {
     try {
@@ -400,7 +382,7 @@ export default function ClientDrawer({ entityId, isEditing, zIndex }: ClientDraw
         return;
       }
       
-      const groupData: GroupData & { client_ids: number[], session_ids: number[], contact_person_id: number } = {
+      const groupData = {
         name: data.name,
         description: data.description || '',
         location: data.location || '',
@@ -509,7 +491,10 @@ export default function ClientDrawer({ entityId, isEditing, zIndex }: ClientDraw
         size='lg'
         title='Loading Client Data'
       >
-        <div className='p-6'>Loading client data...</div>
+        <div className='p-6 flex flex-col items-center justify-center'>
+          <Loader color="#1D9B5E" size="xl" />
+          <p className="mt-4">Loading client data...</p>
+        </div>
       </Drawer>
     );
   }
@@ -850,6 +835,7 @@ export default function ClientDrawer({ entityId, isEditing, zIndex }: ClientDraw
                   radius='8px'
                   className='w-full md:w-auto'
                   disabled={isAddingClient || isUpdatingClient}
+                  loading={isAddingClient || isUpdatingClient}
                 >
                   {isEditing ? (isUpdatingClient ? 'Updating...' : 'Update Client') : (isAddingClient ? 'Creating...' : 'Add Client')}
                 </Button>
@@ -1047,8 +1033,10 @@ export default function ClientDrawer({ entityId, isEditing, zIndex }: ClientDraw
                   color='#1D9B5E'
                   radius='8px'
                   className='w-full md:w-auto'
+                  disabled={isAddingGroup}
+                  loading={isAddingGroup}
                 >
-                  Create Group
+                  {isAddingGroup ? 'Creating...' : 'Create Group'}
                 </Button>
               </div>
             </form>
