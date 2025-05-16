@@ -1154,11 +1154,15 @@ const SessionDetails = () => {
                       </Button>
                       <Button
                         onClick={() => {
-                          methods.handleSubmit((data) => {
-                            onSubmit(data);
-                          })();
+                          if (isRemovingClient) {
+                            handleRemoveClient();
+                          } else {
+                            methods.handleSubmit((data) => {
+                              onSubmit(data);
+                            })();
+                          }
                         }}
-                        color='#1D9B5E'
+                        color={isRemovingClient ? 'red' : '#1D9B5E'}
                       >
                         Confirm
                       </Button>
