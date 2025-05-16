@@ -23,7 +23,6 @@ import {
   useGetSessionAnalytics,
   useGetSessionClients,
   useRemoveClientFromSession,
-  useUpdateAttendanceStatus,
   useCreateMakeupSession,
   useCreateCancelledSession,
   useCreateAttendedSession,
@@ -56,7 +55,6 @@ const SessionDetails = () => {
   const [opened, { open, close }] = useDisclosure(false);
 
   const removeClientMutation = useRemoveClientFromSession();
-  const updateStatusMutation = useUpdateAttendanceStatus();
 
   const createMakeupSessionMutation = useCreateMakeupSession();
   const createAttendedSessionMutation = useCreateAttendedSession();
@@ -156,84 +154,6 @@ const SessionDetails = () => {
         return dayAbbreviations[dayName] || dayName;
       })
       .join(', ');
-  };
-
-  const handleUpdateAttendanceStatus = () => {
-    if (!selectedClient || !sessionId || !selectedStatus) return;
-
-    updateStatusMutation.mutate(
-      {
-        clientId: selectedClient.id.toString(),
-        sessionId,
-        status: selectedStatus,
-      },
-      {
-        onSuccess: () => {
-          const statusMessages: Record<string, string> = {
-            attended: 'Client marked as attended!',
-            not_yet: 'Client marked as not yet attended!',
-            make_up: 'Client marked for make-up class!',
-            cancelled: 'Client attendance marked as cancelled!',
-          };
-
-          const statusColors: Record<string, string> = {
-            attended: 'green',
-            not_yet: 'yellow',
-            make_up: 'blue',
-            cancelled: 'gray',
-          };
-
-          const color = statusColors[selectedStatus] || 'green';
-          const message =
-            statusMessages[selectedStatus] || 'Attendance status updated!';
-
-          notifications.show({
-            title: 'Success',
-            message,
-            color,
-            radius: 'md',
-            icon: (
-              <span
-                className={`flex items-center justify-center w-6 h-6 rounded-full ${
-                  color === 'green'
-                    ? 'bg-green-200'
-                    : color === 'blue'
-                    ? 'bg-blue-200'
-                    : color === 'yellow'
-                    ? 'bg-yellow-200'
-                    : color === 'gray'
-                    ? 'bg-gray-200'
-                    : 'bg-green-200'
-                }`}
-              >
-                <img src={successIcon} alt='Success' className='w-4 h-4' />
-              </span>
-            ),
-            withBorder: true,
-            autoClose: 3000,
-            position: 'top-right',
-          });
-          close();
-        },
-        onError: () => {
-          notifications.show({
-            title: 'Error',
-            message: 'Failed to update attendance status. Please try again.',
-            color: 'red',
-            radius: 'md',
-            icon: (
-              <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
-                <img src={errorIcon} alt='Error' className='w-4 h-4' />
-              </span>
-            ),
-            withBorder: true,
-            autoClose: 3000,
-            position: 'top-right',
-          });
-          close();
-        },
-      }
-    );
   };
 
   const handleRemoveClient = () => {
