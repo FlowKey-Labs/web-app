@@ -23,7 +23,6 @@ import {
   useGetSessionAnalytics,
   useGetSessionClients,
   useRemoveClientFromSession,
-  useUpdateAttendanceStatus,
   useCreateMakeupSession,
   useCreateCancelledSession,
   useCreateAttendedSession,
@@ -56,7 +55,6 @@ const SessionDetails = () => {
   const [opened, { open, close }] = useDisclosure(false);
 
   const removeClientMutation = useRemoveClientFromSession();
-  const updateStatusMutation = useUpdateAttendanceStatus();
 
   const createMakeupSessionMutation = useCreateMakeupSession();
   const createAttendedSessionMutation = useCreateAttendedSession();
@@ -75,10 +73,8 @@ const SessionDetails = () => {
     refetch: refetchSession,
   } = useGetSessionDetail(sessionId || '');
 
-  const {
-    data: sessionAnalytics,
-    isLoading: analyticsLoading,
-  } = useGetSessionAnalytics(sessionId || '');
+  const { data: sessionAnalytics, isLoading: analyticsLoading } =
+    useGetSessionAnalytics(sessionId || '');
 
   const {
     data: clients = [],
@@ -110,10 +106,10 @@ const SessionDetails = () => {
   const { openDrawer } = useUIStore();
 
   const handleOpenUpdateSession = () => {
-    openDrawer({ 
-      type: 'session', 
-      entityId: sessionId, 
-      isEditing: true 
+    openDrawer({
+      type: 'session',
+      entityId: sessionId,
+      isEditing: true,
     });
   };
 
@@ -160,6 +156,63 @@ const SessionDetails = () => {
       .join(', ');
   };
 
+  const handleRemoveClient = () => {
+    if (!selectedClient || !sessionId) return;
+
+    removeClientMutation.mutate(
+      { clientId: selectedClient.id.toString(), sessionId },
+      {
+        onSuccess: () => {
+          notifications.show({
+            title: 'Success',
+            message: 'Client removed from session!',
+            color: 'green',
+            radius: 'md',
+            icon: (
+              <span className='flex items-center justify-center w-6 h-6 rounded-full bg-green-200'>
+                <img src={successIcon} alt='Success' className='w-4 h-4' />
+              </span>
+            ),
+            withBorder: true,
+            autoClose: 3000,
+            position: 'top-right',
+          });
+          close();
+          refetchClients();
+        },
+        onError: () => {
+          notifications.show({
+            title: 'Error',
+            message: 'Failed to remove client from session. Please try again.',
+            color: 'red',
+            radius: 'md',
+            icon: (
+              <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+                <img src={errorIcon} alt='Error' className='w-4 h-4' />
+              </span>
+            ),
+            withBorder: true,
+            autoClose: 3000,
+            position: 'top-right',
+          });
+          close();
+          refetchClients();
+        },
+      }
+    );
+  };
+
+  const dateOnly = moment(methods.getValues('new_date')).format('YYYY-MM-DD');
+
+  const formattedStartTime =
+    methods.getValues('new_start_time') && dateOnly
+      ? `${dateOnly}T${methods.getValues('new_start_time')}:00.000Z`
+      : '';
+  const formattedEndTime =
+    methods.getValues('new_end_time') && dateOnly
+      ? `${dateOnly}T${methods.getValues('new_end_time')}:00.000Z`
+      : '';
+
   const handleCreateMakeupSession = () => {
     if (!sessionId) return;
 
@@ -171,8 +224,8 @@ const SessionDetails = () => {
         client: selectedClient?.id || '',
         original_date: moment(session?.date).format('YYYY-MM-DD'),
         new_date: moment(methods.getValues('new_date')).format('YYYY-MM-DD'),
-        new_start_time: new Date(methods.getValues('new_start_time')).toISOString(),
-        new_end_time: new Date(methods.getValues('new_end_time')).toISOString(),
+        new_start_time: formattedStartTime,
+        new_end_time: formattedEndTime,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       },
@@ -195,10 +248,13 @@ const SessionDetails = () => {
           close();
           refetchSession();
         },
-        onError: () => {
+        onError: (error) => {
+          console.error('Detailed error:', error);
           notifications.show({
             title: 'Error',
-            message: 'Failed to create makeup session. Please try again.',
+            message:
+              error?.message ||
+              'Failed to create makeup session. Please try again.',
             color: 'red',
             radius: 'md',
             icon: (
@@ -341,7 +397,9 @@ const SessionDetails = () => {
     }
   };
 
-  const onSubmit = async (data: MakeUpSession) => {
+  const onSubmit = async (
+    data: MakeUpSession | AttendedSession | CancelledSession
+  ) => {
     console.log(data);
     try {
       if (selectedStatus === 'make_up') {
@@ -1016,12 +1074,15 @@ const SessionDetails = () => {
                       </Button>
                       <Button
                         onClick={() => {
-                          methods.handleSubmit((data) => {
-                            console.log(data);
-                            onSubmit(data as MakeUpSession);
-                          })();
+                          if (isRemovingClient) {
+                            handleRemoveClient();
+                          } else {
+                            methods.handleSubmit((data) => {
+                              onSubmit(data);
+                            })();
+                          }
                         }}
-                        color='#1D9B5E'
+                        color={isRemovingClient ? 'red' : '#1D9B5E'}
                       >
                         Confirm
                       </Button>
