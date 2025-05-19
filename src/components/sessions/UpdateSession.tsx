@@ -1797,6 +1797,7 @@ const UpdateSession = ({
         title='Set Repetition'
         size='md'
         centered
+        zIndex={zIndex ? zIndex + 1 : 1001}
         styles={{
           header: {
             padding: '1rem 1.5rem',
