@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useGetPolicies, useDeletePolicy } from "../../hooks/reactQuery";
-import { Group, Button as MantineButton, Menu, Stack, Modal, Text, Button } from '@mantine/core';
+import { Group, Button as MantineButton, Menu, Stack, Modal, Text, Button, Loader, Center } from '@mantine/core';
 import actionOptionIcon from '../../assets/icons/actionOption.svg';
 import editIcon from '../../assets/icons/edit.svg';
 import deleteIcon from '../../assets/icons/delete.svg';
@@ -40,7 +40,7 @@ type PolicyFormData = {
 const columnHelper = createColumnHelper<Policy>();
 
 const Policies = () => {
-  const { data: policies = [] } = useGetPolicies();
+  const { data: policies = [], isLoading: isPoliciesLoading } = useGetPolicies();
   const [selectedPolicy, setSelectedPolicy] = useState<Policy | null>(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   
@@ -97,6 +97,27 @@ const Policies = () => {
   } = useExportPolicies(policies || []);
 
   const { openDrawer } = useUIStore();
+
+  const handleOpenPolicyDrawer = (policy?: Policy) => {
+    if (!policy || policies.some((p: Policy) => p.id === policy.id)) {
+      openDrawer({
+        type: 'policy',
+        entityId: policy?.id || null,
+        isEditing: !!policy
+      });
+    } else {
+      console.warn("Attempted to edit a policy that isn't fully loaded:", policy.id);
+      notifications.show({
+        title: 'Error',
+        message: 'Cannot edit policy at this time. Please try again.',
+        color: 'red',
+        radius: 'md',
+        withBorder: true,
+        autoClose: 3000,
+        position: 'top-right',
+      });
+    }
+  };
 
   const columns = useMemo(
     () => [
@@ -216,11 +237,7 @@ const Policies = () => {
                       }
                       onClick={() => {
                         if (!currentPolicy) return;
-                        openDrawer({
-                          type: 'policy',
-                          entityId: currentPolicy.id,
-                          isEditing: true
-                        });
+                        handleOpenPolicyDrawer(currentPolicy);
                       }}
                     >
                       Edit
@@ -249,7 +266,7 @@ const Policies = () => {
         },
       }),
     ],
-    [openDrawer]
+    [handleOpenPolicyDrawer]
   );
 
   const handleDelete = () => {
@@ -295,6 +312,14 @@ const Policies = () => {
     });
   };
 
+  if (isPoliciesLoading) {
+    return (
+      <Center style={{ height: '50vh' }}>
+        <Loader color="green" size="lg" />
+      </Center>
+    );
+  }
+
   return (
     <div className="flex flex-col gap-6">
       <div style={{ display: "flex", justifyContent: "flex-end" }}>
@@ -304,12 +329,7 @@ const Policies = () => {
           radius="md"
           size="sm"
           leftSection={<IconPlus size={16} />}
-          onClick={() => {
-            openDrawer({
-              type: 'policy',
-              isEditing: false
-            });
-          }}
+          onClick={() => handleOpenPolicyDrawer()}
         >
           Create Policy
         </MantineButton>

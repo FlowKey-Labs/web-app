@@ -9,6 +9,8 @@ import {
   Menu,
   Text,
   Modal,
+  Loader,
+  Center,
 } from "@mantine/core";
 import actionOptionIcon from "../../assets/icons/actionOption.svg";
 import editIcon from "../../assets/icons/edit.svg";
@@ -23,7 +25,7 @@ import "./tiptap.css";
 
 const Roles = () => {
   const { openDrawer } = useUIStore();
-  const { data: roles = [], refetch } = useGetRoles();
+  const { data: roles = [], refetch, isLoading: isRolesLoading } = useGetRoles();
   const [roleToDelete, setRoleToDelete] = useState<Role | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
@@ -52,11 +54,29 @@ const Roles = () => {
   };
 
   const handleOpenRoleDrawer = (role?: Role) => {
-    openDrawer({
-      type: 'role',
-      entityId: role?.id || null,
-      isEditing: !!role
-    });
+    if (role) {
+      console.log("Opening role drawer for editing:", role);
+    } else {
+      console.log("Opening role drawer for creation");
+    }
+
+    if (!role || roles.some((r: Role) => r.id === role.id)) {
+      openDrawer({
+        type: 'role',
+        entityId: role?.id || null,
+      });
+    } else {
+      console.warn("Attempted to edit a role that isn't fully loaded:", role.id);
+      notifications.show({
+        title: 'Error',
+        message: 'Cannot edit role at this time. Please try again.',
+        color: 'red',
+        radius: 'md',
+        withBorder: true,
+        autoClose: 3000,
+        position: 'top-right',
+      });
+    }
   };
 
   const columns = [
@@ -121,6 +141,14 @@ const Roles = () => {
       },
     },
   ];
+
+  if (isRolesLoading) {
+    return (
+      <Center style={{ height: '50vh' }}>
+        <Loader color="green" size="lg" />
+      </Center>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-6">
