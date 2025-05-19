@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Drawer, Group, Checkbox, Text } from "@mantine/core";
 import { useForm, FormProvider, Controller } from "react-hook-form";
 import { notifications } from "@mantine/notifications";
@@ -52,43 +52,74 @@ function generatePermissionSettings(role: Partial<Role> | null) {
 
 interface RoleDrawerProps {
   entityId?: number | string | null;
-  isEditing?: boolean;
   zIndex?: number;
 }
 
-export default function RoleDrawer({ entityId, isEditing, zIndex }: RoleDrawerProps) {
+export default function RoleDrawer({ entityId, zIndex }: RoleDrawerProps) {
   const { closeDrawer } = useUIStore();
   const editingId = entityId ? String(entityId) : null;
+  const [initialized, setInitialized] = useState(false);
   
   const methods = useForm<Partial<Role>>({ defaultValues });
   const { handleSubmit, reset, setValue, control } = methods;
   
-  const { data: roles = [], refetch } = useGetRoles();
+  const { data: roles = [], refetch, isLoading } = useGetRoles();
   const createRoleMutation = useCreateRole();
   const updateRoleMutation = useUpdateRole();
 
   const [permissionValues, permissionHandlers] = useListState(
     generatePermissionSettings(null)
   );
+  
   const allChecked = permissionValues.every((value) => value.checked);
   const indeterminate =
     permissionValues.some((value) => value.checked) && !allChecked;
 
   useEffect(() => {
+
+    if (initialized || isLoading) return;
+    
     if (editingId && roles.length > 0) {
-      const roleToEdit = roles.find((role: Role) => role.id === editingId);
+      const roleToEdit = roles.find((role: Role) => String(role.id) === editingId);
+      
       if (roleToEdit) {
-        reset({
-          name: roleToEdit.name,
-          description: roleToEdit.description,
-        });
-        permissionHandlers.setState(generatePermissionSettings(roleToEdit));
+        console.log('Loading role for editing:', roleToEdit);
+        
+        const formValues = {
+          name: roleToEdit.name || "",
+          description: roleToEdit.description || "",
+          can_view_staff: roleToEdit.can_view_staff || false,
+          can_create_staff: roleToEdit.can_create_staff || false,
+          can_edit_staff: roleToEdit.can_edit_staff || false,
+          can_view_clients: roleToEdit.can_view_clients || false,
+          can_create_clients: roleToEdit.can_create_clients || false,
+          can_edit_clients: roleToEdit.can_edit_clients || false,
+          can_view_sessions: roleToEdit.can_view_sessions || false,
+          can_create_sessions: roleToEdit.can_create_sessions || false,
+          can_edit_sessions: roleToEdit.can_edit_sessions || false,
+          can_manage_attendance: roleToEdit.can_manage_attendance || false,
+          can_manage_profile: roleToEdit.can_manage_profile || false,
+          can_manage_settings: roleToEdit.can_manage_settings || false,
+          can_view_calendar: roleToEdit.can_view_calendar || false,
+        };
+        
+        reset(formValues);
+        
+        const permissionSettings = generatePermissionSettings(roleToEdit);
+        console.log('Generated permission settings:', permissionSettings);
+        permissionHandlers.setState(permissionSettings);
+      } else {
+        console.log('Role not found for ID:', editingId);
+        reset(defaultValues);
+        permissionHandlers.setState(generatePermissionSettings(null));
       }
     } else {
       reset(defaultValues);
       permissionHandlers.setState(generatePermissionSettings(null));
     }
-  }, [editingId, roles, reset]);
+    
+    setInitialized(true);
+  }, [editingId, roles, reset, permissionHandlers, isLoading, initialized]);
 
   const handlePermissionChange = (index: number, checked: boolean) => {
     permissionHandlers.setItemProp(index, "checked", checked);
@@ -98,9 +129,11 @@ export default function RoleDrawer({ entityId, isEditing, zIndex }: RoleDrawerPr
 
   const handleAllPermissionsChange = () => {
     const newCheckedState = !allChecked;
+    
     permissionHandlers.setState((current) =>
       current.map((value) => ({ ...value, checked: newCheckedState }))
     );
+    
     permissionValues.forEach(({ formKey }) => {
       setValue(formKey as keyof Role, newCheckedState);
     });
@@ -115,7 +148,25 @@ export default function RoleDrawer({ entityId, isEditing, zIndex }: RoleDrawerPr
     };
 
     if (editingId) {
-      const roleToEdit = roles.find((role: Role) => role.id === editingId);
+      const roleToEdit = roles.find((role: Role) => String(role.id) === editingId);
+      
+      if (!roleToEdit) {
+        notifications.show({
+          title: "Error",
+          message: "Could not find role to update.",
+          color: "red",
+          radius: "md",
+          icon: (
+            <span className="flex items-center justify-center w-6 h-6 rounded-full bg-red-200">
+              <img src={errorIcon} alt="Error" className="w-4 h-4" />
+            </span>
+          ),
+          withBorder: true,
+          autoClose: 3000,
+          position: "top-right",
+        });
+        return;
+      }
       
       updateRoleMutation.mutate(
         {
@@ -231,7 +282,7 @@ export default function RoleDrawer({ entityId, isEditing, zIndex }: RoleDrawerPr
             name="name"
             control={control}
             rules={{ required: "Role name is required" }}
-            render={({ field, fieldState }) => (
+            render={({ field }) => (
               <Input
                 {...field}
                 label="Role Name"
@@ -245,7 +296,7 @@ export default function RoleDrawer({ entityId, isEditing, zIndex }: RoleDrawerPr
             name="description"
             control={control}
             rules={{ required: "Role description is required" }}
-            render={({ field, fieldState }) => (
+            render={({ field }) => (
               <Input
                 {...field}
                 label="Role Description"
