@@ -38,10 +38,10 @@ import ComingSoon from "./components/common/ComingSoon";
 import SetPassword from "./components/authentication/SetPassword";
 import { useAuthStore } from "./store/auth";
 import GroupDetails from './components/clients/GroupDetails';
+import AuthWrapper from "./components/common/AuthWrapper";
 import "./App.css";
 
 function App() {
-  const user = useAuthStore((state) => state.user);
   const permisions = useAuthStore((state) => state.role);
 
   return (
@@ -55,64 +55,98 @@ function App() {
         <ReactQueryDevtools initialIsOpen={false} />
         <Router>
           <Routes>
-            <Route
-              path="/"
-              element={user ? <Home /> : <Navigate to="/login" replace />}
-            >
-              {user && (
+            {/* Authentication Routes - No authentication required */}
+            <Route path="/login" element={
+              <AuthWrapper requireAuth={false}>
+                <Login />
+              </AuthWrapper>
+            } />
+            <Route path="/set-password" element={
+              <AuthWrapper requireAuth={false}>
+                <SetPassword />
+              </AuthWrapper>
+            } />
+            <Route path="/forgot-password" element={
+              <AuthWrapper requireAuth={false}>
+                <ForgotPassword />
+              </AuthWrapper>
+            } />
+            <Route path="/password-reset" element={
+              <AuthWrapper requireAuth={false}>
+                <PasswordResetLink />
+              </AuthWrapper>
+            } />
+            <Route path="/reset-password" element={
+              <AuthWrapper requireAuth={false}>
+                <ResetPassword />
+              </AuthWrapper>
+            } />
+            <Route path="/successful-password-reset" element={
+              <AuthWrapper requireAuth={false}>
+                <SuccessfulPassReset />
+              </AuthWrapper>
+            } />
+            
+            {/* Signup route - only in development */}
+            {import.meta.env.VITE_APP_ENVIRONMENT === "development" && (
+              <Route path="/signup" element={
+                <AuthWrapper requireAuth={false}>
+                  <Signup />
+                </AuthWrapper>
+              } />
+            )}
+
+            {/* Protected Routes - Require authentication */}
+            <Route path="/" element={
+              <AuthWrapper requireAuth={true}>
+                <Home />
+              </AuthWrapper>
+            }>
+              <Route index element={<GettingStarted />} />
+              <Route path="dashboard" element={<GettingStarted />} />
+              <Route path="/welcome" element={<Welcome />} />
+              <Route path="/team-members" element={<TeamMembers />} />
+              <Route path="/business-type" element={<BusinessType />} />
+              <Route path="/monthly-clients" element={<MonthlyClients />} />
+              <Route path="/purpose" element={<Purpose />} />
+              <Route path="/logout" element={<LogoutSuccess />} />
+              
+              {/* Permission-gated routes */}
+              {permisions?.can_view_staff && (
+                <Route path="staff" element={<AllStaff />} />
+              )}
+              {permisions?.can_view_staff && (
+                <Route path="staff/:id" element={<StaffDetails />} />
+              )}
+              {permisions?.can_view_sessions && (
+                <Route path="sessions" element={<AllClasses />} />
+              )}
+              {permisions?.can_view_sessions && (
+                <Route path="sessions/:id" element={<ClassDetails />} />
+              )}
+              {permisions?.can_view_calendar && (
+                <Route path="calendar" element={<CalendarView />} />
+              )}
+              {permisions?.can_view_clients && (
                 <>
-                  <Route path="/welcome" element={<Welcome />} />
-                  <Route path="/team-members" element={<TeamMembers />} />
-                  <Route path="/business-type" element={<BusinessType />} />
-                  <Route path="/logout" element={<LogoutSuccess />} />
-                  <Route path="/monthly-clients" element={<MonthlyClients />} />
-                  <Route path="/purpose" element={<Purpose />} />
-                  <Route index element={<GettingStarted />} />
-                  <Route path="dashboard" element={<GettingStarted />} />
-                  {permisions?.can_view_staff && (
-                    <Route path="staff" element={<AllStaff />} />
-                  )}
-                  {permisions?.can_view_staff && (
-                    <Route path="staff/:id" element={<StaffDetails />} />
-                  )}
-                  {permisions?.can_view_sessions && (
-                    <Route path="sessions" element={<AllClasses />} />
-                  )}
-                  {permisions?.can_view_sessions && (
-                    <Route path="sessions/:id" element={<ClassDetails />} />
-                  )}
-                  {permisions?.can_view_calendar && (
-                    <Route path="calendar" element={<CalendarView />} />
-                  )}
-                  {permisions?.can_view_clients && (
-                    <>
-                    <Route path="clients" element={<AllClients />} />
-                    <Route path='groups/:id' element={<GroupDetails />} />
-                    <Route path="clients/:id" element={<ClientDetails />} />
-                    </>
-                  )}
-                  {permisions?.can_manage_profile && (
-                    <Route path="profile" element={<Profile />} />
-                  )}
-                  {permisions?.can_manage_settings && (
-                    <Route path="settings" element={<Settings />} />
-                  )}
-                  <Route path="*" element={<ComingSoon />} />
+                <Route path="clients" element={<AllClients />} />
+                <Route path='groups/:id' element={<GroupDetails />} />
+                <Route path="clients/:id" element={<ClientDetails />} />
                 </>
               )}
+              {permisions?.can_manage_profile && (
+                <Route path="profile" element={<Profile />} />
+              )}
+              {permisions?.can_manage_settings && (
+                <Route path="settings" element={<Settings />} />
+              )}
+              
+              {/* Catch-all route for authenticated users */}
+              <Route path="*" element={<ComingSoon />} />
             </Route>
-            {import.meta.env.VITE_APP_ENVIRONMENT === "development" && (
-              <Route path="/signup" element={<Signup />} />
-            )}
-            <Route path="/login" element={<Login />} />
-            <Route path="/set-password" element={<SetPassword />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
-            <Route path="/password-reset" element={<PasswordResetLink />} />
-            <Route path="/reset-password" element={<ResetPassword />} />
-            <Route
-              path="/successful-password-reset"
-              element={<SuccessfulPassReset />}
-            />
+            
+            {/* Redirect any other paths to login */}
+            <Route path="*" element={<Navigate to="/login" replace />} />
           </Routes>
         </Router>
       </QueryClientProvider>

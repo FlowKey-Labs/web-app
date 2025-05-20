@@ -259,10 +259,11 @@ export const useDeleteRole = () => {
   });
 };
 
-export const useGetUserProfile = () => {
+export const useGetUserProfile = (options = {}) => {
   return useQuery({
     queryKey: ["user_profile"],
     queryFn: get_user_profile,
+    ...options
   });
 };
 
