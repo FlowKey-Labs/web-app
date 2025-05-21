@@ -1,16 +1,21 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Button from '../common/Button';
+import { useLogout } from '../../hooks/reactQuery';
 
 const LogoutSuccess = () => {
   const navigate = useNavigate();
+  const logout = useLogout();
 
   useEffect(() => {
+    logout();
+    
     const timer = setTimeout(() => {
       navigate('/login');
     }, 5000);
+    
     return () => clearTimeout(timer);
-  }, [navigate]);
+  }, [navigate, logout]);
 
   return (
     <div className='flex flex-col items-center justify-center min-h-screen bg-gray-50 p-4'>

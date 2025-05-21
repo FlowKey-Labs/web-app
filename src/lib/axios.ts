@@ -1,5 +1,6 @@
 import axios, { AxiosError, AxiosRequestConfig } from "axios";
 import { END_POINTS } from "../api/api";
+import { useAuthStore } from "../store/auth";
 
 type ErrorResponse = {
   code: string;
@@ -13,6 +14,12 @@ export const api = axios.create({
 
 let isRefreshing = false;
 let failedRequests: Array<() => void> = [];
+
+const handleLogout = () => {
+  const logout = useAuthStore.getState().logout;
+  logout();
+  window.location.href = "/login";
+};
 
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem("accessToken");
@@ -28,14 +35,13 @@ api.interceptors.response.use(
     const originalRequest = error.config as AxiosRequestConfig & {
       _retry?: boolean;
     };
+
     if (error.response?.status === 401 && !originalRequest._retry) {
       if (
         (error.response.data as ErrorResponse)?.code === "token_not_valid" &&
         error?.config?.url?.includes("refresh")
       ) {
-        localStorage.removeItem("accessToken");
-        localStorage.removeItem("refresh");
-        window.location.href = "/login";
+        handleLogout();
         return Promise.reject(error);
       }
 
@@ -53,12 +59,26 @@ api.interceptors.response.use(
 
       try {
         const refresh = localStorage.getItem("refresh");
-        const response = await axios.post(END_POINTS.AUTH.REFRESH, { refresh });
 
+        if (!refresh) {
+          handleLogout();
+          return Promise.reject(error);
+        }
+
+        const response = await axios.post(END_POINTS.AUTH.REFRESH, { refresh });
         const newToken = response.data.access;
 
-        localStorage.setItem("accessToken", newToken);
-        localStorage.setItem("refresh", response.data.refresh);
+        const user = useAuthStore.getState().user;
+        if (user) {
+          useAuthStore.getState().setAuth(
+            newToken,
+            response.data.refresh,
+            user
+          );
+        } else {
+          localStorage.setItem("accessToken", newToken);
+          localStorage.setItem("refresh", response.data.refresh);
+        }
 
         originalRequest.headers = {
           ...originalRequest.headers,
@@ -71,13 +91,12 @@ api.interceptors.response.use(
 
         return api(originalRequest);
       } catch (refreshError) {
+
         failedRequests.forEach((cb) => cb());
         failedRequests = [];
         isRefreshing = false;
 
-        localStorage.removeItem("accessToken");
-        localStorage.removeItem("refresh");
-        window.location.href = "/login";
+        handleLogout();
         return Promise.reject(refreshError);
       }
     }
