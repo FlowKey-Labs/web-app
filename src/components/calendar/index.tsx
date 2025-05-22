@@ -470,7 +470,7 @@ const CalendarView = () => {
           ]}
           initialView={currentView.view}
           events={
-            sessionsData?.flatMap(mapSessionToFullCalendarEvents) as EventInput
+            sessionsData?.flatMap(session => mapSessionToFullCalendarEvents(session as unknown as SessionType)) as EventInput
           }
           eventContent={renderEventContent}
           dayMaxEventRows={true}
