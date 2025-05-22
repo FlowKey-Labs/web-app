@@ -57,11 +57,41 @@ interface FullCalendarEvent {
   extendedProps?: Record<string, unknown>; // for additional metadata
 }
 
-function mapSessionToFullCalendarEvents(session: any): FullCalendarEvent[] {
+interface SessionType {
+  id: number;
+  title: string;
+  date: string;
+  start_time: string;
+  end_time: string;
+  repeat_on?: string[];
+  repeat_end_date?: string | null;
+  repeat_end_type?: string;
+  repeat_every?: number;
+  repeat_unit?: string;
+  repeat_occurrences?: number;
+  [key: string]: unknown;
+}
+
+function mapSessionToFullCalendarEvents(session: SessionType): FullCalendarEvent[] {
   const events: FullCalendarEvent[] = [];
 
   const startDate = new Date(session.date);
-  const repeatEndDate = new Date(session.repeat_end_date || session.date);
+  
+  // Set end date based on repeat_end_type
+  let repeatEndDate: Date;
+  if (session.repeat_end_type === 'never') {
+    // For 'never' ending events, set end date to 2 years from start
+    repeatEndDate = new Date(startDate);
+    repeatEndDate.setFullYear(repeatEndDate.getFullYear() + 2);
+  } else if (session.repeat_end_type === 'after' && session.repeat_occurrences) {
+    // For 'after' with specific occurrences, set a far future date
+    // The actual count will be handled in the event generation logic
+    repeatEndDate = new Date(startDate);
+    repeatEndDate.setFullYear(repeatEndDate.getFullYear() + 2);
+  } else {
+    repeatEndDate = session.repeat_end_date ? new Date(session.repeat_end_date) : new Date(session.date);
+  }
+  
   const startTime = new Date(session.start_time);
   const endTime = new Date(session.end_time);
 
@@ -76,16 +106,100 @@ function mapSessionToFullCalendarEvents(session: any): FullCalendarEvent[] {
     return merged;
   };
 
-  // Handle recurring sessions
-  if (session.repeat_on && session.repeat_on.length > 0) {
-    const currentDate = new Date(startDate);
+  // Helper to normalize day names for comparison
+  const normalizeDayName = (day: string): string => {
+    const dayMap: Record<string, string> = {
+      'mon': 'Monday',
+      'tue': 'Tuesday',
+      'wed': 'Wednesday',
+      'thu': 'Thursday',
+      'fri': 'Friday',
+      'sat': 'Saturday',
+      'sun': 'Sunday'
+    };
+    
+    const lowerDay = day.toLowerCase();
+    
+    // Check if it's an abbreviated day
+    if (dayMap[lowerDay]) {
+      return dayMap[lowerDay];
+    }
+    
+    // Otherwise, capitalize the first letter and make the rest lowercase
+    return lowerDay.charAt(0).toUpperCase() + lowerDay.slice(1).toLowerCase();
+  };
 
-    while (currentDate <= repeatEndDate) {
+  // Determine if this is a recurring session
+  const isRecurring = 
+    // Either has repeat days specified
+    (session.repeat_on && session.repeat_on.length > 0) ||
+    // Or is set to repeat weekly/monthly/etc with repeat_end_type
+    (session.repeat_unit && session.repeat_every && 
+     (session.repeat_end_type === 'never' || session.repeat_end_date || session.repeat_end_type === 'after'));
+
+  if (isRecurring) {
+    // Create events array based on recurrence pattern
+    let occurrenceCount = 0;
+    const maxOccurrences = session.repeat_end_type === 'after' ? (session.repeat_occurrences || 0) : Number.MAX_SAFE_INTEGER;
+    
+    // Handle specific days of the week if specified
+    let normalizedRepeatOn: string[] = [];
+    if (session.repeat_on && session.repeat_on.length > 0) {
+      normalizedRepeatOn = session.repeat_on.map(day => normalizeDayName(day));
+    }
+
+    // For weekly repeating events with empty repeat_on, use the start date's day of week
+    const isWeeklyWithEmptyRepeatOn = 
+      session.repeat_unit === 'weeks' && 
+      (!session.repeat_on || session.repeat_on.length === 0);
+    
+    if (isWeeklyWithEmptyRepeatOn) {
+      const startDayOfWeek = startDate.toLocaleDateString("en-US", {
+        weekday: "long",
+      });
+      normalizedRepeatOn = [startDayOfWeek];
+    }
+
+    // If start date doesn't match any day in repeat_on, find the first matching date
+    let currentDate = new Date(startDate);
+    
+    // Special handling for sessions that specify specific days different from start date
+    if (normalizedRepeatOn.length > 0) {
+      const startDayOfWeek = currentDate.toLocaleDateString("en-US", { weekday: "long" });
+      
+      // If start date day doesn't match any repeat day, find the first matching day
+      if (!normalizedRepeatOn.includes(startDayOfWeek)) {
+        let daysChecked = 0;
+        let foundMatchingDay = false;
+        
+        // Look ahead up to 7 days to find the first matching day
+        while (daysChecked < 7 && !foundMatchingDay) {
+          currentDate.setDate(currentDate.getDate() + 1);
+          daysChecked++;
+          
+          const dayOfWeek = currentDate.toLocaleDateString("en-US", { weekday: "long" });
+          if (normalizedRepeatOn.includes(dayOfWeek)) {
+            foundMatchingDay = true;
+          }
+        }
+        
+        // If no matching day found in the next week, use original start date
+        if (!foundMatchingDay) {
+          currentDate = new Date(startDate);
+        }
+      }
+    }
+
+    // Generate events
+    while (currentDate <= repeatEndDate && occurrenceCount < maxOccurrences) {
       const weekday = currentDate.toLocaleDateString("en-US", {
         weekday: "long",
       });
 
-      if (session.repeat_on.includes(weekday)) {
+      // For specific day repeats, check if this day is in the repeat_on array
+      const isDayMatch = normalizedRepeatOn.length === 0 || normalizedRepeatOn.includes(weekday);
+      
+      if (isDayMatch) {
         const eventStart = mergeDateAndTime(currentDate, startTime);
         const eventEnd = mergeDateAndTime(currentDate, endTime);
 
@@ -98,9 +212,34 @@ function mapSessionToFullCalendarEvents(session: any): FullCalendarEvent[] {
             session,
           },
         });
-      }
+        
+        occurrenceCount++;
 
-      currentDate.setDate(currentDate.getDate() + 1);
+        // For repeat_end_type 'after', if we've reached the desired occurrences, break
+        if (session.repeat_end_type === 'after' && occurrenceCount >= maxOccurrences) {
+          break;
+        }
+      }
+      
+      // Advance date based on pattern
+      if (session.repeat_unit === 'weeks' && normalizedRepeatOn.length > 0) {
+        // For weekly repeats with specific days, advance by 1 day
+        currentDate.setDate(currentDate.getDate() + 1);
+      } else if (session.repeat_unit) {
+        // For other repeats, jump ahead based on repeat_every
+        const repeatEvery = session.repeat_every || 1;
+        
+        if (session.repeat_unit === 'days') {
+          currentDate.setDate(currentDate.getDate() + repeatEvery);
+        } else if (session.repeat_unit === 'weeks') {
+          currentDate.setDate(currentDate.getDate() + (7 * repeatEvery));
+        } else if (session.repeat_unit === 'months') {
+          currentDate.setMonth(currentDate.getMonth() + repeatEvery);
+        }
+      } else {
+        // Default to daily advance
+        currentDate.setDate(currentDate.getDate() + 1);
+      }
     }
   } else {
     // Handle one-time session
