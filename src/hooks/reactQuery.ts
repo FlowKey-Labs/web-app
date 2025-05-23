@@ -7,6 +7,8 @@ import {
 import {
   registerUser,
   loginUser,
+  passwordResetRequest,
+  resetPassword,
   get_user_profile,
   business_profile,
   update_business_profile,
@@ -163,6 +165,34 @@ export const useSetStaffPassword = () => {
     },
     onError: (error) => {
       console.error("Failed to set staff passsword==>", error);
+    },
+  });
+};
+
+export const usePasswordResetRequest = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: passwordResetRequest,
+    onSuccess: () => {
+      queryClient.invalidateQueries();
+    },
+    onError: (error) => {
+      console.error("Failed to reset password==>", error);
+    },
+  });
+};
+
+export const useResetPassword = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: resetPassword,
+    onSuccess: () => {
+      queryClient.invalidateQueries();
+    },
+    onError: (error) => {
+      console.error("Failed to reset password==>", error);
     },
   });
 };

@@ -22,6 +22,8 @@ const END_POINTS = {
     LOGIN: `${BASE_URL}/api/auth/login/`,
     REFRESH: `${BASE_URL}/api/auth/refresh/`,
     STAFF_PASSWORD: `${BASE_URL}/api/auth/set-password/`,
+    PASSWORD_RESET_REQUEST: `${BASE_URL}/api/auth/password-reset/`,
+    RESET_PASSWORD: `${BASE_URL}/api/auth/reset-password/`,
   },
   USER: {
     PROFILE: `${BASE_URL}/api/auth/profile/`,
@@ -130,6 +132,27 @@ const setStaffPassword = async (credentials: {
   );
   return data;
 };
+
+const passwordResetRequest = async (credentials: {
+  email: string;
+}) => {
+  const { data } = await axios.post(END_POINTS.AUTH.PASSWORD_RESET_REQUEST, credentials);
+  return data;
+};
+
+const resetPassword = async (credentials: {
+  uid: string;
+  token: string;
+  email: string;
+  first_name: string;
+  last_name: string;
+  mobile_number: string;
+  new_password: string;
+}) => {
+  const { data } = await axios.post(END_POINTS.AUTH.RESET_PASSWORD, credentials);
+  return data;
+};
+
 
 const get_user_profile = async () => {
   const { data } = await api.get(END_POINTS.USER.PROFILE);
@@ -961,6 +984,8 @@ export {
   END_POINTS,
   registerUser,
   loginUser,
+  passwordResetRequest,
+  resetPassword,
   business_profile,
   update_business_profile,
   get_business_profile,

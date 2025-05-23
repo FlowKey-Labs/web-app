@@ -10,7 +10,8 @@ import Button from '../common/Button';
 import Main from '../authentication/MainAuth';
 import { useState } from 'react';
 import { EyeClosedIcon, EyeOpenIcon, SubmittingIcon } from '../../assets/icons';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { useResetPassword } from '../../hooks/reactQuery';
 
 interface FormData {
   password: string;
@@ -19,6 +20,7 @@ interface FormData {
 
 const ResetPassword = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [isResetting, setIsResetting] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
 
@@ -32,13 +34,34 @@ const ResetPassword = () => {
   const toggleConfirmPasswordVisibility = () =>
     setShowConfirmPassword(!showConfirmPassword);
 
-  const onSubmit: SubmitHandler<FormData> = async (data) => {
-    console.log(data);
-    setIsResetting(true);
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+  const searchParams = new URLSearchParams(location.search);
+  const uid = searchParams.get('uid') || '';
+  const token = searchParams.get('token') || '';
+  const email = searchParams.get('email') || '';
+  const first_name = searchParams.get('first_name') || '';
+  const last_name = searchParams.get('last_name') || '';
+  const mobile_number = searchParams.get('mobile_number') || '';
 
-    setIsResetting(false);
-    navigate('/successful-password-reset');
+  const { mutateAsync } = useResetPassword();
+
+  const onSubmit: SubmitHandler<FormData> = async (data) => {
+    setIsResetting(true);
+    try {
+      await mutateAsync({
+        uid,
+        token,
+        email,
+        first_name,
+        last_name,
+        mobile_number,
+        new_password: data.password,
+      });
+      setIsResetting(false);
+      navigate('/successful-password-reset', { state: { from: location } });
+    } catch (error) {
+      setIsResetting(false);
+      alert('Failed to reset password. Please try again.');
+    }
   };
 
   return (
