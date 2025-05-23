@@ -19,6 +19,12 @@ import "./index.css";
 import AddClients from "../clients/AddClient";
 import UpdateSession from "../sessions/UpdateSession";
 import { useAuthStore } from "../../store/auth";
+import { mapSessionToFullCalendarEvents as convertSessionToEvents } from "./calendarUtils";
+import { CalendarSessionType } from "../../types/sessionTypes";
+
+// Constants for popup positioning
+const popupWidth = 400;
+const popupHeight = 500;
 
 const headerToolbar = {
   start: "title",
@@ -33,6 +39,10 @@ type CalendarView = {
 
 const calendarViews: CalendarView[] = [
   {
+    type: "Day",
+    view: "timeGridDay",
+  },
+  {
     type: "Month",
     view: "dayGridMonth",
   },
@@ -40,86 +50,7 @@ const calendarViews: CalendarView[] = [
     type: "Week",
     view: "timeGridWeek",
   },
-  {
-    type: "Day",
-    view: "timeGridDay",
-  },
 ];
-
-const popupWidth = 400;
-const popupHeight = 500;
-
-interface FullCalendarEvent {
-  id: string | number;
-  title: string;
-  start: string; // ISO string
-  end?: string; // ISO string
-  extendedProps?: Record<string, unknown>; // for additional metadata
-}
-
-function mapSessionToFullCalendarEvents(session: any): FullCalendarEvent[] {
-  const events: FullCalendarEvent[] = [];
-
-  const startDate = new Date(session.date);
-  const repeatEndDate = new Date(session.repeat_end_date || session.date);
-  const startTime = new Date(session.start_time);
-  const endTime = new Date(session.end_time);
-
-  // Helper to merge date and time
-  const mergeDateAndTime = (date: Date, time: Date): Date => {
-    const merged = new Date(date);
-    merged.setHours(
-      time.getUTCHours(),
-      time.getUTCMinutes(),
-      time.getUTCSeconds()
-    );
-    return merged;
-  };
-
-  // Handle recurring sessions
-  if (session.repeat_on && session.repeat_on.length > 0) {
-    const currentDate = new Date(startDate);
-
-    while (currentDate <= repeatEndDate) {
-      const weekday = currentDate.toLocaleDateString("en-US", {
-        weekday: "long",
-      });
-
-      if (session.repeat_on.includes(weekday)) {
-        const eventStart = mergeDateAndTime(currentDate, startTime);
-        const eventEnd = mergeDateAndTime(currentDate, endTime);
-
-        events.push({
-          id: `${session.id}-${eventStart.toISOString()}`,
-          title: session.title,
-          start: eventStart.toISOString(),
-          end: eventEnd.toISOString(),
-          extendedProps: {
-            session,
-          },
-        });
-      }
-
-      currentDate.setDate(currentDate.getDate() + 1);
-    }
-  } else {
-    // Handle one-time session
-    const eventStart = new Date(session.start_time);
-    const eventEnd = new Date(session.end_time);
-
-    events.push({
-      id: `${session.id}`,
-      title: session.title,
-      start: eventStart.toISOString(),
-      end: eventEnd.toISOString(),
-      extendedProps: {
-        session,
-      },
-    });
-  }
-
-  return events;
-}
 
 const CalendarView = () => {
   const calendarRef = useRef<FullCalendar>(null);
@@ -141,8 +72,35 @@ const CalendarView = () => {
   const [selectedEvent, setSelectedEvent] = useState<EventImpl | null>(null);
   const popupRef = useRef<HTMLDivElement | null>(null);
   const { data: sessionsData } = useGetSessions();
+  // Track visible date range for optimized event generation
+  const [visibleDateRange, setVisibleDateRange] = useState<{
+    start: Date | null;
+    end: Date | null;
+  }>({ start: null, end: null });
 
   const permisions = useAuthStore((state) => state.role);
+
+  // Memoize the mapping function to improve performance
+  const processSessionToEvents = useCallback((session: unknown) => {
+    try {
+      return convertSessionToEvents(
+        session as unknown as CalendarSessionType,
+        visibleDateRange.start || undefined,
+        visibleDateRange.end || undefined
+      );
+    } catch (error) {
+      console.error('Error processing session:', error);
+      return [];
+    }
+  }, [visibleDateRange.start, visibleDateRange.end]);
+
+  // Update visible date range when the view changes
+  const handleDatesSet = useCallback((dateInfo: { start: Date; end: Date }) => {
+    setVisibleDateRange({
+      start: dateInfo.start,
+      end: dateInfo.end,
+    });
+  }, []);
 
   const handleEventClick = (clickInfo: EventClickArg) => {
     const { event, el } = clickInfo;
@@ -197,9 +155,16 @@ const CalendarView = () => {
   };
 
   const changeView = (view: CalendarView) => {
-    setCurrentView(view);
-    calendarRef.current?.getApi().changeView(view.view);
-    setDropdownOpen(false);
+    try {
+      setCurrentView(view);
+      if (calendarRef.current) {
+        const calendarApi = calendarRef.current.getApi();
+        calendarApi.changeView(view.view);
+      }
+      setDropdownOpen(false);
+    } catch (error) {
+      console.error('Failed to change view:', error);
+    }
   };
 
   const handleAddEvent = () => {
@@ -215,28 +180,64 @@ const CalendarView = () => {
         start: Date;
       };
     }) => {
-      const time = parse(eventInfo.timeText, "HH:mm", new Date());
-      const formattedTime = addHours(time, -3);
-
-      return (
-        <div className="flex justify-between w-full h-full py-1 cursor-pointer">
-          <div
-            className={cn("flex items-center gap-1 w-[70%]", {
-              "w-[40%]": currentView.type === "Week",
-            })}
-          >
+      try {
+        // Safely parse the time or fall back to event start time
+        let displayTime;
+        if (eventInfo.timeText) {
+          // Clean the time string (remove any AM/PM or other non-time characters)
+          const cleanTime = eventInfo.timeText.replace(/[^0-9:]/g, '').trim();
+          const parsedTime = parse(cleanTime, "HH:mm", new Date());
+          
+          // Only use if parsing succeeded
+          if (!isNaN(parsedTime.getTime())) {
+            displayTime = parsedTime;
+          }
+        }
+        
+        // Fallback to event start time if time parsing failed
+        if (!displayTime && eventInfo.event.start) {
+          displayTime = new Date(addHours(eventInfo.event.start, -3));
+        }
+  
+        // Format the time safely
+        const timeString = displayTime 
+          ? format(displayTime, "HH:mm a") 
+          : eventInfo.timeText || '';
+  
+        return (
+          <div className="flex justify-between w-full h-full py-1 cursor-pointer">
             <div
-              className={cn("rounded-full w-2 h-2 bg-green-400", {
-                "bg-gray-500": isPast(new Date(eventInfo.event.start)),
+              className={cn("flex items-center gap-1 w-[70%]", {
+                "w-[40%]": currentView.type === "Week",
               })}
-            />
-            <i className="text-xs truncate">{eventInfo.event.title}</i>
+            >
+              <div
+                className={cn("rounded-full w-2 h-2 bg-green-400", {
+                  "bg-gray-500": isPast(new Date(eventInfo.event.start)),
+                })}
+              />
+              <i className="text-xs truncate">{eventInfo.event.title}</i>
+            </div>
+            <b className="text-xs flex items-center">
+              {timeString}
+            </b>
           </div>
-          <b className="text-xs flex items-center">
-            {format(formattedTime, "HH:mm a")}
-          </b>
-        </div>
-      );
+        );
+      } catch (error) {
+        console.error('Error rendering event content:', error);
+        // Fallback rendering
+        return (
+          <div className="flex justify-between w-full h-full py-1 cursor-pointer">
+            <div className="flex items-center gap-1 w-[70%]">
+              <div className="rounded-full w-2 h-2 bg-green-400" />
+              <i className="text-xs truncate">{eventInfo.event.title}</i>
+            </div>
+            <b className="text-xs flex items-center">
+              {eventInfo.timeText || ''}
+            </b>
+          </div>
+        );
+      }
     },
     [currentView]
   );
@@ -293,6 +294,7 @@ const CalendarView = () => {
                 className={cn("w-20 p-2 cursor-pointer hover:bg-[#DAF8E6]", {
                   "bg-[#EAFCF3]": view.type === currentView.type,
                 })}
+                key={view.type}
                 onClick={() => changeView(view)}
               >
                 <p>{view.type}</p>
@@ -331,12 +333,14 @@ const CalendarView = () => {
           ]}
           initialView={currentView.view}
           events={
-            sessionsData?.flatMap(mapSessionToFullCalendarEvents) as EventInput
+            sessionsData?.flatMap(processSessionToEvents) as EventInput
           }
+          datesSet={handleDatesSet}
           eventContent={renderEventContent}
           dayMaxEventRows={true}
           allDaySlot={false}
           headerToolbar={headerToolbar}
+          timeZone="Africa/Nairobi"
           height={`calc(100vh - 130px)`}
           slotLabelFormat={{
             hour: "2-digit",

@@ -81,7 +81,7 @@ export interface CreateSessionData {
   repeat_on?: string[];
   repeat_end_type?: EndType;
   repeat_end_date?: string;
-  repeat_occurrences?: number;
+  repeat_occurrences?: number | null;
 }
 
 export interface Session
@@ -174,4 +174,21 @@ export interface ProgressFeedback {
   subcategory_id: string;
   feedback: string;
   attachment: File;
+}
+
+/**
+ * Extended Session type used specifically for calendar event generation
+ * This type includes all fields needed for proper recurrence handling
+ */
+export interface CalendarSessionType extends Omit<Session, 'repeat_end_date'> {
+  // Make sure these fields are properly typed for calendar use
+  repeat_on?: string[];
+  repeat_end_date?: string | null;
+  repeat_end_type?: EndType;
+  repeat_every?: number;
+  repeat_unit?: RepeatUnit;
+  repeat_occurrences?: number | null;
+  
+  // Allow for any additional properties coming from the backend
+  [key: string]: unknown;
 }
