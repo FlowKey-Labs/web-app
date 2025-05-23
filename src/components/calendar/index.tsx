@@ -39,16 +39,16 @@ type CalendarView = {
 
 const calendarViews: CalendarView[] = [
   {
+    type: "Day",
+    view: "timeGridDay",
+  },
+  {
     type: "Month",
     view: "dayGridMonth",
   },
   {
     type: "Week",
     view: "timeGridWeek",
-  },
-  {
-    type: "Day",
-    view: "timeGridDay",
   },
 ];
 
@@ -155,9 +155,16 @@ const CalendarView = () => {
   };
 
   const changeView = (view: CalendarView) => {
-    setCurrentView(view);
-    calendarRef.current?.getApi().changeView(view.view);
-    setDropdownOpen(false);
+    try {
+      setCurrentView(view);
+      if (calendarRef.current) {
+        const calendarApi = calendarRef.current.getApi();
+        calendarApi.changeView(view.view);
+      }
+      setDropdownOpen(false);
+    } catch (error) {
+      console.error('Failed to change view:', error);
+    }
   };
 
   const handleAddEvent = () => {
@@ -173,28 +180,64 @@ const CalendarView = () => {
         start: Date;
       };
     }) => {
-      const time = parse(eventInfo.timeText, "HH:mm", new Date());
-      const formattedTime = addHours(time, -3);
-
-      return (
-        <div className="flex justify-between w-full h-full py-1 cursor-pointer">
-          <div
-            className={cn("flex items-center gap-1 w-[70%]", {
-              "w-[40%]": currentView.type === "Week",
-            })}
-          >
+      try {
+        // Safely parse the time or fall back to event start time
+        let displayTime;
+        if (eventInfo.timeText) {
+          // Clean the time string (remove any AM/PM or other non-time characters)
+          const cleanTime = eventInfo.timeText.replace(/[^0-9:]/g, '').trim();
+          const parsedTime = parse(cleanTime, "HH:mm", new Date());
+          
+          // Only use if parsing succeeded
+          if (!isNaN(parsedTime.getTime())) {
+            displayTime = parsedTime;
+          }
+        }
+        
+        // Fallback to event start time if time parsing failed
+        if (!displayTime && eventInfo.event.start) {
+          displayTime = new Date(addHours(eventInfo.event.start, -3));
+        }
+  
+        // Format the time safely
+        const timeString = displayTime 
+          ? format(displayTime, "HH:mm a") 
+          : eventInfo.timeText || '';
+  
+        return (
+          <div className="flex justify-between w-full h-full py-1 cursor-pointer">
             <div
-              className={cn("rounded-full w-2 h-2 bg-green-400", {
-                "bg-gray-500": isPast(new Date(eventInfo.event.start)),
+              className={cn("flex items-center gap-1 w-[70%]", {
+                "w-[40%]": currentView.type === "Week",
               })}
-            />
-            <i className="text-xs truncate">{eventInfo.event.title}</i>
+            >
+              <div
+                className={cn("rounded-full w-2 h-2 bg-green-400", {
+                  "bg-gray-500": isPast(new Date(eventInfo.event.start)),
+                })}
+              />
+              <i className="text-xs truncate">{eventInfo.event.title}</i>
+            </div>
+            <b className="text-xs flex items-center">
+              {timeString}
+            </b>
           </div>
-          <b className="text-xs flex items-center">
-            {format(formattedTime, "HH:mm a")}
-          </b>
-        </div>
-      );
+        );
+      } catch (error) {
+        console.error('Error rendering event content:', error);
+        // Fallback rendering
+        return (
+          <div className="flex justify-between w-full h-full py-1 cursor-pointer">
+            <div className="flex items-center gap-1 w-[70%]">
+              <div className="rounded-full w-2 h-2 bg-green-400" />
+              <i className="text-xs truncate">{eventInfo.event.title}</i>
+            </div>
+            <b className="text-xs flex items-center">
+              {eventInfo.timeText || ''}
+            </b>
+          </div>
+        );
+      }
     },
     [currentView]
   );
@@ -251,6 +294,7 @@ const CalendarView = () => {
                 className={cn("w-20 p-2 cursor-pointer hover:bg-[#DAF8E6]", {
                   "bg-[#EAFCF3]": view.type === currentView.type,
                 })}
+                key={view.type}
                 onClick={() => changeView(view)}
               >
                 <p>{view.type}</p>
@@ -296,6 +340,7 @@ const CalendarView = () => {
           dayMaxEventRows={true}
           allDaySlot={false}
           headerToolbar={headerToolbar}
+          timeZone="Africa/Nairobi"
           height={`calc(100vh - 130px)`}
           slotLabelFormat={{
             hour: "2-digit",
