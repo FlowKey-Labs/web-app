@@ -38,9 +38,6 @@ const ResetPassword = () => {
   const uid = searchParams.get('uid') || '';
   const token = searchParams.get('token') || '';
   const email = searchParams.get('email') || '';
-  const first_name = searchParams.get('first_name') || '';
-  const last_name = searchParams.get('last_name') || '';
-  const mobile_number = searchParams.get('mobile_number') || '';
 
   const { mutateAsync } = useResetPassword();
 
@@ -51,9 +48,6 @@ const ResetPassword = () => {
         uid,
         token,
         email,
-        first_name,
-        last_name,
-        mobile_number,
         new_password: data.password,
       });
       setIsResetting(false);
