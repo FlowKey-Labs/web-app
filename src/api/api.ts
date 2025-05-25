@@ -8,9 +8,9 @@ import {
   ProgressFeedback,
   Session,
   MakeUpSession,
-} from "../types/sessionTypes";
-import { CreateLocationData } from "../types/location";
-import { Role } from "../store/auth";
+} from '../types/sessionTypes';
+import { CreateLocationData } from '../types/location';
+import { Role } from '../store/auth';
 
 const BASE_URL = import.meta.env.VITE_APP_BASEURL;
 
@@ -133,10 +133,11 @@ const setStaffPassword = async (credentials: {
   return data;
 };
 
-const passwordResetRequest = async (credentials: {
-  email: string;
-}) => {
-  const { data } = await axios.post(END_POINTS.AUTH.PASSWORD_RESET_REQUEST, credentials);
+const passwordResetRequest = async (credentials: { email: string }) => {
+  const { data } = await axios.post(
+    END_POINTS.AUTH.PASSWORD_RESET_REQUEST,
+    credentials
+  );
   return data;
 };
 
@@ -144,15 +145,14 @@ const resetPassword = async (credentials: {
   uid: string;
   token: string;
   email: string;
-  first_name: string;
-  last_name: string;
-  mobile_number: string;
   new_password: string;
 }) => {
-  const { data } = await axios.post(END_POINTS.AUTH.RESET_PASSWORD, credentials);
+  const { data } = await axios.post(
+    END_POINTS.AUTH.RESET_PASSWORD,
+    credentials
+  );
   return data;
 };
-
 
 const get_user_profile = async () => {
   const { data } = await api.get(END_POINTS.USER.PROFILE);
@@ -867,7 +867,7 @@ const getAttendedSessions = async () => {
 const createAttendedSession = async (attendedSessionData: AttendedSession) => {
   const { data } = await api.post(
     END_POINTS.SESSION.ATTENDED_SESSIONS,
-    attendedSessionData,
+    attendedSessionData
   );
   return data;
 };
@@ -963,12 +963,12 @@ const deleteCancelledSession = async (id: string) => {
 
 const submitProgressFeedback = async (payload: ProgressFeedback) => {
   const formData = new FormData();
-  formData.append("client_id", payload.client_id);
-  formData.append("subcategory_id", payload.subcategory_id);
-  formData.append("feedback", payload.feedback);
-  formData.append("attachment", payload.attachment);
+  formData.append('client_id', payload.client_id);
+  formData.append('subcategory_id', payload.subcategory_id);
+  formData.append('feedback', payload.feedback);
+  formData.append('attachment', payload.attachment);
   const { data } = await api.post(END_POINTS.PROGRESS.FEEDBACK, payload, {
-    headers: { "Content-Type": "multipart/form-data" },
+    headers: { 'Content-Type': 'multipart/form-data' },
   });
   return data;
 };
