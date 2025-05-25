@@ -144,6 +144,11 @@ const CalendarView = () => {
       x = rect.right - 237; // Move to the right
     }
 
+    if(currentView.type === "Day") {
+      x = rect.right - 700
+      y = rect.bottom  - 300
+    }
+
     setPopupData({
       title: event.title,
       description: event.extendedProps?.description || "No additional details",
@@ -218,9 +223,9 @@ const CalendarView = () => {
               />
               <i className="text-xs truncate">{eventInfo.event.title}</i>
             </div>
-            <b className="text-xs flex items-center">
+            {currentView.type !== "Week" && <b className="text-xs flex items-center">
               {timeString}
-            </b>
+            </b>}
           </div>
         );
       } catch (error) {
