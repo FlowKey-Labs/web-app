@@ -21,6 +21,7 @@ import UpdateSession from "../sessions/UpdateSession";
 import { useAuthStore } from "../../store/auth";
 import { mapSessionToFullCalendarEvents as convertSessionToEvents } from "./calendarUtils";
 import { CalendarSessionType } from "../../types/sessionTypes";
+import { Loader } from "@mantine/core";
 
 // Constants for popup positioning
 const popupWidth = 400;
@@ -71,7 +72,7 @@ const CalendarView = () => {
   } | null>(null);
   const [selectedEvent, setSelectedEvent] = useState<EventImpl | null>(null);
   const popupRef = useRef<HTMLDivElement | null>(null);
-  const { data: sessionsData } = useGetSessions();
+  const { data: sessionsData, isLoading } = useGetSessions();
   // Track visible date range for optimized event generation
   const [visibleDateRange, setVisibleDateRange] = useState<{
     start: Date | null;
@@ -142,6 +143,11 @@ const CalendarView = () => {
 
     if (spaceTop <= popupHeight - 200 && spaceLeft <= popupWidth) {
       x = rect.right - 237; // Move to the right
+    }
+
+    if(currentView.type === "Day") {
+      x = rect.right - 700
+      y = rect.bottom  - 300
     }
 
     setPopupData({
@@ -218,9 +224,9 @@ const CalendarView = () => {
               />
               <i className="text-xs truncate">{eventInfo.event.title}</i>
             </div>
-            <b className="text-xs flex items-center">
+            {currentView.type !== "Week" && <b className="text-xs flex items-center">
               {timeString}
-            </b>
+            </b>}
           </div>
         );
       } catch (error) {
@@ -269,6 +275,14 @@ const CalendarView = () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [selectedEvent]);
+
+  if (isLoading) {
+    return (
+      <div className='flex justify-center items-center h-screen'>
+        <Loader color='#1D9B5E' size='xl' />
+      </div>
+    );
+  }
 
   return (
     <div className="pt-5 px-5 bg-[#f5f5f5]">
