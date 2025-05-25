@@ -39,6 +39,7 @@ import SetPassword from "./components/authentication/SetPassword";
 import { useAuthStore } from "./store/auth";
 import GroupDetails from './components/clients/GroupDetails';
 import "./App.css";
+import LandingPage from "./components/dashboard/LandingPage";
 
 function App() {
   const user = useAuthStore((state) => state.user);
@@ -69,6 +70,7 @@ function App() {
                   <Route path="/purpose" element={<Purpose />} />
                   <Route index element={<GettingStarted />} />
                   <Route path="dashboard" element={<GettingStarted />} />
+                  <Route path="landing-page" element={<LandingPage />} />
                   {permisions?.can_view_staff && (
                     <Route path="staff" element={<AllStaff />} />
                   )}
