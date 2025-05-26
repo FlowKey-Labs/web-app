@@ -22,7 +22,7 @@ const Header = ({ showSearch = true }: HeaderProps) => {
       )}
 
       <div className='flex items-center justify-end gap-12 ml-auto'>
-        <Group justify='center'>
+        {/* <Group justify='center'>
           <HoverCard width={280} shadow='md' position='bottom' withArrow>
             <HoverCard.Target>
               <div className='relative'>
@@ -59,7 +59,7 @@ const Header = ({ showSearch = true }: HeaderProps) => {
               <DropdownComingSoon />
             </HoverCard.Dropdown>
           </HoverCard>
-        </Group>
+        </Group> */}
         <span className='text-primary cursor-pointer'>
           {userProfile?.first_name} {userProfile?.last_name}
         </span>

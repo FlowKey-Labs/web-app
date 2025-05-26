@@ -14,11 +14,9 @@ import { EventClickArg, EventInput } from "@fullcalendar/core/index.js";
 import EventCard from "./eventCard";
 import { Dictionary, EventImpl } from "@fullcalendar/core/internal";
 import { useGetSessions } from "../../hooks/reactQuery";
-import AddSession from "../sessions/AddSession";
 import "./index.css";
-import AddClients from "../clients/AddClient";
-import UpdateSession from "../sessions/UpdateSession";
 import { useAuthStore } from "../../store/auth";
+import { useUIStore } from "../../store/ui";
 import { mapSessionToFullCalendarEvents as convertSessionToEvents } from "./calendarUtils";
 import { CalendarSessionType } from "../../types/sessionTypes";
 import { Loader } from "@mantine/core";
@@ -59,10 +57,6 @@ const CalendarView = () => {
     calendarViews[0]
   );
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const [isSessionDrawerOpen, setIsSessionDrawerOpen] = useState(false);
-  const [sessionID, setSessionID] = useState<string>();
   const [popupData, setPopupData] = useState<{
     title: string;
     description: string;
@@ -80,6 +74,7 @@ const CalendarView = () => {
   }>({ start: null, end: null });
 
   const permisions = useAuthStore((state) => state.role);
+  const { openDrawer } = useUIStore();
 
   // Memoize the mapping function to improve performance
   const processSessionToEvents = useCallback((session: unknown) => {
@@ -174,7 +169,10 @@ const CalendarView = () => {
   };
 
   const handleAddEvent = () => {
-    setIsModalOpen(true);
+    openDrawer({
+      type: "session",
+      isEditing: false,
+    });
   };
 
   const renderEventContent = useCallback(
@@ -367,7 +365,10 @@ const CalendarView = () => {
             hour12: false,
           }}
           eventClick={handleEventClick}
-          dateClick={() => permisions?.can_create_sessions && setIsModalOpen(true)}
+          dateClick={() => permisions?.can_create_sessions && openDrawer({
+            type: "session",
+            isEditing: false,
+          })}
         />
         {popupData && (
           <div
@@ -383,24 +384,17 @@ const CalendarView = () => {
               handleRemoveEvent={handleRemoveEvent}
               data={popupData.extendedProps}
               handleEditEvent={(id) => {
-                setSessionID(id);
                 setPopupData(null);
-                setIsSessionDrawerOpen(true);
+                openDrawer({
+                  type: "session",
+                  entityId: id,
+                  isEditing: true,
+                });
               }}
             />
           </div>
         )}
       </div>
-      <AddSession isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
-      <AddClients
-        isOpen={isDrawerOpen}
-        onClose={() => setIsDrawerOpen(false)}
-      />
-      <UpdateSession
-        isOpen={isSessionDrawerOpen}
-        onClose={() => setIsSessionDrawerOpen(false)}
-        sessionId={sessionID || ""}
-      />
     </div>
   );
 };

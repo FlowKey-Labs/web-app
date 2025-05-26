@@ -1,6 +1,6 @@
 import MembersHeader from '../headers/MembersHeader';
 import { createColumnHelper } from '@tanstack/react-table';
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import actionOptionIcon from '../../assets/icons/actionOption.svg';
 import Table from '../common/Table';
 import plusIcon from '../../assets/icons/plusWhite.svg';
@@ -41,9 +41,20 @@ const AllStaff = () => {
   const [isActivating, setIsActivating] = useState(false);
   const [opened, { open, close }] = useDisclosure(false);
   const [activationLoading, setActivationLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
 
   const permisions = useAuthStore((state) => state.role);
   const { openDrawer } = useUIStore();
+
+  // Debounce search query for better performance
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   const {
     data: staff = [],
@@ -56,14 +67,50 @@ const AllStaff = () => {
   const activateStaffMutation = useActivateStaff();
   const deactivateStaffMutation = useDeactivateStaff();
 
+  // Filter staff based on search query
+  const filteredStaff = useMemo(() => {
+    if (!staff || staff.length === 0) return [];
+    
+    if (!debouncedSearchQuery.trim()) {
+      return staff;
+    }
+
+    const searchLower = debouncedSearchQuery.toLowerCase().trim();
+    
+    return staff.filter((staffMember) => {
+      // Search in name (first name + last name)
+      const fullName = `${staffMember.user?.first_name || ''} ${staffMember.user?.last_name || ''}`.toLowerCase();
+      
+      // Search in email
+      const email = (staffMember.user?.email || '').toLowerCase();
+      
+      // Search in phone number
+      const phone = (staffMember.user?.mobile_number || '').toLowerCase();
+      
+      // Search in member ID
+      const memberId = (staffMember.member_id || '').toLowerCase();
+      
+      // Search in role
+      const role = (staffMember.role || '').toLowerCase();
+
+      return (
+        fullName.includes(searchLower) ||
+        email.includes(searchLower) ||
+        phone.includes(searchLower) ||
+        memberId.includes(searchLower) ||
+        role.includes(searchLower)
+      );
+    });
+  }, [staff, debouncedSearchQuery]);
+
   const getSelectedStaffIds = useCallback(() => {
-    if (!staff) return [];
+    if (!filteredStaff) return [];
 
     return Object.keys(rowSelection).map((index) => {
       const staffIndex = parseInt(index);
-      return staff[staffIndex].id;
+      return filteredStaff[staffIndex].id;
     });
-  }, [rowSelection, staff]);
+  }, [rowSelection, filteredStaff]);
 
   const {
     exportModalOpened,
@@ -71,7 +118,7 @@ const AllStaff = () => {
     closeExportModal,
     handleExport,
     isExporting,
-  } = useExportStaff(staff || []);
+  } = useExportStaff(filteredStaff || []);
 
   const handleOpenStaffDrawer = () => {
     openDrawer({
@@ -323,8 +370,13 @@ const AllStaff = () => {
         },
       }),
     ],
-    [navigate, staff, open]
+    [navigate, filteredStaff, open]
   );
+
+  // Reset row selection when search changes
+  useEffect(() => {
+    setRowSelection({});
+  }, [debouncedSearchQuery]);
 
   if (isLoading) {
     return (
@@ -350,30 +402,56 @@ const AllStaff = () => {
     );
   }
 
+  const hasSearchResults = debouncedSearchQuery.trim() && filteredStaff.length > 0;
+  const hasNoSearchResults = debouncedSearchQuery.trim() && filteredStaff.length === 0;
+  const hasNoStaff = !debouncedSearchQuery.trim() && staff.length === 0;
+
   return (
     <>
       <div className='flex flex-col h-screen bg-cardsBg w-full overflow-y-auto'>
         <MembersHeader
           title='All Staff'
           buttonText='New Staff'
-          searchPlaceholder='Search by Name, Email or Phone Number'
+          searchPlaceholder='Search by Name, Email, Phone, or Role'
+          searchValue={searchQuery}
+          onSearchChange={setSearchQuery}
           leftIcon={plusIcon}
           onButtonClick={handleOpenStaffDrawer}
           showButton={permisions?.can_create_staff}
         />
+        
+        {/* Show different empty states based on search */}
         <EmptyDataPage
-          title='No Staff Found'
-          description="You don't have any staff yet"
+          title={hasNoSearchResults ? 'No Staff Found' : 'No Staff Found'}
+          description={
+            hasNoSearchResults 
+              ? `No staff members match "${debouncedSearchQuery}". Try different search terms.`
+              : "You don't have any staff yet"
+          }
           buttonText='Add New Staff'
           onButtonClick={handleOpenStaffDrawer}
-          onClose={() => {}}
-          opened={staff.length === 0 && !isLoading && !isError}
+          onClose={() => {
+            if (hasNoSearchResults) {
+              setSearchQuery('');
+            }
+          }}
+          opened={(hasNoStaff || hasNoSearchResults) && !isLoading && !isError}
           showButton={permisions?.can_create_staff}
         />
-        {staff.length > 0 && (
+        
+        {/* Show search results info */}
+        {hasSearchResults && (
+          <div className='px-6 py-2'>
+            <Text size='sm' color='dimmed'>
+              Found {filteredStaff.length} staff member{filteredStaff.length !== 1 ? 's' : ''} matching "{debouncedSearchQuery}"
+            </Text>
+          </div>
+        )}
+        
+        {(filteredStaff.length > 0) && (
           <div className='flex-1 px-6 py-3'>
             <Table
-              data={staff}
+              data={filteredStaff}
               columns={columns}
               rowSelection={rowSelection}
               onRowSelectionChange={setRowSelection}
