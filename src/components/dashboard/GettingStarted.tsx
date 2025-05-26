@@ -164,7 +164,7 @@ const GettingStarted = () => {
                     )}
                   </h1>
                   <p className='text-sm sm:text-base text-[#194A43] font-medium opacity-80 max-w-none sm:max-w-lg'>
-                    Here's what's we have for you today
+                    Here's what we have for you today
                   </p>
                 </div>
                 
@@ -176,7 +176,7 @@ const GettingStarted = () => {
                     actionElement={
                       <div
                         id='viewSelect'
-                        className='p-3 border border-gray-200 bg-white text-primary rounded-lg w-full sm:w-44 h-11 outline-none cursor-pointer flex items-center justify-between shadow-sm hover:shadow-md hover:border-primary/20 transition-all duration-200'
+                        className='p-3 border border-gray-200 bg-white text-primary rounded-lg w-full sm:w-44 h-11 outline-none cursor-pointer flex items-center justify-between shadow-sm hover:shadow-sm hover:border-primary/20 transition-all duration-200'
                       >
                         <img
                           src={calenderIcon}
@@ -202,7 +202,7 @@ const GettingStarted = () => {
                       </div>
                     }
                   >
-                    <div className='border border-gray-200 rounded-lg shadow-lg bg-white min-w-[200px]'>
+                    <div className='border border-gray-200 rounded-lg shadow-sm bg-white min-w-[200px]'>
                       <ul className='w-full flex flex-col py-2'>
                         {[
                           'to_date',

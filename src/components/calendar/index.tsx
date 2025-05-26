@@ -67,7 +67,6 @@ const CalendarView = () => {
   const [selectedEvent, setSelectedEvent] = useState<EventImpl | null>(null);
   const popupRef = useRef<HTMLDivElement | null>(null);
   const { data: sessionsData, isLoading } = useGetSessions();
-  // Track visible date range for optimized event generation
   const [visibleDateRange, setVisibleDateRange] = useState<{
     start: Date | null;
     end: Date | null;
@@ -76,7 +75,6 @@ const CalendarView = () => {
   const permisions = useAuthStore((state) => state.role);
   const { openDrawer } = useUIStore();
 
-  // Memoize the mapping function to improve performance
   const processSessionToEvents = useCallback((session: unknown) => {
     try {
       return convertSessionToEvents(
@@ -103,52 +101,68 @@ const CalendarView = () => {
     const rect = el.getBoundingClientRect();
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
-    let x = rect.left + 5;
-    let y = rect.top - 300; // Default: above the event
+    const isMobile = viewportWidth <= 768;
+    
+    let x: number;
+    let y: number;
 
-    // Available space around the event
-    const spaceBottom = viewportHeight - rect.bottom;
-    const spaceTop = rect.top;
-    const spaceLeft = rect.left;
-    const spaceRight = viewportWidth - rect.right;
+    if (isMobile) {
 
-    // Positioning Logic
-    if (spaceBottom < popupHeight && spaceTop >= popupHeight) {
-      y = rect.top + window.scrollY - popupHeight - 10; // Move above event
-      if (spaceRight < popupHeight) {
-        x = rect.left - popupWidth - 260; // Move to the left
+      const mobilePopupWidth = Math.min(popupWidth, viewportWidth - 20);
+      x = (viewportWidth - mobilePopupWidth) / 2;
+      
+      const spaceAbove = rect.top;
+      const spaceBelow = viewportHeight - rect.bottom;
+      const requiredHeight = Math.min(popupHeight, viewportHeight * 0.8);
+      
+      if (spaceBelow >= requiredHeight + 20) {
+        y = rect.bottom + window.scrollY + 10;
+      } else if (spaceAbove >= requiredHeight + 20) {
+        y = rect.top + window.scrollY - requiredHeight - 10;
       } else {
-        x = rect.right - 237; // Move to the right
+        y = window.scrollY + (viewportHeight - requiredHeight) / 2;
       }
-    }
-    if (spaceTop < popupHeight && spaceBottom < popupHeight) {
-      if (spaceRight >= popupWidth) {
-        x = rect.right - 237; // Move to the right
-      } else if (spaceLeft >= popupWidth || spaceRight <= popupWidth) {
-        x = rect.left - popupWidth - 260; // Move to the left
-      } else {
-        y = rect.bottom + window.scrollY + 10; // Stay below
-      }
-    }
-    if (spaceTop < popupHeight && spaceRight < popupWidth) {
-      x = rect.left - popupWidth - 260; // Move to the left
-    } else if (spaceTop < popupHeight && spaceRight > popupWidth) {
-      x = rect.right - 237; // Move to the right
-    }
+    } else {
+      const spaceBottom = viewportHeight - rect.bottom;
+      const spaceTop = rect.top;
+      const spaceLeft = rect.left;
+      const spaceRight = viewportWidth - rect.right;
 
-    if (spaceTop <= popupHeight - 200 && spaceLeft <= popupWidth) {
-      x = rect.right - 237; // Move to the right
-    }
-
-    if(currentView.type === "Day") {
-      // Responsive positioning for day view
-      if (viewportWidth <= 768) {
-        x = Math.max(10, viewportWidth - popupWidth - 10);
-        y = rect.bottom + 10;
-      } else {
-        x = rect.right - 700
-        y = rect.bottom  - 300
+      let preferredX = rect.left;
+      
+      if (preferredX + popupWidth > viewportWidth - 20) {
+        preferredX = viewportWidth - popupWidth - 20;
       }
+
+      if (preferredX < 20) {
+        preferredX = 20;
+      }
+
+      if (spaceRight < popupWidth / 2 && spaceLeft >= popupWidth + 20) {
+        preferredX = rect.left - popupWidth - 10;
+      }
+
+      x = preferredX;
+
+      if (spaceBottom >= popupHeight + 20) {
+        y = rect.bottom + window.scrollY + 10;
+      } else if (spaceTop >= popupHeight + 20) {  
+        y = rect.top + window.scrollY - popupHeight - 10;
+      } else {
+        if (spaceRight >= popupWidth + 20) {
+          x = rect.right + 10;
+          y = Math.max(10, Math.min(rect.top + window.scrollY, window.scrollY + viewportHeight - popupHeight - 10));
+        } else if (spaceLeft >= popupWidth + 20) {
+          x = rect.left - popupWidth - 10;
+          y = Math.max(10, Math.min(rect.top + window.scrollY, window.scrollY + viewportHeight - popupHeight - 10));
+        } else {
+          x = (viewportWidth - popupWidth) / 2;
+          y = window.scrollY + (viewportHeight - popupHeight) / 2;
+        }
+      }
+
+      x = Math.max(10, Math.min(x, viewportWidth - popupWidth - 10));
+      y = Math.max(window.scrollY + 10, y);
     }
 
     setPopupData({
@@ -190,25 +204,20 @@ const CalendarView = () => {
       };
     }) => {
       try {
-        // Safely parse the time or fall back to event start time
         let displayTime;
         if (eventInfo.timeText) {
-          // Clean the time string (remove any AM/PM or other non-time characters)
           const cleanTime = eventInfo.timeText.replace(/[^0-9:]/g, '').trim();
           const parsedTime = parse(cleanTime, "HH:mm", new Date());
           
-          // Only use if parsing succeeded
           if (!isNaN(parsedTime.getTime())) {
             displayTime = parsedTime;
           }
         }
         
-        // Fallback to event start time if time parsing failed
         if (!displayTime && eventInfo.event.start) {
           displayTime = new Date(addHours(eventInfo.event.start, -3));
         }
   
-        // Format the time safely
         const timeString = displayTime 
           ? format(displayTime, "HH:mm a") 
           : eventInfo.timeText || '';
@@ -234,7 +243,6 @@ const CalendarView = () => {
         );
       } catch (error) {
         console.error('Error rendering event content:', error);
-        // Fallback rendering
         return (
           <div className="flex justify-between w-full h-full py-1 cursor-pointer">
             <div className="flex items-center gap-1 w-[70%]">
@@ -456,28 +464,32 @@ const CalendarView = () => {
           }}
         />
         {popupData && (
-          <div
-            className="absolute bg-white shadow-md p-6 border shadow-lg min-w-[350px] min-h-[400px] z-[1000] rounded-2xl"
-            style={{
-              top: popupData.y,
-              left: popupData.x,
-            }}
-            ref={popupRef}
-          >
-            <EventCard
-              onClose={() => setPopupData(null)}
-              handleRemoveEvent={handleRemoveEvent}
-              data={popupData.extendedProps}
-              handleEditEvent={(id) => {
-                setPopupData(null);
-                openDrawer({
-                  type: "session",
-                  entityId: id,
-                  isEditing: true,
-                });
+          <>
+            <div className="sm:hidden fixed inset-0 bg-black bg-opacity-50 z-[999]" onClick={() => setPopupData(null)} />
+            
+            <div
+              className="absolute bg-white shadow-md p-4 sm:p-6 border shadow-lg w-[calc(100vw-20px)] max-w-[350px] sm:min-w-[350px] min-h-[400px] max-h-[80vh] overflow-y-auto z-[1000] rounded-2xl"
+              style={{
+                top: popupData.y,
+                left: popupData.x,
               }}
-            />
-          </div>
+              ref={popupRef}
+            >
+              <EventCard
+                onClose={() => setPopupData(null)}
+                handleRemoveEvent={handleRemoveEvent}
+                data={popupData.extendedProps}
+                handleEditEvent={(id) => {
+                  setPopupData(null);
+                  openDrawer({
+                    type: "session",
+                    entityId: id,
+                    isEditing: true,
+                  });
+                }}
+              />
+            </div>
+          </>
         )}
       </div>
     </div>

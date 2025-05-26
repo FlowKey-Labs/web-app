@@ -2,23 +2,25 @@ import editIcon from "../../assets/icons/edit.svg";
 import deleteIcon from "../../assets/icons/delete.svg";
 import closeIcon from "../../assets/icons/close.svg";
 import usersIcon from "../../assets/icons/users.svg";
+import calendarIcon from "../../assets/icons/calendar.svg";
+import timeIcon from "../../assets/icons/time.svg";
 import { Dictionary } from "@fullcalendar/core/internal";
+import { CalendarSessionType } from "../../types/sessionTypes";
 import moment from "moment";
 import { subHours } from "date-fns";
 
 const formatSessionInfo = (
-  session: any
-): { dateStr: string; repeatStr: string } => {
+  session: CalendarSessionType | null
+): { dateStr: string; timeStr: string; repeatStr: string } => {
   if (!session) {
-    return { dateStr: "", repeatStr: "" };
+    return { dateStr: "", timeStr: "", repeatStr: "" };
   }
 
   const start = moment(subHours(new Date(session.start_time), 3));
   const end = moment(subHours(new Date(session.end_time), 3));
 
-  const dateStr = `${start.format("dddd, MMMM D")}⋅${start.format(
-    "h:mma"
-  )} – ${end.format("h:mma")}`;
+  const dateStr = start.format("dddd, MMMM D");
+  const timeStr = `${start.format("h:mm a")} – ${end.format("h:mm a")}`;
 
   let repeatStr = "";
   if (
@@ -34,7 +36,7 @@ const formatSessionInfo = (
     repeatStr = `Every ${session.repeat_every} ${pluralUnit} on ${repeatDays}`;
   }
 
-  return { dateStr, repeatStr };
+  return { dateStr, timeStr, repeatStr };
 };
 
 const EventCard = ({
@@ -55,68 +57,112 @@ const EventCard = ({
   const attendedCount = attendances.filter(
     (a: { attended: boolean }) => a.attended
   ).length;
-  const { dateStr, repeatStr } = formatSessionInfo(data?.session || {});
+  const { dateStr, timeStr, repeatStr } = formatSessionInfo(data?.session || {});
 
   return (
-    <div className="w-full h-full bg-white space-y-4">
+    <div className="w-full h-full bg-white space-y-6">
       <div className="flex w-full items-center justify-end gap-3">
-        <img src={editIcon} className="cursor-pointer" onClick={() => handleEditEvent(data?.session?.id)} />
+        <img 
+          src={editIcon} 
+          className="cursor-pointer hover:opacity-70 transition-opacity" 
+          onClick={() => handleEditEvent(data?.session?.id)}
+          alt="Edit event"
+        />
         <img
           src={deleteIcon}
-          className="cursor-pointer"
+          className="cursor-pointer hover:opacity-70 transition-opacity"
           onClick={() => handleRemoveEvent?.()}
+          alt="Delete event"
         />
         <img
           src={closeIcon}
-          className="cursor-pointer"
+          className="cursor-pointer hover:opacity-70 transition-opacity"
           onClick={() => onClose?.()}
+          alt="Close popup"
         />
       </div>
-      <div className="flex items-start space-x-2 items-center">
-        <span className="w-3 h-3 bg-blue-500 rounded-full mt-1" />
-        <h2 className="text-xl font-semibold">{data?.session?.title}</h2>
+
+      <div className="flex items-start space-x-3">
+        <span className="w-3 h-3 bg-blue-500 rounded-full mt-1.5 flex-shrink-0" />
+        <h2 className="text-xl font-semibold text-gray-900 leading-tight">{data?.session?.title}</h2>
       </div>
-      <p className="text-gray-600 whitespace-pre-line">
-        {dateStr}
-        {repeatStr && `\n${repeatStr}`}
-      </p>
-      <div>
-        <div className="flex gap-2 items-start">
-          <img src={usersIcon} className="w-6" />
-          <div>
-            <p className="text-gray-900 font-semibold">
+
+      <div className="space-y-3 pl-6">
+        <div className="flex items-center space-x-3">
+          <img src={calendarIcon} className="w-5 h-5 text-gray-500" alt="Calendar" />
+          <p className="text-gray-700 font-medium">{dateStr}</p>
+        </div>
+        
+        <div className="flex items-center space-x-3">
+          <img src={timeIcon} className="w-5 h-5 text-gray-500" alt="Time" />
+          <p className="text-gray-700">{timeStr}</p>
+        </div>
+
+        {repeatStr && (
+          <div className="flex items-center space-x-3">
+            <div className="w-5 h-5 flex items-center justify-center">
+              <span className="text-gray-500 text-sm">🔄</span>
+            </div>
+            <p className="text-gray-600 text-sm">{repeatStr}</p>
+          </div>
+        )}
+      </div>
+      <div className="border-t pt-4">
+        <div className="flex gap-3 items-start">
+          <img src={usersIcon} className="w-6 h-6 mt-0.5 flex-shrink-0" alt="Users" />
+          <div className="flex-1">
+            <p className="text-gray-900 font-semibold mb-1">
               {data?.session?.spots} Slots
             </p>
-            <p className="text-gray-400">
+            <p className="text-gray-500 text-sm mb-3">
               {invitedCount} Invited · {attendedCount} Attended
             </p>
-            <div className="max-h-30 overflow-y-scroll space-y-2 mt-2">
-              {data?.session?.attendances.map(
-                (user: { client_name: string }, index: number) => (
-                  <div key={index} className="flex items-center space-x-2">
-                    <span className="w-3 h-3 bg-blue-500 rounded-full"></span>
-                    <p className="text-gray-700 text-sm">{user?.client_name}</p>
-                  </div>
-                )
-              )}
-            </div>
+            
+            {data?.session?.attendances?.length > 0 && (
+              <div className="max-h-32 overflow-y-auto space-y-2">
+                {data?.session?.attendances.map(
+                  (user: { client_name: string; attended?: boolean }, index: number) => (
+                    <div key={index} className="flex items-center space-x-3">
+                      <span className="w-2.5 h-2.5 bg-blue-500 rounded-full flex-shrink-0"></span>
+                      <p className="text-gray-700 text-sm">{user?.client_name}</p>
+                      {user?.attended && (
+                        <span className="text-green-600 text-xs">✓</span>
+                      )}
+                    </div>
+                  )
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>
-      <div className="flex items-center space-x-2">
-        <span className="w-5 h-5 text-gray-500">⏰</span>
-        <p className="text-gray-700">30 minutes before</p>
+      <div className="border-t pt-4 space-y-3">
+        {data?.session?.assigned_staff && (
+          <div className="flex items-center space-x-3">
+            <div className="w-5 h-5 flex items-center justify-center">
+              <span className="text-gray-500 text-lg">👤</span>
+            </div>
+            <p className="text-gray-700">
+              <span className="font-medium">Staff:</span>{" "}
+              {data?.session?.assigned_staff?.user?.first_name}{" "}
+              {data?.session?.assigned_staff?.user?.last_name}
+            </p>
+          </div>
+        )}
+
+        <div className="flex items-center space-x-3">
+          <div className="w-5 h-5 flex items-center justify-center">
+            <span className="text-gray-500 text-lg">🔔</span>
+          </div>
+          <p className="text-gray-700">
+            <span className="font-medium">Reminder:</span> 30 minutes before
+          </p>
+        </div>
       </div>
-      <div className="flex items-center space-x-2">
-        <span className="w-5 h-5 text-gray-500">📅</span>
-        <p className="text-gray-700">
-          {data?.session?.assigned_staff?.user?.first_name}{" "}
-          {data?.session?.assigned_staff?.user?.last_name}
-        </p>
-      </div>
+
       <button
         onClick={() => handleEditEvent(data?.session?.id)}
-        className="w-full bg-green-600 text-white py-2 rounded-lg text-lg font-semibold hover:bg-green-700"
+        className="w-full bg-green-600 text-white py-3 rounded-lg text-lg font-semibold hover:bg-green-700 transition-colors"
       >
         + Add Clients
       </button>
