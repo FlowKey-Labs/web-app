@@ -11,7 +11,7 @@ import {
   navigateToSettings,
 } from "../../utils/navigationHelpers";
 import { Role, useAuthStore } from "../../store/auth";
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useLogout } from "../../hooks/reactQuery";
 
 type NavigationMap = {
@@ -30,6 +30,8 @@ const navigationMap: NavigationMap = {
 
 interface SidebarProps {
   activeItem: string;
+  isOpen?: boolean;
+  onClose?: () => void;
 }
 
 const permissionMap: Record<string, keyof Role> = {
@@ -51,10 +53,11 @@ function filterMenuItemsByRole<T extends { name: string }>(
   });
 }
 
-const Sidebar = ({ activeItem }: SidebarProps) => {
+const Sidebar = ({ activeItem, isOpen = true, onClose }: SidebarProps) => {
   const navigate = useNavigate();
   const role = useAuthStore((state) => state.role);
   const logout = useLogout();
+  const [isMobile, setIsMobile] = useState(false);
   
   const filteredMenuItems = useMemo(
     () => (role ? filterMenuItemsByRole(menuItems, role) : []),
@@ -65,6 +68,29 @@ const Sidebar = ({ activeItem }: SidebarProps) => {
     [role]
   );
 
+  // Check if mobile screen size
+  useEffect(() => {
+    const checkScreenSize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    checkScreenSize();
+    window.addEventListener('resize', checkScreenSize);
+    
+    return () => window.removeEventListener('resize', checkScreenSize);
+  }, []);
+
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isMobile && isOpen && onClose) {
+        onClose();
+      }
+    };
+
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [isMobile, isOpen, onClose]);
+
   const handleItemClick = (itemName: string) => {
     const route = itemName.toLowerCase();
     
@@ -74,46 +100,137 @@ const Sidebar = ({ activeItem }: SidebarProps) => {
     }
     
     const navigationFn = navigationMap[route];
-    navigationFn
-      ? navigationFn(navigate)
-      : navigate(`/${route}`);
+    if (navigationFn) {
+      navigationFn(navigate);
+    } else {
+      navigate(`/${route}`);
+    }
+
+    if (isMobile && onClose) {
+      onClose();
+    }
   };
 
-  return (
-    <div className="min-h-screen flex flex-col min-w-[230px] bg-[#ffffff] py-6 h-screen overflow-y-auto">
-      <div className="flex justify-center items-center mb-6">
-        <h3
-          className="flex items-center gap-2 px-6 cursor-pointer transition-opacity hover:opacity-90"
-          onClick={() => navigateToDashboard(navigate)}
-        >
-          <FlowKeyIcon className="w-[33px] h-[29px]" />
-          <span className="font-[900] text-[24px] text-primary">FlowKey</span>
-        </h3>
-      </div>
+  const MobileBackdrop = () => (
+    isMobile && isOpen ? (
+      <div 
+        className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
+        onClick={onClose}
+        aria-label="Close sidebar"
+      />
+    ) : null
+  );
 
-      <div className="flex-1 overflow-y-auto">
-        <div className="flex flex-col items-center">
-          <ul className="gap-2 flex flex-col w-[90%] items-center">
-            {filteredMenuItems.map((item) => {
+  return (
+    <>
+      <MobileBackdrop />
+      <div 
+        className={`
+          fixed md:relative top-0 left-0 z-50 md:z-auto
+          min-h-screen flex flex-col bg-white border-r border-gray-100 shadow-lg md:shadow-none
+          transition-transform duration-300 ease-in-out
+          ${isMobile 
+            ? `w-64 ${isOpen ? 'translate-x-0' : '-translate-x-full'}` 
+            : 'min-w-[240px] translate-x-0'
+          }
+          py-6 h-screen overflow-y-auto
+        `}
+        role="navigation"
+        aria-label="Main navigation"
+      >
+        <div className="flex items-center justify-center mb-8 px-6">
+          <h3
+            className="flex items-center gap-2 cursor-pointer transition-opacity hover:opacity-90 focus:opacity-90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-opacity-50 rounded-md p-1"
+            onClick={() => navigateToDashboard(navigate)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                navigateToDashboard(navigate);
+              }
+            }}
+            tabIndex={0}
+            role="button"
+            aria-label="Go to dashboard"
+          >
+            <FlowKeyIcon className="w-[33px] h-[29px] flex-shrink-0" />
+            <span className="font-[900] text-[24px] text-primary">FlowKey</span>
+          </h3>
+        </div>
+
+        <div className="flex-1 overflow-y-auto px-4">
+          <div className="flex flex-col">
+            <ul className="space-y-2 flex flex-col w-full" role="menu">
+              {filteredMenuItems.map((item) => {
+                const isActive = activeItem === item.name.toLowerCase();
+                const IconComponent = isActive ? item.iconWhite : item.icon;
+                return (
+                  <li
+                    key={item.name}
+                    onClick={() => handleItemClick(item.name)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        handleItemClick(item.name);
+                      }
+                    }}
+                    className={`
+                      flex items-center cursor-pointer w-full h-11 rounded-lg px-4 py-2
+                      text-sm font-medium transition-all duration-200 group
+                      ${isActive 
+                        ? "bg-secondary text-white" 
+                        : "text-[#6D7172] hover:bg-gray-50 hover:text-gray-900"
+                      }
+                    `}
+                    tabIndex={0}
+                    role="menuitem"
+                    aria-current={isActive ? 'page' : undefined}
+                  >
+                    <div className="flex items-center gap-3 w-full">
+                      <IconComponent className="w-5 h-5 flex-shrink-0" />
+                      <span className="text-sm font-medium truncate">
+                        {item.name}
+                      </span>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        </div>
+
+        <div className="mt-auto px-4 pb-6">
+          <div className="h-[1px] w-full mb-4 bg-gray-200"></div>
+          <ul className="space-y-2 flex flex-col w-full" role="menu">
+            {filteredBottomMenuItems.map((item) => {
               const isActive = activeItem === item.name.toLowerCase();
               const IconComponent = isActive ? item.iconWhite : item.icon;
               return (
                 <li
                   key={item.name}
                   onClick={() => handleItemClick(item.name)}
-                  className={`flex items-center cursor-pointer w-[168px] h-[35px] rounded-lg px-4 text-[14px] transition-colors hover:opacity-90 ${
-                    isActive ? "bg-secondary text-white" : "text-[#6D7172]"
-                  }`}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      handleItemClick(item.name);
+                    }
+                  }}
+                  className={`
+                    flex items-center cursor-pointer w-full h-11 rounded-lg px-4 py-2
+                    text-sm font-medium transition-all duration-200 group
+                    ${isActive 
+                      ? "bg-secondary text-white" 
+                      : "text-[#6D7172] hover:bg-gray-50 hover:text-gray-900"
+                    }
+                  `}
+                  tabIndex={0}
+                  role="menuitem"
+                  aria-current={isActive ? 'page' : undefined}
                 >
-                  <div className="relative w-full flex items-center justify-center -ml-8">
-                    <div className="absolute left-1/2 -translate-x-full pr-[16px]">
-                      <IconComponent className="w-[20px] h-[20px]" />
-                    </div>
-                    <div className="absolute left-1/2 translate-x-0">
-                      <span className="text-[14px] font-[400]">
-                        {item.name}
-                      </span>
-                    </div>
+                  <div className="flex items-center gap-3 w-full">
+                    <IconComponent className="w-5 h-5 flex-shrink-0" />
+                    <span className="text-sm font-medium truncate">
+                      {item.name}
+                    </span>
                   </div>
                 </li>
               );
@@ -121,35 +238,7 @@ const Sidebar = ({ activeItem }: SidebarProps) => {
           </ul>
         </div>
       </div>
-
-      <div className="mt-auto flex flex-col items-center pb-6">
-        <div className="h-[1px] w-[80%] mb-2 bg-gray-400"></div>
-        <ul className="gap-2 flex flex-col w-[90%] items-center">
-          {filteredBottomMenuItems.map((item) => {
-            const isActive = activeItem === item.name.toLowerCase();
-            const IconComponent = isActive ? item.iconWhite : item.icon;
-            return (
-              <li
-                key={item.name}
-                onClick={() => handleItemClick(item.name)}
-                className={`flex items-center cursor-pointer w-[168px] h-[35px] rounded-lg px-4 text-[14px] transition-colors hover:opacity-90 ${
-                  isActive ? "bg-secondary text-white" : "text-[#6D7172]"
-                }`}
-              >
-                <div className="relative w-full flex items-center justify-center -ml-8">
-                  <div className="absolute left-1/2 -translate-x-full pr-[16px]">
-                    <IconComponent className="w-[20px] h-[20px]" />
-                  </div>
-                  <div className="absolute left-1/2 translate-x-0">
-                    <span className="text-[14px] font-[400]">{item.name}</span>
-                  </div>
-                </div>
-              </li>
-            );
-          })}
-        </ul>
-      </div>
-    </div>
+    </>
   );
 };
 

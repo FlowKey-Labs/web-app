@@ -14,16 +14,13 @@ import { EventClickArg, EventInput } from "@fullcalendar/core/index.js";
 import EventCard from "./eventCard";
 import { Dictionary, EventImpl } from "@fullcalendar/core/internal";
 import { useGetSessions } from "../../hooks/reactQuery";
-import AddSession from "../sessions/AddSession";
 import "./index.css";
-import AddClients from "../clients/AddClient";
-import UpdateSession from "../sessions/UpdateSession";
 import { useAuthStore } from "../../store/auth";
+import { useUIStore } from "../../store/ui";
 import { mapSessionToFullCalendarEvents as convertSessionToEvents } from "./calendarUtils";
 import { CalendarSessionType } from "../../types/sessionTypes";
 import { Loader } from "@mantine/core";
 
-// Constants for popup positioning
 const popupWidth = 400;
 const popupHeight = 500;
 
@@ -59,10 +56,7 @@ const CalendarView = () => {
     calendarViews[0]
   );
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const [isSessionDrawerOpen, setIsSessionDrawerOpen] = useState(false);
-  const [sessionID, setSessionID] = useState<string>();
+  const [mobileDropdownOpen, setMobileDropdownOpen] = useState(false);
   const [popupData, setPopupData] = useState<{
     title: string;
     description: string;
@@ -73,15 +67,14 @@ const CalendarView = () => {
   const [selectedEvent, setSelectedEvent] = useState<EventImpl | null>(null);
   const popupRef = useRef<HTMLDivElement | null>(null);
   const { data: sessionsData, isLoading } = useGetSessions();
-  // Track visible date range for optimized event generation
   const [visibleDateRange, setVisibleDateRange] = useState<{
     start: Date | null;
     end: Date | null;
   }>({ start: null, end: null });
 
   const permisions = useAuthStore((state) => state.role);
+  const { openDrawer } = useUIStore();
 
-  // Memoize the mapping function to improve performance
   const processSessionToEvents = useCallback((session: unknown) => {
     try {
       return convertSessionToEvents(
@@ -108,46 +101,68 @@ const CalendarView = () => {
     const rect = el.getBoundingClientRect();
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
-    let x = rect.left + 5;
-    let y = rect.top - 300; // Default: above the event
+    const isMobile = viewportWidth <= 768;
+    
+    let x: number;
+    let y: number;
 
-    // Available space around the event
-    const spaceBottom = viewportHeight - rect.bottom;
-    const spaceTop = rect.top;
-    const spaceLeft = rect.left;
-    const spaceRight = viewportWidth - rect.right;
+    if (isMobile) {
 
-    // Positioning Logic
-    if (spaceBottom < popupHeight && spaceTop >= popupHeight) {
-      y = rect.top + window.scrollY - popupHeight - 10; // Move above event
-      if (spaceRight < popupHeight) {
-        x = rect.left - popupWidth - 260; // Move to the left
+      const mobilePopupWidth = Math.min(popupWidth, viewportWidth - 20);
+      x = (viewportWidth - mobilePopupWidth) / 2;
+      
+      const spaceAbove = rect.top;
+      const spaceBelow = viewportHeight - rect.bottom;
+      const requiredHeight = Math.min(popupHeight, viewportHeight * 0.8);
+      
+      if (spaceBelow >= requiredHeight + 20) {
+        y = rect.bottom + window.scrollY + 10;
+      } else if (spaceAbove >= requiredHeight + 20) {
+        y = rect.top + window.scrollY - requiredHeight - 10;
       } else {
-        x = rect.right - 237; // Move to the right
+        y = window.scrollY + (viewportHeight - requiredHeight) / 2;
       }
-    }
-    if (spaceTop < popupHeight && spaceBottom < popupHeight) {
-      if (spaceRight >= popupWidth) {
-        x = rect.right - 237; // Move to the right
-      } else if (spaceLeft >= popupWidth || spaceRight <= popupWidth) {
-        x = rect.left - popupWidth - 260; // Move to the left
+    } else {
+      const spaceBottom = viewportHeight - rect.bottom;
+      const spaceTop = rect.top;
+      const spaceLeft = rect.left;
+      const spaceRight = viewportWidth - rect.right;
+
+      let preferredX = rect.left;
+      
+      if (preferredX + popupWidth > viewportWidth - 20) {
+        preferredX = viewportWidth - popupWidth - 20;
+      }
+
+      if (preferredX < 20) {
+        preferredX = 20;
+      }
+
+      if (spaceRight < popupWidth / 2 && spaceLeft >= popupWidth + 20) {
+        preferredX = rect.left - popupWidth - 10;
+      }
+
+      x = preferredX;
+
+      if (spaceBottom >= popupHeight + 20) {
+        y = rect.bottom + window.scrollY + 10;
+      } else if (spaceTop >= popupHeight + 20) {  
+        y = rect.top + window.scrollY - popupHeight - 10;
       } else {
-        y = rect.bottom + window.scrollY + 10; // Stay below
+        if (spaceRight >= popupWidth + 20) {
+          x = rect.right + 10;
+          y = Math.max(10, Math.min(rect.top + window.scrollY, window.scrollY + viewportHeight - popupHeight - 10));
+        } else if (spaceLeft >= popupWidth + 20) {
+          x = rect.left - popupWidth - 10;
+          y = Math.max(10, Math.min(rect.top + window.scrollY, window.scrollY + viewportHeight - popupHeight - 10));
+        } else {
+          x = (viewportWidth - popupWidth) / 2;
+          y = window.scrollY + (viewportHeight - popupHeight) / 2;
+        }
       }
-    }
-    if (spaceTop < popupHeight && spaceRight < popupWidth) {
-      x = rect.left - popupWidth - 260; // Move to the left
-    } else if (spaceTop < popupHeight && spaceRight > popupWidth) {
-      x = rect.right - 237; // Move to the right
-    }
 
-    if (spaceTop <= popupHeight - 200 && spaceLeft <= popupWidth) {
-      x = rect.right - 237; // Move to the right
-    }
-
-    if(currentView.type === "Day") {
-      x = rect.right - 700
-      y = rect.bottom  - 300
+      x = Math.max(10, Math.min(x, viewportWidth - popupWidth - 10));
+      y = Math.max(window.scrollY + 10, y);
     }
 
     setPopupData({
@@ -167,14 +182,16 @@ const CalendarView = () => {
         const calendarApi = calendarRef.current.getApi();
         calendarApi.changeView(view.view);
       }
-      setDropdownOpen(false);
     } catch (error) {
       console.error('Failed to change view:', error);
     }
   };
 
   const handleAddEvent = () => {
-    setIsModalOpen(true);
+    openDrawer({
+      type: "session",
+      isEditing: false,
+    });
   };
 
   const renderEventContent = useCallback(
@@ -187,25 +204,20 @@ const CalendarView = () => {
       };
     }) => {
       try {
-        // Safely parse the time or fall back to event start time
         let displayTime;
         if (eventInfo.timeText) {
-          // Clean the time string (remove any AM/PM or other non-time characters)
           const cleanTime = eventInfo.timeText.replace(/[^0-9:]/g, '').trim();
           const parsedTime = parse(cleanTime, "HH:mm", new Date());
           
-          // Only use if parsing succeeded
           if (!isNaN(parsedTime.getTime())) {
             displayTime = parsedTime;
           }
         }
         
-        // Fallback to event start time if time parsing failed
         if (!displayTime && eventInfo.event.start) {
           displayTime = new Date(addHours(eventInfo.event.start, -3));
         }
   
-        // Format the time safely
         const timeString = displayTime 
           ? format(displayTime, "HH:mm a") 
           : eventInfo.timeText || '';
@@ -231,7 +243,6 @@ const CalendarView = () => {
         );
       } catch (error) {
         console.error('Error rendering event content:', error);
-        // Fallback rendering
         return (
           <div className="flex justify-between w-full h-full py-1 cursor-pointer">
             <div className="flex items-center gap-1 w-[70%]">
@@ -278,53 +289,51 @@ const CalendarView = () => {
 
   if (isLoading) {
     return (
-      <div className='flex justify-center items-center h-screen'>
-        <Loader color='#1D9B5E' size='xl' />
+      <div className="min-h-screen bg-[#f5f5f5]">
+        <div className="pt-3 px-3 sm:pt-5 sm:px-5 pb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div>
+              <div className="h-6 sm:h-8 bg-gray-200 rounded-lg w-32 sm:w-48 animate-pulse"></div>
+              <div className="h-4 bg-gray-200 rounded w-48 sm:w-64 mt-2 animate-pulse"></div>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="h-10 bg-gray-200 rounded-lg w-full sm:w-32 animate-pulse"></div>
+            </div>
+          </div>
+        </div>
+        
+        <div className="px-3 sm:px-5 pb-6">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-8">
+            <div className="flex items-center justify-center h-64 sm:h-[calc(100vh-240px)]">
+              <div className="text-center">
+                <Loader color='#1D9B5E' size='lg' />
+                <p className="text-gray-500 mt-4 text-sm">Loading calendar...</p>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="pt-5 px-5 bg-[#f5f5f5]">
-      <h1 className="text-[32px] font-bold text-primary pb-4">Calendar</h1>
-      <div className="relative pt-5 bg-white">
-        <div className="absolute top-5 left-[250px]">
-          <DropDownMenu
-            show={dropdownOpen}
-            setShow={setDropdownOpen}
-            dropDownPosition="center"
-            actionElement={
-              <div
-                id="viewSelect"
-                className="p-2 border rounded w-20 h-10 outline-none cursor-pointer flex items-center justify-between"
-              >
-                <p>{currentView?.type}</p>
-                <img src={dropdownIcon} />
-              </div>
-            }
-          >
-            {calendarViews.map((view) => (
-              <div
-                className={cn("w-20 p-2 cursor-pointer hover:bg-[#DAF8E6]", {
-                  "bg-[#EAFCF3]": view.type === currentView.type,
-                })}
-                key={view.type}
-                onClick={() => changeView(view)}
-              >
-                <p>{view.type}</p>
-              </div>
-            ))}
-          </DropDownMenu>
-        </div>
-        {permisions?.can_create_sessions && (
-          <div className="absolute top-4 right-[20px]">
+    <div className="pt-3 px-3 sm:pt-4 sm:px-5 bg-[#f5f5f5]">
+      <div className="flex flex-col gap-3 pb-2 sm:pb-3">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div>
+            <h1 className="text-2xl sm:text-[32px] font-bold text-primary">Calendar</h1>
+            <p className="text-sm text-gray-600 mt-1">Manage your sessions and appointments</p>
+          </div>
+          
+          {permisions?.can_create_sessions && (
             <Button
               w={140}
-              h={52}
+              h={42}
               size="sm"
               radius="md"
+              className="w-full sm:w-auto"
               leftSection={
-                <img src={plusIcon} alt="Icon" className="w-3 h-3" />
+                <img src={plusIcon} alt="Icon" className="w-4 h-4" />
               }
               style={{
                 backgroundColor: "#1D9B5E",
@@ -335,8 +344,75 @@ const CalendarView = () => {
             >
               New Event
             </Button>
-          </div>
-        )}
+          )}
+        </div>
+        
+        <div className="flex sm:hidden justify-center items-center">
+          <DropDownMenu
+            show={mobileDropdownOpen}
+            setShow={setMobileDropdownOpen}
+            dropDownPosition="center"
+            actionElement={
+              <div
+                className="px-4 py-2 border border-gray-300 rounded-lg w-28 h-10 outline-none cursor-pointer flex items-center justify-between bg-white hover:bg-gray-50 transition-colors mx-auto"
+              >
+                <p className="text-sm font-medium text-gray-700">{currentView?.type}</p>
+                <img src={dropdownIcon} className="w-4 h-4" alt="Dropdown" />
+              </div>
+            }
+          >
+            {calendarViews.map((view) => (
+              <div
+                className={cn("w-28 p-2 cursor-pointer hover:bg-[#DAF8E6] text-sm text-center", {
+                  "bg-[#EAFCF3] text-[#1D9B5E] font-medium": view.type === currentView.type,
+                  "text-gray-700": view.type !== currentView.type,
+                })}
+                key={view.type}
+                onClick={() => {
+                  changeView(view);
+                  setMobileDropdownOpen(false);
+                }}
+              >
+                <p>{view.type}</p>
+              </div>
+            ))}
+          </DropDownMenu>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-lg shadow-sm relative">
+        <div className="hidden sm:block absolute top-[22px] right-6 z-10">
+          <DropDownMenu
+            show={dropdownOpen}
+            setShow={setDropdownOpen}
+            dropDownPosition="left"
+            actionElement={
+              <div
+                className="px-2 py-2 border border-gray-300 rounded-lg w-20 h-8 sm:px-3 sm:w-24 sm:h-10 outline-none cursor-pointer flex items-center justify-between bg-white hover:bg-gray-50 transition-colors"
+              >
+                <p className="text-xs sm:text-sm font-medium text-gray-700">{currentView?.type}</p>
+                <img src={dropdownIcon} className="w-3 h-3 sm:w-4 sm:h-4" alt="Dropdown" />
+              </div>
+            }
+          >
+            {calendarViews.map((view) => (
+              <div
+                className={cn("w-20 sm:w-24 p-2 cursor-pointer hover:bg-[#DAF8E6] text-xs sm:text-sm", {
+                  "bg-[#EAFCF3] text-[#1D9B5E] font-medium": view.type === currentView.type,
+                  "text-gray-700": view.type !== currentView.type,
+                })}
+                key={view.type}
+                onClick={() => {
+                  changeView(view);
+                  setDropdownOpen(false);
+                }}
+              >
+                <p>{view.type}</p>
+              </div>
+            ))}
+          </DropDownMenu>
+        </div>
+        
         <FullCalendar
           ref={calendarRef}
           plugins={[
@@ -351,11 +427,17 @@ const CalendarView = () => {
           }
           datesSet={handleDatesSet}
           eventContent={renderEventContent}
-          dayMaxEventRows={true}
+          dayMaxEventRows={3}
+          dayMaxEvents={true}
+          moreLinkClick="popover"
           allDaySlot={false}
           headerToolbar={headerToolbar}
           timeZone="Africa/Nairobi"
-          height={`calc(100vh - 130px)`}
+          height={`calc(100vh - 160px)`}
+          slotMinTime="06:00:00"
+          slotMaxTime="22:00:00"
+          slotDuration="00:30:00"
+          slotLabelInterval="01:00:00"
           slotLabelFormat={{
             hour: "2-digit",
             minute: "2-digit",
@@ -367,40 +449,49 @@ const CalendarView = () => {
             hour12: false,
           }}
           eventClick={handleEventClick}
-          dateClick={() => permisions?.can_create_sessions && setIsModalOpen(true)}
+          dateClick={() => permisions?.can_create_sessions && openDrawer({
+            type: "session",
+            isEditing: false,
+          })}
+          eventClassNames="fc-event-custom"
+          eventMouseEnter={(info) => {
+            info.el.style.cursor = 'pointer';
+          }}
+          loading={(isLoading) => {
+            if (isLoading) {
+              console.log('Calendar loading...');
+            }
+          }}
         />
         {popupData && (
-          <div
-            className="absolute bg-white shadow-md p-6 border shadow-lg min-w-[350px] min-h-[400px] z-[1000] rounded-2xl"
-            style={{
-              top: popupData.y,
-              left: popupData.x,
-            }}
-            ref={popupRef}
-          >
-            <EventCard
-              onClose={() => setPopupData(null)}
-              handleRemoveEvent={handleRemoveEvent}
-              data={popupData.extendedProps}
-              handleEditEvent={(id) => {
-                setSessionID(id);
-                setPopupData(null);
-                setIsSessionDrawerOpen(true);
+          <>
+            <div className="sm:hidden fixed inset-0 bg-black bg-opacity-50 z-[999]" onClick={() => setPopupData(null)} />
+            
+            <div
+              className="absolute bg-white shadow-md p-4 sm:p-6 border shadow-lg w-[calc(100vw-20px)] max-w-[350px] sm:min-w-[350px] min-h-[400px] max-h-[80vh] overflow-y-auto z-[1000] rounded-2xl"
+              style={{
+                top: popupData.y,
+                left: popupData.x,
               }}
-            />
-          </div>
+              ref={popupRef}
+            >
+              <EventCard
+                onClose={() => setPopupData(null)}
+                handleRemoveEvent={handleRemoveEvent}
+                data={popupData.extendedProps}
+                handleEditEvent={(id) => {
+                  setPopupData(null);
+                  openDrawer({
+                    type: "session",
+                    entityId: id,
+                    isEditing: true,
+                  });
+                }}
+              />
+            </div>
+          </>
         )}
       </div>
-      <AddSession isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
-      <AddClients
-        isOpen={isDrawerOpen}
-        onClose={() => setIsDrawerOpen(false)}
-      />
-      <UpdateSession
-        isOpen={isSessionDrawerOpen}
-        onClose={() => setIsSessionDrawerOpen(false)}
-        sessionId={sessionID || ""}
-      />
     </div>
   );
 };

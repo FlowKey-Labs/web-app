@@ -1,6 +1,7 @@
 import { useState, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createColumnHelper } from '@tanstack/react-table';
+import { useDebounce } from '../../hooks/useDebounce';
 
 import MembersHeader from '../headers/MembersHeader';
 import Table from '../common/Table';
@@ -13,6 +14,7 @@ import {
 } from '../../hooks/reactQuery';
 import { Session } from '../../types/sessionTypes';
 import { navigateToSessionDetails } from '../../utils/navigationHelpers';
+import { safeToString } from '../../utils/stringUtils';
 import { DatePickerInput } from '@mantine/dates';
 import DropDownMenu from '../common/DropdownMenu';
 import { useExportSessions } from '../../hooks/useExport';
@@ -39,6 +41,7 @@ import successIcon from '../../assets/icons/success.svg';
 import errorIcon from '../../assets/icons/error.svg';
 import { useAuthStore } from '../../store/auth';
 import { useUIStore } from '../../store/ui';
+import ErrorBoundary from '../common/ErrorBoundary';
 
 const columnHelper = createColumnHelper<Session>();
 
@@ -53,6 +56,8 @@ const AllSessions = () => {
   const [selectedSession, setSelectedSession] = useState<Session | null>(null);
   const [isActivating, setIsActivating] = useState(false);
   const [opened, { open, close }] = useDisclosure(false);
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const debouncedSearchQuery = useDebounce(searchQuery, 300);
 
   const [tempSelectedTypes, setTempSelectedTypes] = useState<string[]>([]);
   const [tempSelectedCategories, setTempSelectedCategories] = useState<
@@ -76,46 +81,106 @@ const AllSessions = () => {
     refetch: refetchSessions,
   } = useGetSessions();
 
-  const filteredSessions = useMemo(() => {
-    if (!allSessionsData) return [];
-
-    return allSessionsData.filter((session) => {
-      if (selectedTypes.length > 0) {
-        const classType = session.class_type || '';
-        const matchesType = selectedTypes.includes(classType);
-
-        if (!matchesType) {
+  const searchSessions = useCallback((sessions: Session[], query: string) => {
+    if (!query.trim()) return sessions;
+    
+    try {
+      const searchTerms = query.toLowerCase().trim().split(/\s+/);
+      
+      return sessions.filter((session) => {
+        try {
+          const searchableFields = [
+            safeToString(session.title),
+            safeToString(session.category?.name),
+            safeToString(session.class_type),
+            session.assigned_staff 
+              ? `${safeToString(session.assigned_staff.user?.first_name)} ${safeToString(session.assigned_staff.user?.last_name)}`.trim()
+              : '',
+            safeToString(session.description),
+            safeToString(session.location),
+            safeToString(session.id),
+          ].filter(field => field.length > 0); 
+          
+          const combinedText = searchableFields.join(' ');
+          
+          return searchTerms.every(term => 
+            combinedText.includes(term)
+          );
+        } catch (error) {
+          console.warn('Error processing session in search:', session.id, error);
           return false;
         }
+      });
+    } catch (error) {
+      console.error('Error in searchSessions:', error);
+      return sessions;
+    }
+  }, []);
+
+  const filteredSessions = useMemo(() => {
+    try {
+      if (!allSessionsData || !Array.isArray(allSessionsData)) return [];
+
+      let filtered = [...allSessionsData];
+
+      if (debouncedSearchQuery.trim()) {
+        filtered = searchSessions(filtered, debouncedSearchQuery);
+      }
+
+      if (selectedTypes.length > 0) {
+        filtered = filtered.filter((session) => {
+          try {
+            const classType = session?.class_type || '';
+            return selectedTypes.includes(classType);
+          } catch (error) {
+            console.warn('Error filtering session by type:', session?.id, error);
+            return false;
+          }
+        });
       }
 
       if (selectedCategories.length > 0) {
-        const sessionCategory = session.category?.name || '';
-
-        const matchesCategory = selectedCategories.includes(sessionCategory);
-
-        if (!matchesCategory) {
-          return false;
-        }
+        filtered = filtered.filter((session) => {
+          try {
+            const sessionCategory = session?.category?.name || '';
+            return selectedCategories.includes(sessionCategory);
+          } catch (error) {
+            console.warn('Error filtering session by category:', session?.id, error);
+            return false;
+          }
+        });
       }
 
       if (dateRange[0] && dateRange[1]) {
-        const sessionDate = new Date(session.date);
-        const startDate = new Date(dateRange[0]);
-        const endDate = new Date(dateRange[1]);
+        filtered = filtered.filter((session) => {
+          try {
+            const sessionDate = new Date(session.date);
+            const startDate = new Date(dateRange[0]!);
+            const endDate = new Date(dateRange[1]!);
 
-        sessionDate.setHours(0, 0, 0, 0);
-        startDate.setHours(0, 0, 0, 0);
-        endDate.setHours(0, 0, 0, 0);
+            if (isNaN(sessionDate.getTime()) || isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+              console.warn('Invalid date in session:', session?.id, session?.date);
+              return false;
+            }
 
-        if (sessionDate < startDate || sessionDate > endDate) {
-          return false;
-        }
+            sessionDate.setHours(0, 0, 0, 0);
+            startDate.setHours(0, 0, 0, 0);
+            endDate.setHours(0, 0, 0, 0);
+
+            return sessionDate >= startDate && sessionDate <= endDate;
+          } catch (error) {
+            console.warn('Error filtering session by date:', session?.id, error);
+            return false;
+          }
+        });
       }
 
-      return true;
-    });
-  }, [allSessionsData, selectedTypes, selectedCategories, dateRange]);
+      return filtered;
+    } catch (error) {
+      console.error('Error in filteredSessions:', error);
+      return allSessionsData || [];
+    }
+  }, [allSessionsData, selectedTypes, selectedCategories, dateRange, debouncedSearchQuery, searchSessions]);
 
   const {
     exportModalOpened,
@@ -133,8 +198,15 @@ const AllSessions = () => {
       return filteredSessions[sessionIndex].id;
     });
   }, [rowSelection, filteredSessions]);
+  
   const { data: categoriesData, isLoading: isLoadingCategories } =
     useGetSessionCategories();
+
+  const handleSearchChange = useCallback((value: string) => {
+    setSearchQuery(value);
+    setRowSelection({});
+  }, []);
+
 
   const columns = useMemo(
     () => [
@@ -424,8 +496,10 @@ const AllSessions = () => {
     setSelectedTypes([]);
     setSelectedCategories([]);
     setDateRange([null, null]);
+    setSearchQuery('');
     setClassTypeDropdownOpen(false);
     setCategoryTypeDropdownOpen(false);
+    setRowSelection({});
   };
 
   const handleActivateSession = () => {
@@ -516,27 +590,33 @@ const AllSessions = () => {
 
   if (isLoadingSessions) {
     return (
-      <div className='flex justify-center items-center h-screen'>
-        <Loader size='xl' color='#1D9B5E'/>
-      </div>
+      <ErrorBoundary>
+        <div className='flex justify-center items-center h-screen'>
+          <Loader size='xl' color='#1D9B5E'/>
+        </div>
+      </ErrorBoundary>
     );
   } 
 
   if (isLoadingCategories) {
     return (
-      <div className='flex justify-center items-center py-10'>
-        <Loader size='xl' color='#1D9B5E'/>
-      </div>
+      <ErrorBoundary>
+        <div className='flex justify-center items-center py-10'>
+          <Loader size='xl' color='#1D9B5E'/>
+        </div>
+      </ErrorBoundary>
     );
   }
 
   return (
-    <>
+    <ErrorBoundary>
       <div className='flex flex-col h-screen bg-cardsBg w-full overflow-y-auto'>
         <MembersHeader
           title='All Sessions'
           buttonText='New Session'
           searchPlaceholder='Search by Session, Staff Name or Session Type'
+          searchValue={searchQuery}
+          onSearchChange={handleSearchChange}
           leftIcon={plusIcon}
           onButtonClick={handleOpenAddSession}
           showButton={permisions?.can_create_sessions}
@@ -769,16 +849,35 @@ const AllSessions = () => {
           </div>
         </div>
         <EmptyDataPage
-          title='No Sessions Found!'
-          description="You don't have any sessions yet"
-          buttonText='Create New Session'
-          onButtonClick={handleOpenAddSession}
-          showButton={permisions?.can_create_sessions}
+          title={
+            searchQuery.trim() || selectedTypes.length > 0 || selectedCategories.length > 0 || (dateRange[0] && dateRange[1])
+              ? 'No Sessions Found!'
+              : 'No Sessions Found!'
+          }
+          description={
+            debouncedSearchQuery.trim()
+              ? `No sessions match your search "${debouncedSearchQuery}"`
+              : selectedTypes.length > 0 || selectedCategories.length > 0 || (dateRange[0] && dateRange[1])
+              ? "No sessions match your current filters"
+              : "You don't have any sessions yet"
+          }
+          buttonText={
+            debouncedSearchQuery.trim() || selectedTypes.length > 0 || selectedCategories.length > 0 || (dateRange[0] && dateRange[1])
+              ? 'Clear Filters'
+              : 'Create New Session'
+          }
+          onButtonClick={
+            debouncedSearchQuery.trim() || selectedTypes.length > 0 || selectedCategories.length > 0 || (dateRange[0] && dateRange[1])
+              ? resetFilters
+              : handleOpenAddSession
+          }
+          showButton={true}
           onClose={() => {
             if (
               selectedTypes.length > 0 ||
               selectedCategories.length > 0 ||
-              (dateRange[0] && dateRange[1])
+              (dateRange[0] && dateRange[1]) ||
+              searchQuery.trim()
             ) {
               resetFilters();
             }
@@ -952,7 +1051,7 @@ const AllSessions = () => {
           </div>
         </div>
       </Modal>
-    </>
+    </ErrorBoundary>
   );
 };
 

@@ -10,7 +10,9 @@ interface HeaderProps {
   buttonIcon?: string;
   leftIcon?: string;
   searchPlaceholder?: string;
+  searchValue?: string;
   onButtonClick?: () => void;
+  onSearchChange?: (value: string) => void;
   showFilterIcons?: boolean;
   showButton?: boolean;
   showSearch?: boolean;
@@ -22,7 +24,9 @@ const Header = ({
   buttonIcon = '',
   leftIcon = '',
   searchPlaceholder = '',
+  searchValue = '',
   onButtonClick,
+  onSearchChange,
   showFilterIcons = false,
   showButton = true,
   showSearch = true,
@@ -44,6 +48,8 @@ const Header = ({
           <div className=''>
             <SearchInput
               placeholder={searchPlaceholder}
+              value={searchValue}
+              onChange={(e) => onSearchChange?.(e.target.value)}
               leftIcon={
                 <div className='rounded-full cursor-pointer'>
                   <SearchIcon className='w-5 h-5 text-gray-400' />
