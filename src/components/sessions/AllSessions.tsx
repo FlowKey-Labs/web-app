@@ -14,6 +14,7 @@ import {
 } from '../../hooks/reactQuery';
 import { Session } from '../../types/sessionTypes';
 import { navigateToSessionDetails } from '../../utils/navigationHelpers';
+import { safeToString } from '../../utils/stringUtils';
 import { DatePickerInput } from '@mantine/dates';
 import DropDownMenu from '../common/DropdownMenu';
 import { useExportSessions } from '../../hooks/useExport';
@@ -88,21 +89,6 @@ const AllSessions = () => {
       
       return sessions.filter((session) => {
         try {
-          const safeToString = (value: unknown): string => {
-            if (value === null || value === undefined) return '';
-            if (typeof value === 'string') return value.toLowerCase();
-            if (typeof value === 'number') return value.toString().toLowerCase();
-            if (typeof value === 'object' && value && 'name' in value) {
-              const obj = value as { name: unknown };
-              return typeof obj.name === 'string' ? obj.name.toLowerCase() : '';
-            }
-            if (typeof value === 'object' && value && 'title' in value) {
-              const obj = value as { title: unknown };
-              return typeof obj.title === 'string' ? obj.title.toLowerCase() : '';
-            }
-            return '';
-          };
-
           const searchableFields = [
             safeToString(session.title),
             safeToString(session.category?.name),

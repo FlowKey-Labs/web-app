@@ -30,6 +30,7 @@ import { useExportClients } from '../../hooks/useExport';
 import { useExportGroups } from '../../hooks/useExport';
 import { useNavigate } from 'react-router-dom';
 import { navigateToClientDetails, navigateToGroupDetails } from '../../utils/navigationHelpers';
+import { safeToString } from '../../utils/stringUtils';
 import EmptyDataPage from '../common/EmptyDataPage';
 import { useAuthStore } from '../../store/auth';
 import { useUIStore } from '../../store/ui';
@@ -81,21 +82,6 @@ const AllClients = () => {
       
       return clients.filter((client) => {
         try {
-          const safeToString = (value: unknown): string => {
-            if (value === null || value === undefined) return '';
-            if (typeof value === 'string') return value.toLowerCase();
-            if (typeof value === 'number') return value.toString().toLowerCase();
-            if (typeof value === 'object' && value && 'name' in value) {
-              const obj = value as { name: unknown };
-              return typeof obj.name === 'string' ? obj.name.toLowerCase() : '';
-            }
-            if (typeof value === 'object' && value && 'title' in value) {
-              const obj = value as { title: unknown };
-              return typeof obj.title === 'string' ? obj.title.toLowerCase() : '';
-            }
-            return '';
-          };
-
           const searchableFields = [
             `${safeToString(client.first_name)} ${safeToString(client.last_name)}`.trim(),
             safeToString(client.first_name),
@@ -130,21 +116,6 @@ const AllClients = () => {
       
       return groups.filter((group) => {
         try {
-          const safeToString = (value: unknown): string => {
-            if (value === null || value === undefined) return '';
-            if (typeof value === 'string') return value.toLowerCase();
-            if (typeof value === 'number') return value.toString().toLowerCase();
-            if (typeof value === 'object' && value && 'name' in value) {
-              const obj = value as { name: unknown };
-              return typeof obj.name === 'string' ? obj.name.toLowerCase() : '';
-            }
-            if (typeof value === 'object' && value && 'title' in value) {
-              const obj = value as { title: unknown };
-              return typeof obj.title === 'string' ? obj.title.toLowerCase() : '';
-            }
-            return '';
-          };
-
           const searchableFields = [
             safeToString(group.name),
             safeToString(group.description),
@@ -746,7 +717,7 @@ const AllClients = () => {
               ? clients.length === 0
               : groups.length === 0) && !isLoadingCurrent
           }
-          showButton={searchQuery.trim() || permisions?.can_create_clients}
+          showButton={Boolean(searchQuery.trim()) || Boolean(permisions?.can_create_clients)}
         />
         <div className='flex-1 px-6 py-3'>
           {activeView === 'clients' && clients.length > 0 && (

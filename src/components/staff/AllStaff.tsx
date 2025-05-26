@@ -75,7 +75,7 @@ const AllStaff = () => {
 
     const searchLower = debouncedSearchQuery.toLowerCase().trim();
     
-    return staff.filter((staffMember) => {
+    return staff.filter((staffMember: StaffResponse) => {
       const fullName = `${staffMember.user?.first_name || ''} ${staffMember.user?.last_name || ''}`.toLowerCase();
       
       const email = (staffMember.user?.email || '').toLowerCase();
