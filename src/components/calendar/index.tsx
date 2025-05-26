@@ -21,7 +21,6 @@ import { mapSessionToFullCalendarEvents as convertSessionToEvents } from "./cale
 import { CalendarSessionType } from "../../types/sessionTypes";
 import { Loader } from "@mantine/core";
 
-// Constants for popup positioning
 const popupWidth = 400;
 const popupHeight = 500;
 
@@ -57,6 +56,7 @@ const CalendarView = () => {
     calendarViews[0]
   );
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [mobileDropdownOpen, setMobileDropdownOpen] = useState(false);
   const [popupData, setPopupData] = useState<{
     title: string;
     description: string;
@@ -141,8 +141,14 @@ const CalendarView = () => {
     }
 
     if(currentView.type === "Day") {
-      x = rect.right - 700
-      y = rect.bottom  - 300
+      // Responsive positioning for day view
+      if (viewportWidth <= 768) {
+        x = Math.max(10, viewportWidth - popupWidth - 10);
+        y = rect.bottom + 10;
+      } else {
+        x = rect.right - 700
+        y = rect.bottom  - 300
+      }
     }
 
     setPopupData({
@@ -162,7 +168,6 @@ const CalendarView = () => {
         const calendarApi = calendarRef.current.getApi();
         calendarApi.changeView(view.view);
       }
-      setDropdownOpen(false);
     } catch (error) {
       console.error('Failed to change view:', error);
     }
@@ -276,53 +281,51 @@ const CalendarView = () => {
 
   if (isLoading) {
     return (
-      <div className='flex justify-center items-center h-screen'>
-        <Loader color='#1D9B5E' size='xl' />
+      <div className="min-h-screen bg-[#f5f5f5]">
+        <div className="pt-3 px-3 sm:pt-5 sm:px-5 pb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div>
+              <div className="h-6 sm:h-8 bg-gray-200 rounded-lg w-32 sm:w-48 animate-pulse"></div>
+              <div className="h-4 bg-gray-200 rounded w-48 sm:w-64 mt-2 animate-pulse"></div>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="h-10 bg-gray-200 rounded-lg w-full sm:w-32 animate-pulse"></div>
+            </div>
+          </div>
+        </div>
+        
+        <div className="px-3 sm:px-5 pb-6">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-8">
+            <div className="flex items-center justify-center h-64 sm:h-96">
+              <div className="text-center">
+                <Loader color='#1D9B5E' size='lg' />
+                <p className="text-gray-500 mt-4 text-sm">Loading calendar...</p>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="pt-5 px-5 bg-[#f5f5f5]">
-      <h1 className="text-[32px] font-bold text-primary pb-4">Calendar</h1>
-      <div className="relative pt-5 bg-white">
-        <div className="absolute top-5 left-[250px]">
-          <DropDownMenu
-            show={dropdownOpen}
-            setShow={setDropdownOpen}
-            dropDownPosition="center"
-            actionElement={
-              <div
-                id="viewSelect"
-                className="p-2 border rounded w-20 h-10 outline-none cursor-pointer flex items-center justify-between"
-              >
-                <p>{currentView?.type}</p>
-                <img src={dropdownIcon} />
-              </div>
-            }
-          >
-            {calendarViews.map((view) => (
-              <div
-                className={cn("w-20 p-2 cursor-pointer hover:bg-[#DAF8E6]", {
-                  "bg-[#EAFCF3]": view.type === currentView.type,
-                })}
-                key={view.type}
-                onClick={() => changeView(view)}
-              >
-                <p>{view.type}</p>
-              </div>
-            ))}
-          </DropDownMenu>
-        </div>
-        {permisions?.can_create_sessions && (
-          <div className="absolute top-4 right-[20px]">
+    <div className="pt-3 px-3 sm:pt-5 sm:px-5 bg-[#f5f5f5]">
+      <div className="flex flex-col gap-3 pb-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div>
+            <h1 className="text-2xl sm:text-[32px] font-bold text-primary">Calendar</h1>
+            <p className="text-sm text-gray-600 mt-1">Manage your sessions and appointments</p>
+          </div>
+          
+          {permisions?.can_create_sessions && (
             <Button
               w={140}
-              h={52}
+              h={42}
               size="sm"
               radius="md"
+              className="w-full sm:w-auto"
               leftSection={
-                <img src={plusIcon} alt="Icon" className="w-3 h-3" />
+                <img src={plusIcon} alt="Icon" className="w-4 h-4" />
               }
               style={{
                 backgroundColor: "#1D9B5E",
@@ -333,8 +336,75 @@ const CalendarView = () => {
             >
               New Event
             </Button>
-          </div>
-        )}
+          )}
+        </div>
+        
+        <div className="flex sm:hidden justify-center items-center">
+          <DropDownMenu
+            show={mobileDropdownOpen}
+            setShow={setMobileDropdownOpen}
+            dropDownPosition="center"
+            actionElement={
+              <div
+                className="px-4 py-2 border border-gray-300 rounded-lg w-28 h-10 outline-none cursor-pointer flex items-center justify-between bg-white hover:bg-gray-50 transition-colors mx-auto"
+              >
+                <p className="text-sm font-medium text-gray-700">{currentView?.type}</p>
+                <img src={dropdownIcon} className="w-4 h-4" alt="Dropdown" />
+              </div>
+            }
+          >
+            {calendarViews.map((view) => (
+              <div
+                className={cn("w-28 p-2 cursor-pointer hover:bg-[#DAF8E6] text-sm text-center", {
+                  "bg-[#EAFCF3] text-[#1D9B5E] font-medium": view.type === currentView.type,
+                  "text-gray-700": view.type !== currentView.type,
+                })}
+                key={view.type}
+                onClick={() => {
+                  changeView(view);
+                  setMobileDropdownOpen(false);
+                }}
+              >
+                <p>{view.type}</p>
+              </div>
+            ))}
+          </DropDownMenu>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-lg shadow-sm relative">
+        <div className="hidden sm:block absolute top-[22px] right-6 z-10">
+          <DropDownMenu
+            show={dropdownOpen}
+            setShow={setDropdownOpen}
+            dropDownPosition="left"
+            actionElement={
+              <div
+                className="px-2 py-2 border border-gray-300 rounded-lg w-20 h-8 sm:px-3 sm:w-24 sm:h-10 outline-none cursor-pointer flex items-center justify-between bg-white hover:bg-gray-50 transition-colors"
+              >
+                <p className="text-xs sm:text-sm font-medium text-gray-700">{currentView?.type}</p>
+                <img src={dropdownIcon} className="w-3 h-3 sm:w-4 sm:h-4" alt="Dropdown" />
+              </div>
+            }
+          >
+            {calendarViews.map((view) => (
+              <div
+                className={cn("w-20 sm:w-24 p-2 cursor-pointer hover:bg-[#DAF8E6] text-xs sm:text-sm", {
+                  "bg-[#EAFCF3] text-[#1D9B5E] font-medium": view.type === currentView.type,
+                  "text-gray-700": view.type !== currentView.type,
+                })}
+                key={view.type}
+                onClick={() => {
+                  changeView(view);
+                  setDropdownOpen(false);
+                }}
+              >
+                <p>{view.type}</p>
+              </div>
+            ))}
+          </DropDownMenu>
+        </div>
+        
         <FullCalendar
           ref={calendarRef}
           plugins={[
@@ -349,11 +419,17 @@ const CalendarView = () => {
           }
           datesSet={handleDatesSet}
           eventContent={renderEventContent}
-          dayMaxEventRows={true}
+          dayMaxEventRows={3}
+          dayMaxEvents={true}
+          moreLinkClick="popover"
           allDaySlot={false}
           headerToolbar={headerToolbar}
           timeZone="Africa/Nairobi"
-          height={`calc(100vh - 130px)`}
+          height={`calc(100vh - 200px)`}
+          slotMinTime="06:00:00"
+          slotMaxTime="22:00:00"
+          slotDuration="00:30:00"
+          slotLabelInterval="01:00:00"
           slotLabelFormat={{
             hour: "2-digit",
             minute: "2-digit",
@@ -369,6 +445,15 @@ const CalendarView = () => {
             type: "session",
             isEditing: false,
           })}
+          eventClassNames="fc-event-custom"
+          eventMouseEnter={(info) => {
+            info.el.style.cursor = 'pointer';
+          }}
+          loading={(isLoading) => {
+            if (isLoading) {
+              console.log('Calendar loading...');
+            }
+          }}
         />
         {popupData && (
           <div
