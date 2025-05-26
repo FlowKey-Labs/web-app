@@ -47,7 +47,6 @@ const AllStaff = () => {
   const permisions = useAuthStore((state) => state.role);
   const { openDrawer } = useUIStore();
 
-  // Debounce search query for better performance
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearchQuery(searchQuery);
@@ -67,7 +66,6 @@ const AllStaff = () => {
   const activateStaffMutation = useActivateStaff();
   const deactivateStaffMutation = useDeactivateStaff();
 
-  // Filter staff based on search query
   const filteredStaff = useMemo(() => {
     if (!staff || staff.length === 0) return [];
     
@@ -78,19 +76,14 @@ const AllStaff = () => {
     const searchLower = debouncedSearchQuery.toLowerCase().trim();
     
     return staff.filter((staffMember) => {
-      // Search in name (first name + last name)
       const fullName = `${staffMember.user?.first_name || ''} ${staffMember.user?.last_name || ''}`.toLowerCase();
       
-      // Search in email
       const email = (staffMember.user?.email || '').toLowerCase();
       
-      // Search in phone number
       const phone = (staffMember.user?.mobile_number || '').toLowerCase();
       
-      // Search in member ID
       const memberId = (staffMember.member_id || '').toLowerCase();
       
-      // Search in role
       const role = (staffMember.role || '').toLowerCase();
 
       return (
@@ -373,7 +366,6 @@ const AllStaff = () => {
     [navigate, filteredStaff, open]
   );
 
-  // Reset row selection when search changes
   useEffect(() => {
     setRowSelection({});
   }, [debouncedSearchQuery]);
@@ -402,8 +394,8 @@ const AllStaff = () => {
     );
   }
 
-  const hasSearchResults = debouncedSearchQuery.trim() && filteredStaff.length > 0;
-  const hasNoSearchResults = debouncedSearchQuery.trim() && filteredStaff.length === 0;
+  const hasSearchResults = Boolean(debouncedSearchQuery.trim()) && filteredStaff.length > 0;
+  const hasNoSearchResults = Boolean(debouncedSearchQuery.trim()) && filteredStaff.length === 0;
   const hasNoStaff = !debouncedSearchQuery.trim() && staff.length === 0;
 
   return (
@@ -420,7 +412,6 @@ const AllStaff = () => {
           showButton={permisions?.can_create_staff}
         />
         
-        {/* Show different empty states based on search */}
         <EmptyDataPage
           title={hasNoSearchResults ? 'No Staff Found' : 'No Staff Found'}
           description={
@@ -439,7 +430,6 @@ const AllStaff = () => {
           showButton={permisions?.can_create_staff}
         />
         
-        {/* Show search results info */}
         {hasSearchResults && (
           <div className='px-6 py-2'>
             <Text size='sm' color='dimmed'>
