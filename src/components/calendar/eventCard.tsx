@@ -1,9 +1,6 @@
 import editIcon from "../../assets/icons/edit.svg";
 import deleteIcon from "../../assets/icons/delete.svg";
 import closeIcon from "../../assets/icons/close.svg";
-import usersIcon from "../../assets/icons/users.svg";
-import calendarIcon from "../../assets/icons/calendar.svg";
-import timeIcon from "../../assets/icons/time.svg";
 import { Dictionary } from "@fullcalendar/core/internal";
 import { CalendarSessionType } from "../../types/sessionTypes";
 import moment from "moment";
@@ -89,12 +86,16 @@ const EventCard = ({
 
       <div className="space-y-3 pl-6">
         <div className="flex items-center space-x-3">
-          <img src={calendarIcon} className="w-5 h-5 text-gray-500" alt="Calendar" />
+          <div className="w-5 h-5 flex items-center justify-center">
+            <span className="text-gray-500 text-lg">📅</span>
+          </div>
           <p className="text-gray-700 font-medium">{dateStr}</p>
         </div>
         
         <div className="flex items-center space-x-3">
-          <img src={timeIcon} className="w-5 h-5 text-gray-500" alt="Time" />
+          <div className="w-5 h-5 flex items-center justify-center">
+            <span className="text-gray-500 text-lg">⏰</span>
+          </div>
           <p className="text-gray-700">{timeStr}</p>
         </div>
 
@@ -109,7 +110,9 @@ const EventCard = ({
       </div>
       <div className="border-t pt-4">
         <div className="flex gap-3 items-start">
-          <img src={usersIcon} className="w-6 h-6 mt-0.5 flex-shrink-0" alt="Users" />
+          <div className="w-6 h-6 mt-0.5 flex-shrink-0 flex items-center justify-center">
+            <span className="text-gray-500 text-xl">👥</span>
+          </div>
           <div className="flex-1">
             <p className="text-gray-900 font-semibold mb-1">
               {data?.session?.spots} Slots

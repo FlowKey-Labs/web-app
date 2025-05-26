@@ -304,7 +304,7 @@ const CalendarView = () => {
         
         <div className="px-3 sm:px-5 pb-6">
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-8">
-            <div className="flex items-center justify-center h-64 sm:h-96">
+            <div className="flex items-center justify-center h-64 sm:h-[calc(100vh-240px)]">
               <div className="text-center">
                 <Loader color='#1D9B5E' size='lg' />
                 <p className="text-gray-500 mt-4 text-sm">Loading calendar...</p>
@@ -317,8 +317,8 @@ const CalendarView = () => {
   }
 
   return (
-    <div className="pt-3 px-3 sm:pt-5 sm:px-5 bg-[#f5f5f5]">
-      <div className="flex flex-col gap-3 pb-4">
+    <div className="pt-3 px-3 sm:pt-4 sm:px-5 bg-[#f5f5f5]">
+      <div className="flex flex-col gap-3 pb-2 sm:pb-3">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
             <h1 className="text-2xl sm:text-[32px] font-bold text-primary">Calendar</h1>
@@ -433,7 +433,7 @@ const CalendarView = () => {
           allDaySlot={false}
           headerToolbar={headerToolbar}
           timeZone="Africa/Nairobi"
-          height={`calc(100vh - 200px)`}
+          height={`calc(100vh - 160px)`}
           slotMinTime="06:00:00"
           slotMaxTime="22:00:00"
           slotDuration="00:30:00"
