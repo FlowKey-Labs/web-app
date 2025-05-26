@@ -25,6 +25,8 @@ interface AuthState {
   refreshToken: string | null;
   user: { id: number; email: string; is_staff: boolean; role: Role } | null;
   role: Role | null;
+  isInitialized: boolean;
+  isAuthenticated: boolean;
   setAuth: (
     token: string,
     refreshToken: string,
@@ -47,18 +49,20 @@ export const useAuthStore = create<AuthState>((set) => ({
     }
   })(),
   role: null,
+  isInitialized: true,
+  isAuthenticated: !!localStorage.getItem("accessToken"),
   setRole: (role) => set({ role }),
   setAuth: (token, refreshToken, user) => {
     localStorage.setItem("accessToken", token);
     localStorage.setItem("refresh", refreshToken);
     localStorage.setItem("user", JSON.stringify(user));
-    set({ accessToken: token, user });
+    set({ accessToken: token, refreshToken, user, isAuthenticated: true });
   },
 
   logout: () => {
     localStorage.removeItem("accessToken");
     localStorage.removeItem("refresh");
     localStorage.removeItem("user");
-    set({ accessToken: null, user: null });
+    set({ accessToken: null, refreshToken: null, user: null, role: null, isAuthenticated: false });
   },
 }));

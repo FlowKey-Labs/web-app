@@ -12,6 +12,7 @@ import {
 } from "../../utils/navigationHelpers";
 import { Role, useAuthStore } from "../../store/auth";
 import { useMemo } from "react";
+import { useLogout } from "../../hooks/reactQuery";
 
 type NavigationMap = {
   [key: string]: (navigate: ReturnType<typeof useNavigate>) => void;
@@ -53,6 +54,8 @@ function filterMenuItemsByRole<T extends { name: string }>(
 const Sidebar = ({ activeItem }: SidebarProps) => {
   const navigate = useNavigate();
   const role = useAuthStore((state) => state.role);
+  const logout = useLogout();
+  
   const filteredMenuItems = useMemo(
     () => (role ? filterMenuItemsByRole(menuItems, role) : []),
     [role]
@@ -61,6 +64,20 @@ const Sidebar = ({ activeItem }: SidebarProps) => {
     () => (role ? filterMenuItemsByRole(bottomMenuItems, role) : []),
     [role]
   );
+
+  const handleItemClick = (itemName: string) => {
+    const route = itemName.toLowerCase();
+    
+    if (route === 'logout') {
+      logout();
+      return;
+    }
+    
+    const navigationFn = navigationMap[route];
+    navigationFn
+      ? navigationFn(navigate)
+      : navigate(`/${route}`);
+  };
 
   return (
     <div className="min-h-screen flex flex-col min-w-[230px] bg-[#ffffff] py-6 h-screen overflow-y-auto">
@@ -83,13 +100,7 @@ const Sidebar = ({ activeItem }: SidebarProps) => {
               return (
                 <li
                   key={item.name}
-                  onClick={() => {
-                    const route = item.name.toLowerCase();
-                    const navigationFn = navigationMap[route];
-                    navigationFn
-                      ? navigationFn(navigate)
-                      : navigate(`/${route}`);
-                  }}
+                  onClick={() => handleItemClick(item.name)}
                   className={`flex items-center cursor-pointer w-[168px] h-[35px] rounded-lg px-4 text-[14px] transition-colors hover:opacity-90 ${
                     isActive ? "bg-secondary text-white" : "text-[#6D7172]"
                   }`}
@@ -120,7 +131,7 @@ const Sidebar = ({ activeItem }: SidebarProps) => {
             return (
               <li
                 key={item.name}
-                onClick={() => navigate(`/${item.name.toLowerCase()}`)}
+                onClick={() => handleItemClick(item.name)}
                 className={`flex items-center cursor-pointer w-[168px] h-[35px] rounded-lg px-4 text-[14px] transition-colors hover:opacity-90 ${
                   isActive ? "bg-secondary text-white" : "text-[#6D7172]"
                 }`}
