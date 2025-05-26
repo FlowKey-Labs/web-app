@@ -1,5 +1,6 @@
 import DropDownMenu from '../common/DropdownMenu';
 import Header from '../headers/Header';
+import ErrorBoundary from '../common/ErrorBoundary';
 
 import {
   navigateToCalendar,
@@ -31,7 +32,7 @@ import { useNavigate } from 'react-router-dom';
 import { DonutChart } from '@mantine/charts';
 import { format } from 'date-fns';
 import { Client } from '../../types/clientTypes';
-import { Progress } from '@mantine/core';
+import { Progress, Skeleton } from '@mantine/core';
 
 const columnHelper = createColumnHelper<Client>();
 
@@ -85,13 +86,14 @@ const GettingStarted = () => {
   const [selectedTimeRange, setSelectedTimeRange] = useState('to_date');
 
   const navigate = useNavigate();
-  const { data: userProfile } = useGetUserProfile();
-  const { data: analytics } = useGetAnalytics(
+  const { data: userProfile, isLoading: isLoadingProfile } = useGetUserProfile();
+  const { data: analytics, isLoading: isLoadingAnalytics } = useGetAnalytics(
     selectedTimeRange as DateFilterOption
   );
-  const { data: upcomingSessions } = useGetUpcomingSessions();
+  const { data: upcomingSessions, isLoading: isLoadingSessions } = useGetUpcomingSessions();
   const {
     data: clients = [],
+    isLoading: isLoadingClients,
   } = useGetClients();
 
   const handleTimeRangeSelect = (range: string) => {
@@ -130,278 +132,391 @@ const GettingStarted = () => {
     }
   };
 
+  const formatNumber = (num: number | undefined): string => {
+    if (num === undefined || num === null) return '0';
+    if (num >= 1000) {
+      return (num / 1000).toFixed(1) + 'k';
+    }
+    return num.toString();
+  };
+
   const limitedUpcomingSessions = upcomingSessions?.slice(0, 3) || [];
 
   return (
-    <div className='flex flex-col h-screen bg-cardsBg w-full overflow-y-auto'>
-      <div className='mt-2'>
-        <Header />
-      </div>
-      <div className='flex-1 p-6'>
-        <div className='flex justify-between items-center px-4'>
-          <div>
-            <h3 className='text-[32px] font-[900] text-[#050F0D]'>
-              Welcome {userProfile?.first_name}
-            </h3>
-            <p className='text-[#194A43] text-md'>
-              This is what we have for you today.
-            </p>
-          </div>
-          <div>
-            <DropDownMenu
-              show={dropdownOpen}
-              setShow={setDropdownOpen}
-              dropDownPosition='center'
-              actionElement={
-                <div
-                  id='viewSelect'
-                  className='p-2 border bg-white text-primary rounded w-40 h-10 outline-none cursor-pointer flex items-center justify-between'
-                >
-                  <img
-                    src={calenderIcon}
-                    alt='calender icon'
-                    className='w-5 h-5'
-                  />
-                  <p className='text-sm'>
-                    {selectedTimeRange === 'to_date'
-                      ? 'To Date'
-                      : selectedTimeRange === 'today'
-                      ? 'Today'
-                      : selectedTimeRange === 'last_7_days'
-                      ? 'Last 7 Days'
-                      : selectedTimeRange === 'last_30_days'
-                      ? 'Last 30 Days'
-                      : selectedTimeRange === 'last_3_months'
-                      ? 'Last 3 Months'
-                      : selectedTimeRange === 'last_year'
-                      ? 'Last Year'
-                      : selectedTimeRange} 
-                  </p>
-                  <img src={dropdownIcon} />
-                </div>
-              }
-            >
-              <div className='border-[1px] border-secondary rounded-lg'>
-                <ul className='w-[180px] flex flex-col py-4 justify-center items-center space-y-1'>
-                  {[
-                    'to_date',
-                    'today',
-                    'last_7_days',
-                    'last_30_days',
-                    'last_3_months',
-                    'last_year',
-                  ].map((range) => (
-                    <li
-                      key={range}
-                      className={`cursor-pointer  text-center p-2 rounded-lg ${
-                        selectedTimeRange === range
-                          ? 'text-green-500 font-bold bg-flowkeySecondary w-[95%]'
-                          : 'hover:bg-flowkeySecondary w-[95%]'
-                      }`}
-                      onClick={() => handleTimeRangeSelect(range)}
-                    >
-                      {range === 'to_date'
-                        ? 'To Date'
-                        : range === 'today'
-                        ? 'Today'
-                        : range === 'last_7_days'
-                        ? 'Last 7 Days'
-                        : range === 'last_30_days'
-                        ? 'Last 30 Days'
-                        : range === 'last_3_months'
-                        ? 'Last 3 Months'
-                        : range === 'last_year'
-                        ? 'Last Year'
-                        : range}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </DropDownMenu>
-          </div>
+    <ErrorBoundary>
+      <div className='flex flex-col h-screen bg-cardsBg w-full overflow-y-auto'>
+        <div className='bg-white border-b border-gray-100 shadow-sm'>
+          <Header />
         </div>
-        <div className='flex gap-6 px-4 mt-6 '>
-          <div className='flex w-[250px] h-[91px] bg-[#EEEAF2] rounded-lg px-6 py-2 gap-1 border-[1px] border-[#BAA7CB]'>
-            <div className='w-[20%]'>
-              <img src={sessionsIcon} alt='' className='' />
-            </div>
-            <div>
-              <h4 className='text-base text-[#53237C]'>Total Sessions</h4>
-              <div className='flex gap-3'>
-                <p className='text-[32px] self-start'>
-                  {analytics?.total_sessions}
-                </p>
-                <p className='text-sm text-secondary self-end -top-8'>+4.5%</p>
-              </div>
-            </div>
-          </div>
-          <div className='flex w-[250px] h-[91px] bg-[#FEF5E2CC] rounded-lg px-6 py-2 gap-1 border-[1px] border-[#FAD684]'>
-            <div className='w-[20%]'>
-              <img src={totalClientsIcon} alt='' className='' />
-            </div>
-            <div>
-              <h4 className='text-base text-[#E19E09]'>Total Clients</h4>
-              <div className='flex gap-3'>
-                <p className='text-[32px] self-start'>
-                  {analytics?.total_clients}
-                </p>
-                <p className='text-sm text-[#FF3B30] self-end -top-8'>-2.3%</p>
-              </div>
-            </div>
-          </div>
-          <div className='flex w-[250px] h-[91px] bg-[#E0EFFF] rounded-lg px-6 py-2 gap-1 border-[1px] border-[#1717171A]'>
-            <div className='w-[20%]'>
-              <img src={totalStaffIcon} alt='' className='' />
-            </div>
-            <div>
-              <h4 className='text-base text-[#007AFF]'>Total Staff</h4>
-              <div className='flex gap-3'>
-                <p className='text-[32px] self-start'>
-                  {analytics?.total_staff}
-                </p>
-                <p className='text-sm text-secondary self-end -top-8'>+1.6%</p>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className='flex p-4 mt-8 gap-8 '>
-          <div className='flex flex-col w-[30%] space-y-6'>
-            <div className='flex justify-center items-center bg-white rounded-lg p-2'>
-              <div className='flex flex-col items-center w-full'>
-                <h4 className='text-[#08040C] text-[20px] font-[600] self-start mb-6'>
-                  Clients Overview
-                </h4>
-                <div className='flex flex-col max-h-[300px]'>
-                  <DonutChart
-                    data={(() => {
-                      const chartData = (
-                        analytics?.gender_distribution || []
-                      ).map((item, index) => ({
-                        ...item,
-                        color: index === 0 ? '#00A76F' : '#EEEAF2',
-                      }));
-                      return chartData;
-                    })()}
-                    startAngle={180}
-                    endAngle={0}
-                    size={200}
-                    thickness={30}
-                    w={300}
-                    h={300}
-                    withLabels
-                    withLabelsLine
-                    labelsType='percent'
-                    tooltipDataSource='segment'
-                    tooltipProps={{
-                      content: ({ payload }) => {
-                        if (!payload?.[0]?.payload) return null;
-                        const data = payload[0].payload;
-                        return (
-                          <div className='bg-white p-2 border border-gray-200 rounded-md shadow-sm'>
-                            <div>{data.name}</div>
-                            <div>{data.value}%</div>
-                          </div>
-                        );
-                      },
-                    }}
-                    withTooltip
-                    style={{ objectFit: 'cover' }}
-                  >
-                    <div className='w-full flex items-center justify-center'>
-                      <img src={donutIcon} alt='' />
-                    </div>
-                  </DonutChart>
-                  <div className='flex justify-around w-full items-center'>
-                    <p className='text-[#08040C] text-xs font-[600]'>Male</p>
-                    <p className='text-[#08040C] text-xs font-[600]'>Female</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className='bg-white rounded-lg py-4'>
-              <h4 className='px-4 mb-4 text-[#08040C] text-[20px] font-[600]'>
-                Total Daily Clients
-              </h4>
-              <div className='w-full'>
-                <BarGraph analytics={analytics} />
-              </div>
-            </div>
-          </div>
-          <div className='flex flex-col w-[70%]'>
-            <div className='flex flex-col '>
-              <div className='flex justify-between w-full '>
-                <h3 className='text-[18px] text-primary font-[600]'>
-                  Upcoming sessions
-                </h3>
-                <div
-                  className='flex gap-2 items-center cursor-pointer'
-                  onClick={() => navigateToCalendar(navigate)}
-                >
-                  <p className='text-secondary text-base font-[400]'>
-                    View All
+        
+        <div className='flex-1'>
+          <div className='bg-gradient-to-r from-white via-gray-50/50 to-white border-b border-gray-100'>
+            <div className='px-6 sm:px-8 lg:px-12 py-6 sm:py-8'>
+              <div className='flex flex-col sm:flex-row sm:justify-between sm:items-start gap-6'>
+                <div className='flex-1 space-y-2 sm:space-y-3'>
+                  <h1 className='text-xl sm:text-2xl lg:text-3xl font-bold text-[#050F0D] leading-tight'>
+                    Welcome back, {isLoadingProfile ? (
+                      <Skeleton height={24} width={100} className='inline-block sm:h-8 sm:w-32' />
+                    ) : (
+                      <span className='text-primary bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent'>
+                        {userProfile?.first_name || 'User'}
+                      </span>
+                    )}
+                  </h1>
+                  <p className='text-sm sm:text-base text-[#194A43] font-medium opacity-80 max-w-none sm:max-w-lg'>
+                    Here's what's we have for you today
                   </p>
-                  <img src={rightIcon} alt='' className='w-4 h-4' />
                 </div>
-              </div>
-              <div className='flex-1 mt-4 space-y-4'>
-                {limitedUpcomingSessions.map((session, index) => (
-                  <div
-                    key={index}
-                    className='flex justify-center items-center bg-white rounded-lg h-[70px]'
-                  >
-                    <div>
-                      <p className='items-center py-4 px-4 text-xs font-[600] w-24'>
-                        {formatTo12Hour(session?.start_time)} -{' '}
-                        {formatTo12Hour(session?.end_time)}
-                      </p>
-                    </div>
-                    <div className='h-[80%] w-[3px] bg-gray-300'></div>
-                    <div className='flex justify-between items-center py-4 px-4 w-full'>
-                      <div className='space-y-1'>
-                        <p className='text-xs font-[400]'>{session?.staff?.name}</p>
-                        <p className='text-sm font-[600]'>
-                          {session?.title}
+                
+                <div className='flex-shrink-0'>
+                  <DropDownMenu
+                    show={dropdownOpen}
+                    setShow={setDropdownOpen}
+                    dropDownPosition='center'
+                    actionElement={
+                      <div
+                        id='viewSelect'
+                        className='p-3 border border-gray-200 bg-white text-primary rounded-lg w-full sm:w-44 h-11 outline-none cursor-pointer flex items-center justify-between shadow-sm hover:shadow-md hover:border-primary/20 transition-all duration-200'
+                      >
+                        <img
+                          src={calenderIcon}
+                          alt='Calendar icon'
+                          className='w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0'
+                        />
+                        <p className='text-sm font-medium truncate mx-2'>
+                          {selectedTimeRange === 'to_date'
+                            ? 'To Date'
+                            : selectedTimeRange === 'today'
+                            ? 'Today'
+                            : selectedTimeRange === 'last_7_days'
+                            ? 'Last 7 Days'
+                            : selectedTimeRange === 'last_30_days'
+                            ? 'Last 30 Days'
+                            : selectedTimeRange === 'last_3_months'
+                            ? 'Last 3 Months'
+                            : selectedTimeRange === 'last_year'
+                            ? 'Last Year'
+                            : selectedTimeRange} 
                         </p>
+                        <img src={dropdownIcon} alt='Dropdown arrow' className='w-4 h-4 flex-shrink-0' />
+                      </div>
+                    }
+                  >
+                    <div className='border border-gray-200 rounded-lg shadow-lg bg-white min-w-[200px]'>
+                      <ul className='w-full flex flex-col py-2'>
+                        {[
+                          'to_date',
+                          'today',
+                          'last_7_days',
+                          'last_30_days',
+                          'last_3_months',
+                          'last_year',
+                        ].map((range) => (
+                          <li
+                            key={range}
+                            className={`cursor-pointer text-left px-4 py-2 hover:bg-gray-50 transition-colors duration-150 ${
+                              selectedTimeRange === range
+                                ? 'text-green-600 bg-green-50 font-medium'
+                                : 'text-gray-700'
+                            }`}
+                            onClick={() => handleTimeRangeSelect(range)}
+                          >
+                            {range === 'to_date'
+                              ? 'To Date'
+                              : range === 'today'
+                              ? 'Today'
+                              : range === 'last_7_days'
+                              ? 'Last 7 Days'
+                              : range === 'last_30_days'
+                              ? 'Last 30 Days'
+                              : range === 'last_3_months'
+                              ? 'Last 3 Months'
+                              : range === 'last_year'
+                              ? 'Last Year'
+                              : range}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </DropDownMenu>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className='px-6 sm:px-8 lg:px-12 py-6 sm:py-8 lg:py-10'>
+            <div className='mb-8 sm:mb-10 lg:mb-12'>
+              <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-2'>
+                <div>
+                  <h2 className='text-lg sm:text-xl font-semibold text-gray-900 mb-1'>Analytics Overview</h2>
+                  <p className='text-sm text-gray-600'>Key metrics for your class management</p>
+                </div>
+              </div>
+              
+              <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6'>
+                <div className='flex h-[100px] sm:h-[110px] bg-[#EEEAF2] rounded-xl px-5 py-4 gap-4 border border-[#E1D5ED] hover:shadow-md hover:border-[#D1C5DD] transition-all duration-200 cursor-pointer group'>
+                  <div className='flex items-center justify-center w-12 h-12 bg-white/25 rounded-lg group-hover:bg-white/35 transition-colors duration-200 flex-shrink-0'>
+                    <img src={sessionsIcon} alt='Sessions icon' className='w-6 h-6 group-hover:scale-105 transition-transform duration-200' />
+                  </div>
+                  <div className='flex-1 flex flex-col justify-center space-y-1.5 min-w-0'>
+                    <h4 className='text-xs sm:text-sm text-[#53237C] font-medium uppercase tracking-wide'>Total Sessions</h4>
+                    <div className='flex items-end gap-3 flex-wrap'>
+                      {isLoadingAnalytics ? (
+                        <Skeleton height={24} width={40} className='sm:h-7 sm:w-12' />
+                      ) : (
+                        <p className='text-xl sm:text-2xl font-bold text-[#53237C] leading-none'>
+                          {formatNumber(analytics?.total_sessions)}
+                        </p>
+                      )}
+                      <div className='flex items-center gap-1 mb-0.5'>
+                        <span className='text-xs text-secondary'>↗</span>
+                        <p className='text-xs text-secondary font-medium'>+4.5%</p>
                       </div>
                     </div>
-                    <div className='w-64'>
-                      <p className='text-sm font-[400]'>{format(session?.date, 'PPPP')}</p>
+                  </div>
+                </div>
+                
+                <div className='flex h-[100px] sm:h-[110px] bg-[#FEF5E2] rounded-xl px-5 py-4 gap-4 border border-[#F5E6C8] hover:shadow-md hover:border-[#E8D6B8] transition-all duration-200 cursor-pointer group'>
+                  <div className='flex items-center justify-center w-12 h-12 bg-white/25 rounded-lg group-hover:bg-white/35 transition-colors duration-200 flex-shrink-0'>
+                    <img src={totalClientsIcon} alt='Clients icon' className='w-6 h-6 group-hover:scale-105 transition-transform duration-200' />
+                  </div>
+                  <div className='flex-1 flex flex-col justify-center space-y-1.5 min-w-0'>
+                    <h4 className='text-xs sm:text-sm text-[#E19E09] font-medium uppercase tracking-wide'>Total Clients</h4>
+                    <div className='flex items-end gap-3 flex-wrap'>
+                      {isLoadingAnalytics ? (
+                        <Skeleton height={24} width={40} className='sm:h-7 sm:w-12' />
+                      ) : (
+                        <p className='text-xl sm:text-2xl font-bold text-[#E19E09] leading-none'>
+                          {formatNumber(analytics?.total_clients)}
+                        </p>
+                      )}
+                      <div className='flex items-center gap-1 mb-0.5'>
+                        <span className='text-xs text-[#FF3B30]'>↘</span>
+                        <p className='text-xs text-[#FF3B30] font-medium'>-2.3%</p>
+                      </div>
                     </div>
                   </div>
-                ))}
-              </div>
-            </div>
-            <div className='flex flex-col mt-10 bg-white rounded-lg'>
-              <div className='flex justify-between w-full px-4 mt-4'>
-                <h3 className='text-[18px] text-primary font-[600]'>Clients</h3>
-                <div
-                  className='flex gap-2 items-center cursor-pointer'
-                  onClick={() => navigateToClients(navigate)}
-                >
-                  <p className='text-secondary text-base font-[400]'>
-                    View All
-                  </p>
-                  <img src={rightIcon} alt='' className='w-4 h-4' />
+                </div>
+                
+                <div className='flex h-[100px] sm:h-[110px] bg-[#E0EFFF] rounded-xl px-5 py-4 gap-4 border border-[#C7E2FF] hover:shadow-md hover:border-[#B5D6FF] transition-all duration-200 cursor-pointer group sm:col-span-2 lg:col-span-1'>
+                  <div className='flex items-center justify-center w-12 h-12 bg-white/25 rounded-lg group-hover:bg-white/35 transition-colors duration-200 flex-shrink-0'>
+                    <img src={totalStaffIcon} alt='Staff icon' className='w-6 h-6 group-hover:scale-105 transition-transform duration-200' />
+                  </div>
+                  <div className='flex-1 flex flex-col justify-center space-y-1.5 min-w-0'>
+                    <h4 className='text-xs sm:text-sm text-[#007AFF] font-medium uppercase tracking-wide'>Total Staff</h4>
+                    <div className='flex items-end gap-3 flex-wrap'>
+                      {isLoadingAnalytics ? (
+                        <Skeleton height={24} width={40} className='sm:h-7 sm:w-12' />
+                      ) : (
+                        <p className='text-xl sm:text-2xl font-bold text-[#007AFF] leading-none'>
+                          {formatNumber(analytics?.total_staff)}
+                        </p>
+                      )}
+                      <div className='flex items-center gap-1 mb-0.5'>
+                        <span className='text-xs text-secondary'>↗</span>
+                        <p className='text-xs text-secondary font-medium'>+1.6%</p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
-              <div className='flex-1'>
-              <Table
-                data={clients.slice(0, 8)}
-                columns={columns}
-                rowSelection={rowSelection}
-                onRowSelectionChange={setRowSelection}
-                className='mt-4'
-                pageSize={12}
-                onRowClick={(row: Client) =>
-                  navigateToClientDetails(navigate, row.id.toString())
-                }
-              />
+            </div>
+
+            <div className='grid grid-cols-1 xl:grid-cols-12 gap-6 lg:gap-8'>
+              <div className='xl:col-span-4 space-y-6'>
+                <div className='bg-white rounded-lg p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-200'>
+                  <h4 className='text-[#08040C] text-lg font-semibold mb-6'>
+                    Clients Overview
+                  </h4>
+                  <div className='flex flex-col'>
+                    <div className='flex justify-center'>
+                      <DonutChart
+                        data={(() => {
+                          const chartData = (
+                            analytics?.gender_distribution || []
+                          ).map((item, index) => ({
+                            ...item,
+                            color: index === 0 ? '#00A76F' : '#EEEAF2',
+                          }));
+                          return chartData;
+                        })()}
+                        startAngle={180}
+                        endAngle={0}
+                        size={160}
+                        thickness={25}
+                        w={200}
+                        h={200}
+                        withLabels
+                        withLabelsLine
+                        labelsType='percent'
+                        tooltipDataSource='segment'
+                        tooltipProps={{
+                          content: ({ payload }) => {
+                            if (!payload?.[0]?.payload) return null;
+                            const data = payload[0].payload;
+                            return (
+                              <div className='bg-white p-2 border border-gray-200 rounded-md shadow-sm'>
+                                <div className='font-medium'>{data.name}</div>
+                                <div className='text-primary font-semibold'>{data.value}%</div>
+                              </div>
+                            );
+                          },
+                        }}
+                        withTooltip
+                        style={{ objectFit: 'cover' }}
+                      >
+                        <div className='w-full flex items-center justify-center'>
+                          <img src={donutIcon} alt='Chart center icon' />
+                        </div>
+                      </DonutChart>
+                    </div>
+                    <div className='flex justify-around w-full items-center mt-4'>
+                      <p className='text-[#08040C] text-xs font-semibold'>Male</p>
+                      <p className='text-[#08040C] text-xs font-semibold'>Female</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className='bg-white rounded-lg p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-200'>
+                  <h4 className='text-[#08040C] text-lg font-semibold mb-6'>
+                    Total Daily Clients
+                  </h4>
+                  <div className='w-full overflow-x-auto'>
+                    <BarGraph analytics={analytics} />
+                  </div>
+                </div>
+              </div>
+
+              <div className='xl:col-span-8 space-y-6'>
+                <div className='bg-white rounded-lg p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-200'>
+                  <div className='flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 gap-3'>
+                    <h3 className='text-lg font-semibold text-primary'>
+                      Upcoming Sessions
+                    </h3>
+                    <button
+                      className='flex gap-2 items-center cursor-pointer hover:bg-gray-50 px-3 py-2 rounded-md transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-secondary focus:ring-opacity-50 self-start sm:self-auto'
+                      onClick={() => navigateToCalendar(navigate)}
+                      aria-label="View all upcoming sessions"
+                    >
+                      <p className='text-secondary text-sm font-medium'>
+                        View All
+                      </p>
+                      <img src={rightIcon} alt='Arrow right' className='w-4 h-4' />
+                    </button>
+                  </div>
+                  
+                  <div className='space-y-3'>
+                    {isLoadingSessions ? (
+                      Array.from({ length: 3 }).map((_, index) => (
+                        <div key={index} className='flex flex-col sm:flex-row sm:items-center p-4 border border-gray-100 rounded-lg gap-3 sm:gap-4'>
+                          <Skeleton height={32} width={80} className='sm:mr-0' />
+                          <div className='hidden sm:block h-8 w-[1px] bg-gray-200'></div>
+                          <div className='flex-1 space-y-2'>
+                            <Skeleton height={12} width={120} />
+                            <Skeleton height={16} width={200} />
+                          </div>
+                          <Skeleton height={12} width={160} />
+                        </div>
+                      ))
+                    ) : limitedUpcomingSessions.length > 0 ? (
+                      limitedUpcomingSessions.map((session, index) => (
+                        <div
+                          key={session?.id || index}
+                          className='flex flex-col sm:flex-row sm:items-center p-4 border border-gray-100 rounded-lg hover:shadow-sm hover:border-gray-200 transition-all duration-200 gap-3 sm:gap-4'
+                        >
+                          <div className='flex justify-between sm:block sm:w-20 sm:text-center'>
+                            <p className='text-xs font-semibold text-gray-900'>
+                              {formatTo12Hour(session?.start_time)} -{' '}
+                              {formatTo12Hour(session?.end_time)}
+                            </p>
+                            <p className='text-sm text-gray-600 sm:hidden'>
+                              {session?.date ? format(new Date(session.date), 'MMM dd, yyyy') : 'Date TBD'}
+                            </p>
+                          </div>
+                          <div className='hidden sm:block h-8 w-[1px] bg-gray-200'></div>
+                          <div className='flex-1 space-y-1'>
+                            <p className='text-xs text-gray-600'>{session?.staff?.name || 'Unassigned'}</p>
+                            <p className='text-sm font-semibold text-gray-900'>
+                              {session?.title}
+                            </p>
+                          </div>
+                          <div className='hidden sm:block text-right'>
+                            <p className='text-sm text-gray-600'>
+                              {session?.date ? format(new Date(session.date), 'MMM dd, yyyy') : 'Date TBD'}
+                            </p>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className='flex items-center justify-center py-12 border border-gray-100 rounded-lg'>
+                        <div className='text-center'>
+                          <p className='text-gray-500 text-sm mb-2'>No upcoming sessions</p>
+                          <p className='text-gray-400 text-xs'>Sessions will appear here when scheduled</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className='bg-white rounded-lg shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-200'>
+                  <div className='flex flex-col sm:flex-row sm:justify-between sm:items-center p-6 border-b border-gray-100 gap-3'>
+                    <h3 className='text-lg font-semibold text-primary'>Clients</h3>
+                    <button
+                      className='flex gap-2 items-center cursor-pointer hover:bg-gray-50 px-3 py-2 rounded-md transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-secondary focus:ring-opacity-50 self-start sm:self-auto'
+                      onClick={() => navigateToClients(navigate)}
+                      aria-label="View all clients"
+                    >
+                      <p className='text-secondary text-sm font-medium'>
+                        View All
+                      </p>
+                      <img src={rightIcon} alt='Arrow right' className='w-4 h-4' />
+                    </button>
+                  </div>
+                  
+                  <div className='overflow-x-auto'>
+                    {isLoadingClients ? (
+                      <div className='p-6 space-y-3'>
+                        {Array.from({ length: 5 }).map((_, index) => (
+                          <div key={index} className='flex items-center space-x-4'>
+                            <Skeleton height={16} width={150} />
+                            <Skeleton height={16} width={120} />
+                            <Skeleton height={16} width={180} />
+                            <Skeleton height={16} width={80} />
+                            <Skeleton height={16} width={100} />
+                          </div>
+                        ))}
+                      </div>
+                    ) : clients.length > 0 ? (
+                      <div className='[&>div]:shadow-none [&>div]:rounded-none [&>div]:border-none'>
+                        <Table
+                          data={clients.slice(0, 8)}
+                          columns={columns}
+                          rowSelection={rowSelection}
+                          onRowSelectionChange={setRowSelection}
+                          pageSize={12}
+                          onRowClick={(row: Client) =>
+                            navigateToClientDetails(navigate, row.id.toString())
+                          }
+                          className='shadow-none rounded-none border-none'
+                          showPagination={true}
+                        />
+                      </div>
+                    ) : (
+                      <div className='flex items-center justify-center py-12 mx-6'>
+                        <div className='text-center'>
+                          <p className='text-gray-500 text-sm mb-2'>No clients found</p>
+                          <p className='text-gray-400 text-xs'>Clients will appear here when added to your system</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </ErrorBoundary>
   );
 };
 
