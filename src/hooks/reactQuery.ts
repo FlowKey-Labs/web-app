@@ -3,10 +3,12 @@ import {
   useQuery,
   useQueryClient,
   UseQueryResult,
-} from "@tanstack/react-query";
+} from '@tanstack/react-query';
 import {
   registerUser,
   loginUser,
+  passwordResetRequest,
+  resetPassword,
   get_user_profile,
   business_profile,
   update_business_profile,
@@ -105,21 +107,25 @@ import {
   getOutcomes,
   submitProgressFeedback,
   getLevelFeedback,
-} from "../api/api";
-import { Role, useAuthStore } from "../store/auth";
-import { AddClient, Client, ClientData } from "../types/clientTypes";
-import { CreateStaffRequest, StaffResponse } from "../types/staffTypes";
+} from '../api/api';
+import { Role, useAuthStore } from '../store/auth';
+import { AddClient, Client, ClientData } from '../types/clientTypes';
+import { CreateStaffRequest, StaffResponse } from '../types/staffTypes';
 import {
   AnalyticsData,
   DateFilterOption,
   UpcomingSession,
-} from "../types/dashboard";
-import { AttendedSession, CancelledSession, MakeUpSession,
+} from '../types/dashboard';
+import {
+  AttendedSession,
+  CancelledSession,
+  MakeUpSession,
   ProgressFeedback,
-  Session, } from "../types/sessionTypes";
-import { CreateLocationData } from "../types/location";
-import { Group, GroupData } from "../types/clientTypes";
-import { SeriesLevel, SeriesProgress } from "../store/progressStore";
+  Session,
+} from '../types/sessionTypes';
+import { CreateLocationData } from '../types/location';
+import { Group, GroupData } from '../types/clientTypes';
+import { SeriesLevel, SeriesProgress } from '../store/progressStore';
 
 export const useRegisterUser = () => {
   const queryClient = useQueryClient();
@@ -132,7 +138,7 @@ export const useRegisterUser = () => {
       setAuth(data.access, data.refresh, data.user);
     },
     onError: (error) => {
-      console.error("Failed to register==>", error);
+      console.error('Failed to register==>', error);
     },
   });
 };
@@ -148,7 +154,7 @@ export const useLoginUser = () => {
       setAuth(data.access, data.refresh, data.user);
     },
     onError: (error) => {
-      console.error("Failed to log in==>", error);
+      console.error('Failed to log in==>', error);
     },
   });
 };
@@ -162,7 +168,35 @@ export const useSetStaffPassword = () => {
       queryClient.invalidateQueries();
     },
     onError: (error) => {
-      console.error("Failed to set staff passsword==>", error);
+      console.error('Failed to set staff passsword==>', error);
+    },
+  });
+};
+
+export const usePasswordResetRequest = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: passwordResetRequest,
+    onSuccess: () => {
+      queryClient.invalidateQueries();
+    },
+    onError: (error) => {
+      console.error('Failed to send reset password request==>', error);
+    },
+  });
+};
+
+export const useResetPassword = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: resetPassword,
+    onSuccess: () => {
+      queryClient.invalidateQueries();
+    },
+    onError: (error) => {
+      console.error('Failed to reset password==>', error);
     },
   });
 };
@@ -171,7 +205,7 @@ export const useSetStaffPassword = () => {
 
 export const useGetPolicies = () => {
   return useQuery({
-    queryKey: ["policies"],
+    queryKey: ['policies'],
     queryFn: getPolicies,
   });
 };
@@ -181,7 +215,7 @@ export const useCreatePolicy = () => {
   return useMutation({
     mutationFn: createPolicy,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["policies"] });
+      queryClient.invalidateQueries({ queryKey: ['policies'] });
     },
   });
 };
@@ -200,7 +234,7 @@ export const useUpdatePolicy = () => {
       file?: File;
     }) => updatePolicy(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["policies"] });
+      queryClient.invalidateQueries({ queryKey: ['policies'] });
     },
   });
 };
@@ -210,7 +244,7 @@ export const useDeletePolicy = () => {
   return useMutation({
     mutationFn: (id: number) => deletePolicy(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["policies"] });
+      queryClient.invalidateQueries({ queryKey: ['policies'] });
     },
   });
 };
@@ -219,7 +253,7 @@ export const useDeletePolicy = () => {
 
 export const useGetRoles = () => {
   return useQuery({
-    queryKey: ["roles"],
+    queryKey: ['roles'],
     queryFn: getRoles,
   });
 };
@@ -229,7 +263,7 @@ export const useCreateRole = () => {
   return useMutation({
     mutationFn: createRole,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["roles"] });
+      queryClient.invalidateQueries({ queryKey: ['roles'] });
     },
   });
 };
@@ -244,7 +278,7 @@ export const useUpdateRole = () => {
       id: string;
     } & Role) => updateRole(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["roles"] });
+      queryClient.invalidateQueries({ queryKey: ['roles'] });
     },
   });
 };
@@ -254,14 +288,14 @@ export const useDeleteRole = () => {
   return useMutation({
     mutationFn: (id: string) => deleteRole(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["roles"] });
+      queryClient.invalidateQueries({ queryKey: ['roles'] });
     },
   });
 };
 
 export const useGetUserProfile = (options = {}) => {
   return useQuery({
-    queryKey: ["user_profile"],
+    queryKey: ['user_profile'],
     queryFn: get_user_profile,
     ...options
   });
@@ -272,7 +306,7 @@ export const useLogout = () => {
 
   return () => {
     logout();
-    window.location.href = "/login";
+    window.location.href = '/login';
   };
 };
 
@@ -284,7 +318,7 @@ export const useBusinessProfile = () => {
       queryClient.invalidateQueries();
     },
     onError: (error) => {
-      console.error("Failed to update business profile==>", error);
+      console.error('Failed to update business profile==>', error);
     },
   });
 };
@@ -311,13 +345,13 @@ export const useUpdateBusinessProfile = () => {
     onSuccess: () => {
       queryClient.invalidateQueries();
     },
-    onError: (error) => console.error("Update error:", error),
+    onError: (error) => console.error('Update error:', error),
   });
 };
 
 export const useGetBusinessProfile = () => {
   return useQuery({
-    queryKey: ["business_profile"],
+    queryKey: ['business_profile'],
     queryFn: get_business_profile,
   });
 };
@@ -326,14 +360,14 @@ export const useSearchCities = () => {
   return useMutation({
     mutationFn: searchCities,
     onError: (error) => {
-      console.error("Failed to search cities:", error);
+      console.error('Failed to search cities:', error);
     },
   });
 };
 
 export const useGetBusinessServices = () => {
   return useQuery({
-    queryKey: ["business-services"],
+    queryKey: ['business-services'],
     queryFn: get_business_services,
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
@@ -343,7 +377,7 @@ export const useGetBusinessServices = () => {
 
 export const useGetLocations = () => {
   return useQuery({
-    queryKey: ["locations"],
+    queryKey: ['locations'],
     queryFn: get_locations,
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
@@ -353,7 +387,7 @@ export const useGetLocations = () => {
 
 export const useGetLocation = (id: number) => {
   return useQuery({
-    queryKey: ["locations", id],
+    queryKey: ['locations', id],
     queryFn: () => get_location(id),
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
@@ -367,9 +401,9 @@ export const useCreateLocation = () => {
   return useMutation({
     mutationFn: create_location,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["locations"] });
+      queryClient.invalidateQueries({ queryKey: ['locations'] });
     },
-    onError: (error) => console.error("Create location error:", error),
+    onError: (error) => console.error('Create location error:', error),
   });
 };
 
@@ -386,9 +420,9 @@ export const useUpdateLocation = () => {
       return update_location(id, data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["locations"] });
+      queryClient.invalidateQueries({ queryKey: ['locations'] });
     },
-    onError: (error) => console.error("Update location error:", error),
+    onError: (error) => console.error('Update location error:', error),
   });
 };
 
@@ -397,9 +431,9 @@ export const useDeleteLocation = () => {
   return useMutation({
     mutationFn: delete_location,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["locations"] });
+      queryClient.invalidateQueries({ queryKey: ['locations'] });
     },
-    onError: (error) => console.error("Delete location error:", error),
+    onError: (error) => console.error('Delete location error:', error),
   });
 };
 
@@ -408,15 +442,15 @@ export const useSetPrimaryLocation = () => {
   return useMutation({
     mutationFn: set_primary_location,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["locations"] });
+      queryClient.invalidateQueries({ queryKey: ['locations'] });
     },
-    onError: (error) => console.error("Set primary location error:", error),
+    onError: (error) => console.error('Set primary location error:', error),
   });
 };
 
 export const useGetClients = () => {
   return useQuery({
-    queryKey: ["clients"],
+    queryKey: ['clients'],
     queryFn: get_clients,
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
@@ -426,7 +460,7 @@ export const useGetClients = () => {
 
 export const useGetClient = (id: string) => {
   return useQuery({
-    queryKey: ["client", id],
+    queryKey: ['client', id],
     queryFn: () => get_client(id),
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
@@ -444,21 +478,21 @@ export const useAddClient = () => {
         last_name: data.last_name,
         email: data.email,
         phone_number: data.phone_number,
-        location: data.location || "",
+        location: data.location || '',
         gender: data.gender,
         dob: data.dob,
         session_ids: data.session_ids,
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["clients"] });
+      queryClient.invalidateQueries({ queryKey: ['clients'] });
     },
-    onError: (error) => console.error("Add client error:", error),
+    onError: (error) => console.error('Add client error:', error),
   });
 };
 
 export const useGetStaff = () => {
   return useQuery({
-    queryKey: ["staff"],
+    queryKey: ['staff'],
     queryFn: get_staff,
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
@@ -468,7 +502,7 @@ export const useGetStaff = () => {
 
 export const useGetStaffMember = (id: string) => {
   return useQuery({
-    queryKey: ["staff", id],
+    queryKey: ['staff', id],
     queryFn: () => get_staff_member(id),
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
@@ -482,9 +516,9 @@ export const useCreateStaffMember = () => {
   return useMutation<StaffResponse, Error, CreateStaffRequest>({
     mutationFn: (data: CreateStaffRequest) => create_staff(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["staff"] });
+      queryClient.invalidateQueries({ queryKey: ['staff'] });
     },
-    onError: (error) => console.error("Create staff member error ====>", error),
+    onError: (error) => console.error('Create staff member error ====>', error),
   });
 };
 
@@ -499,16 +533,16 @@ export const useUpdateStaffMember = () => {
       updateStaffData: any;
     }) => update_staff_member(id, updateStaffData),
     onSuccess: (_, { id }) => {
-      queryClient.invalidateQueries({ queryKey: ["staff"] });
-      queryClient.invalidateQueries({ queryKey: ["staff", id] });
+      queryClient.invalidateQueries({ queryKey: ['staff'] });
+      queryClient.invalidateQueries({ queryKey: ['staff', id] });
     },
-    onError: (error) => console.error("Update staff member error ====>", error),
+    onError: (error) => console.error('Update staff member error ====>', error),
   });
 };
 
 export const useGetAnalytics = (filterOption?: DateFilterOption) => {
   return useQuery<AnalyticsData>({
-    queryKey: ["analytics", filterOption],
+    queryKey: ['analytics', filterOption],
     queryFn: () => get_analytics(filterOption),
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
@@ -518,7 +552,7 @@ export const useGetAnalytics = (filterOption?: DateFilterOption) => {
 
 export const useGetUpcomingSessions = () => {
   return useQuery<UpcomingSession[]>({
-    queryKey: ["upcoming_sessions"],
+    queryKey: ['upcoming_sessions'],
     queryFn: get_upcoming_sessions,
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
@@ -531,8 +565,8 @@ export const useCancelSession = () => {
   return useMutation({
     mutationFn: (sessionId: string) => cancel_session(sessionId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["upcoming_sessions"] });
-      queryClient.invalidateQueries({ queryKey: ["analytics"] });
+      queryClient.invalidateQueries({ queryKey: ['upcoming_sessions'] });
+      queryClient.invalidateQueries({ queryKey: ['analytics'] });
     },
   });
 };
@@ -548,16 +582,16 @@ export const useRescheduleSession = () => {
       newDateTime: { date: string; startTime: string; endTime: string };
     }) => reschedule_session(sessionId, newDateTime),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["upcoming_sessions"] });
-      queryClient.invalidateQueries({ queryKey: ["analytics"] });
-      queryClient.invalidateQueries({ queryKey: ["sessions"] });
+      queryClient.invalidateQueries({ queryKey: ['upcoming_sessions'] });
+      queryClient.invalidateQueries({ queryKey: ['analytics'] });
+      queryClient.invalidateQueries({ queryKey: ['sessions'] });
     },
   });
 };
 
 export const useGetSessionAnalytics = (sessionId: string) => {
   return useQuery({
-    queryKey: ["session_analytics", sessionId],
+    queryKey: ['session_analytics', sessionId],
     queryFn: () => get_session_analytics(sessionId),
     staleTime: 0, // Set to 0 to ensure it always fetches fresh data
     refetchOnWindowFocus: true,
@@ -567,7 +601,7 @@ export const useGetSessionAnalytics = (sessionId: string) => {
 
 export const useGetClientAnalytics = (clientId: string) => {
   return useQuery({
-    queryKey: ["client_analytics", clientId],
+    queryKey: ['client_analytics', clientId],
     queryFn: () => get_client_analytics(clientId),
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
@@ -585,7 +619,7 @@ export const useGetSessions = (
   filters?: SessionFilters
 ): UseQueryResult<Session[], Error> => {
   return useQuery<Session[], Error>({
-    queryKey: ["sessions", filters],
+    queryKey: ['sessions', filters],
     queryFn: () => get_sessions(filters),
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
@@ -597,7 +631,7 @@ export const useGetStaffSessions = (
   id: string
 ): UseQueryResult<Session[], Error> => {
   return useQuery<Session[], Error>({
-    queryKey: ["sessions", id],
+    queryKey: ['sessions', id],
     queryFn: () => get_staff_sessions(id),
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
@@ -607,7 +641,7 @@ export const useGetStaffSessions = (
 
 export const useGetClassSessions = () => {
   return useQuery<Session[]>({
-    queryKey: ["class_sessions"],
+    queryKey: ['class_sessions'],
     queryFn: get_class_sessions,
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
@@ -617,7 +651,7 @@ export const useGetClassSessions = () => {
 
 export const useGetSessionDetail = (id: string) => {
   return useQuery<Session>({
-    queryKey: ["session", id],
+    queryKey: ['session', id],
     queryFn: () => get_session_detail(id),
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
@@ -630,7 +664,7 @@ export const useGetSessionDetail = (id: string) => {
 
 export const useGetSessionCategories = () => {
   return useQuery({
-    queryKey: ["session_categories"],
+    queryKey: ['session_categories'],
     queryFn: get_session_categories,
     staleTime: 1000 * 60 * 10,
     refetchOnWindowFocus: false,
@@ -648,10 +682,10 @@ export const useCreateSessionCategory = () => {
       description?: string;
     }) => create_session_category({ name, description }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["session_categories"] });
+      queryClient.invalidateQueries({ queryKey: ['session_categories'] });
     },
     onError: (error) => {
-      console.error("Failed to create session category:", error);
+      console.error('Failed to create session category:', error);
     },
   });
 };
@@ -669,10 +703,10 @@ export const useUpdateSessionCategory = () => {
       description?: string;
     }) => update_session_category(id, { name, description }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["session_categories"] });
+      queryClient.invalidateQueries({ queryKey: ['session_categories'] });
     },
     onError: (error) => {
-      console.error("Failed to update session category:", error);
+      console.error('Failed to update session category:', error);
     },
   });
 };
@@ -682,17 +716,17 @@ export const useDeleteSessionCategory = () => {
   return useMutation({
     mutationFn: ({ id }: { id: number }) => delete_session_category(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["session_categories"] });
+      queryClient.invalidateQueries({ queryKey: ['session_categories'] });
     },
     onError: (error) => {
-      console.error("Failed to delete session category:", error);
+      console.error('Failed to delete session category:', error);
     },
   });
 };
 
 export const useGetSessionSubCategories = () => {
   return useQuery({
-    queryKey: ["session_subcategories"],
+    queryKey: ['session_subcategories'],
     queryFn: get_session_subcategories,
     staleTime: 1000 * 60 * 10,
     refetchOnWindowFocus: false,
@@ -712,10 +746,10 @@ export const useCreateSessionSubCategory = () => {
       category: number;
     }) => create_session_subcategory({ name, description, category }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["session_subcategories"] });
+      queryClient.invalidateQueries({ queryKey: ['session_subcategories'] });
     },
     onError: (error) => {
-      console.error("Failed to create session subcategory:", error);
+      console.error('Failed to create session subcategory:', error);
     },
   });
 };
@@ -735,10 +769,10 @@ export const useUpdateSessionSubCategory = () => {
       category: number;
     }) => update_session_subcategory(id, { name, description, category }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["session_subcategories"] });
+      queryClient.invalidateQueries({ queryKey: ['session_subcategories'] });
     },
     onError: (error) => {
-      console.error("Failed to update session subcategory:", error);
+      console.error('Failed to update session subcategory:', error);
     },
   });
 };
@@ -748,17 +782,17 @@ export const useDeleteSessionSubCategory = () => {
   return useMutation({
     mutationFn: ({ id }: { id: number }) => delete_session_subcategory(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["session_subcategories"] });
+      queryClient.invalidateQueries({ queryKey: ['session_subcategories'] });
     },
     onError: (error) => {
-      console.error("Failed to delete session subcategory:", error);
+      console.error('Failed to delete session subcategory:', error);
     },
   });
 };
 
 export const useGetSessionSkills = () => {
   return useQuery({
-    queryKey: ["session_skills"],
+    queryKey: ['session_skills'],
     queryFn: get_session_skills,
     staleTime: 1000 * 60 * 10,
     refetchOnWindowFocus: false,
@@ -778,10 +812,10 @@ export const useCreateSessionSkill = () => {
       subcategory: number;
     }) => create_session_skill({ name, description, subcategory }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["session_skills"] });
+      queryClient.invalidateQueries({ queryKey: ['session_skills'] });
     },
     onError: (error) => {
-      console.error("Failed to create session skill:", error);
+      console.error('Failed to create session skill:', error);
     },
   });
 };
@@ -801,10 +835,10 @@ export const useUpdateSessionSkill = () => {
       subcategory: number;
     }) => update_session_skill(id, { name, description, subcategory }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["session_skills"] });
+      queryClient.invalidateQueries({ queryKey: ['session_skills'] });
     },
     onError: (error) => {
-      console.error("Failed to update session skill:", error);
+      console.error('Failed to update session skill:', error);
     },
   });
 };
@@ -814,17 +848,17 @@ export const useDeleteSessionSkill = () => {
   return useMutation({
     mutationFn: ({ id }: { id: number }) => delete_session_skill(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["session_skills"] });
+      queryClient.invalidateQueries({ queryKey: ['session_skills'] });
     },
     onError: (error) => {
-      console.error("Failed to delete session skill:", error);
+      console.error('Failed to delete session skill:', error);
     },
   });
 };
 
 export const useGetSessionClients = (sessionId: string) => {
   return useQuery({
-    queryKey: ["session_clients", sessionId],
+    queryKey: ['session_clients', sessionId],
     queryFn: () => get_session_clients(sessionId),
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
@@ -838,8 +872,8 @@ export const useCreateSession = () => {
   return useMutation({
     mutationFn: (sessionData: any) => create_session(sessionData),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["sessions"] });
-      queryClient.invalidateQueries({ queryKey: ["upcoming_sessions"] });
+      queryClient.invalidateQueries({ queryKey: ['sessions'] });
+      queryClient.invalidateQueries({ queryKey: ['upcoming_sessions'] });
     },
   });
 };
@@ -850,9 +884,9 @@ export const useUpdateSession = () => {
     mutationFn: ({ id, updateData }: { id: string; updateData: any }) =>
       update_session(id, updateData),
     onSuccess: (_, { id }) => {
-      queryClient.invalidateQueries({ queryKey: ["sessions"] });
-      queryClient.invalidateQueries({ queryKey: ["session", id] });
-      queryClient.invalidateQueries({ queryKey: ["upcoming_sessions"] });
+      queryClient.invalidateQueries({ queryKey: ['sessions'] });
+      queryClient.invalidateQueries({ queryKey: ['session', id] });
+      queryClient.invalidateQueries({ queryKey: ['upcoming_sessions'] });
     },
   });
 };
@@ -877,14 +911,14 @@ export const useUpdateClient = () => {
       };
     }) => update_client(id, updateData),
     onSuccess: (_, { id }) => {
-      queryClient.invalidateQueries({ queryKey: ["clients"] });
-      queryClient.invalidateQueries({ queryKey: ["client", id] });
-      queryClient.invalidateQueries({ queryKey: ["client_members", id] });
-      queryClient.invalidateQueries({ queryKey: ["sessions"] });
-      queryClient.invalidateQueries({ queryKey: ["class_sessions"] });
-      queryClient.invalidateQueries({ queryKey: ["upcoming_sessions"] });
+      queryClient.invalidateQueries({ queryKey: ['clients'] });
+      queryClient.invalidateQueries({ queryKey: ['client', id] });
+      queryClient.invalidateQueries({ queryKey: ['client_members', id] });
+      queryClient.invalidateQueries({ queryKey: ['sessions'] });
+      queryClient.invalidateQueries({ queryKey: ['class_sessions'] });
+      queryClient.invalidateQueries({ queryKey: ['upcoming_sessions'] });
     },
-    onError: (error) => console.error("Update client error:", error),
+    onError: (error) => console.error('Update client error:', error),
   });
 };
 
@@ -893,7 +927,7 @@ export const useDeactivateClient = () => {
   return useMutation({
     mutationFn: deactivate_client,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["clients"] });
+      queryClient.invalidateQueries({ queryKey: ['clients'] });
     },
   });
 };
@@ -903,7 +937,7 @@ export const useActivateClient = () => {
   return useMutation({
     mutationFn: activate_client,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["clients"] });
+      queryClient.invalidateQueries({ queryKey: ['clients'] });
     },
   });
 };
@@ -921,46 +955,46 @@ export const useMarkClientAttended = () => {
     onSuccess: (data, { clientId, sessionId }) => {
       // Invalidate session-related queries
       queryClient.invalidateQueries({
-        queryKey: ["session_clients", sessionId],
+        queryKey: ['session_clients', sessionId],
       });
       queryClient.invalidateQueries({
-        queryKey: ["session_analytics", sessionId],
+        queryKey: ['session_analytics', sessionId],
       });
       queryClient.invalidateQueries({
-        queryKey: ["session", sessionId],
+        queryKey: ['session', sessionId],
       });
 
       // Invalidate client-related queries
       queryClient.invalidateQueries({
-        queryKey: ["client_analytics", clientId],
+        queryKey: ['client_analytics', clientId],
       });
       queryClient.invalidateQueries({
-        queryKey: ["client_sessions", clientId],
+        queryKey: ['client_sessions', clientId],
       });
       queryClient.invalidateQueries({
-        queryKey: ["client_session_details", clientId],
+        queryKey: ['client_session_details', clientId],
       });
       queryClient.invalidateQueries({
-        queryKey: ["client", clientId],
+        queryKey: ['client', clientId],
       });
 
       // Invalidate global analytics and sessions queries
       queryClient.invalidateQueries({
-        queryKey: ["client_analytics"],
+        queryKey: ['client_analytics'],
       });
       queryClient.invalidateQueries({
-        queryKey: ["class_sessions"],
+        queryKey: ['class_sessions'],
       });
       queryClient.invalidateQueries({
-        queryKey: ["sessions"],
+        queryKey: ['sessions'],
       });
 
       // Force a full refetch of the data
       queryClient.refetchQueries({
-        queryKey: ["session_clients", sessionId],
+        queryKey: ['session_clients', sessionId],
       });
       queryClient.refetchQueries({
-        queryKey: ["client_sessions", clientId],
+        queryKey: ['client_sessions', clientId],
       });
 
       return data;
@@ -981,46 +1015,46 @@ export const useMarkClientNotAttended = () => {
     onSuccess: (data, { clientId, sessionId }) => {
       // Invalidate session-related queries
       queryClient.invalidateQueries({
-        queryKey: ["session_clients", sessionId],
+        queryKey: ['session_clients', sessionId],
       });
       queryClient.invalidateQueries({
-        queryKey: ["session_analytics", sessionId],
+        queryKey: ['session_analytics', sessionId],
       });
       queryClient.invalidateQueries({
-        queryKey: ["session", sessionId],
+        queryKey: ['session', sessionId],
       });
 
       // Invalidate client-related queries
       queryClient.invalidateQueries({
-        queryKey: ["client_analytics", clientId],
+        queryKey: ['client_analytics', clientId],
       });
       queryClient.invalidateQueries({
-        queryKey: ["client_sessions", clientId],
+        queryKey: ['client_sessions', clientId],
       });
       queryClient.invalidateQueries({
-        queryKey: ["client_session_details", clientId],
+        queryKey: ['client_session_details', clientId],
       });
       queryClient.invalidateQueries({
-        queryKey: ["client", clientId],
+        queryKey: ['client', clientId],
       });
 
       // Invalidate global analytics and sessions queries
       queryClient.invalidateQueries({
-        queryKey: ["client_analytics"],
+        queryKey: ['client_analytics'],
       });
       queryClient.invalidateQueries({
-        queryKey: ["class_sessions"],
+        queryKey: ['class_sessions'],
       });
       queryClient.invalidateQueries({
-        queryKey: ["sessions"],
+        queryKey: ['sessions'],
       });
 
       // Force a full refetch of the data
       queryClient.refetchQueries({
-        queryKey: ["session_clients", sessionId],
+        queryKey: ['session_clients', sessionId],
       });
       queryClient.refetchQueries({
-        queryKey: ["client_sessions", clientId],
+        queryKey: ['client_sessions', clientId],
       });
 
       return data;
@@ -1043,46 +1077,46 @@ export const useUpdateAttendanceStatus = () => {
     onSuccess: (data, { clientId, sessionId }) => {
       // Invalidate session-related queries
       queryClient.invalidateQueries({
-        queryKey: ["session_clients", sessionId],
+        queryKey: ['session_clients', sessionId],
       });
       queryClient.invalidateQueries({
-        queryKey: ["session_analytics", sessionId],
+        queryKey: ['session_analytics', sessionId],
       });
       queryClient.invalidateQueries({
-        queryKey: ["session", sessionId],
+        queryKey: ['session', sessionId],
       });
 
       // Invalidate client-related queries
       queryClient.invalidateQueries({
-        queryKey: ["client_analytics", clientId],
+        queryKey: ['client_analytics', clientId],
       });
       queryClient.invalidateQueries({
-        queryKey: ["client_sessions", clientId],
+        queryKey: ['client_sessions', clientId],
       });
       queryClient.invalidateQueries({
-        queryKey: ["client_session_details", clientId],
+        queryKey: ['client_session_details', clientId],
       });
       queryClient.invalidateQueries({
-        queryKey: ["client", clientId],
+        queryKey: ['client', clientId],
       });
 
       // Invalidate global analytics and sessions queries
       queryClient.invalidateQueries({
-        queryKey: ["client_analytics"],
+        queryKey: ['client_analytics'],
       });
       queryClient.invalidateQueries({
-        queryKey: ["class_sessions"],
+        queryKey: ['class_sessions'],
       });
       queryClient.invalidateQueries({
-        queryKey: ["sessions"],
+        queryKey: ['sessions'],
       });
 
       // Force a full refetch of the data
       queryClient.refetchQueries({
-        queryKey: ["session_clients", sessionId],
+        queryKey: ['session_clients', sessionId],
       });
       queryClient.refetchQueries({
-        queryKey: ["client_sessions", clientId],
+        queryKey: ['client_sessions', clientId],
       });
 
       return data;
@@ -1095,8 +1129,8 @@ export const useActivateSession = () => {
   return useMutation({
     mutationFn: activate_session,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["sessions"] });
-      queryClient.invalidateQueries({ queryKey: ["session"] });
+      queryClient.invalidateQueries({ queryKey: ['sessions'] });
+      queryClient.invalidateQueries({ queryKey: ['session'] });
     },
   });
 };
@@ -1106,8 +1140,8 @@ export const useDeactivateSession = () => {
   return useMutation({
     mutationFn: deactivate_session,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["sessions"] });
-      queryClient.invalidateQueries({ queryKey: ["session"] });
+      queryClient.invalidateQueries({ queryKey: ['sessions'] });
+      queryClient.invalidateQueries({ queryKey: ['session'] });
     },
   });
 };
@@ -1125,27 +1159,27 @@ export const useRemoveClientFromSession = () => {
     onSuccess: (_, { clientId, sessionId }) => {
       // Invalidate session-related queries
       queryClient.invalidateQueries({
-        queryKey: ["session_clients", sessionId],
+        queryKey: ['session_clients', sessionId],
       });
       queryClient.invalidateQueries({
-        queryKey: ["session_analytics", sessionId],
+        queryKey: ['session_analytics', sessionId],
       });
 
       // Invalidate client-related queries
       queryClient.invalidateQueries({
-        queryKey: ["client_analytics", clientId],
+        queryKey: ['client_analytics', clientId],
       });
       queryClient.invalidateQueries({
-        queryKey: ["client_sessions", clientId],
+        queryKey: ['client_sessions', clientId],
       });
 
       // Invalidate global queries
-      queryClient.invalidateQueries({ queryKey: ["dashboard_analytics"] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard_analytics'] });
       queryClient.invalidateQueries({
-        queryKey: ["client_analytics"],
+        queryKey: ['client_analytics'],
       });
       queryClient.invalidateQueries({
-        queryKey: ["class_sessions"],
+        queryKey: ['class_sessions'],
       });
     },
   });
@@ -1156,7 +1190,7 @@ export const useActivateStaff = () => {
   return useMutation({
     mutationFn: activate_staff,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["staff"] });
+      queryClient.invalidateQueries({ queryKey: ['staff'] });
     },
   });
 };
@@ -1166,7 +1200,7 @@ export const useDeactivateStaff = () => {
   return useMutation({
     mutationFn: deactivate_staff,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["staff"] });
+      queryClient.invalidateQueries({ queryKey: ['staff'] });
     },
   });
 };
@@ -1174,7 +1208,7 @@ export const useDeactivateStaff = () => {
 // Group related hooks
 export const useGetGroups = () => {
   return useQuery<Group[]>({
-    queryKey: ["groups"],
+    queryKey: ['groups'],
     queryFn: get_groups,
     staleTime: 1000 * 60 * 5, // 5 minutes
     refetchOnWindowFocus: false,
@@ -1183,7 +1217,7 @@ export const useGetGroups = () => {
 
 export const useGetGroup = (id: string) => {
   return useQuery<Group>({
-    queryKey: ["group", id],
+    queryKey: ['group', id],
     queryFn: () => get_group(id),
     enabled: !!id,
   });
@@ -1194,10 +1228,10 @@ export const useAddGroup = () => {
   return useMutation({
     mutationFn: add_group,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["groups"] });
+      queryClient.invalidateQueries({ queryKey: ['groups'] });
     },
     onError: (error) => {
-      console.error("Failed to add group:", error);
+      console.error('Failed to add group:', error);
     },
   });
 };
@@ -1213,19 +1247,19 @@ export const useUpdateGroup = () => {
       updateData: Partial<GroupData>;
     }) => update_group(id, updateData),
     onSuccess: (_, { id }) => {
-      queryClient.invalidateQueries({ queryKey: ["groups"] });
-      queryClient.invalidateQueries({ queryKey: ["group", id] });
-      queryClient.invalidateQueries({ queryKey: ["group_members", id] });
+      queryClient.invalidateQueries({ queryKey: ['groups'] });
+      queryClient.invalidateQueries({ queryKey: ['group', id] });
+      queryClient.invalidateQueries({ queryKey: ['group_members', id] });
     },
     onError: (error) => {
-      console.error("Failed to update group:", error);
+      console.error('Failed to update group:', error);
     },
   });
 };
 
 export const useGetGroupMembers = (groupId: string) => {
   return useQuery({
-    queryKey: ["group_members", groupId],
+    queryKey: ['group_members', groupId],
     queryFn: () => get_group_members(groupId),
     enabled: !!groupId,
   });
@@ -1242,8 +1276,8 @@ export const useAddMemberToGroup = () => {
       clientId: string;
     }) => add_member_to_group(groupId, clientId),
     onSuccess: (_, { groupId }) => {
-      queryClient.invalidateQueries({ queryKey: ["group_members", groupId] });
-      queryClient.invalidateQueries({ queryKey: ["group", groupId] });
+      queryClient.invalidateQueries({ queryKey: ['group_members', groupId] });
+      queryClient.invalidateQueries({ queryKey: ['group', groupId] });
     },
   });
 };
@@ -1259,8 +1293,8 @@ export const useRemoveMemberFromGroup = () => {
       clientId: string;
     }) => remove_member_from_group(groupId, clientId),
     onSuccess: (_, { groupId }) => {
-      queryClient.invalidateQueries({ queryKey: ["group_members", groupId] });
-      queryClient.invalidateQueries({ queryKey: ["group", groupId] });
+      queryClient.invalidateQueries({ queryKey: ['group_members', groupId] });
+      queryClient.invalidateQueries({ queryKey: ['group', groupId] });
     },
   });
 };
@@ -1268,7 +1302,7 @@ export const useRemoveMemberFromGroup = () => {
 // Makeup Session related hooks
 export const useGetMakeupSessions = () => {
   return useQuery({
-    queryKey: ["makeup_sessions"],
+    queryKey: ['makeup_sessions'],
     queryFn: getMakeupSessions,
     staleTime: 1000 * 60 * 5, // 5 minutes
     refetchOnWindowFocus: false,
@@ -1280,10 +1314,10 @@ export const useCreateMakeupSession = () => {
   return useMutation({
     mutationFn: createMakeupSession,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["makeup_sessions"] });
+      queryClient.invalidateQueries({ queryKey: ['makeup_sessions'] });
     },
     onError: (error) => {
-      console.error("Failed to create makeup session:", error);
+      console.error('Failed to create makeup session:', error);
     },
   });
 };
@@ -1299,10 +1333,10 @@ export const useUpdateMakeupSession = () => {
       makeupSessionData: MakeUpSession;
     }) => updateMakeupSession(id, makeupSessionData),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["makeup_sessions"] });
+      queryClient.invalidateQueries({ queryKey: ['makeup_sessions'] });
     },
     onError: (error) => {
-      console.error("Failed to update makeup session:", error);
+      console.error('Failed to update makeup session:', error);
     },
   });
 };
@@ -1312,10 +1346,10 @@ export const useDeleteMakeupSession = () => {
   return useMutation({
     mutationFn: ({ id }: { id: string }) => deleteMakeupSession(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["makeup_sessions"] });
+      queryClient.invalidateQueries({ queryKey: ['makeup_sessions'] });
     },
     onError: (error) => {
-      console.error("Failed to delete makeup session:", error);
+      console.error('Failed to delete makeup session:', error);
     },
   });
 };
@@ -1323,18 +1357,18 @@ export const useDeleteMakeupSession = () => {
 // Attended Session related hooks
 export const useGetAttendedSessions = () => {
   return useQuery({
-    queryKey: ["attended_sessions"],
+    queryKey: ['attended_sessions'],
     queryFn: getAttendedSessions,
-    staleTime: 1000 * 60 * 5, 
+    staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
   });
 };
 
 export const useGetProgressSeries = () => {
   return useQuery<SeriesLevel[]>({
-    queryKey: ["series"],
+    queryKey: ['series'],
     queryFn: getSeries,
-    staleTime: 1000 * 60 * 5, 
+    staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
   });
 };
@@ -1344,10 +1378,10 @@ export const useCreateAttendedSession = () => {
   return useMutation({
     mutationFn: createAttendedSession,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["attended_sessions"] });
+      queryClient.invalidateQueries({ queryKey: ['attended_sessions'] });
     },
     onError: (error) => {
-      console.error("Failed to create attended session:", error);
+      console.error('Failed to create attended session:', error);
     },
   });
 };
@@ -1363,10 +1397,10 @@ export const useUpdateAttendedSession = () => {
       attendedSessionData: AttendedSession;
     }) => updateAttendedSession(id, attendedSessionData),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["attended_sessions"] });
+      queryClient.invalidateQueries({ queryKey: ['attended_sessions'] });
     },
     onError: (error) => {
-      console.error("Failed to update attended session:", error);
+      console.error('Failed to update attended session:', error);
     },
   });
 };
@@ -1374,16 +1408,12 @@ export const useUpdateAttendedSession = () => {
 export const useDeleteAttendedSession = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({
-      id,
-    }: {
-      id: string;
-    }) => deleteAttendedSession(id),
+    mutationFn: ({ id }: { id: string }) => deleteAttendedSession(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["attended_sessions"] });
+      queryClient.invalidateQueries({ queryKey: ['attended_sessions'] });
     },
     onError: (error) => {
-      console.error("Failed to delete attended session:", error);
+      console.error('Failed to delete attended session:', error);
     },
   });
 };
@@ -1391,18 +1421,18 @@ export const useDeleteAttendedSession = () => {
 // Cancelled Session related hooks
 export const useGetCancelledSessions = () => {
   return useQuery({
-    queryKey: ["cancelled_sessions"],
+    queryKey: ['cancelled_sessions'],
     queryFn: getCancelledSessions,
-    staleTime: 1000 * 60 * 5, 
+    staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
   });
 };
 
 export const useGetClientProgress = (clientId: string) => {
   return useQuery<SeriesProgress>({
-    queryKey: ["client_progress", clientId],
+    queryKey: ['client_progress', clientId],
     queryFn: () => getClientProgress(clientId),
-    staleTime: 1000 * 60 * 5, 
+    staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
   });
 };
@@ -1412,17 +1442,17 @@ export const useCreateCancelledSession = () => {
   return useMutation({
     mutationFn: createCancelledSession,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["cancelled_sessions"] });
+      queryClient.invalidateQueries({ queryKey: ['cancelled_sessions'] });
     },
     onError: (error) => {
-      console.error("Failed to create cancelled session:", error);
+      console.error('Failed to create cancelled session:', error);
     },
   });
 };
 
 export const useGetOutcomes = (clientId: string) => {
   return useQuery<SeriesLevel[]>({
-    queryKey: ["outcomes", clientId],
+    queryKey: ['outcomes', clientId],
     queryFn: () => getOutcomes(clientId),
     staleTime: 1000 * 60 * 5, // 5 minutes
     refetchOnWindowFocus: false,
@@ -1459,7 +1489,7 @@ export const useSubmitProgressFeedback = () => {
     mutationFn: (payload: ProgressFeedback) => submitProgressFeedback(payload),
     onSuccess: (_, { client_id, subcategory_id }) => {
       queryClient.invalidateQueries({
-        queryKey: ["levelFeedback", client_id, subcategory_id],
+        queryKey: ['levelFeedback', client_id, subcategory_id],
       });
     },
   });
@@ -1476,10 +1506,10 @@ export const useUpdateCancelledSession = () => {
       cancelledSessionData: CancelledSession;
     }) => updateCancelledSession(id, cancelledSessionData),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["cancelled_sessions"] });
+      queryClient.invalidateQueries({ queryKey: ['cancelled_sessions'] });
     },
     onError: (error) => {
-      console.error("Failed to update cancelled session:", error);
+      console.error('Failed to update cancelled session:', error);
     },
   });
 };
@@ -1487,16 +1517,12 @@ export const useUpdateCancelledSession = () => {
 export const useDeleteCancelledSession = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({
-      id,
-    }: {
-      id: string;
-    }) => deleteCancelledSession(id),
+    mutationFn: ({ id }: { id: string }) => deleteCancelledSession(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["cancelled_sessions"] });
+      queryClient.invalidateQueries({ queryKey: ['cancelled_sessions'] });
     },
     onError: (error) => {
-      console.error("Failed to delete cancelled session:", error);
+      console.error('Failed to delete cancelled session:', error);
     },
   });
 };
@@ -1508,7 +1534,7 @@ export const useGetProgressFeedback = (
     feedback: string;
     attachment: string;
   }>({
-    queryKey: ["levelFeedback", clientId, subcategoryId],
+    queryKey: ['levelFeedback', clientId, subcategoryId],
     queryFn: () => getLevelFeedback(clientId, subcategoryId),
     staleTime: 1000 * 60 * 5, // 5 minutes
     refetchOnWindowFocus: false,

@@ -1,100 +1,463 @@
+.calendar-container {
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+}
+
 .fc-toolbar-title {
-  padding-left: 10px;
+  padding-left: 12px;
+  font-weight: 600;
+  font-size: 1.5rem;
+  color: #1f2937;
+  letter-spacing: -0.025em;
 }
 
 .fc-daygrid-day-top {
   flex-direction: row !important;
-  padding-left: 5px;
+  padding: 8px 12px;
+  font-weight: 500;
 }
 
-.fc .fc-daygrid-day.fc-day-today {
-  background-color: rgba(29, 155, 94, 0.2) !important;
+.fc-daygrid-day-number {
+  font-weight: 500;
+  color: #374151;
+  padding: 4px 0;
+}
+
+.fc-theme-standard td,
+.fc-theme-standard th {
+  border-color: #e5e7eb !important;
+}
+
+.fc-theme-standard .fc-scrollgrid {
+  border-color: #e5e7eb !important;
 }
 
 .fc-daygrid-dot-event.fc-event-mirror,
 .fc-daygrid-dot-event:hover {
-  background: #d2f801;
+  background: rgba(29, 155, 94, 0.1);
+  border: 1px solid rgba(29, 155, 94, 0.3);
+  border-radius: 4px;
+  transition: all 0.2s ease-in-out;
+}
+
+.fc-daygrid-dot-event:hover {
+  background: rgba(29, 155, 94, 0.15);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .fc .fc-daygrid-more-link {
-  font-size: small !important;
+  font-size: 0.75rem !important;
+  font-weight: 500 !important;
   width: 100%;
+  color: #6b7280 !important;
+  padding: 2px 8px !important;
+  border-radius: 4px !important;
+  transition: all 0.2s ease-in-out !important;
 }
 
 .fc .fc-daygrid-more-link:hover {
-  background-color: #d2f801;
-}
-
-.fc-day-today {
-  background-color: rgba(29, 155, 94, 0.2) !important;
+  background-color: rgba(29, 155, 94, 0.1) !important;
+  color: #1d9b5e !important;
+  text-decoration: none !important;
 }
 
 .fc-v-event .fc-event-main {
-  color: black;
+  color: #1f2937;
+  font-weight: 600;
+  font-size: 0.875rem;
+  padding: 4px 8px;
+  line-height: 1.4;
+}
+
+.fc-event-title {
+  font-weight: 600 !important;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.875rem !important;
+}
+
+.fc-event-time {
+  font-weight: 500 !important;
+  font-size: 0.75rem !important;
+  color: #6b7280 !important;
 }
 
 .fc-timegrid-event-harness-inset .fc-timegrid-event,
 .fc-timegrid-event.fc-event-mirror,
 .fc-timegrid-more-link {
-  border: none;
+  border: 1px solid rgba(29, 155, 94, 0.3) !important;
+  border-radius: 6px !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+  transition: all 0.2s ease-in-out !important;
+}
+
+.fc-timegrid-event:hover {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15) !important;
+  border-color: rgba(29, 155, 94, 0.5) !important;
+}
+
+.fc-day-today {
+  background-color: rgba(29, 155, 94, 0.015) !important;
+}
+
+.fc-daygrid-day.fc-day-today {
+  background-color: rgba(29, 155, 94, 0.015) !important;
 }
 
 .fc-timegrid-col.fc-day-today {
-  background-color: #fff !important;
+  background-color: rgba(29, 155, 94, 0.02) !important;
+  border-left: 1px solid rgba(29, 155, 94, 0.08) !important;
+  border-right: 1px solid rgba(29, 155, 94, 0.08) !important;
 }
 
 .fc-timegrid-slot.fc-timegrid-slot-lane:not([data-time$=":00"]) {
-  border-top: none !important;
+  border-top: 1px dashed #f3f4f6 !important;
+}
+
+.fc-timegrid-slot.fc-timegrid-slot-lane[data-time$=":00"] {
+  border-top: 1px solid #e5e7eb !important;
 }
 
 .fc-v-event {
-  background-color: rgba(29, 155, 94, 0.2);
+  background-color: rgba(29, 155, 94, 0.12);
+  border: 1px solid rgba(29, 155, 94, 0.25);
+  border-radius: 6px;
+  overflow: hidden;
+  transition: all 0.2s ease-in-out;
+}
+
+.fc-v-event:hover {
+  background-color: rgba(29, 155, 94, 0.18);
+  border-color: rgba(29, 155, 94, 0.4);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .fc-theme-standard .fc-popover {
   background-color: white !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 8px !important;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15) !important;
+  overflow: hidden !important;
+}
+
+.fc-popover-header {
+  background-color: #f9fafb !important;
+  border-bottom: 1px solid #e5e7eb !important;
+  padding: 12px 16px !important;
+  font-weight: 600 !important;
+}
+
+.fc-popover-body {
+  padding: 8px 0 !important;
 }
 
 .fc .fc-timegrid-slot-minor {
   border-top-style: none;
 }
 
-.fc-next-button {
-  background-color: rgb(29, 155, 94) !important;
-  border: none !important;
-}
+.fc-next-button,
 .fc-prev-button {
-  background-color: rgb(29, 155, 94) !important;
+  background-color: #1d9b5e !important;
   border: none !important;
+  border-radius: 8px !important;
+  padding: 10px 14px !important;
+  font-weight: 500 !important;
+  transition: all 0.2s ease-in-out !important;
+  min-width: 40px !important;
+  height: 40px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 0.875rem !important;
 }
+
+.fc-next-button:hover,
+.fc-prev-button:hover {
+  background-color: #16a085 !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(29, 155, 94, 0.25) !important;
+}
+
 .fc-today-button {
   background-color: white !important;
-  border: none !important;
-  color: black !important;
+  border: 1px solid #d1d5db !important;
+  border-radius: 8px !important;
+  color: #374151 !important;
   text-transform: capitalize !important;
   cursor: pointer !important;
+  padding: 10px 18px !important;
+  font-weight: 500 !important;
+  transition: all 0.2s ease-in-out !important;
+  height: 40px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 0.875rem !important;
+  min-width: 80px !important;
 }
 
+.fc-today-button:hover {
+  background-color: #f9fafb !important;
+  border-color: #9ca3af !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+}
 
-/* Custom styles for TUI Calendar popup */
+.fc-today-button:disabled {
+  background-color: #f3f4f6 !important;
+  color: #9ca3af !important;
+  cursor: not-allowed !important;
+  transform: none !important;
+}
+
+.fc-toolbar {
+  margin-bottom: 0 !important;
+  padding: 16px 24px !important;
+  border-bottom: 1px solid #e5e7eb !important;
+  background-color: white !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  min-height: 70px !important;
+  position: relative !important;
+}
+
+.fc-toolbar-chunk {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.fc-toolbar h2 {
+  margin: 0 !important;
+  font-size: 1.5rem !important;
+  font-weight: 600 !important;
+  color: #1f2937 !important;
+  white-space: nowrap !important;
+  line-height: 1.2 !important;
+}
+
+.fc-toolbar .fc-toolbar-chunk:nth-child(2) {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  z-index: 1;
+}
+
+.fc-toolbar .fc-toolbar-chunk:first-child {
+  flex: 0 0 auto;
+  min-width: 200px;
+  z-index: 2;
+}
+
+.fc-toolbar .fc-toolbar-chunk:last-child {
+  flex: 0 0 auto;
+  min-width: 120px;
+  z-index: 2;
+}
+
+.fc-col-header-cell {
+  background-color: #f9fafb !important;
+  border-bottom: 2px solid #e5e7eb !important;
+  font-weight: 600 !important;
+  color: #374151 !important;
+  padding: 12px 8px !important;
+  text-transform: uppercase !important;
+  font-size: 0.75rem !important;
+  letter-spacing: 0.05em !important;
+}
+
+.fc-timegrid-slot-label {
+  color: #6b7280 !important;
+  font-size: 0.75rem !important;
+  font-weight: 500 !important;
+  padding: 4px 8px !important;
+}
+
 .tui-calendar-popup-detail {
   width: 400px !important;
   max-height: 500px !important;
   padding: 1.5rem !important;
-  border-radius: 1rem !important;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+  border: 1px solid #e5e7eb !important;
+  background-color: white !important;
 }
 
 .tui-calendar-popup-detail .tui-calendar-section {
-  margin-bottom: 1rem;
+  margin-bottom: 1.25rem;
 }
 
 .tui-calendar-popup-detail .tui-calendar-title {
   font-size: 1.25rem !important;
-  font-weight: 600 !important;
-  margin-bottom: 0.5rem !important;
+  font-weight: 700 !important;
+  margin-bottom: 0.75rem !important;
+  color: #1f2937 !important;
+  line-height: 1.4 !important;
 }
 
 .tui-calendar-popup-detail .tui-calendar-content {
-  color: #4B5563 !important;
+  color: #4b5563 !important;
+  line-height: 1.6 !important;
+  font-size: 0.875rem !important;
+}
+
+@media (max-width: 768px) {
+  .fc-toolbar {
+    padding: 8px 12px !important;
+    min-height: 50px !important;
+    flex-direction: column !important;
+    position: relative !important;
+    gap: 8px !important;
+  }
+
+  .fc-toolbar h2 {
+    font-size: 1.125rem !important;
+    text-align: center !important;
+  }
+
+  .fc-toolbar .fc-toolbar-chunk:first-child {
+    width: 100% !important;
+    justify-content: center !important;
+    min-width: unset !important;
+  }
+
+  .fc-toolbar .fc-toolbar-chunk:nth-child(2) {
+    position: static !important;
+    left: unset !important;
+    transform: none !important;
+    gap: 6px !important;
+    justify-content: center !important;
+    width: 100% !important;
+  }
+
+  .fc-toolbar .fc-toolbar-chunk:last-child {
+    display: none !important;
+  }
+
+  .fc-next-button,
+  .fc-prev-button {
+    padding: 6px 10px !important;
+    font-size: 0.75rem !important;
+    height: 32px !important;
+    min-width: 32px !important;
+  }
+
+  .fc-today-button {
+    padding: 6px 12px !important;
+    font-size: 0.75rem !important;
+    height: 32px !important;
+    min-width: 60px !important;
+  }
+
+  .tui-calendar-popup-detail {
+    width: 320px !important;
+    padding: 1rem !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .fc-toolbar {
+    padding: 6px 8px !important;
+    min-height: 45px !important;
+    gap: 6px !important;
+  }
+
+  .fc-toolbar h2 {
+    font-size: 1rem !important;
+  }
+
+  .fc-toolbar .fc-toolbar-chunk:first-child {
+    width: 100% !important;
+    justify-content: center !important;
+    min-width: unset !important;
+  }
+
+  .fc-toolbar .fc-toolbar-chunk:nth-child(2) {
+    gap: 4px !important;
+  }
+
+  .fc-toolbar .fc-toolbar-chunk:last-child {
+    display: none !important;
+  }
+
+  .fc-next-button,
+  .fc-prev-button {
+    padding: 4px 6px !important;
+    font-size: 0.7rem !important;
+    height: 28px !important;
+    min-width: 28px !important;
+  }
+
+  .fc-today-button {
+    padding: 4px 8px !important;
+    font-size: 0.7rem !important;
+    height: 28px !important;
+    min-width: 50px !important;
+  }
+
+  .tui-calendar-popup-detail {
+    width: calc(100vw - 20px) !important;
+    max-width: 320px !important;
+    padding: 0.875rem !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fc-event,
+  .fc-today-button,
+  .fc-next-button,
+  .fc-prev-button {
+    transition: none !important;
+  }
+}
+
+.fc-daygrid-day:focus-within,
+.fc-timegrid-slot:focus-within {
+  background-color: rgba(5, 150, 105, 0.05) !important;
+  outline: 2px solid #10b981;
+  outline-offset: -2px;
+}
+
+.fc-next-button:focus,
+.fc-prev-button:focus,
+.fc-today-button:focus {
+  outline: 2px solid #1d9b5e !important;
+  outline-offset: 2px !important;
+}
+
+.fc-daygrid-day:focus,
+.fc-timegrid-slot:focus {
+  background-color: rgba(29, 155, 94, 0.08) !important;
+  outline: 2px solid #1d9b5e;
+  outline-offset: -2px;
+}
+
+.fc-event {
+  will-change: transform;
+}
+
+.fc-daygrid-event,
+.fc-timegrid-event {
+  backface-visibility: hidden;
+  transform: translateZ(0);
+}
+
+.fc-event-custom {
+  cursor: pointer;
+  user-select: none;
+}
+
+.fc-event-custom:focus {
+  outline: 2px solid rgba(29, 155, 94, 0.5);
+  outline-offset: 2px;
 }

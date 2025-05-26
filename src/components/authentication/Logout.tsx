@@ -1,21 +1,8 @@
-import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import Button from '../common/Button';
 import { useLogout } from '../../hooks/reactQuery';
 
 const LogoutSuccess = () => {
-  const navigate = useNavigate();
   const logout = useLogout();
-
-  useEffect(() => {
-    logout();
-    
-    const timer = setTimeout(() => {
-      navigate('/login');
-    }, 5000);
-    
-    return () => clearTimeout(timer);
-  }, [navigate, logout]);
 
   return (
     <div className='flex flex-col items-center justify-center min-h-screen bg-gray-50 p-4'>
@@ -47,7 +34,7 @@ const LogoutSuccess = () => {
 
         <div className='flex flex-col sm:flex-row gap-4 justify-center'>
           <Button
-            onClick={() => navigate('/login')}
+            onClick={() => logout()}
             color='#1D9B5E'
             radius='md'
             className='w-full sm:w-auto'
@@ -55,10 +42,6 @@ const LogoutSuccess = () => {
             Return to Login
           </Button>
         </div>
-
-        <p className='text-sm text-gray-500 mt-4'>
-          Redirecting to login page in 5 seconds...
-        </p>
       </div>
     </div>
   );

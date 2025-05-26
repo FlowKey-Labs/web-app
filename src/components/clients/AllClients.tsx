@@ -25,13 +25,16 @@ import successIcon from '../../assets/icons/success.svg';
 import errorIcon from '../../assets/icons/error.svg';
 import actionOptionIcon from '../../assets/icons/actionOption.svg';
 import { useState, useMemo, useCallback } from 'react';
+import { useDebounce } from '../../hooks/useDebounce';
 import { useExportClients } from '../../hooks/useExport';
 import { useExportGroups } from '../../hooks/useExport';
 import { useNavigate } from 'react-router-dom';
 import { navigateToClientDetails, navigateToGroupDetails } from '../../utils/navigationHelpers';
+import { safeToString } from '../../utils/stringUtils';
 import EmptyDataPage from '../common/EmptyDataPage';
 import { useAuthStore } from '../../store/auth';
 import { useUIStore } from '../../store/ui';
+import ErrorBoundary from '../common/ErrorBoundary';
 
 
 const clientColumnHelper = createColumnHelper<Client>();
@@ -44,7 +47,9 @@ const AllClients = () => {
   >(null); 
   const [opened, { open, close }] = useDisclosure(false);
   const [isActivating, setIsActivating] = useState(false);
-  const [activeView, setActiveView] = useState<'clients' | 'groups'>('clients'); 
+  const [activeView, setActiveView] = useState<'clients' | 'groups'>('clients');
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const debouncedSearchQuery = useDebounce(searchQuery, 300);
 
   const navigate = useNavigate();
   const { openDrawer } = useUIStore();
@@ -54,7 +59,7 @@ const AllClients = () => {
   const permisions = useAuthStore((state) => state.role);
 
   const {
-    data: clients = [],
+    data: allClients = [],
     isLoading,
     isError,
     error,
@@ -62,22 +67,121 @@ const AllClients = () => {
   } = useGetClients();
 
   const {
-    data: groups = [],
+    data: allGroups = [],
     isLoading: groupsLoading,
     isError: groupsError,
     error: getGroupsError,
     refetch: refetchGroups,
   } = useGetGroups();
 
+  const searchClients = useCallback((clients: Client[], query: string) => {
+    if (!query.trim()) return clients;
+    
+    try {
+      const searchTerms = query.toLowerCase().trim().split(/\s+/);
+      
+      return clients.filter((client) => {
+        try {
+          const searchableFields = [
+            `${safeToString(client.first_name)} ${safeToString(client.last_name)}`.trim(),
+            safeToString(client.first_name),
+            safeToString(client.last_name),
+            safeToString(client.email),
+            safeToString(client.phone_number),
+            safeToString(client.location),
+            safeToString(client.id),
+          ].filter(field => field.length > 0); 
+          
+          const combinedText = searchableFields.join(' ');
+          
+          return searchTerms.every(term => 
+            combinedText.includes(term)
+          );
+        } catch (error) {
+          console.warn('Error processing client in search:', client.id, error);
+          return false;
+        }
+      });
+    } catch (error) {
+      console.error('Error in searchClients:', error);
+      return clients;
+    }
+  }, []);
+
+  const searchGroups = useCallback((groups: GroupData[], query: string) => {
+    if (!query.trim()) return groups;
+    
+    try {
+      const searchTerms = query.toLowerCase().trim().split(/\s+/);
+      
+      return groups.filter((group) => {
+        try {
+          const searchableFields = [
+            safeToString(group.name),
+            safeToString(group.description),
+            safeToString(group.location),
+            safeToString(group.contact_person?.first_name),
+            safeToString(group.contact_person?.last_name),
+            group.contact_person 
+              ? `${safeToString(group.contact_person.first_name)} ${safeToString(group.contact_person.last_name)}`.trim()
+              : '',
+            safeToString(group.id),
+          ].filter(field => field.length > 0);
+          
+          const combinedText = searchableFields.join(' ');
+          
+          return searchTerms.every(term => 
+            combinedText.includes(term)
+          );
+        } catch (error) {
+          console.warn('Error processing group in search:', group.id, error);
+          return false;
+        }
+      });
+    } catch (error) {
+      console.error('Error in searchGroups:', error);
+      return groups;
+    }
+  }, []);
+
+  const filteredData = useMemo(() => {
+    try {
+      if (activeView === 'clients') {
+        const clientsData = Array.isArray(allClients) ? allClients : [];
+        return debouncedSearchQuery.trim() ? searchClients(clientsData, debouncedSearchQuery) : clientsData;
+      } else {
+        const groupsData = Array.isArray(allGroups) ? allGroups : [];
+        return debouncedSearchQuery.trim() ? searchGroups(groupsData, debouncedSearchQuery) : groupsData;
+      }
+    } catch (error) {
+      console.error('Error in filteredData:', error);
+      return activeView === 'clients' ? (allClients || []) : (allGroups || []);
+    }
+  }, [activeView, allClients, allGroups, debouncedSearchQuery, searchClients, searchGroups]);
+
+  const clients = activeView === 'clients' ? filteredData as Client[] : allClients;
+  const groups = activeView === 'groups' ? filteredData as GroupData[] : allGroups;
+
+  const handleSearchChange = useCallback((value: string) => {
+    setSearchQuery(value);
+    setRowSelection({});
+  }, []);
+
+  const handleViewChange = useCallback((view: 'clients' | 'groups') => {
+    setActiveView(view);
+    setSearchQuery('');
+    setRowSelection({});
+  }, []);
+
   const getSelectedIds = useCallback(() => {
-    const currentData = activeView === 'clients' ? clients : groups;
+    const currentData = filteredData;
     if (!currentData) return [];
 
     return Object.keys(rowSelection).map((index) => {
       const itemIndex = parseInt(index);
       return currentData[itemIndex].id;
     });
-  }, [rowSelection, clients, groups, activeView]);
+  }, [rowSelection, filteredData]);
 
   const {
     exportModalOpened,
@@ -253,7 +357,7 @@ const AllClients = () => {
         },
       }),
     ],
-    [setSelectedClient, open]
+    [setSelectedClient, open, openExportModal]
   );
 
   const groupColumns: ColumnDef<GroupData, any>[] = useMemo(
@@ -396,7 +500,7 @@ const AllClients = () => {
         ),
       }),
     ],
-    [setSelectedClient, open, clients]
+    [openGroupExportModal, open]
   );
 
   const handleDeactivateEntity = () => {
@@ -437,7 +541,7 @@ const AllClients = () => {
         if (activeView === 'clients') refetch();
         else refetchGroups();
       },
-      onError: (_error: unknown) => {
+      onError: () => {
         notifications.show({
           title: 'Error',
           message: `Failed to deactivate ${entityType}. Please try again.`,
@@ -525,32 +629,36 @@ const AllClients = () => {
 
   if (isLoadingCurrent) {
     return (
-      <div className='flex justify-center items-center h-screen p-6 pt-12'>
-        <Loader size='xl' color='#1D9B5E' />
-      </div>
+      <ErrorBoundary>
+        <div className='flex justify-center items-center h-screen p-6 pt-12'>
+          <Loader size='xl' color='#1D9B5E' />
+        </div>
+      </ErrorBoundary>
     );
   }
 
   if (isErrorCurrent) {
     return (
-      <div className='w-full space-y-6 bg-white rounded-lg p-6'>
-        <div className='space-y-4'>
-          <p className='text-red-500'>
-            Error loading {activeView}: {errorCurrent?.message}
-          </p>
-          <button
-            onClick={() => refetchCurrent()}
-            className='px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90'
-          >
-            Try Again
-          </button>
+      <ErrorBoundary>
+        <div className='w-full space-y-6 bg-white rounded-lg p-6'>
+          <div className='space-y-4'>
+            <p className='text-red-500'>
+              Error loading {activeView}: {errorCurrent?.message}
+            </p>
+            <button
+              onClick={() => refetchCurrent()}
+              className='px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90'
+            >
+              Try Again
+            </button>
+          </div>
         </div>
-      </div>
+      </ErrorBoundary>
     );
   }
 
   return (
-    <>
+    <ErrorBoundary>
       <div className='flex flex-col h-screen bg-cardsBg w-full overflow-y-auto'>
         <MembersHeader
           title={activeView === 'clients' ? 'All Clients' : 'All Groups'}
@@ -560,6 +668,8 @@ const AllClients = () => {
               ? 'Search by Name, Email or Phone Number'
               : 'Search by Group Name or Description'
           }
+          searchValue={searchQuery}
+          onSearchChange={handleSearchChange}
           leftIcon={plusIcon}
           onButtonClick={handleOpenClientDrawer }
           showButton={permisions?.can_create_clients}
@@ -568,14 +678,14 @@ const AllClients = () => {
           <Group>
             <MantineButton
               variant={activeView === 'clients' ? 'filled' : 'outline'}
-              onClick={() => setActiveView('clients')}
+              onClick={() => handleViewChange('clients')}
               color={activeView === 'clients' ? '#1D9B5E' : '#1D9B5E'}
             >
               Clients
             </MantineButton>
             <MantineButton
               variant={activeView === 'groups' ? 'filled' : 'outline'}
-              onClick={() => setActiveView('groups')}
+              onClick={() => handleViewChange('groups')}
               color={activeView === 'groups' ? '#1D9B5E' : '#1D9B5E'}
             >
               Groups
@@ -584,24 +694,30 @@ const AllClients = () => {
         </div>
         <EmptyDataPage
           title={
-            activeView === 'clients' ? 'No Clients Found' : 'No Groups Found'
+            searchQuery.trim()
+              ? `No ${activeView === 'clients' ? 'Clients' : 'Groups'} Found`
+              : activeView === 'clients' ? 'No Clients Found' : 'No Groups Found'
           }
           description={
-            activeView === 'clients'
+            debouncedSearchQuery.trim()
+              ? `No ${activeView === 'clients' ? 'clients' : 'groups'} match your search "${debouncedSearchQuery}"`
+              : activeView === 'clients'
               ? "You don't have any clients yet"
               : "You don't have any groups yet"
           }
           buttonText={
-            activeView === 'clients' ? 'Add New Client' : 'Add New Group'
+            searchQuery.trim()
+              ? 'Clear Search'
+              : activeView === 'clients' ? 'Add New Client' : 'Add New Group'
           }
-          onButtonClick={handleOpenClientDrawer}
+          onButtonClick={searchQuery.trim() ? () => setSearchQuery('') : handleOpenClientDrawer}
           onClose={() => {}}
           opened={
             (activeView === 'clients'
               ? clients.length === 0
               : groups.length === 0) && !isLoadingCurrent
           }
-          showButton={permisions?.can_create_clients}
+          showButton={Boolean(searchQuery.trim()) || Boolean(permisions?.can_create_clients)}
         />
         <div className='flex-1 px-6 py-3'>
           {activeView === 'clients' && clients.length > 0 && (
@@ -782,7 +898,7 @@ const AllClients = () => {
           </div>
         </div>
       </Modal>
-    </>
+    </ErrorBoundary>
   );
 };
 
