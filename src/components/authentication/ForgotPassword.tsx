@@ -10,6 +10,7 @@ import Main from '../authentication/MainAuth';
 import { SubmittingIcon } from '../../assets/icons';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { usePasswordResetRequest } from '../../hooks/reactQuery';
 
 interface FormData {
   email: string;
@@ -21,11 +22,12 @@ const ForgotPassword = () => {
   const [isHovered, setIsHovered] = useState(false);
 
   const methods = useForm<FormData>();
+  const { mutateAsync } = usePasswordResetRequest();
 
   const onSubmit: SubmitHandler<FormData> = async (data) => {
     console.log(data);
     setIsSubmitting(true);
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    await mutateAsync(data);
 
     setIsSubmitting(false);
     navigate('/password-reset');
