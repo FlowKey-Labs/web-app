@@ -362,7 +362,7 @@ const FlowkeyLandingPage = () => {
           <img
             src={whiteCurve}
             alt='whiteCurve'
-            className='flex justify-end bottom-0 w-[100%] pt-12'
+            className='flex justify-end bottom-0 w-[100%] mt-12 self-end'
           />
         </div>
 
@@ -414,11 +414,11 @@ const FlowkeyLandingPage = () => {
                 className='font-[700] text-[20px] text-[#323232]'
                 style={{ fontFamily: 'Space Grotesk' }}
               >
-                Local Expertise
+                Simple by Design
               </h3>
               <p className='font-[400] text-base text-[#969696]'>
-                We speak your language – literally. FlowKey is Made in Kenya and
-                integrates local payment methods like M-PESA
+                No confusing features. Just the tools you need to run your
+                business smoothly.
               </p>
             </div>
 
@@ -432,11 +432,11 @@ const FlowkeyLandingPage = () => {
                 className='font-[700] text-[20px] text-[#323232]'
                 style={{ fontFamily: 'Space Grotesk' }}
               >
-                Local Expertise
+                Real Human Support
               </h3>
               <p className='font-[400] text-base text-[#969696]'>
-                We speak your language – literally. FlowKey is Made in Kenya and
-                integrates local payment methods like M-PESA
+                We offer 24/7 support to our clients. No bots or endless ticket
+                queues.
               </p>
             </div>
           </div>
