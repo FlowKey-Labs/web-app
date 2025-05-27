@@ -13,8 +13,10 @@ import paymentsIncome from '../assets/landingpageAssets/Icons/paymentsIncome.svg
 import paymentsGraph from '../assets/landingpageAssets/Icons/paymentsGraph.svg';
 import payroll from '../assets/landingpageAssets/Icons/payroll.svg';
 import payrollBell from '../assets/landingpageAssets/Icons/payrollBell.svg';
-import graph from '../assets/landingpageAssets/Icons/graph.svg';    
+import graph from '../assets/landingpageAssets/Icons/graph.svg';
 import graph360 from '../assets/landingpageAssets/Icons/360.svg';
+import tools from '../assets/landingpageAssets/Icons/tools.svg';
+import whiteCurve from '../assets/landingpageAssets/Icons/whiteCurve.svg';
 
 const FlowkeyLandingPage = () => {
   return (
@@ -285,6 +287,83 @@ const FlowkeyLandingPage = () => {
             </p>
           </div>
         </div>
+
+        <div className='bg-cardsBg mx-auto w-full pt-12 mt-12 items-center justify-center'>
+          <div className='flex mx-auto w-[80%] justify-around'>
+            <div className='flex flex-col gap-4 w-[50%] justify-center'>
+              <h3 className='text-secondary font-[600] text-base'>
+                Start Small. Add Tools as You Grow.
+              </h3>
+              <h2
+                className='text-[60px] font-[700]'
+                style={{ fontFamily: 'Space Grotesk' }}
+              >
+                Say Goodbye to Admin Headaches
+              </h2>
+              <p className='text-[#8A8D8E] text-[20px] font-[400]'>
+                Need just scheduling today? Add payroll later. FlowKey’s modular
+                design adapts to your business, no bloated features.
+              </p>
+              <Button
+                color='#1D9B5E'
+                h='55px'
+                w='200px'
+                radius='md'
+                size='md'
+                mt='30px'
+              >
+                Start Free Trial
+              </Button>
+            </div>
+            <div className='flex flex-col w-[50%] gap-6 items-center justify-end'>
+              <div className='flex gap-4 bg-white px-6 py-8 rounded-lg w-[500px] shadow-sm'>
+                <img src={tools} alt='' className='self-start' />
+                <div className='flex flex-col gap-1'>
+                  <h3 className='text-[#323232] font-[700] text-lg'>
+                    less time scheduling, more time growing
+                  </h3>
+                  <p className='font-[400] text-base text-[#969696]'>
+                    Free up hours each week with automated bookings and
+                    payments.
+                  </p>
+                </div>
+              </div>
+
+              <div className='flex gap-4 bg-white px-6 py-8 rounded-lg w-[500px] shadow-sm'>
+                <img src={tools} alt='' className='self-start' />
+                <div className='flex flex-col gap-1'>
+                  <h3 className='text-[#323232] font-[700] text-lg'>
+                    less time scheduling, more time growing
+                  </h3>
+                  <p className='font-[400] text-base text-[#969696]'>
+                    Free up hours each week with automated bookings and
+                    payments.
+                  </p>
+                </div>
+              </div>
+
+              <div className='flex gap-4 bg-white px-6 py-8 rounded-lg w-[500px] shadow-sm'>
+                <img src={tools} alt='' className='self-start' />
+                <div className='flex flex-col gap-1'>
+                  <h3 className='text-[#323232] font-[700] text-lg'>
+                    less time scheduling, more time growing
+                  </h3>
+                  <p className='font-[400] text-base text-[#969696]'>
+                    Free up hours each week with automated bookings and
+                    payments.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <img
+            src={whiteCurve}
+            alt='whiteCurve'
+            className='flex justify-end bottom-0 w-[100%] pt-12'
+          />
+        </div>
+
+        <div></div>
       </div>
     </div>
   );
