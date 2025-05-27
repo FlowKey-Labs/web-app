@@ -17,6 +17,9 @@ import graph from '../assets/landingpageAssets/Icons/graph.svg';
 import graph360 from '../assets/landingpageAssets/Icons/360.svg';
 import tools from '../assets/landingpageAssets/Icons/tools.svg';
 import whiteCurve from '../assets/landingpageAssets/Icons/whiteCurve.svg';
+import storyLocal from '../assets/landingpageAssets/Icons/storyLocal.svg';
+import storyDesign from '../assets/landingpageAssets/Icons/storyDesign.svg';
+import storySupport from '../assets/landingpageAssets/Icons/storySupport.svg';
 
 const FlowkeyLandingPage = () => {
   return (
@@ -363,7 +366,81 @@ const FlowkeyLandingPage = () => {
           />
         </div>
 
-        <div></div>
+        <div className='flex flex-col items-center justify-center w-full pt-12 bg-white'>
+          <div className='flex flex-col gap-4 items-center text-center'>
+            <h2 className='font-[600] text-base text-secondary'>Our Story</h2>
+            <h3
+              className='font-[700] text-[40px] text-[#0F2028]'
+              style={{ fontFamily: 'Space Grotesk' }}
+            >
+              Built in Kenya, for Kenyan Businesses
+            </h3>
+            <p className='text-[#969696] text-base font-[400] w-[940px]'>
+              FlowKey started in 2024 when our founder, a Nairobi salon owner,
+              got tired of losing money to missed appointments and messy
+              spreadsheets. After struggling with expensive, complex tools that
+              didn’t understand local needs, she teamed up with Kenyan
+              developers to build a better solution. Today, FlowKey powers
+              hundreds of service businesses across Kenya – from salons to
+              tutoring centers – helping them save time and boost profits.
+            </p>
+          </div>
+          <div className='flex gap-8 items-center justify-center py-12'>
+            <div className='flex flex-col gap-6 w-[360px] h-[327px] border-[1px] border-[#F2F2F2] p-8 rounded-lg'>
+              <img
+                src={storyLocal}
+                alt='storyLocal'
+                className='w-[56px] h-[56px]'
+              />
+              <h3
+                className='font-[700] text-[20px] text-[#323232]'
+                style={{ fontFamily: 'Space Grotesk' }}
+              >
+                Local Expertise
+              </h3>
+              <p className='font-[400] text-base text-[#969696]'>
+                We speak your language – literally. FlowKey is Made in Kenya and
+                integrates local payment methods like M-PESA
+              </p>
+            </div>
+
+            <div className='flex flex-col gap-6 w-[360px] h-[327px] border-[1px] border-[#F2F2F2] p-8 rounded-lg'>
+              <img
+                src={storyLocal}
+                alt='storyLocal'
+                className='w-[56px] h-[56px]'
+              />
+              <h3
+                className='font-[700] text-[20px] text-[#323232]'
+                style={{ fontFamily: 'Space Grotesk' }}
+              >
+                Local Expertise
+              </h3>
+              <p className='font-[400] text-base text-[#969696]'>
+                We speak your language – literally. FlowKey is Made in Kenya and
+                integrates local payment methods like M-PESA
+              </p>
+            </div>
+
+            <div className='flex flex-col gap-6 w-[360px] h-[327px] border-[1px] border-[#F2F2F2] p-8 rounded-lg'>
+              <img
+                src={storyLocal}
+                alt='storyLocal'
+                className='w-[56px] h-[56px]'
+              />
+              <h3
+                className='font-[700] text-[20px] text-[#323232]'
+                style={{ fontFamily: 'Space Grotesk' }}
+              >
+                Local Expertise
+              </h3>
+              <p className='font-[400] text-base text-[#969696]'>
+                We speak your language – literally. FlowKey is Made in Kenya and
+                integrates local payment methods like M-PESA
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
