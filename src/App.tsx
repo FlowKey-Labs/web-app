@@ -40,6 +40,7 @@ import { useAuthStore } from "./store/auth";
 import GroupDetails from './components/clients/GroupDetails';
 import AuthWrapper from "./components/common/AuthWrapper";
 import "./App.css";
+import FlowkeyLandingPage from "./pages/FlowkeyLandingPage";
 
 function App() {
   const permisions = useAuthStore((state) => state.role);
@@ -86,6 +87,7 @@ function App() {
                 <SuccessfulPassReset />
               </AuthWrapper>
             } />
+            <Route path="/landing" element={<FlowkeyLandingPage />} />
             
             {/* Signup route - only in development */}
             {import.meta.env.VITE_APP_ENVIRONMENT === "development" && (
