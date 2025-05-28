@@ -57,6 +57,7 @@ function App() {
         <Router>
           <Routes>
             {/* Authentication Routes - No authentication required */}
+            <Route path='/' element={<FlowkeyLandingPage />} />
             <Route
               path='/login'
               element={
@@ -105,7 +106,6 @@ function App() {
                 </AuthWrapper>
               }
             />
-            <Route path='/landing' element={<FlowkeyLandingPage />} />
 
             {/* Signup route - only in development */}
             {import.meta.env.VITE_APP_ENVIRONMENT === 'development' && (
@@ -128,8 +128,7 @@ function App() {
                 </AuthWrapper>
               }
             >
-              <Route index element={<GettingStarted />} />
-              <Route path='dashboard' element={<GettingStarted />} />
+              <Route path='/dashboard' element={<GettingStarted />} />
               <Route path='/welcome' element={<Welcome />} />
               <Route path='/team-members' element={<TeamMembers />} />
               <Route path='/business-type' element={<BusinessType />} />
