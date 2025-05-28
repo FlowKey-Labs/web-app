@@ -29,6 +29,8 @@ import instagram from '../assets/landingpageAssets/Icons/instagram.svg';
 import headerImage from '../assets/landingpageAssets/images/Hero Section.png';
 import footerImage from '../assets/landingpageAssets/images/Footer.png';
 
+import fullPhone from '../assets/landingpageAssets/Icons/fullPhone.svg';
+
 const FlowkeyLandingPage = () => {
   return (
     <div className='flex flex-col h-screen'>
@@ -44,8 +46,14 @@ const FlowkeyLandingPage = () => {
         {/* navbar  */}
         <div className='w-[90%] md:w-[80%] flex flex-wrap justify-between items-center mx-auto py-4 relative'>
           <div className='flex items-center gap-2 cursor-pointer'>
-            <img src={logo} alt='logo' className='w-[55px] h-[48px]' />
-            <p className='text-[36px] font-[900] text-[#0F2028]'>FlowKey</p>
+            <img
+              src={logo}
+              alt='logo'
+              className='w-[28px] h-[24px] md:w-[55px] md:h-[48px]'
+            />
+            <p className='text-[24px] md:text-[36px] font-[900] text-[#0F2028]'>
+              FlowKey
+            </p>
           </div>
 
           {/* Hamburger button for mobile */}
@@ -120,15 +128,12 @@ const FlowkeyLandingPage = () => {
           </div>
         </div>
         {/* header details  */}
-        <div className='flex justify-between w-[80%] mx-auto pt-12'>
-          <div className='flex flex-col gap-4 items-start justify-center w-[60%]'>
-            <h3
-              className='font-[700] text-[60px] text-[#0F2028] '
-              style={{ fontFamily: 'Space Grotesk' }}
-            >
+        <div className='flex flex-wrap flex-col md:flex-row justify-between w-[80%] mx-auto pt-12'>
+          <div className='flex flex-col gap-4 md:items-start items-center text-center md:text-left justify-center md:w-[60%]'>
+            <h3 className='font-[700] text-[36px] md:text-[60px] text-[#0F2028] font-spaceGrotesk'>
               Run Your Service Business Smoothly.
             </h3>
-            <p className='text-[#8A8D8E] text-base font-[400] w-[80%]'>
+            <p className='text-[#8A8D8E] text-base font-[400] md:w-[80%] '>
               Flowkey is the all-in-one platform for local businesses to
               streamline operations, from bookings and payments to staff and
               client management - without spreadsheets or stress
@@ -137,37 +142,46 @@ const FlowkeyLandingPage = () => {
               Book Free Demo
             </Button>
           </div>
-          <div className='w-[40%] relative'>
-            <div className='absolute top-[400px] left-[-100px] w-[360px] h-[106px] bg-white rounded-lg shadow-sm border-[1px] border-[#F2F2F2]'>
-              <div className='flex p-4 gap-3'>
+          <div className='md:w-[40%] w-full relative'>
+            <div className='absolute top-[250px] md:top-[400px] left-[-10px] md:left-[-100px] w-[201px] h-[71px] md:w-[360px] md:h-[106px] bg-white rounded-xl shadow-sm border-[1px] border-[#F2F2F2]'>
+              <div className='flex md:p-4 p-2 gap-3'>
                 <img
                   src={upcomingClock}
                   alt='upcomingClock'
                   className='self-start'
                 />
                 <div className='flex flex-col gap-1'>
-                  <p className='font-[700] text-base text-[#323232]'>
+                  <p className='font-[700] text-xs md:text-base text-[#323232]'>
                     Upcoming Appointments
                   </p>
-                  <p className='text-[#969696] text-xs font-[400]'>
+                  <p className='text-[#969696] text-[8px] md:text-xs font-[400]'>
                     You have a Make-up appointment with Shirú Waceke coming up
                     at 14.30Hr
                   </p>
                 </div>
               </div>
             </div>
-            <div className=''>
-              <img src={headerPhone} alt='headerPhone' />
+            <div className='flex justify-center'>
+              <img
+                src={headerPhone}
+                alt='headerPhone'
+                className='hidden md:block'
+              />
+              <img
+                src={fullPhone}
+                alt='fullPhone'
+                className='md:hidden self-center mt-4 w-[230px] h-[365px]'
+              />
             </div>
 
-            <div className='absolute top-[150px] left-[320px] w-[224px] h-[105px] bg-white rounded-xl shadow-sm border-[1px] border-[#F2F2F2]'>
-              <div className='flex p-4 gap-3'>
+            <div className='absolute top-[80px] md:top-[150px] left-[200px] md:left-[320px] w-[154px] h-[67px] md:w-[224px] md:h-[105px] bg-white rounded-xl shadow-sm border-[1px] border-[#F2F2F2]'>
+              <div className='flex md:p-4 p-2 gap-3'>
                 <div className='flex flex-col gap-1'>
-                  <p className='font-[400] text-base text-[#0A1519B2]'>
+                  <p className='font-[400] text-xs md:text-base text-[#0A1519B2]'>
                     Net Income
                   </p>
                   <div className='flex items-center gap-4'>
-                    <p className='text-[#0A1519] text-[24px] font-[600]'>
+                    <p className='text-[#0A1519] text-sm md:text-[24px] font-[600]'>
                       KES 123,498k
                     </p>
                     <img src={incomeArrow} alt='incomeArrow' />
