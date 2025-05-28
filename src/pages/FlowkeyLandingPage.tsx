@@ -476,7 +476,7 @@ const FlowkeyLandingPage = () => {
               </div>
             </div>
             <div className='flex flex-col md:w-[50%] w-full md:gap-6 gap-2 mt-5 md:mt-0 items-center justify-end'>
-              <div className='flex gap-4 bg-white md:px-6 md:py-8 px-4 py-6 rounded-lg md:w-[500px] w-full shadow-sm'>
+              <div className='flex gap-4 bg-white md:px-6 md:py-8  py-6 rounded-lg md:w-[500px] w-full shadow-sm'>
                 <img src={tools} alt='' className='self-start' />
                 <div className='flex flex-col gap-1'>
                   <h3 className='text-[#323232] font-[700] md:text-lg text-sm'>
@@ -594,7 +594,7 @@ const FlowkeyLandingPage = () => {
         </div>
 
         <div
-          className='flex flex-col items-center justify-center w-full pt-12 py-12'
+          className='flex flex-col items-center justify-center w-full md:pt-12 py-12'
           style={{
             backgroundImage: `url(${footerImage})`,
             backgroundSize: 'cover',
@@ -602,16 +602,16 @@ const FlowkeyLandingPage = () => {
           }}
         >
           <div className='flex flex-col text-center justify-center gap-4'>
-            <h2 className='font-[700] text-[48px] text-white w-[540px] self-center font-spaceGrotesk'>
+            <h2 className='font-[700] md:text-[48px] text-[32px] text-white md:w-[540px] w-[327px] self-center font-spaceGrotesk'>
               Ready to{' '}
               <span className='font-[300] text-white italic'>Take Control</span>{' '}
               of Your Business?
             </h2>
-            <p className='text-base font-[400] text-[#969696] w-[650px] self-center'>
+            <p className='text-base font-[400] text-[#969696] md:w-[650px] w-[327px] self-center'>
               Simplify your operations. Get started with Flowkey and spend less
               time managing your business—and more time running it.
             </p>
-            <div className='flex items-center w-[500px] h-[72px] shadow-sm bg-white rounded-[14px] justify-between p-3 mt-4 self-center'>
+            <div className='flex items-center md:w-[500px] w-[327px] h-[72px] shadow-sm bg-white rounded-[24px] md:rounded-xl justify-between p-3 mt-4 self-center'>
               <div className='flex items-center gap-2'>
                 <img src={email} alt='email' />
                 <input
@@ -620,19 +620,38 @@ const FlowkeyLandingPage = () => {
                   className='bg-transparent border-none focus:outline-none'
                 />
               </div>
-              <Button color='#1D9B5E' h='50px' w='170px' radius='lg' size='md'>
+              <div className='hidden md:block'>
+                <Button
+                  color='#1D9B5E'
+                  h='50px'
+                  w='170px'
+                  radius='lg'
+                  size='md'
+                >
+                  Book Free Demo
+                </Button>
+              </div>
+            </div>
+            <div className='md:hidden mt-5 '>
+              <Button color='#1D9B5E' h='70px' w='170px' radius='lg' size='md'>
                 Book Free Demo
               </Button>
             </div>
           </div>
         </div>
 
-        <div className='flex flex-col items-center justify-center w-full pt-12 bg-white py-12'>
-          <div className='w-[80%] flex justify-between mx-auto py-4'>
-            <div className='flex flex-col gap-8 w-[440px]'>
+        <div className='flex flex-col items-center justify-center w-full pt-12 bg-white md:py-12 py-6'>
+          <div className='md:w-[80%] w-[90%] flex md:flex-row flex-col justify-between mx-auto md:py-4 space-y-6 md:space-y-0'>
+            <div className='flex flex-col gap-8 md:w-[440px] w-[327px]'>
               <div className='flex items-center gap-2 cursor-pointer'>
-                <img src={logo} alt='logo' className='w-[55px] h-[48px]' />
-                <p className='text-[36px] font-[900] text-[#0F2028]'>FlowKey</p>
+                <img
+                  src={logo}
+                  alt='logo'
+                  className='w-[28px] h-[24px] md:w-[55px] md:h-[48px]'
+                />
+                <p className='text-[24px] md:text-[36px] font-[900] text-[#0F2028]'>
+                  FlowKey
+                </p>
               </div>
               <p className='text-[#0F2028] text-xl font-[300]'>
                 Empowering service businesses to run like pros without the
@@ -643,14 +662,14 @@ const FlowkeyLandingPage = () => {
               </p>
             </div>
             <div
-              className='flex flex-col gap-4 font-[500] text-base text-[#0F2028]'
+              className='flex flex-col gap-4 font-[500] md:text-base text-xs md:text-[#0F2028] text-[#969696]'
               style={{ fontFamily: 'Inter' }}
             >
               <p className='cursor-pointer'>Home</p>
               <p className='cursor-pointer'>Features</p>
               <p className='cursor-pointer'>About Us</p>
             </div>
-            <div className='flex items-center justify-end'>
+            <div className='flex items-center md:justify-end'>
               <div className='flex gap-4 self-end'>
                 <img src={facebook} alt='facebook' className='cursor-pointer' />
                 <img src={twitter} alt='twitter' className='cursor-pointer' />
@@ -662,6 +681,10 @@ const FlowkeyLandingPage = () => {
                 />
               </div>
             </div>
+            <div className='flex flex-col md:hidden gap-6'>
+              <p className='font-[700] text-base'>Contact Us</p>
+              <p className='text-[#969696] text-sm'>info@flowwkeylabs.com</p>
+            </div>
           </div>
         </div>
 
@@ -671,10 +694,10 @@ const FlowkeyLandingPage = () => {
             style={{ fontFamily: 'Inter' }}
           >
             <p>
-              &copy; {new Date().getFullYear()} FlowKey. All rights reserved.
+              &copy; {new Date().getFullYear()} FlowKeyLabs. All rights reserved.
             </p>
-            <p>Privacy Policy</p>
-            <p>Terms of Service</p>
+            <p className='cursor-pointer hidden md:block'>Privacy Policy</p>
+            <p className='cursor-pointer hidden md:block'>Terms of Service</p>
           </div>
         </div>
       </div>
