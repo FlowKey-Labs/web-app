@@ -544,9 +544,19 @@ const FlowkeyLandingPage = () => {
               Built in Kenya, for Kenyan Businesses
             </h3>
             <p className='text-[#969696] text-base font-[400] w-[327px] md:w-[940px]'>
-              FlowKey started in 2024 when our founder, a Nairobi salon owner,
-              got tired of losing money to missed appointments and messy
-              spreadsheets...
+              Flowkey started from lived frustration—trying to book swim lessons
+              for my child and hitting walls with scheduling, payments, and
+              communication. That pain point turned into a question: What if
+              local service businesses had smarter tools? So we started
+              building. Flowkey is the all-in-one platform built with local
+              businesses in mind. We simplify scheduling, streamline payments,
+              and organize your business operations in one place so you can
+              focus on what you do best - serving your clients. At Flowkey,
+              we're driven by a simple belief: Local businesses are the
+              heartbeat of communities. They deserve intuitive, powerful tools
+              that help them grow - without the complexity or overhead. We're
+              proudly building from Kenya, inspired by real needs and real
+              businesses like yours. And this is just the beginning.
             </p>
           </div>
 
@@ -694,7 +704,8 @@ const FlowkeyLandingPage = () => {
             style={{ fontFamily: 'Inter' }}
           >
             <p>
-              &copy; {new Date().getFullYear()} FlowKeyLabs. All rights reserved.
+              &copy; {new Date().getFullYear()} FlowKeyLabs. All rights
+              reserved.
             </p>
             <p className='cursor-pointer hidden md:block'>Privacy Policy</p>
             <p className='cursor-pointer hidden md:block'>Terms of Service</p>
