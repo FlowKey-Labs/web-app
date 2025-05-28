@@ -397,70 +397,84 @@ const FlowkeyLandingPage = () => {
         </div>
 
         <div className='bg-cardsBg mx-auto w-full pt-12 mt-12 items-center justify-center'>
-          <div className='flex mx-auto w-[80%] justify-around'>
-            <div className='flex flex-col gap-4 w-[50%] justify-center'>
-              <h3 className='text-secondary font-[600] text-base'>
-                Start Small. Add Tools as You Grow.
+          <div className='flex flex-col md:flex-row mx-auto md:w-[80%] w-[90%] justify-around'>
+            <div className='flex flex-col gap-4 md:w-[50%] w-full justify-center'>
+              <h3 className='text-secondary font-[600] text-base hidden md:block'>
+                START SMALL. ADD TOOLS AS YOU GROW.
               </h3>
-              <h2
-                className='text-[60px] font-[700]'
-                style={{ fontFamily: 'Space Grotesk' }}
-              >
+              <h3 className='text-secondary font-[600] text-base md:hidden'>
+                HOW IT WORKS
+              </h3>
+              <h2 className='md:text-[60px] text-[40px] font-[700] font-spaceGrotesk'>
                 Say Goodbye to Admin Headaches
               </h2>
-              <p className='text-[#8A8D8E] text-[20px] font-[400]'>
+              <p className='text-[#8A8D8E] text-[20px] font-[400] w-[100%] md:w-full'>
                 Need just scheduling today? Add payroll later. FlowKey’s modular
                 design adapts to your business, no bloated features.
               </p>
-              <Button
-                color='#1D9B5E'
-                h='55px'
-                w='200px'
-                radius='md'
-                size='md'
-                mt='30px'
-              >
-                Start Free Trial
-              </Button>
+              <div className='hidden md:block'>
+                <Button
+                  color='#1D9B5E'
+                  h='55px'
+                  w='200px'
+                  radius='md'
+                  size='md'
+                  mt='30px'
+                >
+                  Start Free Trial
+                </Button>
+              </div>
             </div>
-            <div className='flex flex-col w-[50%] gap-6 items-center justify-end'>
-              <div className='flex gap-4 bg-white px-6 py-8 rounded-lg w-[500px] shadow-sm'>
+            <div className='flex flex-col md:w-[50%] w-full md:gap-6 gap-2 mt-5 md:mt-0 items-center justify-end'>
+              <div className='flex gap-4 bg-white md:px-6 md:py-8 px-4 py-6 rounded-lg md:w-[500px] w-full shadow-sm'>
                 <img src={tools} alt='' className='self-start' />
                 <div className='flex flex-col gap-1'>
-                  <h3 className='text-[#323232] font-[700] text-lg'>
+                  <h3 className='text-[#323232] font-[700] md:text-lg text-sm'>
                     less time scheduling, more time growing
                   </h3>
-                  <p className='font-[400] text-base text-[#969696]'>
+                  <p className='font-[400] md:text-base text-xs text-[#969696]'>
                     Free up hours each week with automated bookings and
                     payments.
                   </p>
                 </div>
               </div>
 
-              <div className='flex gap-4 bg-white px-6 py-8 rounded-lg w-[500px] shadow-sm'>
+              <div className='flex gap-4 bg-white px-6 py-8 rounded-lg md:w-[500px] w-full shadow-sm'>
                 <img src={tools} alt='' className='self-start' />
                 <div className='flex flex-col gap-1'>
-                  <h3 className='text-[#323232] font-[700] text-lg'>
+                  <h3 className='text-[#323232] font-[700] md:text-lg text-sm'>
                     Get paid faster
                   </h3>
-                  <p className='font-[400] text-base text-[#969696]'>
+                  <p className='font-[400] md:text-base text-xs text-[#969696]'>
                     Eliminate late payments with integrated card processing and
                     auto-billing.
                   </p>
                 </div>
               </div>
 
-              <div className='flex gap-4 bg-white px-6 py-8 rounded-lg w-[500px] shadow-sm'>
+              <div className='flex gap-4 bg-white px-6 py-8 rounded-lg md:w-[500px] w-full shadow-sm'>
                 <img src={tools} alt='' className='self-start' />
                 <div className='flex flex-col gap-1'>
-                  <h3 className='text-[#323232] font-[700] text-lg'>
+                  <h3 className='text-[#323232] font-[700] md:text-lg text-sm'>
                     Grow with confidence
                   </h3>
-                  <p className='font-[400] text-base text-[#969696]'>
+                  <p className='font-[400] md:text-base text-xs text-[#969696]'>
                     Track key metrics and make data-driven decisions to scale
                     your business.
                   </p>
                 </div>
+              </div>
+              <div className='self-start md:hidden'>
+                <Button
+                  color='#1D9B5E'
+                  h='55px'
+                  w='200px'
+                  radius='md'
+                  size='md'
+                  mt='30px'
+                >
+                  Start Free Trial
+                </Button>
               </div>
             </div>
           </div>
@@ -471,16 +485,15 @@ const FlowkeyLandingPage = () => {
           />
         </div>
 
-        <div className='flex flex-col items-center justify-center w-full pt-12 bg-white'>
+        <div className='flex flex-col items-center justify-center md:w-full md:pt-12 pt-6 bg-white w-[90%] mx-auto'>
           <div className='flex flex-col gap-4 items-center text-center'>
-            <h2 className='font-[600] text-base text-secondary'>Our Story</h2>
-            <h3
-              className='font-[700] text-[40px] text-[#0F2028]'
-              style={{ fontFamily: 'Space Grotesk' }}
-            >
+            <h2 className='md:font-[600] font-[400] text-base text-secondary'>
+              Our Story
+            </h2>
+            <h3 className='font-[700] w-[327px] md:w-full text-[40px] text-[#0F2028] font-spaceGrotesk'>
               Built in Kenya, for Kenyan Businesses
             </h3>
-            <p className='text-[#969696] text-base font-[400] w-[940px]'>
+            <p className='text-[#969696] text-base font-[400] w-[327px] md:w-[940px]'>
               FlowKey started in 2024 when our founder, a Nairobi salon owner,
               got tired of losing money to missed appointments and messy
               spreadsheets. After struggling with expensive, complex tools that
@@ -490,17 +503,14 @@ const FlowkeyLandingPage = () => {
               tutoring centers – helping them save time and boost profits.
             </p>
           </div>
-          <div className='flex gap-8 items-center justify-center py-12'>
-            <div className='flex flex-col gap-6 w-[360px] h-[327px] border-[1px] border-[#F2F2F2] p-8 rounded-lg shadow-sm'>
+          <div className='flex gap-8 items-center justify-center md:py-12 py-6 overflow-x-scroll'>
+            <div className='flex flex-col items-center justify-center gap-6 md:w-[360px] md:h-[327px] w-[327px] h-[303px] border-[1px] border-[#F2F2F2] p-8 rounded-xl shadow-sm '>
               <img
                 src={storyLocal}
                 alt='storyLocal'
                 className='w-[56px] h-[56px]'
               />
-              <h3
-                className='font-[700] text-[20px] text-[#323232]'
-                style={{ fontFamily: 'Space Grotesk' }}
-              >
+              <h3 className='font-[700] text-[20px] text-[#323232] font-spaceGrotesk'>
                 Local Expertise
               </h3>
               <p className='font-[400] text-base text-[#969696]'>
@@ -509,7 +519,7 @@ const FlowkeyLandingPage = () => {
               </p>
             </div>
 
-            <div className='flex flex-col gap-6 w-[360px] h-[327px] border-[1px] border-[#F2F2F2] p-8 rounded-lg shadow-sm'>
+            <div className='flex flex-col items-center justify-center gap-6 md:w-[360px] md:h-[327px] w-[327px] h-[303px] border-[1px] border-[#F2F2F2] p-8 rounded-xl shadow-sm '>
               <img
                 src={storyDesign}
                 alt='storyLocal'
@@ -527,7 +537,7 @@ const FlowkeyLandingPage = () => {
               </p>
             </div>
 
-            <div className='flex flex-col gap-6 w-[360px] h-[327px] border-[1px] border-[#F2F2F2] p-8 rounded-lg shadow-sm'>
+            <div className='flex flex-col items-center justify-center gap-6 md:w-[360px] md:h-[327px] w-[327px] h-[303px] border-[1px] border-[#F2F2F2] p-8 rounded-xl shadow-sm '>
               <img
                 src={storySupport}
                 alt='storyLocal'
