@@ -30,6 +30,7 @@ import headerImage from '../assets/landingpageAssets/images/Hero Section.png';
 import footerImage from '../assets/landingpageAssets/images/Footer.png';
 
 import fullPhone from '../assets/landingpageAssets/Icons/fullPhone.svg';
+import payrollMobile from '../assets/landingpageAssets/Icons/payrollMobile.svg';
 
 const FlowkeyLandingPage = () => {
   return (
@@ -128,7 +129,7 @@ const FlowkeyLandingPage = () => {
           </div>
         </div>
         {/* header details  */}
-        <div className='flex flex-wrap flex-col md:flex-row justify-between w-[80%] mx-auto pt-12'>
+        <div className='flex flex-wrap flex-col md:flex-row justify-between w-[90%] md:w-[80%] mx-auto pt-12'>
           <div className='flex flex-col gap-4 md:items-start items-center text-center md:text-left justify-center md:w-[60%]'>
             <h3 className='font-[700] text-[36px] md:text-[60px] text-[#0F2028] font-spaceGrotesk'>
               Run Your Service Business Smoothly.
@@ -195,26 +196,22 @@ const FlowkeyLandingPage = () => {
       {/* features section */}
       <div className='flex flex-col bg-white w-full justify-center pt-12'>
         <div className='flex flex-col w-[50%] mx-auto space-y-4 items-center'>
-          <h3 className='text-secondary font-[600] text-base'>Key Features</h3>
-          <p
-            className='text-[#0F2028] text-[40px] font-[700]'
-            style={{ fontFamily: 'Space Grotesk' }}
-          >
+          <h3 className='text-secondary font-[400] md:font-[600] text-base'>
+            Key Features
+          </h3>
+          <p className='text-[#0F2028] text-[32px] w-[327px] text-center md:w-full md:text-[40px] font-[700] font-spaceGrotesk'>
             Everything you need in one place.
           </p>
-          <p className='text-[400] text-base text-center text-[#969696]'>
+          <p className='font-[400] text-[20px] md:text-base w-[327px] md:w-full text-center text-[#969696]'>
             Juggling appointments, payments and client communication shouldn’t
             eat up your time. Flowkey automates the busywork so you can focus on
             what you do best, serving your clients.
           </p>
         </div>
         {/* features cards */}
-        <div className='flex w-[80%] mx-auto justify-around py-12 mt-12'>
-          <div className='flex flex-col gap-4 justify-center w-[570px]'>
-            <h2
-              className='font-[700] text-[40px] text-[#0F2028]'
-              style={{ fontFamily: 'Space Grotesk' }}
-            >
+        <div className='flex flex-col md:flex-row w-[90%] md:w-[80%] mx-auto justify-around py-4 md:py-12 mt-4 md:mt-12'>
+          <div className='flex flex-col gap-2 md:gap-4 justify-center md:w-[570px]'>
+            <h2 className='font-[700] text-[32px] md:text-[40px] w-full text-[#0F2028] font-spaceGrotesk'>
               Smart Scheduling
             </h2>
             <p className='text-[#8A8D8E] text-[20px] font-[400]'>
@@ -225,19 +222,19 @@ const FlowkeyLandingPage = () => {
               Auto-send confirmations and reschedule in one click.
             </p>
           </div>
-          <div className='relative'>
-            <div className='absolute top-[-20px] left-[-100px] w-[360px] h-[106px] bg-white rounded-lg shadow-sm border-[1px] border-[#F2F2F2] z-30'>
-              <div className='flex p-4 gap-3'>
+          <div className='relative mt-5 md:mt-0'>
+            <div className='absolute top-[20px] md:top-[-20px] md:left-[-60px] left-[10px] w-[200px] h-[71px] md:w-[360px] md:h-[106px] bg-white rounded-xl shadow-sm border-[1px] border-[#F2F2F2] z-30'>
+              <div className='flex p-2 md:p-4 gap-3'>
                 <img
                   src={upcomingClock}
                   alt='upcomingClock'
                   className='self-start'
                 />
                 <div className='flex flex-col gap-1'>
-                  <p className='font-[700] text-base text-[#323232]'>
+                  <p className='font-[700] text-xs md:text-base text-[#323232]'>
                     Upcoming Appointments
                   </p>
-                  <p className='text-[#969696] text-xs font-[400]'>
+                  <p className='text-[#969696] md:text-xs text-[8px] font-[600] md:font-[400]'>
                     You have a Make-up appointment with Shirú Waceke coming up
                     at 14.30Hr
                   </p>
@@ -251,7 +248,7 @@ const FlowkeyLandingPage = () => {
                 className='relative z-20'
               />
             </div>
-            <div className='absolute top-[350px] left-[-100px] w-[290px] h-[60px] bg-white rounded-lg shadow-sm border-[1px] border-[#F2F2F2] items-center z-30'>
+            <div className='absolute hidden md:block top-[350px] left-[-100px] w-[290px] h-[60px] bg-white rounded-xl shadow-sm border-[1px] border-[#F2F2F2] items-center z-30'>
               <div className='flex p-2 gap-3 items-center'>
                 <img src={schedulingAppointment} alt='schedulingAppointment' />
                 <div className='flex flex-col gap-1'>
@@ -261,45 +258,52 @@ const FlowkeyLandingPage = () => {
                 </div>
               </div>
             </div>
-            <div className='flex justify-end absolute top-[180px] right-[-40px] z-10'>
-              <img src={eclipse} alt='eclipse' />
+            <div className='flex justify-end absolute top-[180px] md:right-[-40px] right-[-20px] z-10'>
+              <img
+                src={eclipse}
+                alt='eclipse'
+                className='w-[50px] h-[50px] md:w-[77px] md:h-[77px]'
+              />
             </div>
           </div>
         </div>
 
-        <div className='flex w-[80%] mx-auto justify-around py-12 mt-12'>
-          <div className='relative'>
+        <div className='flex flex-col-reverse md:flex-row w-[90%] md:w-[80%] mx-auto justify-around py-4 md:py-12 md:mt-12'>
+          <div className='relative mt-5 md:mt-0'>
             <div className='relative z-20'>
               <img src={payments} alt='payments' className='relative z-20' />
             </div>
-            <div className='absolute top-[350px] right-[-100px] w-[330px] h-[132px] bg-white rounded-lg shadow-sm border-[1px] border-[#F2F2F2] items-center z-30'>
+            <div className='absolute md:top-[350px] md:right-[-100px] top-[270px] right-[10px] md:w-[330px] md:h-[132px] w-[247px] h-[99px] bg-white rounded-xl shadow-sm border-[1px] border-[#F2F2F2] items-center z-30'>
               <div className='flex flex-col p-2 gap-3 items-center'>
                 <div className='relative justify-between w-full'>
-                  <div className='flex full'>
+                  <div className='flex md:w-full'>
                     <img src={payIncomeIcon} alt='payIncomeIcon' />
-                    <p className='font-[700] text-base text-[#0F0F0FB2]'>
+                    <p className='font-[700] md:text-base text-sm text-[#0F0F0FB2]'>
                       Income
                     </p>
                   </div>
-                  <div className='absolute top-5 left-[200px] flex items-center gap-2 w-full'>
+                  <div className='absolute top-5 md:left-[200px] left-[140px] flex items-center gap-2 w-full'>
                     <img src={paymentsGraph} alt='paymentsGraph' />
-                    <p className='text-[#969BA0] text-xs'>4% (30 Days)</p>
+                    <p className='text-[#969BA0] md:text-xs text-[10px]'>
+                      4% (30 Days)
+                    </p>
                   </div>
                 </div>
-                <div className='flex flex-col gap-1'>
+                <div className='flex flex-col  gap-1 w-[149px] md:w-full'>
                   <img src={paymentsIncome} alt='paymentsIncome' />
                 </div>
               </div>
             </div>
-            <div className='flex justify-end absolute top-[180px] left-[-40px] z-10'>
-              <img src={eclipse} alt='eclipse' />
+            <div className='flex justify-end absolute top-[180px]  md:left-[-40px] right-[-20px] z-10'>
+              <img
+                src={eclipse}
+                alt='eclipse'
+                className='w-[50px] h-[50px] md:w-[77px] md:h-[77px]'
+              />
             </div>
           </div>
-          <div className='flex flex-col gap-4 justify-center w-[570px]'>
-            <h2
-              className='font-[700] text-[40px] text-[#0F2028]'
-              style={{ fontFamily: 'Space Grotesk' }}
-            >
+          <div className='flex flex-col gap-2 md:gap-4 justify-center md:w-[570px]'>
+            <h2 className='font-[700] text-[32px] md:text-[40px] w-full text-[#0F2028] font-spaceGrotesk'>
               Payments & Invoicing
             </h2>
             <p className='text-[#8A8D8E] text-[20px] font-[400]'>
@@ -311,12 +315,9 @@ const FlowkeyLandingPage = () => {
           </div>
         </div>
 
-        <div className='flex w-[80%] mx-auto justify-around py-12 mt-12'>
-          <div className='flex flex-col gap-4 justify-center w-[570px]'>
-            <h2
-              className='font-[700] text-[40px] text-[#0F2028]'
-              style={{ fontFamily: 'Space Grotesk' }}
-            >
+        <div className='flex flex-col md:flex-row w-[90%] md:w-[80%] mx-auto justify-around py-4 md:py-12 md:mt-12'>
+          <div className='flex flex-col gap-2 md:gap-4 justify-center md:w-[570px]'>
+            <h2 className='font-[700] text-[32px] md:text-[40px] w-full text-[#0F2028] font-spaceGrotesk'>
               Payroll Made Easy
             </h2>
             <p className='text-[#8A8D8E] text-[20px] font-[400]'>
@@ -328,8 +329,8 @@ const FlowkeyLandingPage = () => {
             </p>
           </div>
           <div className='relative'>
-            <div className='absolute top-[300px] left-[-120px] w-[360px] h-[100px] bg-white rounded-lg shadow-sm border-[1px] border-[#F2F2F2] items-center z-30'>
-              <div className='flex p-4 gap-3'>
+            <div className='absolute top-[300px] md:left-[-120px] left-[10px] md:w-[360px] md:h-[100px] w-[201px] h-[71px] bg-white rounded-xl shadow-sm border-[1px] border-[#F2F2F2] items-center z-30'>
+              <div className='flex md:p-4 p-2 gap-3'>
                 <img
                   src={payrollBell}
                   alt='upcomingClock'
@@ -344,32 +345,46 @@ const FlowkeyLandingPage = () => {
               </div>
             </div>
             <div className='relative z-20'>
-              <img src={payroll} alt='scheduling' className='relative z-20' />
+              <img
+                src={payroll}
+                alt='scheduling'
+                className='relative z-20 hidden md:block'
+              />
+              <img
+                src={payrollMobile}
+                alt='payrollMobile'
+                className='relative z-20 block md:hidden w-[430px] h-[430px]'
+              />
             </div>
 
-            <div className='flex justify-end absolute top-[180px] right-[-40px] z-10'>
-              <img src={eclipse} alt='eclipse' />
+            <div className='flex justify-end absolute top-[180px] md:right-[-40px] right-[-20px] z-10'>
+              <img
+                src={eclipse}
+                alt='eclipse'
+                className='w-[50px] h-[50px] md:w-[77px] md:h-[77px]'
+              />
             </div>
           </div>
         </div>
 
-        <div className='flex w-[80%] mx-auto justify-around py-12 mt-12'>
-          <div className='relative'>
-            <div className='relative z-20'>
+        <div className='flex flex-col-reverse md:flex-row w-[90%] md:w-[80%] mx-auto justify-around py-4 md:py-12 md:mt-12'>
+          <div className='relative mt-5 mb:mt-0'>
+            <div className='relative z-20 '>
               <img src={graph360} alt='payments' className='relative z-20' />
             </div>
-            <div className='absolute top-[280px] right-[-100px] w-[330px] h-[132px] shadow-sm z-30'>
+            <div className='absolute md:top-[280px] top-[240px] md:right-[-100px] right-[-10px] md:w-[330px] md:h-[132px] w-[247px] h-[99px] shadow-sm z-30'>
               <img src={graph} alt='graph' />
             </div>
-            <div className='flex justify-end absolute top-[180px] left-[-40px] z-10'>
-              <img src={eclipse} alt='eclipse' />
+            <div className='flex justify-end absolute top-[180px] md:left-[-40px] right-[-20px] z-10'>
+              <img
+                src={eclipse}
+                alt='eclipse'
+                className='w-[50px] h-[50px] md:w-[77px] md:h-[77px]'
+              />
             </div>
           </div>
-          <div className='flex flex-col gap-4 justify-center w-[570px]'>
-            <h2
-              className='font-[700] text-[40px] text-[#0F2028]'
-              style={{ fontFamily: 'Space Grotesk' }}
-            >
+          <div className='flex flex-col gap-2 md:gap-4 justify-center md:w-[570px]'>
+            <h2 className='font-[700] text-[32px] md:text-[40px] w-full text-[#0F2028] font-spaceGrotesk'>
               Payments & Invoicing
             </h2>
             <p className='text-[#8A8D8E] text-[20px] font-[400]'>
