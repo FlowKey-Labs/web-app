@@ -20,6 +20,11 @@ import whiteCurve from '../assets/landingpageAssets/Icons/whiteCurve.svg';
 import storyLocal from '../assets/landingpageAssets/Icons/storyLocal.svg';
 import storyDesign from '../assets/landingpageAssets/Icons/storyDesign.svg';
 import storySupport from '../assets/landingpageAssets/Icons/storySupport.svg';
+import email from '../assets/landingpageAssets/Icons/email.svg';
+import facebook from '../assets/landingpageAssets/Icons/facebook.svg';
+import twitter from '../assets/landingpageAssets/Icons/twitter.svg';
+import linkedin from '../assets/landingpageAssets/Icons/linkedin.svg';
+import instagram from '../assets/landingpageAssets/Icons/instagram.svg';
 
 const FlowkeyLandingPage = () => {
   return (
@@ -103,7 +108,7 @@ const FlowkeyLandingPage = () => {
         </div>
       </div>
       {/* features section */}
-      <div className='flex flex-col bg-white w-full justify-center py-12'>
+      <div className='flex flex-col bg-white w-full justify-center pt-12'>
         <div className='flex flex-col w-[50%] mx-auto space-y-4 items-center'>
           <h3 className='text-secondary font-[600] text-base'>Key Features</h3>
           <p
@@ -336,11 +341,11 @@ const FlowkeyLandingPage = () => {
                 <img src={tools} alt='' className='self-start' />
                 <div className='flex flex-col gap-1'>
                   <h3 className='text-[#323232] font-[700] text-lg'>
-                    less time scheduling, more time growing
+                    Get paid faster
                   </h3>
                   <p className='font-[400] text-base text-[#969696]'>
-                    Free up hours each week with automated bookings and
-                    payments.
+                    Eliminate late payments with integrated card processing and
+                    auto-billing.
                   </p>
                 </div>
               </div>
@@ -349,11 +354,11 @@ const FlowkeyLandingPage = () => {
                 <img src={tools} alt='' className='self-start' />
                 <div className='flex flex-col gap-1'>
                   <h3 className='text-[#323232] font-[700] text-lg'>
-                    less time scheduling, more time growing
+                    Grow with confidence
                   </h3>
                   <p className='font-[400] text-base text-[#969696]'>
-                    Free up hours each week with automated bookings and
-                    payments.
+                    Track key metrics and make data-driven decisions to scale
+                    your business.
                   </p>
                 </div>
               </div>
@@ -386,7 +391,7 @@ const FlowkeyLandingPage = () => {
             </p>
           </div>
           <div className='flex gap-8 items-center justify-center py-12'>
-            <div className='flex flex-col gap-6 w-[360px] h-[327px] border-[1px] border-[#F2F2F2] p-8 rounded-lg'>
+            <div className='flex flex-col gap-6 w-[360px] h-[327px] border-[1px] border-[#F2F2F2] p-8 rounded-lg shadow-sm'>
               <img
                 src={storyLocal}
                 alt='storyLocal'
@@ -404,9 +409,9 @@ const FlowkeyLandingPage = () => {
               </p>
             </div>
 
-            <div className='flex flex-col gap-6 w-[360px] h-[327px] border-[1px] border-[#F2F2F2] p-8 rounded-lg'>
+            <div className='flex flex-col gap-6 w-[360px] h-[327px] border-[1px] border-[#F2F2F2] p-8 rounded-lg shadow-sm'>
               <img
-                src={storyLocal}
+                src={storyDesign}
                 alt='storyLocal'
                 className='w-[56px] h-[56px]'
               />
@@ -422,9 +427,9 @@ const FlowkeyLandingPage = () => {
               </p>
             </div>
 
-            <div className='flex flex-col gap-6 w-[360px] h-[327px] border-[1px] border-[#F2F2F2] p-8 rounded-lg'>
+            <div className='flex flex-col gap-6 w-[360px] h-[327px] border-[1px] border-[#F2F2F2] p-8 rounded-lg shadow-sm'>
               <img
-                src={storyLocal}
+                src={storySupport}
                 alt='storyLocal'
                 className='w-[56px] h-[56px]'
               />
@@ -439,6 +444,85 @@ const FlowkeyLandingPage = () => {
                 queues.
               </p>
             </div>
+          </div>
+        </div>
+
+        <div className='flex flex-col items-center justify-center w-full pt-12 bg-blue-200 py-12'>
+          <div className='flex flex-col text-center justify-center gap-4'>
+            <h2
+              className='font-[700] text-[48px] text-white w-[540px] self-center'
+              style={{ fontFamily: 'Space Grotesk' }}
+            >
+              Ready to{' '}
+              <span className='font-[300] text-white !italic'>
+                Take Control
+              </span>{' '}
+              of Your Business?
+            </h2>
+            <p className='text-base font-[400] text-[#969696] w-[650px] self-center'>
+              Simplify your operations. Get started with Flowkey and spend less
+              time managing your business—and more time running it.
+            </p>
+            <div className='flex items-center w-[500px] h-[72px] shadow-sm bg-white rounded-[14px] justify-between p-3 mt-4 self-center'>
+              <div className='flex items-center gap-2'>
+                <img src={email} alt='email' />
+                <input
+                  type='email'
+                  placeholder='Enter your email address'
+                  className='bg-transparent border-none focus:outline-none'
+                />
+              </div>
+              <Button color='#1D9B5E' h='50px' w='170px' radius='lg' size='md'>
+                Book Free Demo
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        <div className='flex flex-col items-center justify-center w-full pt-12 bg-white py-12'>
+          <div className='w-[80%] flex justify-between mx-auto py-4'>
+            <div className='flex flex-col gap-8 w-[440px]'>
+              <div className='flex items-center gap-2'>
+                <img src={logo} alt='logo' className='w-[55px] h-[48px]' />
+                <p className='text-[36px] font-[900] text-[#0F2028]'>FlowKey</p>
+              </div>
+              <p className='text-[#0F2028] text-xl font-[300]'>
+                Empowering service businesses to run like pros without the
+                overhead
+              </p>
+              <p className='text-[#0F2028] font-[300] text-xl'>
+                Streamline.Track.Grow
+              </p>
+            </div>
+            <div
+              className='flex flex-col gap-4 font-[500] text-base text-[#0F2028]'
+              style={{ fontFamily: 'Inter' }}
+            >
+              <p>Home</p>
+              <p>Features</p>
+              <p>About Us</p>
+            </div>
+            <div className='flex items-center justify-end'>
+              <div className='flex gap-4 self-end'>
+                <img src={facebook} alt='facebook' />
+                <img src={twitter} alt='twitter' />
+                <img src={linkedin} alt='linkedin' />
+                <img src={instagram} alt='instagram' />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className='flex items-center justify-center w-full p-2 bg-[#0F2028]'>
+          <div
+            className='w-[80%] flex justify-between mx-auto py-4 text-white text-base font-[400]'
+            style={{ fontFamily: 'Inter' }}
+          >
+            <p>
+              &copy; {new Date().getFullYear()} FlowKey. All rights reserved.
+            </p>
+            <p>Privacy Policy</p>
+            <p>Terms of Service</p>
           </div>
         </div>
       </div>
