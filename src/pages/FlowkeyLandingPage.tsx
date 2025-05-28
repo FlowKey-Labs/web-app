@@ -26,21 +26,31 @@ import twitter from '../assets/landingpageAssets/Icons/twitter.svg';
 import linkedin from '../assets/landingpageAssets/Icons/linkedin.svg';
 import instagram from '../assets/landingpageAssets/Icons/instagram.svg';
 
+import headerImage from '../assets/landingpageAssets/images/Hero Section.png';
+import footerImage from '../assets/landingpageAssets/images/Footer.png';
+
 const FlowkeyLandingPage = () => {
   return (
     <div className='flex flex-col h-screen'>
       {/* header section  */}
-      <div className='flex flex-col bg-[#F9FBFF] w-full justify-center'>
+      <div
+        className='flex flex-col w-full justify-center'
+        style={{
+          backgroundImage: `url(${headerImage})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        }}
+      >
         {/* navbar  */}
         <div className='w-[80%] flex justify-between mx-auto py-4'>
-          <div className='flex items-center gap-2'>
+          <div className='flex items-center gap-2 cursor-pointer'>
             <img src={logo} alt='logo' className='w-[55px] h-[48px]' />
             <p className='text-[36px] font-[900] text-[#0F2028]'>FlowKey</p>
           </div>
           <div className='flex items-center gap-[40px] font-[500] text-base text-[#0F2028]'>
-            <p>Home</p>
-            <p>Features</p>
-            <p>About Us</p>
+            <p className='cursor-pointer'>Home</p>
+            <p className='cursor-pointer'>Features</p>
+            <p className='cursor-pointer'>About Us</p>
           </div>
           <div className='flex items-center'>
             <Button color='#1D9B5E' radius='lg' h='55px' size='lg'>
@@ -447,16 +457,18 @@ const FlowkeyLandingPage = () => {
           </div>
         </div>
 
-        <div className='flex flex-col items-center justify-center w-full pt-12 bg-blue-200 py-12'>
+        <div
+          className='flex flex-col items-center justify-center w-full pt-12 py-12'
+          style={{
+            backgroundImage: `url(${footerImage})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+          }}
+        >
           <div className='flex flex-col text-center justify-center gap-4'>
-            <h2
-              className='font-[700] text-[48px] text-white w-[540px] self-center'
-              style={{ fontFamily: 'Space Grotesk' }}
-            >
+            <h2 className='font-[700] text-[48px] text-white w-[540px] self-center font-spaceGrotesk'>
               Ready to{' '}
-              <span className='font-[300] text-white !italic'>
-                Take Control
-              </span>{' '}
+              <span className='font-[300] text-white italic'>Take Control</span>{' '}
               of Your Business?
             </h2>
             <p className='text-base font-[400] text-[#969696] w-[650px] self-center'>
@@ -482,7 +494,7 @@ const FlowkeyLandingPage = () => {
         <div className='flex flex-col items-center justify-center w-full pt-12 bg-white py-12'>
           <div className='w-[80%] flex justify-between mx-auto py-4'>
             <div className='flex flex-col gap-8 w-[440px]'>
-              <div className='flex items-center gap-2'>
+              <div className='flex items-center gap-2 cursor-pointer'>
                 <img src={logo} alt='logo' className='w-[55px] h-[48px]' />
                 <p className='text-[36px] font-[900] text-[#0F2028]'>FlowKey</p>
               </div>
@@ -498,16 +510,16 @@ const FlowkeyLandingPage = () => {
               className='flex flex-col gap-4 font-[500] text-base text-[#0F2028]'
               style={{ fontFamily: 'Inter' }}
             >
-              <p>Home</p>
-              <p>Features</p>
-              <p>About Us</p>
+              <p className='cursor-pointer'>Home</p>
+              <p className='cursor-pointer'>Features</p>
+              <p className='cursor-pointer'>About Us</p>
             </div>
             <div className='flex items-center justify-end'>
               <div className='flex gap-4 self-end'>
-                <img src={facebook} alt='facebook' />
-                <img src={twitter} alt='twitter' />
-                <img src={linkedin} alt='linkedin' />
-                <img src={instagram} alt='instagram' />
+                <img src={facebook} alt='facebook' className='cursor-pointer'/>
+                <img src={twitter} alt='twitter' className='cursor-pointer'/>
+                <img src={linkedin} alt='linkedin' className='cursor-pointer'/>
+                <img src={instagram} alt='instagram' className='cursor-pointer'/>
               </div>
             </div>
           </div>
