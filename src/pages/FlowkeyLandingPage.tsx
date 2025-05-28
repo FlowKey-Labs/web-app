@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { Button } from '@mantine/core';
 
 import logo from '../assets/landingpageAssets/Icons/logo.svg';
@@ -33,6 +34,55 @@ import fullPhone from '../assets/landingpageAssets/Icons/fullPhone.svg';
 import payrollMobile from '../assets/landingpageAssets/Icons/payrollMobile.svg';
 
 const FlowkeyLandingPage = () => {
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [isMobile, setIsMobile] = useState(false);
+
+  const SlideCard = ({
+    img,
+    title,
+    text,
+  }: {
+    img: string;
+    title: string;
+    text: string;
+  }) => (
+    <div className='flex flex-col items-center md:items-start justify-center gap-6 md:w-[360px] md:h-[327px] w-full h-[303px] border-[1px] border-[#F2F2F2] p-8 rounded-xl shadow-sm'>
+      <img src={img} alt={title} className='w-[56px] h-[56px]' />
+      <h3 className='font-[700] text-[20px] text-[#323232] font-spaceGrotesk'>
+        {title}
+      </h3>
+      <p className='font-[400] text-base text-[#969696]'>{text}</p>
+    </div>
+  );
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const slides = [
+    {
+      img: storyLocal,
+      title: 'Local Expertise',
+      text: 'We speak your language – literally. FlowKey is Made in Kenya and integrates local payment methods like M-PESA',
+    },
+    {
+      img: storyDesign,
+      title: 'Simple by Design',
+      text: 'No confusing features. Just the tools you need to run your business smoothly.',
+    },
+    {
+      img: storySupport,
+      title: 'Real Human Support',
+      text: 'We offer 24/7 support to our clients. No bots or endless ticket queues.',
+    },
+  ];
+
   return (
     <div className='flex flex-col h-screen'>
       {/* header section  */}
@@ -496,64 +546,50 @@ const FlowkeyLandingPage = () => {
             <p className='text-[#969696] text-base font-[400] w-[327px] md:w-[940px]'>
               FlowKey started in 2024 when our founder, a Nairobi salon owner,
               got tired of losing money to missed appointments and messy
-              spreadsheets. After struggling with expensive, complex tools that
-              didn’t understand local needs, she teamed up with Kenyan
-              developers to build a better solution. Today, FlowKey powers
-              hundreds of service businesses across Kenya – from salons to
-              tutoring centers – helping them save time and boost profits.
+              spreadsheets...
             </p>
           </div>
-          <div className='flex gap-8 items-center justify-center md:py-12 py-6 overflow-x-scroll'>
-            <div className='flex flex-col items-center justify-center gap-6 md:w-[360px] md:h-[327px] w-[327px] h-[303px] border-[1px] border-[#F2F2F2] p-8 rounded-xl shadow-sm '>
-              <img
-                src={storyLocal}
-                alt='storyLocal'
-                className='w-[56px] h-[56px]'
-              />
-              <h3 className='font-[700] text-[20px] text-[#323232] font-spaceGrotesk'>
-                Local Expertise
-              </h3>
-              <p className='font-[400] text-base text-[#969696]'>
-                We speak your language – literally. FlowKey is Made in Kenya and
-                integrates local payment methods like M-PESA
-              </p>
+
+          {/* Slider Container */}
+          <div className='relative w-full md:py-12 py-6'>
+            <div className='hidden md:flex gap-8 items-center justify-center'>
+              {slides.map((slide, index) => (
+                <SlideCard key={index} {...slide} />
+              ))}
             </div>
 
-            <div className='flex flex-col items-center justify-center gap-6 md:w-[360px] md:h-[327px] w-[327px] h-[303px] border-[1px] border-[#F2F2F2] p-8 rounded-xl shadow-sm '>
-              <img
-                src={storyDesign}
-                alt='storyLocal'
-                className='w-[56px] h-[56px]'
-              />
-              <h3
-                className='font-[700] text-[20px] text-[#323232]'
-                style={{ fontFamily: 'Space Grotesk' }}
-              >
-                Simple by Design
-              </h3>
-              <p className='font-[400] text-base text-[#969696]'>
-                No confusing features. Just the tools you need to run your
-                business smoothly.
-              </p>
-            </div>
+            {/* Mobile Slider */}
+            {isMobile && (
+              <div className='md:hidden w-full overflow-hidden relative'>
+                <div
+                  className='flex transition-transform duration-300 ease-out'
+                  style={{
+                    transform: `translateX(-${currentSlide * 100}%)`,
+                    width: '100%',
+                    display: 'flex',
+                  }}
+                >
+                  {slides.map((slide, index) => (
+                    <div key={index} className='flex-shrink-0 w-full px-4'>
+                      <SlideCard {...slide} />
+                    </div>
+                  ))}
+                </div>
 
-            <div className='flex flex-col items-center justify-center gap-6 md:w-[360px] md:h-[327px] w-[327px] h-[303px] border-[1px] border-[#F2F2F2] p-8 rounded-xl shadow-sm '>
-              <img
-                src={storySupport}
-                alt='storyLocal'
-                className='w-[56px] h-[56px]'
-              />
-              <h3
-                className='font-[700] text-[20px] text-[#323232]'
-                style={{ fontFamily: 'Space Grotesk' }}
-              >
-                Real Human Support
-              </h3>
-              <p className='font-[400] text-base text-[#969696]'>
-                We offer 24/7 support to our clients. No bots or endless ticket
-                queues.
-              </p>
-            </div>
+                <div className='flex justify-center mt-6 gap-2'>
+                  {slides.map((_, index) => (
+                    <button
+                      key={index}
+                      onClick={() => setCurrentSlide(index)}
+                      className={`w-2 h-2 rounded-full transition-colors ${
+                        currentSlide === index ? 'bg-secondary' : 'bg-[#D9D9D9]'
+                      }`}
+                      aria-label={`Go to slide ${index + 1}`}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
