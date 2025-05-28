@@ -42,17 +42,78 @@ const FlowkeyLandingPage = () => {
         }}
       >
         {/* navbar  */}
-        <div className='w-[80%] flex justify-between mx-auto py-4'>
+        <div className='w-[90%] md:w-[80%] flex flex-wrap justify-between items-center mx-auto py-4 relative'>
           <div className='flex items-center gap-2 cursor-pointer'>
             <img src={logo} alt='logo' className='w-[55px] h-[48px]' />
             <p className='text-[36px] font-[900] text-[#0F2028]'>FlowKey</p>
           </div>
-          <div className='flex items-center gap-[40px] font-[500] text-base text-[#0F2028]'>
-            <p className='cursor-pointer'>Home</p>
-            <p className='cursor-pointer'>Features</p>
-            <p className='cursor-pointer'>About Us</p>
+
+          {/* Hamburger button for mobile */}
+          <button
+            className='md:hidden p-2 text-secondary hover:text-[#1D9B5E] focus:outline-none'
+            onClick={() =>
+              document.getElementById('mobile-menu')?.classList.toggle('hidden')
+            }
+          >
+            <svg
+              xmlns='http://www.w3.org/2000/svg'
+              fill='none'
+              viewBox='0 0 24 24'
+              strokeWidth='2'
+              stroke='currentColor'
+              className='size-6'
+            >
+              <path
+                strokeLinecap='round'
+                strokeLinejoin='round'
+                d='M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5'
+              />
+            </svg>
+          </button>
+
+          {/* Desktop Navigation */}
+          <div className='hidden md:flex items-center gap-[40px] font-[500] text-base text-[#0F2028]'>
+            <p className='cursor-pointer hover:text-[#1D9B5E] transition-colors'>
+              Home
+            </p>
+            <p className='cursor-pointer hover:text-[#1D9B5E] transition-colors'>
+              Features
+            </p>
+            <p className='cursor-pointer hover:text-[#1D9B5E] transition-colors'>
+              About Us
+            </p>
           </div>
-          <div className='flex items-center'>
+
+          {/* Mobile Navigation */}
+          <div
+            id='mobile-menu'
+            className='hidden md:hidden w-full md:w-auto mt-4 md:mt-0'
+          >
+            <div className='flex flex-col md:flex-row items-start md:items-center gap-4 md:gap-[40px] font-[500] text-base text-[#0F2028]'>
+              <p className='cursor-pointer hover:text-[#1D9B5E] transition-colors w-full py-2 border-b border-gray-100 md:border-0'>
+                Home
+              </p>
+              <p className='cursor-pointer hover:text-[#1D9B5E] transition-colors w-full py-2 border-b border-gray-100 md:border-0'>
+                Features
+              </p>
+              <p className='cursor-pointer hover:text-[#1D9B5E] transition-colors w-full py-2 border-b border-gray-100 md:border-0'>
+                About Us
+              </p>
+              <div className='w-full py-2 md:hidden'>
+                <Button
+                  color='#1D9B5E'
+                  radius='lg'
+                  h='55px'
+                  size='lg'
+                  fullWidth
+                >
+                  Book Free Demo
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          <div className='hidden md:flex items-center'>
             <Button color='#1D9B5E' radius='lg' h='55px' size='lg'>
               Book Free Demo
             </Button>
@@ -516,10 +577,14 @@ const FlowkeyLandingPage = () => {
             </div>
             <div className='flex items-center justify-end'>
               <div className='flex gap-4 self-end'>
-                <img src={facebook} alt='facebook' className='cursor-pointer'/>
-                <img src={twitter} alt='twitter' className='cursor-pointer'/>
-                <img src={linkedin} alt='linkedin' className='cursor-pointer'/>
-                <img src={instagram} alt='instagram' className='cursor-pointer'/>
+                <img src={facebook} alt='facebook' className='cursor-pointer' />
+                <img src={twitter} alt='twitter' className='cursor-pointer' />
+                <img src={linkedin} alt='linkedin' className='cursor-pointer' />
+                <img
+                  src={instagram}
+                  alt='instagram'
+                  className='cursor-pointer'
+                />
               </div>
             </div>
           </div>
