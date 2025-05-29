@@ -13,7 +13,7 @@ import { cn } from "../../utils/mergeClass";
 import { EventClickArg, EventInput } from "@fullcalendar/core/index.js";
 import EventCard from "./eventCard";
 import { Dictionary, EventImpl } from "@fullcalendar/core/internal";
-import { useGetSessions } from "../../hooks/reactQuery";
+import { useGetCalendarSessions } from "../../hooks/reactQuery";
 import "./index.css";
 import { useAuthStore } from "../../store/auth";
 import { useUIStore } from "../../store/ui";
@@ -66,7 +66,7 @@ const CalendarView = () => {
   } | null>(null);
   const [selectedEvent, setSelectedEvent] = useState<EventImpl | null>(null);
   const popupRef = useRef<HTMLDivElement | null>(null);
-  const { data: sessionsData, isLoading } = useGetSessions();
+  const { data: sessionsData, isLoading } = useGetCalendarSessions();
   const [visibleDateRange, setVisibleDateRange] = useState<{
     start: Date | null;
     end: Date | null;

@@ -48,6 +48,7 @@ const columnHelper = createColumnHelper<Session>();
 const AllSessions = () => {
   const navigate = useNavigate();
   const [rowSelection, setRowSelection] = useState({});
+  const [pageIndex, setPageIndex] = useState(0);
   const [classTypeDropdownOpen, setClassTypeDropdownOpen] = useState(false);
   const [categoryTypeDropdownOpen, setCategoryTypeDropdownOpen] =
     useState(false);
@@ -76,10 +77,12 @@ const AllSessions = () => {
   const permisions = useAuthStore((state) => state.role);
 
   const {
-    data: allSessionsData,
+    data,
     isLoading: isLoadingSessions,
     refetch: refetchSessions,
-  } = useGetSessions();
+  } = useGetSessions(pageIndex);
+
+  const allSessionsData = useMemo(() => data?.items || [], [])
 
   const searchSessions = useCallback((sessions: Session[], query: string) => {
     if (!query.trim()) return sessions;
@@ -181,7 +184,8 @@ const AllSessions = () => {
       return allSessionsData || [];
     }
   }, [allSessionsData, selectedTypes, selectedCategories, dateRange, debouncedSearchQuery, searchSessions]);
-
+  console.log('filteredSessions==>', filteredSessions);
+  
   const {
     exportModalOpened,
     openExportModal,
@@ -916,6 +920,10 @@ const AllSessions = () => {
               onRowClick={(row: Session) =>
                 navigateToSessionDetails(navigate, row.id.toString())
               }
+              paginateServerSide={true}
+              pageIndex={pageIndex}
+              pageCount={data?.totalPages}
+              onPageChange={setPageIndex}
             />
           )}
         </div>

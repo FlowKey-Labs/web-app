@@ -1,5 +1,5 @@
-import { api } from '../lib/axios';
-import axios from 'axios';
+import { api } from "../lib/axios";
+import axios from "axios";
 
 import {
   CreateSessionData,
@@ -8,9 +8,25 @@ import {
   ProgressFeedback,
   Session,
   MakeUpSession,
-} from '../types/sessionTypes';
-import { CreateLocationData } from '../types/location';
-import { Role } from '../store/auth';
+} from "../types/sessionTypes";
+import { CreateLocationData } from "../types/location";
+import { Role } from "../store/auth";
+import { Client } from "../types/clientTypes";
+
+// Define a type for the session filters
+interface SessionFilters {
+  sessionTypes?: string[];
+  categories?: string[];
+  dateRange?: [Date | null, Date | null];
+}
+
+export interface PaginatedResponse<T> {
+  items: T[];
+  total: number;
+  page: number | undefined;
+  pageSize: number | undefined;
+  totalPages: number | undefined;
+}
 
 const BASE_URL = import.meta.env.VITE_APP_BASEURL;
 
@@ -34,6 +50,8 @@ const END_POINTS = {
     LOCATIONS: `${BASE_URL}/api/business/locations/`,
   },
   CLIENTS: {
+    CLIENTS_DATA_LIST: (pageIndex: number, pageSize: number) =>
+      `${BASE_URL}/api/client/?pageIndex=${pageIndex}&pageSize=${pageSize}`,
     CLIENTS_DATA: `${BASE_URL}/api/client/`,
     ATTENDANCE: `${BASE_URL}/api/client/attendance/manage/`,
     GROUPS: `${BASE_URL}/api/client/groups/`,
@@ -50,6 +68,7 @@ const END_POINTS = {
   },
   SESSION: {
     SESSIONS_DATA: `${BASE_URL}/api/session/`,
+    CALENDAR_SESSIONS_DATA: `${BASE_URL}/api/session/calendar-sessions/`,
     SESSION_DETAIL: (id: string) => `${BASE_URL}/api/session/${id}/`,
     SESSION_CLIENTS: (id: string) => `${BASE_URL}/api/session/${id}/clients/`,
     CATEGORIES: `${BASE_URL}/api/session/categories/`,
@@ -199,7 +218,7 @@ const searchCities = async (query: string) => {
   const { data } = await axios.get(END_POINTS.GOOGLE.PLACES_AUTOCOMPLETE, {
     params: {
       input: query,
-      types: '(cities)',
+      types: "(cities)",
       key: GOOGLE_API_KEY,
     },
   });
@@ -214,8 +233,13 @@ const get_business_services = async () => {
   return data;
 };
 
-const get_clients = async () => {
-  const { data } = await api.get(END_POINTS.CLIENTS.CLIENTS_DATA);
+const get_clients = async (
+  pageIndex: number,
+  pageSize: number
+): Promise<PaginatedResponse<Client>> => {
+  const { data } = await api.get<PaginatedResponse<Client>>(
+    END_POINTS.CLIENTS.CLIENTS_DATA_LIST(pageIndex, pageSize)
+  );
   return data;
 };
 
@@ -340,14 +364,16 @@ const reschedule_session = async (
   return data;
 };
 
-// Define a type for the session filters
-interface SessionFilters {
-  sessionTypes?: string[];
-  categories?: string[];
-  dateRange?: [Date | null, Date | null];
-}
+const get_calendar_sessions = async () => {
+  const { data } = await api.get(END_POINTS.SESSION.CALENDAR_SESSIONS_DATA);
+  return data;
+};
 
-const get_sessions = async (filters?: SessionFilters): Promise<Session[]> => {
+const get_sessions = async (
+  filters?: SessionFilters,
+  pageIndex?: number,
+  pageSize = 10
+): Promise<PaginatedResponse<Session>> => {
   let url = END_POINTS.SESSION.SESSIONS_DATA;
 
   if (filters) {
@@ -355,21 +381,21 @@ const get_sessions = async (filters?: SessionFilters): Promise<Session[]> => {
 
     if (filters.sessionTypes && filters.sessionTypes.length > 0) {
       filters.sessionTypes.forEach((type: string) => {
-        params.append('session_type', type);
+        params.append("session_type", type);
       });
     }
 
     if (filters.categories && filters.categories.length > 0) {
       filters.categories.forEach((category: string) => {
-        params.append('category', category);
+        params.append("category", category);
       });
     }
 
     if (filters.dateRange && filters.dateRange[0] && filters.dateRange[1]) {
       const startDate = new Date(filters.dateRange[0]);
       const endDate = new Date(filters.dateRange[1]);
-      params.append('start_date', startDate.toISOString().split('T')[0]);
-      params.append('end_date', endDate.toISOString().split('T')[0]);
+      params.append("start_date", startDate.toISOString().split("T")[0]);
+      params.append("end_date", endDate.toISOString().split("T")[0]);
     }
 
     if (params.toString()) {
@@ -377,7 +403,13 @@ const get_sessions = async (filters?: SessionFilters): Promise<Session[]> => {
     }
   }
 
-  const { data } = await api.get<Session[]>(url);
+  console.log(`Page Index: ${pageIndex}, Page Size: ${pageSize}`);
+  if (pageIndex !== undefined) {
+    url += `?pageIndex=` + `${pageIndex}` + `&pageSize=` + `${pageSize}`;
+  }
+  console.log("url==>", url);
+
+  const { data } = await api.get<PaginatedResponse<Session>>(url);
   return data;
 };
 
@@ -503,7 +535,7 @@ const mark_client_attended = async (clientId: string, sessionId: string) => {
     client: clientId,
     session: sessionId,
     attended: true,
-    status: 'attended',
+    status: "attended",
   });
   return data;
 };
@@ -516,7 +548,7 @@ const mark_client_not_attended = async (
     client: clientId,
     session: sessionId,
     attended: false,
-    status: 'missed',
+    status: "missed",
   });
   return data;
 };
@@ -622,7 +654,7 @@ const get_places_autocomplete = async (input: string) => {
     params: {
       input,
       key: GOOGLE_API_KEY,
-      types: 'geocode',
+      types: "geocode",
     },
   });
   return data.predictions;
@@ -675,7 +707,7 @@ const get_groups = async () => {
     const { data } = await api.get(`${BASE_URL}/api/client/list-groups/`);
     return data;
   } catch (error) {
-    console.error('Error fetching groups:', error);
+    console.error("Error fetching groups:", error);
     return [];
   }
 };
@@ -751,17 +783,17 @@ const createPolicy = async (policyData: {
   file?: File;
 }) => {
   const formData = new FormData();
-  formData.append('title', policyData.title);
-  formData.append('content', policyData.content);
-  formData.append('policy_type', policyData.policy_type);
+  formData.append("title", policyData.title);
+  formData.append("content", policyData.content);
+  formData.append("policy_type", policyData.policy_type);
 
   if (policyData.file) {
-    formData.append('file', policyData.file);
+    formData.append("file", policyData.file);
   }
 
   const { data } = await api.post(END_POINTS.POLICY.POLICIES, formData, {
     headers: {
-      'Content-Type': 'multipart/form-data',
+      "Content-Type": "multipart/form-data",
     },
   });
   return data;
@@ -778,13 +810,13 @@ const updatePolicy = async (
 ) => {
   const formData = new FormData();
 
-  if (policyData.title) formData.append('title', policyData.title);
-  if (policyData.content) formData.append('content', policyData.content);
+  if (policyData.title) formData.append("title", policyData.title);
+  if (policyData.content) formData.append("content", policyData.content);
   if (policyData.policy_type)
-    formData.append('policy_type', policyData.policy_type);
+    formData.append("policy_type", policyData.policy_type);
 
   if (policyData.file) {
-    formData.append('file', policyData.file);
+    formData.append("file", policyData.file);
   }
 
   const { data } = await api.patch(
@@ -792,7 +824,7 @@ const updatePolicy = async (
     formData,
     {
       headers: {
-        'Content-Type': 'multipart/form-data',
+        "Content-Type": "multipart/form-data",
       },
     }
   );
@@ -816,7 +848,7 @@ const createRole = async (roleData: Role) => {
   return data;
 };
 
-const updateRole = async (id: string, roleData: Omit<Role, 'id'>) => {
+const updateRole = async (id: string, roleData: Omit<Role, "id">) => {
   const { data } = await api.patch(END_POINTS.ROLE.ROLE_DETAIL(id), roleData);
   return data;
 };
@@ -963,12 +995,12 @@ const deleteCancelledSession = async (id: string) => {
 
 const submitProgressFeedback = async (payload: ProgressFeedback) => {
   const formData = new FormData();
-  formData.append('client_id', payload.client_id);
-  formData.append('subcategory_id', payload.subcategory_id);
-  formData.append('feedback', payload.feedback);
-  formData.append('attachment', payload.attachment);
+  formData.append("client_id", payload.client_id);
+  formData.append("subcategory_id", payload.subcategory_id);
+  formData.append("feedback", payload.feedback);
+  formData.append("attachment", payload.attachment);
   const { data } = await api.post(END_POINTS.PROGRESS.FEEDBACK, payload, {
-    headers: { 'Content-Type': 'multipart/form-data' },
+    headers: { "Content-Type": "multipart/form-data" },
   });
   return data;
 };
@@ -1080,4 +1112,5 @@ export {
   getClientProgress,
   getOutcomes,
   getLevelFeedback,
+  get_calendar_sessions,
 };

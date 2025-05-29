@@ -35,12 +35,16 @@ import EmptyDataPage from '../common/EmptyDataPage';
 import { useAuthStore } from '../../store/auth';
 import { useUIStore } from '../../store/ui';
 import ErrorBoundary from '../common/ErrorBoundary';
+import { PaginatedResponse } from '../../api/api';
 
 
 const clientColumnHelper = createColumnHelper<Client>();
 const groupColumnHelper = createColumnHelper<GroupData>();
 
 const AllClients = () => {
+  const [pageIndex, setPageIndex] = useState(0);
+  console.log("pageIndex==>", pageIndex);
+  
   const [rowSelection, setRowSelection] = useState({});
   const [selectedClient, setSelectedClient] = useState<
     Client | GroupData | null
@@ -59,12 +63,14 @@ const AllClients = () => {
   const permisions = useAuthStore((state) => state.role);
 
   const {
-    data: allClients = [],
+    data = {} as PaginatedResponse<Client>,
     isLoading,
     isError,
     error,
     refetch,
-  } = useGetClients();
+  } = useGetClients(pageIndex);
+
+  const allClients = useMemo(() => data.items, [data])
 
   const {
     data: allGroups = [],
@@ -180,7 +186,7 @@ const AllClients = () => {
     return Object.keys(rowSelection).map((index) => {
       const itemIndex = parseInt(index);
       return currentData[itemIndex].id;
-    });
+    }) || [0];
   }, [rowSelection, filteredData]);
 
   const {
@@ -731,6 +737,10 @@ const AllClients = () => {
               onRowClick={(row: Client) => {
                   navigateToClientDetails(navigate, row.id.toString());
               }}
+              paginateServerSide={true}
+              pageIndex={pageIndex}
+              pageCount={data.totalPages}
+              onPageChange={setPageIndex}
             />
           )}
           {activeView === 'groups' && groups.length > 0 && (

@@ -152,22 +152,22 @@ export interface AttendedSession {
   id?: number | string;
   session_title?: string;
   client_name?: string;
-  date: string; 
-  created_at?: string; 
-  updated_at?: string; 
-  client: number | string; 
-  session: number | string; 
+  date: string;
+  created_at?: string;
+  updated_at?: string;
+  client: number | string;
+  session: number | string;
 }
 
 export interface CancelledSession {
   id?: number | string;
   client_name?: string;
   session_title?: string;
-  date: string; 
+  date: string;
   created_at?: string;
   updated_at?: string;
-  client: number | string; 
-  session: number | string; 
+  client: number | string;
+  session: number | string;
 }
 export interface ProgressFeedback {
   client_id: string;
@@ -180,7 +180,7 @@ export interface ProgressFeedback {
  * Extended Session type used specifically for calendar event generation
  * This type includes all fields needed for proper recurrence handling
  */
-export interface CalendarSessionType extends Omit<Session, 'repeat_end_date'> {
+export interface CalendarSessionType extends Omit<Session, "repeat_end_date"> {
   // Make sure these fields are properly typed for calendar use
   repeat_on?: string[];
   repeat_end_date?: string | null;
@@ -188,7 +188,7 @@ export interface CalendarSessionType extends Omit<Session, 'repeat_end_date'> {
   repeat_every?: number;
   repeat_unit?: RepeatUnit;
   repeat_occurrences?: number | null;
-  
+
   // Allow for any additional properties coming from the backend
   [key: string]: unknown;
 }
