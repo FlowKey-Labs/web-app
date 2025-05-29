@@ -33,45 +33,97 @@ export interface TableProps<T> {
   onPageChange?: (pageIndex: number) => void;
 }
 
-const Table = <T extends object>({
-  data,
-  columns,
-  rowSelection,
-  onRowSelectionChange,
-  onRowClick,
-  className,
-  pageSize = 10,
-  headerBg = 'bg-tableHeader',
-  bodyBg,
-  rowHoverBg = 'hover:bg-flowkeySecondary',
-  showPagination = true,
-  showHeaderDivider = false,
-  headerDividerColor = 'bg-gray-200',
-  paginateServerSide = false,
-  pageIndex = 0,
-  pageCount,
-  onPageChange,
-}: TableProps<T>) => {
+export interface TableProps<T> {
+  data: T[];
+  columns: ColumnDef<T, any>[];
+  rowSelection?: RowSelectionState;
+  onRowSelectionChange?: OnChangeFn<RowSelectionState>;
+  onRowClick?: (row: T) => void;
+  className?: string;
+  pageSize?: number;
+  headerBg?: string;
+  bodyBg?: string;
+  rowHoverBg?: string;
+  showPagination?: boolean;
+  showHeaderDivider?: boolean;
+  headerDividerColor?: string;
+  paginateServerSide?: boolean;
+  pageIndex?: number;
+  pageCount?: number;
+  onPageChange?: (pageIndex: number) => void;
+}
+
+const Table = <T extends object>(props: TableProps<T>) => {
+  const {
+    data,
+    columns,
+    rowSelection,
+    onRowSelectionChange,
+    onRowClick,
+    className = '',
+    pageSize = 10,
+    headerBg = 'bg-tableHeader',
+    bodyBg = '',
+    rowHoverBg = 'hover:bg-flowkeySecondary',
+    showPagination = true,
+    showHeaderDivider = false,
+    headerDividerColor = 'bg-gray-200',
+    paginateServerSide = false,
+    pageIndex = 0,
+    pageCount = 1,
+    onPageChange,
+  } = props;
+
   const table = useReactTable({
     data,
     columns,
     state: {
-      rowSelection: rowSelection || {},
-      pagination: paginateServerSide ? { pageIndex, pageSize } : undefined,
+      rowSelection: rowSelection ?? {},
+      pagination: {
+        pageIndex: paginateServerSide ? pageIndex : 0,
+        pageSize,
+      },
     },
     onRowSelectionChange,
     pageCount: paginateServerSide ? pageCount : undefined,
     manualPagination: paginateServerSide,
     getCoreRowModel: getCoreRowModel(),
-    initialState: {
-      pagination: {
-        pageSize,
-      },
-    },
   });
 
+  const handlePreviousPage = () => {
+    if (paginateServerSide) {
+      onPageChange?.(Math.max(pageIndex - 1, 0));
+    } else {
+      table.previousPage();
+    }
+  };
+
+  const handleNextPage = () => {
+    if (paginateServerSide) {
+      onPageChange?.(Math.min(pageIndex + 1, (pageCount ?? 1) - 1));
+    } else {
+      table.nextPage();
+    }
+  };
+
+  const handlePageChange = (page: number) => {
+    if (paginateServerSide) {
+      onPageChange?.(Math.min(Math.max(page - 1, 0), (pageCount ?? 1) - 1));
+    } else {
+      table.setPageIndex(page - 1);
+    }
+  };
+
+  const currentPageIndex = paginateServerSide 
+    ? pageIndex 
+    : table.getState().pagination.pageIndex;
+
+  const totalPages = paginateServerSide 
+    ? pageCount 
+    : table.getPageCount();
+
   return (
-    <div className={`overflow-x-auto shadow-lg rounded-lg ${className || ''}`}>
+    <div className={`overflow-x-auto shadow-lg rounded-lg ${className}`}>
       <table className="min-w-full bg-white overflow-hidden">
         <thead className={`${headerBg} h-[62px]`}>
           {table.getHeaderGroups().map((headerGroup) => (
@@ -91,7 +143,10 @@ const Table = <T extends object>({
           ))}
           {showHeaderDivider && (
             <tr>
-              <td colSpan={columns.length} className={`${headerDividerColor} h-[1px] p-0`}></td>
+              <td 
+                colSpan={columns.length} 
+                className={`${headerDividerColor} h-[1px] p-0`}
+              />
             </tr>
           )}
         </thead>
@@ -99,9 +154,14 @@ const Table = <T extends object>({
           {table.getRowModel().rows.map((row) => (
             <tr
               key={row.id}
-              className={`${rowHoverBg} hover:scale-[1.01] transition-all duration-200 ${
-                row.getIsSelected() ? 'bg-flowkeySecondary' : ''
-              } ${onRowClick ? 'cursor-pointer' : ''}`}
+              className={`
+                ${rowHoverBg} 
+                hover:scale-[1.01] 
+                transition-all 
+                duration-200 
+                ${row.getIsSelected() ? 'bg-flowkeySecondary' : ''}
+                ${onRowClick ? 'cursor-pointer' : ''}
+              `}
               onClick={() => onRowClick?.(row.original)}
             >
               {row.getVisibleCells().map((cell) => (
@@ -116,19 +176,15 @@ const Table = <T extends object>({
           ))}
         </tbody>
 
-        {showPagination && (
+        {showPagination && totalPages > 1 && (
           <tfoot>
             <tr>
               <td colSpan={columns.length} className="pb-4">
-                <div className="w-full mx-auto border-t border-gray-200 mb-4"></div>
+                <div className="w-full mx-auto border-t border-gray-200 mb-4" />
 
                 <div className="flex justify-between items-center px-6">
                   <button
-                    onClick={() =>
-                      paginateServerSide
-                        ? onPageChange?.(pageIndex - 1)
-                        : table.previousPage()
-                    }
+                    onClick={handlePreviousPage}
                     disabled={
                       paginateServerSide
                         ? pageIndex <= 0
@@ -140,23 +196,12 @@ const Table = <T extends object>({
                   </button>
 
                   <div className="flex space-x-2">
-                    {Array.from(
-                      {
-                        length: paginateServerSide
-                          ? pageCount || 0
-                          : table.getPageCount(),
-                      },
-                      (_, i) => i + 1
-                    ).map((page) => (
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
                       <button
                         key={page}
-                        onClick={() =>
-                          paginateServerSide
-                            ? onPageChange?.(page - 1)
-                            : table.setPageIndex(page - 1)
-                        }
+                        onClick={() => handlePageChange(page)}
                         className={`px-2 py-1 border border-gray-300 rounded-lg text-xs ${
-                          page === (paginateServerSide ? pageIndex + 1 : table.getState().pagination.pageIndex + 1)
+                          page === currentPageIndex + 1
                             ? 'bg-[#DBDEDF] text-primary'
                             : 'text-[#6D7172] hover:bg-gray-50'
                         }`}
@@ -167,11 +212,7 @@ const Table = <T extends object>({
                   </div>
 
                   <button
-                    onClick={() =>
-                      paginateServerSide
-                        ? onPageChange?.(pageIndex + 1)
-                        : table.nextPage()
-                    }
+                    onClick={handleNextPage}
                     disabled={
                       paginateServerSide
                         ? pageIndex >= (pageCount ?? 1) - 1

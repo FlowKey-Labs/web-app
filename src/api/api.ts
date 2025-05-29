@@ -407,7 +407,6 @@ const get_sessions = async (
   if (pageIndex !== undefined) {
     url += `?pageIndex=` + `${pageIndex}` + `&pageSize=` + `${pageSize}`;
   }
-  console.log("url==>", url);
 
   const { data } = await api.get<PaginatedResponse<Session>>(url);
   return data;

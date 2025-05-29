@@ -446,7 +446,6 @@ const AllStaff = () => {
               rowSelection={rowSelection}
               onRowSelectionChange={setRowSelection}
               className='mt-4'
-              pageSize={8}
               onRowClick={(row: StaffResponse) =>
                 navigateToStaffDetails(navigate, row.id.toString())
               }

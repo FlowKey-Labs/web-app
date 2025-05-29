@@ -82,7 +82,7 @@ const AllSessions = () => {
     refetch: refetchSessions,
   } = useGetSessions(pageIndex);
 
-  const allSessionsData = useMemo(() => data?.items || [], [])
+  const allSessionsData = useMemo(() => data?.items || [], [data])
 
   const searchSessions = useCallback((sessions: Session[], query: string) => {
     if (!query.trim()) return sessions;
