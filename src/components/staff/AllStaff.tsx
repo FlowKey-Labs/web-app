@@ -68,22 +68,24 @@ const AllStaff = () => {
 
   const filteredStaff = useMemo(() => {
     if (!staff || staff.length === 0) return [];
-    
+
     if (!debouncedSearchQuery.trim()) {
       return staff;
     }
 
     const searchLower = debouncedSearchQuery.toLowerCase().trim();
-    
+
     return staff.filter((staffMember: StaffResponse) => {
-      const fullName = `${staffMember.user?.first_name || ''} ${staffMember.user?.last_name || ''}`.toLowerCase();
-      
+      const fullName = `${staffMember.user?.first_name || ''} ${
+        staffMember.user?.last_name || ''
+      }`.toLowerCase();
+
       const email = (staffMember.user?.email || '').toLowerCase();
-      
+
       const phone = (staffMember.user?.mobile_number || '').toLowerCase();
-      
+
       const memberId = (staffMember.member_id || '').toLowerCase();
-      
+
       const role = (staffMember.role || '').toLowerCase();
 
       return (
@@ -116,7 +118,7 @@ const AllStaff = () => {
   const handleOpenStaffDrawer = () => {
     openDrawer({
       type: 'staff',
-      isEditing: false
+      isEditing: false,
     });
   };
 
@@ -124,89 +126,83 @@ const AllStaff = () => {
     setActivationLoading(true);
     if (selectedStaff) {
       if (isActivating) {
-        activateStaffMutation.mutate(
-          selectedStaff.id.toString(),
-          {
-            onSuccess: () => {
-              notifications.show({
-                title: 'Success',
-                message: 'Staff activated successfully!',
-                color: 'green',
-                radius: 'md',
-                icon: (
-                  <span className='flex items-center justify-center w-6 h-6 rounded-full bg-green-200'>
-                    <img src={successIcon} alt='Success' className='w-4 h-4' />
-                  </span>
-                ),
-                withBorder: true,
-                autoClose: 3000,
-                position: 'top-right',
-              });
-              close();
-              refetch();
-              setActivationLoading(false);
-            },
-            onError: () => {
-              notifications.show({
-                title: 'Error',
-                message: 'Failed to activate staff member. Please try again.',
-                color: 'red',
-                radius: 'md',
-                icon: (
-                  <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
-                    <img src={errorIcon} alt='Error' className='w-4 h-4' />
-                  </span>
-                ),
-                withBorder: true,
-                autoClose: 3000,
-                position: 'top-right',
-              });
-              setActivationLoading(false);
-            },
-          }
-        );
+        activateStaffMutation.mutate(selectedStaff.id.toString(), {
+          onSuccess: () => {
+            notifications.show({
+              title: 'Success',
+              message: 'Staff activated successfully!',
+              color: 'green',
+              radius: 'md',
+              icon: (
+                <span className='flex items-center justify-center w-6 h-6 rounded-full bg-green-200'>
+                  <img src={successIcon} alt='Success' className='w-4 h-4' />
+                </span>
+              ),
+              withBorder: true,
+              autoClose: 3000,
+              position: 'top-right',
+            });
+            close();
+            refetch();
+            setActivationLoading(false);
+          },
+          onError: () => {
+            notifications.show({
+              title: 'Error',
+              message: 'Failed to activate staff member. Please try again.',
+              color: 'red',
+              radius: 'md',
+              icon: (
+                <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+                  <img src={errorIcon} alt='Error' className='w-4 h-4' />
+                </span>
+              ),
+              withBorder: true,
+              autoClose: 3000,
+              position: 'top-right',
+            });
+            setActivationLoading(false);
+          },
+        });
       } else {
-        deactivateStaffMutation.mutate(
-          selectedStaff.id.toString(),
-          {
-            onSuccess: () => {
-              notifications.show({
-                title: 'Success',
-                message: 'Staff deactivated successfully!',
-                color: 'green',
-                radius: 'md',
-                icon: (
-                  <span className='flex items-center justify-center w-6 h-6 rounded-full bg-green-200'>
-                    <img src={successIcon} alt='Success' className='w-4 h-4' />
-                  </span>
-                ),
-                withBorder: true,
-                autoClose: 3000,
-                position: 'top-right',
-              });
-              close();
-              refetch();
-              setActivationLoading(false);
-            },
-            onError: () => {
-              notifications.show({
-                title: 'Error',
-                message: 'Failed to deactivate staff member. Please try again.',
-                color: 'red',
-                radius: 'md',
-                icon: (
-                  <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
-                    <img src={errorIcon} alt='Error' className='w-4 h-4' />
-                  </span>
-                ),
-                withBorder: true,
-                autoClose: 3000,
-                position: 'top-right',
-              });
-              setActivationLoading(false);
-            },
-          }
-        );
+        deactivateStaffMutation.mutate(selectedStaff.id.toString(), {
+          onSuccess: () => {
+            notifications.show({
+              title: 'Success',
+              message: 'Staff deactivated successfully!',
+              color: 'green',
+              radius: 'md',
+              icon: (
+                <span className='flex items-center justify-center w-6 h-6 rounded-full bg-green-200'>
+                  <img src={successIcon} alt='Success' className='w-4 h-4' />
+                </span>
+              ),
+              withBorder: true,
+              autoClose: 3000,
+              position: 'top-right',
+            });
+            close();
+            refetch();
+            setActivationLoading(false);
+          },
+          onError: () => {
+            notifications.show({
+              title: 'Error',
+              message: 'Failed to deactivate staff member. Please try again.',
+              color: 'red',
+              radius: 'md',
+              icon: (
+                <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+                  <img src={errorIcon} alt='Error' className='w-4 h-4' />
+                </span>
+              ),
+              withBorder: true,
+              autoClose: 3000,
+              position: 'top-right',
+            });
+            setActivationLoading(false);
+          },
+        });
       }
     }
   };
@@ -394,8 +390,10 @@ const AllStaff = () => {
     );
   }
 
-  const hasSearchResults = Boolean(debouncedSearchQuery.trim()) && filteredStaff.length > 0;
-  const hasNoSearchResults = Boolean(debouncedSearchQuery.trim()) && filteredStaff.length === 0;
+  const hasSearchResults =
+    Boolean(debouncedSearchQuery.trim()) && filteredStaff.length > 0;
+  const hasNoSearchResults =
+    Boolean(debouncedSearchQuery.trim()) && filteredStaff.length === 0;
   const hasNoStaff = !debouncedSearchQuery.trim() && staff.length === 0;
 
   return (
@@ -411,11 +409,11 @@ const AllStaff = () => {
           onButtonClick={handleOpenStaffDrawer}
           showButton={permisions?.can_create_staff}
         />
-        
+
         <EmptyDataPage
           title={hasNoSearchResults ? 'No Staff Found' : 'No Staff Found'}
           description={
-            hasNoSearchResults 
+            hasNoSearchResults
               ? `No staff members match "${debouncedSearchQuery}". Try different search terms.`
               : "You don't have any staff yet"
           }
@@ -429,28 +427,32 @@ const AllStaff = () => {
           opened={(hasNoStaff || hasNoSearchResults) && !isLoading && !isError}
           showButton={permisions?.can_create_staff}
         />
-        
+
         {hasSearchResults && (
           <div className='px-6 py-2'>
             <Text size='sm' color='dimmed'>
-              Found {filteredStaff.length} staff member{filteredStaff.length !== 1 ? 's' : ''} matching "{debouncedSearchQuery}"
+              Found {filteredStaff.length} staff member
+              {filteredStaff.length !== 1 ? 's' : ''} matching "
+              {debouncedSearchQuery}"
             </Text>
           </div>
         )}
-        
-        {(filteredStaff.length > 0) && (
-          <div className='flex-1 px-6 md:py-3 pt-12'>
-            <Table
-              data={filteredStaff}
-              columns={columns}
-              rowSelection={rowSelection}
-              onRowSelectionChange={setRowSelection}
-              className='mt-4'
-              pageSize={8}
-              onRowClick={(row: StaffResponse) =>
-                navigateToStaffDetails(navigate, row.id.toString())
-              }
-            />
+
+        {filteredStaff.length > 0 && (
+          <div className='flex-1 px-2 md:px-6 md:py-3 pt-12 w-full overflow-x-auto'>
+            <div className='min-w-[800px] md:min-w-0'>
+              <Table
+                data={filteredStaff}
+                columns={columns}
+                rowSelection={rowSelection}
+                onRowSelectionChange={setRowSelection}
+                className='bg-white rounded-lg shadow-sm'
+                pageSize={10}
+                onRowClick={(row: StaffResponse) =>
+                  navigateToStaffDetails(navigate, row.id.toString())
+                }
+              />
+            </div>
           </div>
         )}
       </div>
