@@ -71,26 +71,61 @@ const ProgressSeriesTracker = () => {
   };
 
   return (
-    <Card padding="sm" radius="lg" w="90%" withBorder>
+    <Card 
+      padding="sm" 
+      radius="lg" 
+      w="95%" 
+      withBorder
+      style={{
+        maxHeight: '50vh',
+        overflowY: 'auto',
+        scrollbarWidth: 'thin',
+        msOverflowStyle: 'none',
+        '&::-webkit-scrollbar': {
+          width: '4px',
+        },
+        '&::-webkit-scrollbar-thumb': {
+          backgroundColor: '#c1c1c1',
+          borderRadius: '4px',
+        },
+      }}
+    >
       <Accordion
         value={expandedSeries}
         onChange={(value) => handleAccordionChange(value || "")}
         chevron={null}
-        styles={{
+        styles={(theme) => ({
+          root: {
+            width: '100%',
+          },
           item: {
             width: "100%",
             border: "none",
             marginBottom: "8px",
             backgroundColor: "#F8F8EF",
             borderRadius: "8px",
-            "&[dataActive]": {
+            '&[data-active]': {
               backgroundColor: "#ffffff",
               boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
             },
           },
-          control: { backgroundColor: "transparent" },
-          content: { padding: "8px 16px 18px" },
-        }}
+          control: { 
+            backgroundColor: "transparent",
+            padding: '12px 16px',
+            '&:hover': {
+              backgroundColor: 'transparent',
+            },
+          },
+          content: { 
+            padding: "8px 16px 18px",
+            overflow: 'visible',
+          },
+          chevron: {
+            '&[data-rotate]': {
+              transform: 'rotate(180deg)',
+            },
+          },
+        })}
       >
         {seriesData.map((series, index) => {
           const canExpand = isSeriesComplete(index);
