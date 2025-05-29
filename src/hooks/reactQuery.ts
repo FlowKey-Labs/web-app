@@ -634,13 +634,9 @@ export const useGetSessions = (
   });
 };
 
-export const useGetCalendarSessions = (
-  pageIndex = 1,
-  pageSize = 10,
-  filters?: SessionFilters
-): UseQueryResult<Session[], Error> => {
+export const useGetCalendarSessions = (): UseQueryResult<Session[], Error> => {
   return useQuery<Session[], Error>({
-    queryKey: ["sessions", pageIndex, pageSize, filters],
+    queryKey: ["sessions"],
     queryFn: () => get_calendar_sessions(),
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
