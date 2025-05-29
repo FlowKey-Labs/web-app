@@ -84,7 +84,7 @@ const FlowkeyLandingPage = () => {
   ];
 
   return (
-    <div className='flex flex-col h-screen w-full overflow-y-auto'>
+    <div className='flex flex-col w-full max-w-[100vw] overflow-x-hidden'>
       {/* header section  */}
       <div
         className='flex flex-col w-full justify-center'
