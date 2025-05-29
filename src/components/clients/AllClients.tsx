@@ -42,7 +42,7 @@ const clientColumnHelper = createColumnHelper<Client>();
 const groupColumnHelper = createColumnHelper<GroupData>();
 
 const AllClients = () => {
-  const [pageIndex, setPageIndex] = useState(0);
+  const [pageIndex, setPageIndex] = useState(1);
 
   const [rowSelection, setRowSelection] = useState({});
   const [selectedClient, setSelectedClient] = useState<

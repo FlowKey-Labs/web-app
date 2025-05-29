@@ -48,7 +48,7 @@ const columnHelper = createColumnHelper<Session>();
 const AllSessions = () => {
   const navigate = useNavigate();
   const [rowSelection, setRowSelection] = useState({});
-  const [pageIndex, setPageIndex] = useState(0);
+  const [pageIndex, setPageIndex] = useState(1);
   const [classTypeDropdownOpen, setClassTypeDropdownOpen] = useState(false);
   const [categoryTypeDropdownOpen, setCategoryTypeDropdownOpen] =
     useState(false);
