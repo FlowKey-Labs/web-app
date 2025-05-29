@@ -67,7 +67,7 @@ const AllClients = () => {
     isError,
     error,
     refetch,
-  } = useGetClients(pageIndex);
+  } = useGetClients(pageIndex, 10);
 
   const allClients = useMemo(() => data.items, [data])
 

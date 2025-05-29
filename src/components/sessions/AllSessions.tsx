@@ -80,7 +80,7 @@ const AllSessions = () => {
     data,
     isLoading: isLoadingSessions,
     refetch: refetchSessions,
-  } = useGetSessions(pageIndex);
+  } = useGetSessions(pageIndex, 10);
 
   const allSessionsData = useMemo(() => data?.items || [], [data])
 
