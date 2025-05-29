@@ -439,7 +439,7 @@ const AllStaff = () => {
         )}
         
         {(filteredStaff.length > 0) && (
-          <div className='flex-1 px-6 py-3'>
+          <div className='flex-1 px-6 md:py-3 pt-12'>
             <Table
               data={filteredStaff}
               columns={columns}
