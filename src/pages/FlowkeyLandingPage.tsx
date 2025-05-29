@@ -84,7 +84,7 @@ const FlowkeyLandingPage = () => {
   ];
 
   return (
-    <div className='flex flex-col h-screen'>
+    <div className='flex flex-col h-screen w-[100%]'>
       {/* header section  */}
       <div
         className='flex flex-col w-full justify-center'
@@ -308,7 +308,7 @@ const FlowkeyLandingPage = () => {
                 </div>
               </div>
             </div>
-            <div className='flex justify-end absolute top-[180px] md:right-[-40px] right-[-20px] z-10'>
+            <div className='flex absolute md:top-[180px] top-[170px] md:right-[-30px] right-[-20px] z-10'>
               <img
                 src={eclipse}
                 alt='eclipse'
@@ -344,7 +344,7 @@ const FlowkeyLandingPage = () => {
                 </div>
               </div>
             </div>
-            <div className='flex justify-end absolute top-[180px]  md:left-[-40px] right-[-20px] z-10'>
+            <div className='flex absolute md:top-[180px] top-[170px] md:left-[-30px] right-[-20px] z-10'>
               <img
                 src={eclipse}
                 alt='eclipse'
@@ -407,7 +407,7 @@ const FlowkeyLandingPage = () => {
               />
             </div>
 
-            <div className='flex justify-end absolute top-[180px] md:right-[-40px] right-[-20px] z-10'>
+            <div className='flex absolute md:top-[180px] top-[170px] md:right-[-30px] right-[-20px] z-10'>
               <img
                 src={eclipse}
                 alt='eclipse'
@@ -425,7 +425,7 @@ const FlowkeyLandingPage = () => {
             <div className='absolute md:top-[280px] top-[240px] md:right-[-100px] right-[-10px] md:w-[330px] md:h-[132px] w-[247px] h-[99px] shadow-sm z-30'>
               <img src={graph} alt='graph' />
             </div>
-            <div className='flex justify-end absolute top-[180px] md:left-[-40px] right-[-20px] z-10'>
+            <div className='flex absolute md:top-[180px] top-[170px] md:left-[-30px] right-[-20px] z-10'>
               <img
                 src={eclipse}
                 alt='eclipse'
@@ -435,13 +435,14 @@ const FlowkeyLandingPage = () => {
           </div>
           <div className='flex flex-col gap-2 md:gap-4 justify-center md:w-[570px]'>
             <h2 className='font-[700] text-[32px] md:text-[40px] w-full text-[#0F2028] font-spaceGrotesk'>
-              Payments & Invoicing
+              Get a 360° view of your business
             </h2>
             <p className='text-[#8A8D8E] text-[20px] font-[400]'>
-              Generate invoices with one click and track payments in real time.
+              Know your cash flow instantly with a simple dashboard showing
+              revenue, expenses, and trends
             </p>
             <p className='text-[#8A8D8E] text-[20px] font-[400]'>
-              Send automatic reminders for overdue bills—no more lost cash.
+              No accounting degree needed.
             </p>
           </div>
         </div>
