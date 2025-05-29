@@ -29,6 +29,7 @@ const UpdateGroup = ({ groupData, onSuccess }: UpdateGroupProps) => {
     useUpdateGroup();
 
   const methods = useForm<GroupData>({
+
     defaultValues: {
       name: '',
       description: '',

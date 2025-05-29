@@ -18,7 +18,6 @@ import {
   AddClient,
   ClientData,
   GroupData,
-  Client,
 } from '../../types/clientTypes';
 import { Location } from '../../types/location';
 
@@ -99,7 +98,7 @@ const AddClients = ({ isOpen, onClose }: ClientsModalProps) => {
   const { data: locationsData, isLoading: isLocationsLoading } =
     useGetLocations() as { data: Location[] | undefined; isLoading: boolean };
   const { data: clientsData, isLoading: isClientsLoading } =
-    useGetClients() as { data: Client[] | undefined; isLoading: boolean };
+    useGetClients();
   const { data: sessionsData, isLoading: isSessionsLoading } =
     useGetSessions()
   useGetGroups();

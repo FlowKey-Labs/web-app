@@ -451,8 +451,8 @@ export const useSetPrimaryLocation = () => {
 };
 
 export const useGetClients = (
-  pageIndex = 1,
-  pageSize = 10
+  pageIndex?: number,
+  pageSize?: number
 ): UseQueryResult<PaginatedResponse<Client>, Error> => {
   return useQuery({
     queryKey: ["clients", pageIndex, pageSize],
@@ -621,8 +621,8 @@ export interface SessionFilters {
 }
 
 export const useGetSessions = (
-  pageIndex = 1,
-  pageSize = 10,
+  pageIndex?: number,
+  pageSize?: number,
   filters?: SessionFilters
 ): UseQueryResult<PaginatedResponse<Session>, Error> => {
   return useQuery<PaginatedResponse<Session>, Error>({

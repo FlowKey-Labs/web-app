@@ -50,8 +50,10 @@ const END_POINTS = {
     LOCATIONS: `${BASE_URL}/api/business/locations/`,
   },
   CLIENTS: {
-    CLIENTS_DATA_LIST: (pageIndex: number, pageSize: number) =>
-      `${BASE_URL}/api/client/?pageIndex=${pageIndex}&pageSize=${pageSize}`,
+    CLIENTS_DATA_LIST: (pageIndex?: number, pageSize?: number) =>
+      pageIndex
+        ? `${BASE_URL}/api/client/?pageIndex=${pageIndex}&pageSize=${pageSize}`
+        : `${BASE_URL}/api/client/`,
     CLIENTS_DATA: `${BASE_URL}/api/client/`,
     ATTENDANCE: `${BASE_URL}/api/client/attendance/manage/`,
     GROUPS: `${BASE_URL}/api/client/groups/`,
@@ -234,8 +236,8 @@ const get_business_services = async () => {
 };
 
 const get_clients = async (
-  pageIndex: number,
-  pageSize: number
+  pageIndex?: number,
+  pageSize?: number
 ): Promise<PaginatedResponse<Client>> => {
   const { data } = await api.get<PaginatedResponse<Client>>(
     END_POINTS.CLIENTS.CLIENTS_DATA_LIST(pageIndex, pageSize)
@@ -372,7 +374,7 @@ const get_calendar_sessions = async () => {
 const get_sessions = async (
   filters?: SessionFilters,
   pageIndex?: number,
-  pageSize = 10
+  pageSize?: number
 ): Promise<PaginatedResponse<Session>> => {
   let url = END_POINTS.SESSION.SESSIONS_DATA;
 
