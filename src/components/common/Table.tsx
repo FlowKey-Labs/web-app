@@ -50,17 +50,19 @@ const Table = <T extends object>({
   onPageChange,
 }: TableProps<T>) => {
   // Convert 1-based backend index to 0-based for react-table
-  const reactTablePageIndex = paginateServerSide ? pageIndex - 1 : 0;
+  const reactTablePageIndex = paginateServerSide ? pageIndex - 1 : undefined;
 
   const table = useReactTable({
     data,
     columns,
     state: {
       rowSelection: rowSelection || {},
-      pagination: {
-        pageIndex: reactTablePageIndex,
-        pageSize,
-      },
+      ...(paginateServerSide && {
+        pagination: {
+          pageIndex: reactTablePageIndex!,
+          pageSize,
+        },
+      }),
     },
     onRowSelectionChange,
     getCoreRowModel: getCoreRowModel(),
