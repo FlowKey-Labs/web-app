@@ -184,7 +184,6 @@ const AllSessions = () => {
       return allSessionsData || [];
     }
   }, [allSessionsData, selectedTypes, selectedCategories, dateRange, debouncedSearchQuery, searchSessions]);
-  console.log('filteredSessions==>', filteredSessions);
   
   const {
     exportModalOpened,

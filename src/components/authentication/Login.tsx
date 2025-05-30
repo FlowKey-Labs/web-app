@@ -58,7 +58,7 @@ const Login = () => {
             autoClose: 3000,
           });
           setTimeout(() => {
-            navigate('/dashboard');
+            navigate('/');
           }, 1500);
         },
         onError: (error: any) => {

@@ -5,6 +5,7 @@ import {
   useReactTable,
   RowSelectionState,
   OnChangeFn,
+  getPaginationRowModel,
 } from '@tanstack/react-table';
 import tableLeftIcon from '../../assets/icons/tableLeft.svg';
 import tableRightIcon from '../../assets/icons/tableRight.svg';
@@ -17,30 +18,6 @@ export interface TableProps<T> {
   onRowClick?: (row: T) => void;
   className?: string;
   pageSize?: number;
-
-  // Appearance
-  headerBg?: string;
-  bodyBg?: string;
-  rowHoverBg?: string;
-  showPagination?: boolean;
-  showHeaderDivider?: boolean;
-  headerDividerColor?: string;
-
-  // Server-side pagination controls
-  paginateServerSide?: boolean;
-  pageIndex?: number;
-  pageCount?: number;
-  onPageChange?: (pageIndex: number) => void;
-}
-
-export interface TableProps<T> {
-  data: T[];
-  columns: ColumnDef<T, any>[];
-  rowSelection?: RowSelectionState;
-  onRowSelectionChange?: OnChangeFn<RowSelectionState>;
-  onRowClick?: (row: T) => void;
-  className?: string;
-  pageSize?: number;
   headerBg?: string;
   bodyBg?: string;
   rowHoverBg?: string;
@@ -48,51 +25,54 @@ export interface TableProps<T> {
   showHeaderDivider?: boolean;
   headerDividerColor?: string;
   paginateServerSide?: boolean;
-  pageIndex?: number;
+  pageIndex?: number; // 1-based index from backend
   pageCount?: number;
-  onPageChange?: (pageIndex: number) => void;
+  onPageChange?: (pageIndex: number) => void; // Expects 1-based index
 }
 
-const Table = <T extends object>(props: TableProps<T>) => {
-  const {
-    data,
-    columns,
-    rowSelection,
-    onRowSelectionChange,
-    onRowClick,
-    className = '',
-    pageSize = 10,
-    headerBg = 'bg-tableHeader',
-    bodyBg = '',
-    rowHoverBg = 'hover:bg-flowkeySecondary',
-    showPagination = true,
-    showHeaderDivider = false,
-    headerDividerColor = 'bg-gray-200',
-    paginateServerSide = false,
-    pageIndex = 0,
-    pageCount = 1,
-    onPageChange,
-  } = props;
+const Table = <T extends object>({
+  data,
+  columns,
+  rowSelection,
+  onRowSelectionChange,
+  onRowClick,
+  className = '',
+  pageSize = 10,
+  headerBg = 'bg-tableHeader',
+  bodyBg = '',
+  rowHoverBg = 'hover:bg-flowkeySecondary',
+  showPagination = true,
+  showHeaderDivider = false,
+  headerDividerColor = 'bg-gray-200',
+  paginateServerSide = false,
+  pageIndex = 1, // Default to 1 (first page)
+  pageCount = 1,
+  onPageChange,
+}: TableProps<T>) => {
+  // Convert 1-based backend index to 0-based for react-table
+  const reactTablePageIndex = paginateServerSide ? pageIndex - 1 : 0;
 
   const table = useReactTable({
     data,
     columns,
     state: {
-      rowSelection: rowSelection ?? {},
+      rowSelection: rowSelection || {},
       pagination: {
-        pageIndex: paginateServerSide ? pageIndex : 0,
+        pageIndex: reactTablePageIndex,
         pageSize,
       },
     },
     onRowSelectionChange,
+    getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
     pageCount: paginateServerSide ? pageCount : undefined,
     manualPagination: paginateServerSide,
-    getCoreRowModel: getCoreRowModel(),
   });
 
   const handlePreviousPage = () => {
     if (paginateServerSide) {
-      onPageChange?.(Math.max(pageIndex - 1, 0));
+      const newPage = Math.max(pageIndex - 1, 1);
+      onPageChange?.(newPage);
     } else {
       table.previousPage();
     }
@@ -100,26 +80,29 @@ const Table = <T extends object>(props: TableProps<T>) => {
 
   const handleNextPage = () => {
     if (paginateServerSide) {
-      onPageChange?.(Math.min(pageIndex + 1, (pageCount ?? 1) - 1));
+      const newPage = Math.min(pageIndex + 1, pageCount);
+      onPageChange?.(newPage);
     } else {
       table.nextPage();
     }
   };
 
-  const handlePageChange = (page: number) => {
+  const handlePageChange = (pageNumber: number) => {
     if (paginateServerSide) {
-      onPageChange?.(Math.min(Math.max(page - 1, 0), (pageCount ?? 1) - 1));
+      onPageChange?.(pageNumber);
     } else {
-      table.setPageIndex(page - 1);
+      table.setPageIndex(pageNumber - 1);
     }
   };
 
-  const currentPageIndex = paginateServerSide 
-    ? pageIndex 
-    : table.getState().pagination.pageIndex;
+  // Current page number to display (always 1-based)
+  const currentPageNumber = paginateServerSide
+    ? pageIndex
+    : table.getState().pagination.pageIndex + 1;
 
-  const totalPages = paginateServerSide 
-    ? pageCount 
+  // Total number of pages
+  const totalPages = paginateServerSide
+    ? pageCount
     : table.getPageCount();
 
   return (
@@ -187,7 +170,7 @@ const Table = <T extends object>(props: TableProps<T>) => {
                     onClick={handlePreviousPage}
                     disabled={
                       paginateServerSide
-                        ? pageIndex <= 0
+                        ? pageIndex <= 1
                         : !table.getCanPreviousPage()
                     }
                     className="flex items-center px-2 py-2 border border-gray-300 rounded-lg text-xs text-[#6D7172] hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -201,7 +184,7 @@ const Table = <T extends object>(props: TableProps<T>) => {
                         key={page}
                         onClick={() => handlePageChange(page)}
                         className={`px-2 py-1 border border-gray-300 rounded-lg text-xs ${
-                          page === currentPageIndex + 1
+                          page === currentPageNumber
                             ? 'bg-[#DBDEDF] text-primary'
                             : 'text-[#6D7172] hover:bg-gray-50'
                         }`}
@@ -215,7 +198,7 @@ const Table = <T extends object>(props: TableProps<T>) => {
                     onClick={handleNextPage}
                     disabled={
                       paginateServerSide
-                        ? pageIndex >= (pageCount ?? 1) - 1
+                        ? pageIndex >= pageCount
                         : !table.getCanNextPage()
                     }
                     className="flex items-center px-2 py-2 border border-gray-300 rounded-lg text-xs text-[#6D7172] hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
