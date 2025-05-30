@@ -48,7 +48,7 @@ const columnHelper = createColumnHelper<Session>();
 const AllSessions = () => {
   const navigate = useNavigate();
   const [rowSelection, setRowSelection] = useState({});
-  const [pageIndex, setPageIndex] = useState(0);
+  const [pageIndex, setPageIndex] = useState(1);
   const [classTypeDropdownOpen, setClassTypeDropdownOpen] = useState(false);
   const [categoryTypeDropdownOpen, setCategoryTypeDropdownOpen] =
     useState(false);
@@ -82,7 +82,7 @@ const AllSessions = () => {
     refetch: refetchSessions,
   } = useGetSessions(pageIndex);
 
-  const allSessionsData = useMemo(() => data?.items || [], [])
+  const allSessionsData = useMemo(() => data?.items || [], [data])
 
   const searchSessions = useCallback((sessions: Session[], query: string) => {
     if (!query.trim()) return sessions;
@@ -184,7 +184,6 @@ const AllSessions = () => {
       return allSessionsData || [];
     }
   }, [allSessionsData, selectedTypes, selectedCategories, dateRange, debouncedSearchQuery, searchSessions]);
-  console.log('filteredSessions==>', filteredSessions);
   
   const {
     exportModalOpened,
