@@ -59,7 +59,7 @@ const EmptyDataPage: React.FC<EmptyDataPageProps> = ({
       onClose={() => onClose?.()}
       title={null}
       centered
-      withCloseButton={false}
+      withCloseButton={isMobile ? true : false}
       closeOnClickOutside={true}
       closeOnEscape={true}
       transitionProps={{ duration: 200 }}
