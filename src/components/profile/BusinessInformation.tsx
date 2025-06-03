@@ -134,8 +134,8 @@ const BusinessInformation = ({
 
   if (isLoading) {
     return (
-      <div className='flex justify-center items-center h-screen p-6 pt-12'>
-        <Loader size='xl' color='#1D9B5E' />
+      <div className='flex justify-center items-center h-screen w-full p-6 pt-12'>
+        <Loader size='md' color='#1D9B5E' />
       </div>
     );
   }
