@@ -251,7 +251,7 @@ const CalendarView = () => {
               <i className='text-xs truncate'>{eventInfo.event.title}</i>
             </div>
             {currentView.type !== 'Week' && (
-              <b className='text-xs items-center hidden md:flex'>{timeString}</b>
+              <b className='text-xs items-center'>{timeString}</b>
             )}
           </div>
         );
