@@ -109,6 +109,7 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
 
   const { data: staffData, isLoading: isStaffLoading } = useGetStaff();
   const { data: clientsData, isLoading: isClientsLoading } = useGetClients();
+
   const { data: categoriesData } = useGetSessionCategories();
   const { data: locationsData, isLoading: isLocationsLoading } =
     useGetLocations();

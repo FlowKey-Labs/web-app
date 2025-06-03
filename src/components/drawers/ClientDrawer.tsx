@@ -79,9 +79,9 @@ export default function ClientDrawer({ entityId, isEditing, zIndex }: ClientDraw
   const { data: clientData, isLoading: isClientLoading } = useGetClient(editingId ? String(editingId) : '');
   const { mutate: addClient, isPending: isAddingClient } = useAddClient();
   const { mutate: updateClient, isPending: isUpdatingClient } = useUpdateClient();
-  const { data: locationsData, isLoading: isLocationsLoading } = useGetLocations() as { data: Location[] | undefined, isLoading: boolean };
-  const { data: clientsData, isLoading: isClientsLoading } = useGetClients() as { data: Client[] | undefined, isLoading: boolean };
-  const { data: sessionsData, isLoading: isSessionsLoading } = useGetSessions() as { data: any[] | undefined, isLoading: boolean };
+  const { data: locationsData, isLoading: isLocationsLoading } = useGetLocations()
+  const { data: clientsData, isLoading: isClientsLoading } = useGetClients()
+  const { data: sessionsData, isLoading: isSessionsLoading } = useGetSessions();
   const { mutate: addGroup, isPending: isAddingGroup } = useAddGroup();
 
   const handleTabChange = (value: string) => {
@@ -152,7 +152,7 @@ export default function ClientDrawer({ entityId, isEditing, zIndex }: ClientDraw
       if (name === 'client_ids' && value.client_ids) {
         const clientIds = value.client_ids as number[];
         if (clientIds.length > 0 && clientsData) {
-          const selectedClientsList = clientsData
+          const selectedClientsList = clientsData.items
             .filter(client => clientIds.includes(client.id))
             .map(client => ({
               id: client.id,
@@ -792,7 +792,7 @@ export default function ClientDrawer({ entityId, isEditing, zIndex }: ClientDraw
                           options={
                             isSessionsLoading
                               ? [{ label: 'Loading...', value: '' }]
-                              : sessionsData
+                              : sessionsData?.items
                                   ?.filter(Boolean)
                                   .map((session: any) => ({
                                     label: session.title || session.name || 'Unnamed Session',
@@ -984,10 +984,10 @@ export default function ClientDrawer({ entityId, isEditing, zIndex }: ClientDraw
                         options={
                           isSessionsLoading
                             ? [{ label: 'Loading...', value: '' }]
-                            : sessionsData
+                            : sessionsData?.items
                                 ?.filter(Boolean)
                                 .map((session) => ({
-                                  label: session.title || session.name,
+                                  label: session.title || session.name || 'Unnamed Session',
                                   value: session.id.toString(),
                                 })) || []
                         }

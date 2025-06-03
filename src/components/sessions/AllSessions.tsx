@@ -48,6 +48,7 @@ const columnHelper = createColumnHelper<Session>();
 const AllSessions = () => {
   const navigate = useNavigate();
   const [rowSelection, setRowSelection] = useState({});
+  const [pageIndex, setPageIndex] = useState(1);
   const [classTypeDropdownOpen, setClassTypeDropdownOpen] = useState(false);
   const [categoryTypeDropdownOpen, setCategoryTypeDropdownOpen] =
     useState(false);
@@ -77,10 +78,12 @@ const AllSessions = () => {
   const permisions = useAuthStore((state) => state.role);
 
   const {
-    data: allSessionsData,
+    data,
     isLoading: isLoadingSessions,
     refetch: refetchSessions,
-  } = useGetSessions();
+  } = useGetSessions(pageIndex, 10);
+
+  const allSessionsData = useMemo(() => data?.items || [], [data]);
 
   const searchSessions = useCallback((sessions: Session[], query: string) => {
     if (!query.trim()) return sessions;
@@ -666,7 +669,9 @@ const AllSessions = () => {
                 />
               </div>
               <div className='flex items-center'>
-                <p className='text-primary text-sm font-[600] md:font-normal'>Filter By</p>
+                <p className='text-primary text-sm font-[600] md:font-normal'>
+                  Filter By
+                </p>
               </div>
             </div>
             <div className='h-full w-[1px] bg-gray-200'></div>
@@ -967,6 +972,10 @@ const AllSessions = () => {
                   onRowClick={(row: Session) =>
                     navigateToSessionDetails(navigate, row.id.toString())
                   }
+                  paginateServerSide={true}
+                  pageIndex={pageIndex}
+                  pageCount={data?.totalPages}
+                  onPageChange={setPageIndex}
                 />
               </div>
             </div>

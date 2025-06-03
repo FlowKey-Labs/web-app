@@ -7,12 +7,11 @@ import Categories from './Categories';
 
 type TabType = 'business' | 'locations' | 'schedule' | 'categories';
 
-const tabConfig = [
-  { id: 'business', label: 'Business Information' },
-  { id: 'categories', label: 'Session Categories' },
-  { id: 'locations', label: 'Locations' },
-  { id: 'schedule', label: 'Schedule' },
-];
+  const tabConfig = [
+    { id: 'business', label: 'Business Information' },
+    { id: 'categories', label: 'Session Categories' },
+    { id: 'locations', label: 'Locations' },
+  ];
 
 const Profile = () => {
   const [openedAccordion, setOpenedAccordion] = useState<string | null>(null);

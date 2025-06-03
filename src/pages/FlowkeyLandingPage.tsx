@@ -477,7 +477,7 @@ const FlowkeyLandingPage = () => {
               </div>
             </div>
             <div className='flex flex-col md:w-[50%] w-full md:gap-6 gap-2 mt-5 md:mt-0 items-center justify-end'>
-              <div className='flex gap-4 bg-white md:px-6 md:py-8  py-6 rounded-lg md:w-[500px] w-full shadow-sm'>
+              <div className='flex gap-4 bg-white px-6 py-8 rounded-lg md:w-[500px] w-full shadow-sm'>
                 <img src={tools} alt='' className='self-start' />
                 <div className='flex flex-col gap-1'>
                   <h3 className='text-[#323232] font-[700] md:text-lg text-sm'>
@@ -615,7 +615,9 @@ const FlowkeyLandingPage = () => {
           <div className='flex flex-col text-center justify-center gap-4'>
             <h2 className='font-[700] md:text-[48px] text-[32px] text-white md:w-[540px] w-[327px] self-center font-spaceGrotesk'>
               Ready to{' '}
-              <span className='font-[300] text-white italic'>Take Control</span>{' '}
+              <span className='font-[300] font-sans text-white !italic'>
+                Take Control
+              </span>{' '}
               of Your Business?
             </h2>
             <p className='text-base font-[400] text-[#969696] md:w-[650px] w-[327px] self-center'>

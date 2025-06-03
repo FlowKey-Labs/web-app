@@ -38,11 +38,14 @@ import EmptyDataPage from '../common/EmptyDataPage';
 import { useAuthStore } from '../../store/auth';
 import { useUIStore } from '../../store/ui';
 import ErrorBoundary from '../common/ErrorBoundary';
+import { PaginatedResponse } from '../../api/api';
 
 const clientColumnHelper = createColumnHelper<Client>();
 const groupColumnHelper = createColumnHelper<GroupData>();
 
 const AllClients = () => {
+  const [pageIndex, setPageIndex] = useState(1);
+
   const [rowSelection, setRowSelection] = useState({});
   const [selectedClient, setSelectedClient] = useState<
     Client | GroupData | null
@@ -62,12 +65,14 @@ const AllClients = () => {
   const permisions = useAuthStore((state) => state.role);
 
   const {
-    data: allClients = [],
+    data = {} as PaginatedResponse<Client>,
     isLoading,
     isError,
     error,
     refetch,
-  } = useGetClients();
+  } = useGetClients(pageIndex, 10);
+
+  const allClients = useMemo(() => data.items, [data]);
 
   const {
     data: allGroups = [],
@@ -189,14 +194,17 @@ const AllClients = () => {
     setRowSelection({});
   }, []);
 
-  const getSelectedIds = useCallback(() => {
+  const getSelectedIds = useCallback((): number[] => {
     const currentData = filteredData;
     if (!currentData) return [];
 
-    return Object.keys(rowSelection).map((index) => {
-      const itemIndex = parseInt(index);
-      return currentData[itemIndex].id;
-    });
+    return Object.keys(rowSelection)
+      .map((index) => {
+        const itemIndex = parseInt(index);
+        const item = currentData[itemIndex];
+        return item?.id;
+      })
+      .filter((id): id is number => id !== undefined);
   }, [rowSelection, filteredData]);
 
   const {
@@ -205,7 +213,7 @@ const AllClients = () => {
     closeExportModal,
     handleExport,
     isExporting,
-  } = useExportClients(activeView === 'clients' ? clients || [] : groups || []);
+  } = useExportClients(clients || []);
 
   const {
     exportModalOpened: groupExportModalOpened,
@@ -741,7 +749,8 @@ const AllClients = () => {
             showEmptyState &&
             (activeView === 'clients'
               ? clients.length === 0
-              : groups.length === 0) && !isLoadingCurrent
+              : groups.length === 0) &&
+            !isLoadingCurrent
           }
           showButton={
             Boolean(searchQuery.trim()) ||
@@ -761,6 +770,10 @@ const AllClients = () => {
                 onRowClick={(row: Client) => {
                   navigateToClientDetails(navigate, row.id.toString());
                 }}
+                paginateServerSide={true}
+                pageIndex={pageIndex}
+                pageCount={data.totalPages}
+                onPageChange={setPageIndex}
               />
             )}
             {activeView === 'groups' && groups.length > 0 && (
@@ -779,7 +792,7 @@ const AllClients = () => {
               />
             )}
           </div>
-          </div>
+        </div>
       </div>
 
       <Modal
