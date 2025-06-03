@@ -141,7 +141,7 @@ const BusinessInformation = ({
   }
 
   return (
-    <div className='w-full space-y-6 bg-white rounded-lg p-6'>
+    <div className='w-full space-y-6 bg-white rounded-lg md:p-6 p-2'>
       <FormProvider {...methods}>
         <Accordion
           transitionDuration={300}
@@ -167,7 +167,7 @@ const BusinessInformation = ({
                 </div>
               }
             >
-              <div className='flex flex-col gap-1 ml-6'>
+              <div className='flex flex-col gap-1 md:ml-6'>
                 <h3 className='text-primary text-sm font-[600]'>
                   General Information
                 </h3>
@@ -177,7 +177,7 @@ const BusinessInformation = ({
               </div>
             </Accordion.Control>
             <Accordion.Panel>
-              <div className='px-6 py-4'>
+              <div className='md:px-6 md:py-4 px-1 py-1'>
                 <div className='flex items-center'>
                   <form
                     onSubmit={methods.handleSubmit(onSubmit)}
@@ -186,7 +186,7 @@ const BusinessInformation = ({
                     <div className='flex items-center h-[160px] font-sans'>
                       <div className='flex flex-col space-y-2 text-center mr-8 font-sans'>
                         <div className='max-w-[100px] max-h-[100px]'>
-                          <div className='flex items-center justify-center w-[80px] h-[80px] rounded-full bg-secondary text-white text-3xl font-bold select-none mx-auto'>
+                          <div className='flex items-center justify-center md:w-[80px] md:h-[80px] w-[50px] h-[50px] rounded-full bg-secondary text-white md:text-3xl text-xl font-bold select-none mx-auto'>
                             {(() => {
                               const name =
                                 methods.getValues('business_name')?.trim() ||
@@ -200,18 +200,18 @@ const BusinessInformation = ({
                           </div>
                         </div>
                         <div>
-                          <h3 className='text-[16px] font-[600] text-primary font-sans'>
+                          <h3 className='md:text-[16px] text-[14px] font-[600] text-primary font-sans'>
                             {methods.getValues('business_name') ||
                               'Add Business Name'}
                           </h3>
-                          <p className='text-gray-500 text-sm font-sans'>
+                          <p className='text-gray-500 md:text-sm text-xs font-sans'>
                             {methods.getValues('about') || 'Add About'}
                           </p>
                         </div>
                       </div>
                       <div className='h-[70%] w-[2px] bg-gray-300'></div>
-                      <div className='flex-grow p-6'>
-                        <div className='grid grid-cols-2 gap-4 -mt-4'>
+                      <div className='flex-grow md:p-6 pl-6'>
+                        <div className='grid md:grid-cols-2 grid-cols-1 md:gap-4 -mt-4'>
                           <Controller
                             name='business_name'
                             control={methods.control}
@@ -241,12 +241,12 @@ const BusinessInformation = ({
                         </div>
                       </div>
                     </div>
-                    <div className='mt-6'>
+                    <div className='md:mt-6 mt-4'>
                       <h3 className='text-lg font-[400]'>
                         Contact Information
                       </h3>
                       <div className='flex-grow'>
-                        <div className='grid grid-cols-3 gap-4'>
+                        <div className='grid md:grid-cols-2 grid-cols-1 md:gap-4'>
                           <Controller
                             name='contact_phone'
                             control={methods.control}
@@ -281,7 +281,7 @@ const BusinessInformation = ({
                             )}
                           />
                         </div>
-                        <div className='mt-6'>
+                        <div className='md:mt-6 mt-4'>
                           <h3 className='text-lg font-[400]'>About Company</h3>
                           <Controller
                             name='about'
