@@ -9,6 +9,7 @@ import {
   navigateToCalendar,
   navigateToProfile,
   navigateToSettings,
+  navigateToHome,
 } from "../../utils/navigationHelpers";
 import { Role, useAuthStore } from "../../store/auth";
 import { useMemo, useState, useEffect } from "react";
@@ -141,11 +142,11 @@ const Sidebar = ({ activeItem, isOpen = true, onClose }: SidebarProps) => {
         <div className="flex items-center justify-center mb-8 px-6">
           <h3
             className="flex items-center gap-2 cursor-pointer transition-opacity hover:opacity-90 focus:opacity-90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-opacity-50 rounded-md p-1"
-            onClick={() => navigateToDashboard(navigate)}
+            onClick={() => navigateToHome(navigate)}
             onKeyDown={(e) => {
               if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();
-                navigateToDashboard(navigate);
+                navigateToHome(navigate);
               }
             }}
             tabIndex={0}

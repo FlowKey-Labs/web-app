@@ -84,31 +84,37 @@ const AllSessions = () => {
 
   const searchSessions = useCallback((sessions: Session[], query: string) => {
     if (!query.trim()) return sessions;
-    
+
     try {
       const searchTerms = query.toLowerCase().trim().split(/\s+/);
-      
+
       return sessions.filter((session) => {
         try {
           const searchableFields = [
             safeToString(session.title),
             safeToString(session.category?.name),
             safeToString(session.class_type),
-            session.assigned_staff 
-              ? `${safeToString(session.assigned_staff.user?.first_name)} ${safeToString(session.assigned_staff.user?.last_name)}`.trim()
+            session.assigned_staff
+              ? `${safeToString(
+                  session.assigned_staff.user?.first_name
+                )} ${safeToString(
+                  session.assigned_staff.user?.last_name
+                )}`.trim()
               : '',
             safeToString(session.description),
             safeToString(session.location),
             safeToString(session.id),
-          ].filter(field => field.length > 0); 
-          
+          ].filter((field) => field.length > 0);
+
           const combinedText = searchableFields.join(' ');
-          
-          return searchTerms.every(term => 
-            combinedText.includes(term)
-          );
+
+          return searchTerms.every((term) => combinedText.includes(term));
         } catch (error) {
-          console.warn('Error processing session in search:', session.id, error);
+          console.warn(
+            'Error processing session in search:',
+            session.id,
+            error
+          );
           return false;
         }
       });
@@ -134,7 +140,11 @@ const AllSessions = () => {
             const classType = session?.class_type || '';
             return selectedTypes.includes(classType);
           } catch (error) {
-            console.warn('Error filtering session by type:', session?.id, error);
+            console.warn(
+              'Error filtering session by type:',
+              session?.id,
+              error
+            );
             return false;
           }
         });
@@ -146,7 +156,11 @@ const AllSessions = () => {
             const sessionCategory = session?.category?.name || '';
             return selectedCategories.includes(sessionCategory);
           } catch (error) {
-            console.warn('Error filtering session by category:', session?.id, error);
+            console.warn(
+              'Error filtering session by category:',
+              session?.id,
+              error
+            );
             return false;
           }
         });
@@ -159,8 +173,16 @@ const AllSessions = () => {
             const startDate = new Date(dateRange[0]!);
             const endDate = new Date(dateRange[1]!);
 
-            if (isNaN(sessionDate.getTime()) || isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
-              console.warn('Invalid date in session:', session?.id, session?.date);
+            if (
+              isNaN(sessionDate.getTime()) ||
+              isNaN(startDate.getTime()) ||
+              isNaN(endDate.getTime())
+            ) {
+              console.warn(
+                'Invalid date in session:',
+                session?.id,
+                session?.date
+              );
               return false;
             }
 
@@ -170,7 +192,11 @@ const AllSessions = () => {
 
             return sessionDate >= startDate && sessionDate <= endDate;
           } catch (error) {
-            console.warn('Error filtering session by date:', session?.id, error);
+            console.warn(
+              'Error filtering session by date:',
+              session?.id,
+              error
+            );
             return false;
           }
         });
@@ -181,7 +207,14 @@ const AllSessions = () => {
       console.error('Error in filteredSessions:', error);
       return allSessionsData || [];
     }
-  }, [allSessionsData, selectedTypes, selectedCategories, dateRange, debouncedSearchQuery, searchSessions]);
+  }, [
+    allSessionsData,
+    selectedTypes,
+    selectedCategories,
+    dateRange,
+    debouncedSearchQuery,
+    searchSessions,
+  ]);
 
   const {
     exportModalOpened,
@@ -199,7 +232,7 @@ const AllSessions = () => {
       return filteredSessions[sessionIndex].id;
     });
   }, [rowSelection, filteredSessions]);
-  
+
   const { data: categoriesData, isLoading: isLoadingCategories } =
     useGetSessionCategories();
 
@@ -207,7 +240,6 @@ const AllSessions = () => {
     setSearchQuery(value);
     setRowSelection({});
   }, []);
-
 
   const columns = useMemo(
     () => [
@@ -587,23 +619,24 @@ const AllSessions = () => {
     });
   };
 
-  const handleOpenAddSession = () => openDrawer({ type: 'session', isEditing: false });
+  const handleOpenAddSession = () =>
+    openDrawer({ type: 'session', isEditing: false });
 
   if (isLoadingSessions) {
     return (
       <ErrorBoundary>
         <div className='flex justify-center items-center h-screen'>
-          <Loader size='xl' color='#1D9B5E'/>
+          <Loader size='xl' color='#1D9B5E' />
         </div>
       </ErrorBoundary>
     );
-  } 
+  }
 
   if (isLoadingCategories) {
     return (
       <ErrorBoundary>
         <div className='flex justify-center items-center py-10'>
-          <Loader size='xl' color='#1D9B5E'/>
+          <Loader size='xl' color='#1D9B5E' />
         </div>
       </ErrorBoundary>
     );
@@ -622,23 +655,24 @@ const AllSessions = () => {
           onButtonClick={handleOpenAddSession}
           showButton={permisions?.can_create_sessions}
         />
-        <div className='flex h-[70px] w-[80%] ml-6 text-sm p-2 border rounded-md bg-white'>
-          <div className='flex items-center justify-between w-full px-6 font-bold '>
-            <div className='flex justify-center items-center'>
-              <img
-                src={classesFilterIcon}
-                alt='filter section'
-                className='self-center'
-              />
-            </div>
-            <div className='h-full w-[1px] bg-gray-200'></div>
-            <div className='flex items-center'>
-              <p className='text-primary text-sm font-normal'>Filter By</p>
+        <div className='flex mt-12 self-center md:mt-0 md:h-[70px] w-[80%] md:w-[70%] md:ml-6 text-sm p-2 border rounded-md bg-white shadow-sm'>
+          <div className='flex flex-col md:flex-row items-center justify-between w-full px-6 py-2 md:py-0 font-bold space-y-2 md:space-y-0'>
+            <div className='flex items-center gap-4 w-full md:w-auto justify-center'>
+              <div className='flex justify-center items-center'>
+                <img
+                  src={classesFilterIcon}
+                  alt='filter section'
+                  className='self-center w-4 h-4 font-[600] md:font-normal'
+                />
+              </div>
+              <div className='flex items-center'>
+                <p className='text-primary text-sm font-[600] md:font-normal'>Filter By</p>
+              </div>
             </div>
             <div className='h-full w-[1px] bg-gray-200'></div>
 
             <div
-              className='flex items-center space-x-2 cursor-pointer'
+              className='flex items-center space-x-2 cursor-pointer border-b border-gray-200 pb-1 w-full md:w-auto justify-center md:border-b-0'
               onClick={() => {}}
             >
               <DatePickerInput
@@ -670,7 +704,7 @@ const AllSessions = () => {
             </div>
             <div className='h-full w-[1px] bg-gray-200'></div>
 
-            <div>
+            <div className='flex items-center border-b border-gray-200 pb-1 w-full md:w-auto justify-center md:border-b-0'>
               <DropDownMenu
                 show={classTypeDropdownOpen}
                 setShow={(show) => {
@@ -683,7 +717,7 @@ const AllSessions = () => {
                 actionElement={
                   <div
                     id='viewSelect'
-                    className='p-2 w-full gap-2 h-10 rounded-md outline-none cursor-pointer flex items-center justify-between'
+                    className='md:p-2 w-full gap-2 h-10 rounded-md outline-none cursor-pointer flex items-center justify-center'
                   >
                     <p className='text-primary text-sm font-normal'>
                       {selectedTypes.length > 0
@@ -748,7 +782,7 @@ const AllSessions = () => {
               </DropDownMenu>
             </div>
             <div className='h-full w-[1px] bg-gray-200'></div>
-            <div>
+            <div className='flex items-center border-b border-gray-200 pb-1 w-full md:w-auto justify-center md:border-b-0'>
               <DropDownMenu
                 show={categoryTypeDropdownOpen}
                 setShow={(show) => {
@@ -761,7 +795,7 @@ const AllSessions = () => {
                 actionElement={
                   <div
                     id='viewSelect'
-                    className='p-2 w-full gap-2 h-10 rounded-md outline-none cursor-pointer flex items-center justify-between'
+                    className='md:p-2 w-full gap-2 h-10 rounded-md outline-none cursor-pointer flex items-center justify-center'
                   >
                     <p className='text-primary text-sm font-normal'>
                       {selectedCategories.length > 0
@@ -837,7 +871,7 @@ const AllSessions = () => {
             </div>
             <div className='h-full w-[1px] bg-gray-200'></div>
             <div
-              className='flex items-center space-x-2 cursor-pointer'
+              className='flex items-center text-center gap-4 cursor-pointer  pb-1 w-full md:w-auto justify-center'
               onClick={resetFilters}
             >
               <img
@@ -851,24 +885,35 @@ const AllSessions = () => {
         </div>
         <EmptyDataPage
           title={
-            searchQuery.trim() || selectedTypes.length > 0 || selectedCategories.length > 0 || (dateRange[0] && dateRange[1])
+            searchQuery.trim() ||
+            selectedTypes.length > 0 ||
+            selectedCategories.length > 0 ||
+            (dateRange[0] && dateRange[1])
               ? 'No Sessions Found!'
               : 'No Sessions Found!'
           }
           description={
             debouncedSearchQuery.trim()
               ? `No sessions match your search "${debouncedSearchQuery}"`
-              : selectedTypes.length > 0 || selectedCategories.length > 0 || (dateRange[0] && dateRange[1])
-              ? "No sessions match your current filters"
+              : selectedTypes.length > 0 ||
+                selectedCategories.length > 0 ||
+                (dateRange[0] && dateRange[1])
+              ? 'No sessions match your current filters'
               : "You don't have any sessions yet"
           }
           buttonText={
-            debouncedSearchQuery.trim() || selectedTypes.length > 0 || selectedCategories.length > 0 || (dateRange[0] && dateRange[1])
+            debouncedSearchQuery.trim() ||
+            selectedTypes.length > 0 ||
+            selectedCategories.length > 0 ||
+            (dateRange[0] && dateRange[1])
               ? 'Clear Filters'
               : 'Create New Session'
           }
           onButtonClick={
-            debouncedSearchQuery.trim() || selectedTypes.length > 0 || selectedCategories.length > 0 || (dateRange[0] && dateRange[1])
+            debouncedSearchQuery.trim() ||
+            selectedTypes.length > 0 ||
+            selectedCategories.length > 0 ||
+            (dateRange[0] && dateRange[1])
               ? resetFilters
               : handleOpenAddSession
           }
@@ -886,7 +931,8 @@ const AllSessions = () => {
           }}
           opened={
             showEmptyState &&
-            (!filteredSessions || filteredSessions.length === 0) && !isLoadingSessions
+            (!filteredSessions || filteredSessions.length === 0) &&
+            !isLoadingSessions
           }
           filterType={
             selectedTypes.length === 1
@@ -903,23 +949,27 @@ const AllSessions = () => {
               : undefined
           }
         />
-        <div className='flex-1 px-6 py-2'>
+        <div className='flex-1 md:px-6 px-2 py-2'>
           {isLoadingSessions || isLoadingCategories ? (
             <div className='flex justify-center items-center'>
               <Loader size='xl' color='#1D9B5E' />
             </div>
           ) : (
-            <Table
-              data={filteredSessions || []}
-              columns={columns}
-              rowSelection={rowSelection}
-              onRowSelectionChange={setRowSelection}
-              className='mt-4'
-              pageSize={7}
-              onRowClick={(row: Session) =>
-                navigateToSessionDetails(navigate, row.id.toString())
-              }
-            />
+            <div className='flex-1 md:px-6 md:py-3 pt-4 w-full overflow-x-auto'>
+              <div className='min-w-[1100px] md:min-w-0'>
+                <Table
+                  data={filteredSessions || []}
+                  columns={columns}
+                  rowSelection={rowSelection}
+                  onRowSelectionChange={setRowSelection}
+                  className='mt-4'
+                  pageSize={7}
+                  onRowClick={(row: Session) =>
+                    navigateToSessionDetails(navigate, row.id.toString())
+                  }
+                />
+              </div>
+            </div>
           )}
         </div>
       </div>
