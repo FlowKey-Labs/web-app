@@ -349,7 +349,7 @@ const Policies = () => {
         </MantineButton>
       </div>
       <div className='flex-1 md:px-6 md:py-3 pt-4 w-full overflow-x-auto'>
-        <div className='min-w-[900px] md:min-w-0'>
+        <div className='min-w-[1000px] md:min-w-0'>
           <Table
             data={policies}
             columns={columns}
