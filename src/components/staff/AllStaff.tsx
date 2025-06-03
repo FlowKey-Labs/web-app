@@ -43,6 +43,7 @@ const AllStaff = () => {
   const [activationLoading, setActivationLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
+  const [showEmptyState, setShowEmptyState] = useState(true);
 
   const permisions = useAuthStore((state) => state.role);
   const { openDrawer } = useUIStore();
@@ -420,11 +421,15 @@ const AllStaff = () => {
           buttonText='Add New Staff'
           onButtonClick={handleOpenStaffDrawer}
           onClose={() => {
+            setShowEmptyState(false);
             if (hasNoSearchResults) {
               setSearchQuery('');
             }
           }}
-          opened={(hasNoStaff || hasNoSearchResults) && !isLoading && !isError}
+          opened={
+            showEmptyState &&
+            (hasNoStaff || hasNoSearchResults) && !isLoading && !isError
+          }
           showButton={permisions?.can_create_staff}
         />
 

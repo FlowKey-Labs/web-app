@@ -67,6 +67,7 @@ const AllSessions = () => {
     null,
     null,
   ]);
+  const [showEmptyState, setShowEmptyState] = useState(true);
 
   const { openDrawer } = useUIStore();
 
@@ -873,6 +874,7 @@ const AllSessions = () => {
           }
           showButton={true}
           onClose={() => {
+            setShowEmptyState(false);
             if (
               selectedTypes.length > 0 ||
               selectedCategories.length > 0 ||
@@ -883,6 +885,7 @@ const AllSessions = () => {
             }
           }}
           opened={
+            showEmptyState &&
             (!filteredSessions || filteredSessions.length === 0) && !isLoadingSessions
           }
           filterType={

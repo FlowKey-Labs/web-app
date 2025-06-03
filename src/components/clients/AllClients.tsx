@@ -52,6 +52,7 @@ const AllClients = () => {
   const [activeView, setActiveView] = useState<'clients' | 'groups'>('clients');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
+  const [showEmptyState, setShowEmptyState] = useState(true);
 
   const navigate = useNavigate();
   const { openDrawer } = useUIStore();
@@ -735,8 +736,9 @@ const AllClients = () => {
               ? () => setSearchQuery('')
               : handleOpenClientDrawer
           }
-          onClose={() => {}}
+          onClose={() => setShowEmptyState(false)}
           opened={
+            showEmptyState &&
             (activeView === 'clients'
               ? clients.length === 0
               : groups.length === 0) && !isLoadingCurrent
