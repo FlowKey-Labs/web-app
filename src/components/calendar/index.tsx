@@ -1,25 +1,25 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import FullCalendar from "@fullcalendar/react";
-import dayGridPlugin from "@fullcalendar/daygrid";
-import dayGridWeek from "@fullcalendar/daygrid";
-import timeGridPlugin from "@fullcalendar/timegrid";
-import interactionPlugin from "@fullcalendar/interaction";
-import Button from "../common/Button";
-import plusIcon from "../../assets/icons/plusWhite.svg";
-import { addHours, format, isPast, parse } from "date-fns";
-import DropDownMenu from "../common/DropdownMenu";
-import dropdownIcon from "../../assets/icons/dropIcon.svg";
-import { cn } from "../../utils/mergeClass";
-import { EventClickArg, EventInput } from "@fullcalendar/core/index.js";
-import EventCard from "./eventCard";
-import { Dictionary, EventImpl } from "@fullcalendar/core/internal";
-import { useGetCalendarSessions } from "../../hooks/reactQuery";
-import "./index.css";
-import { useAuthStore } from "../../store/auth";
-import { useUIStore } from "../../store/ui";
-import { mapSessionToFullCalendarEvents as convertSessionToEvents } from "./calendarUtils";
-import { CalendarSessionType } from "../../types/sessionTypes";
-import { Loader } from "@mantine/core";
+import { useCallback, useEffect, useRef, useState } from 'react';
+import FullCalendar from '@fullcalendar/react';
+import dayGridPlugin from '@fullcalendar/daygrid';
+import dayGridWeek from '@fullcalendar/daygrid';
+import timeGridPlugin from '@fullcalendar/timegrid';
+import interactionPlugin from '@fullcalendar/interaction';
+import Button from '../common/Button';
+import plusIcon from '../../assets/icons/plusWhite.svg';
+import { addHours, format, isPast, parse } from 'date-fns';
+import DropDownMenu from '../common/DropdownMenu';
+import dropdownIcon from '../../assets/icons/dropIcon.svg';
+import { cn } from '../../utils/mergeClass';
+import { EventClickArg, EventInput } from '@fullcalendar/core/index.js';
+import EventCard from './eventCard';
+import { Dictionary, EventImpl } from '@fullcalendar/core/internal';
+import { useGetCalendarSessions } from '../../hooks/reactQuery';
+import './index.css';
+import { useAuthStore } from '../../store/auth';
+import { useUIStore } from '../../store/ui';
+import { mapSessionToFullCalendarEvents as convertSessionToEvents } from './calendarUtils';
+import { CalendarSessionType } from '../../types/sessionTypes';
+import { Loader } from '@mantine/core';
 
 const popupWidth = 400;
 const popupHeight = 500;
@@ -251,7 +251,9 @@ const CalendarView = () => {
               <i className='text-xs truncate'>{eventInfo.event.title}</i>
             </div>
             {currentView.type !== 'Week' && (
-              <b className='text-xs items-center'>{timeString}</b>
+              <b className='text-xs items-center hidden md:block'>
+                {timeString}
+              </b>
             )}
           </div>
         );
