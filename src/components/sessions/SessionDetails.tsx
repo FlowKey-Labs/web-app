@@ -41,8 +41,29 @@ import {
   AttendedSession,
   CancelledSession,
 } from '../../types/sessionTypes';
+import { processSessionParticipants } from '../../utils/sessionUtils';
 
-const columnHelper = createColumnHelper<Client>();
+// Extended participant interface for session details display
+interface SessionParticipant {
+  id: string;
+  name: string;
+  phone?: string;
+  email?: string;
+  type: 'client' | 'booking';
+  status: string;
+  active?: boolean;
+  booking_reference?: string;
+  is_group_booking?: boolean;
+  quantity?: number;
+  isAttended?: boolean;
+  // For traditional clients
+  clientId?: number;
+  first_name?: string;
+  last_name?: string;
+  phone_number?: string;
+}
+
+const columnHelper = createColumnHelper<SessionParticipant>();
 
 const SessionDetails = () => {
   const { id: sessionId } = useParams();
@@ -84,14 +105,33 @@ const SessionDetails = () => {
     refetch: refetchClients,
   } = useGetSessionClients(sessionId || '');
 
+  // Process session participants using cleaned attendances data from backend
+  const sessionParticipants = useMemo((): SessionParticipant[] => {
+    if (!session?.attendances) return [];
+
+    return session.attendances.map((attendance) => ({
+      id: `attendance-${attendance.id}`,
+      name: attendance.participant_name || 'Unknown',
+      phone: attendance.participant_phone,
+      email: attendance.participant_email,
+      type: attendance.participant_type,
+      status: attendance.display_status,
+      active: attendance.participant_type === 'client' ? true : undefined,
+      booking_reference: attendance.booking_reference,
+      isAttended: attendance.attended,
+      clientId: attendance.client,
+    }));
+  }, [session]);
+
   const getSelectedClientIds = useCallback(() => {
-    if (!clients) return [];
+    if (!sessionParticipants) return [];
 
     return Object.keys(rowSelection).map((index) => {
-      const clientIndex = parseInt(index);
-      return clients[clientIndex].id;
+      const participantIndex = parseInt(index);
+      const participant = sessionParticipants[participantIndex];
+      return participant.clientId || participant.id;
     });
-  }, [rowSelection, clients]);
+  }, [rowSelection, sessionParticipants]);
 
   const methods = useForm<MakeUpSession | AttendedSession | CancelledSession>();
 
@@ -101,7 +141,7 @@ const SessionDetails = () => {
     closeExportModal,
     handleExport,
     isExporting,
-  } = useExportSessionClients(clients || []);
+  } = useExportSessionClients(sessionParticipants || []);
 
   const { openDrawer } = useUIStore();
 
@@ -159,8 +199,37 @@ const SessionDetails = () => {
   const handleRemoveClient = () => {
     if (!selectedClient || !sessionId) return;
 
+    // Only allow removing traditional clients, not booking clients
+    if (selectedClient.type === 'booking') {
+      notifications.show({
+        title: 'Not Allowed',
+        message: 'Booking clients cannot be removed directly. They must be cancelled through the booking system.',
+        color: 'orange',
+        radius: 'md',
+        withBorder: true,
+        autoClose: 4000,
+        position: 'top-right',
+      });
+      close();
+      return;
+    }
+
+    if (!selectedClient.clientId) {
+      notifications.show({
+        title: 'Error',
+        message: 'Cannot remove this participant.',
+        color: 'red',
+        radius: 'md',
+        withBorder: true,
+        autoClose: 3000,
+        position: 'top-right',
+      });
+      close();
+      return;
+    }
+
     removeClientMutation.mutate(
-      { clientId: selectedClient.id.toString(), sessionId },
+      { clientId: selectedClient.clientId.toString(), sessionId },
       {
         onSuccess: () => {
           notifications.show({
@@ -435,27 +504,74 @@ const SessionDetails = () => {
           />
         ),
       }),
-      columnHelper.accessor('first_name', {
+      columnHelper.accessor('name', {
         header: 'Name',
-        cell: (info) => `${info.getValue()} ${info.row.original.last_name}`,
+        cell: (info) => (
+          <div className='flex flex-col'>
+            <span className='text-sm text-primary'>{info.getValue()}</span>
+            {info.row.original.booking_reference && (
+              <span className='text-xs text-gray-500'>
+                Ref: {info.row.original.booking_reference}
+              </span>
+            )}
+          </div>
+        ),
       }),
-      columnHelper.accessor('phone_number', {
-        header: 'Phone',
-        cell: (info) => info.getValue(),
-      }),
-      columnHelper.accessor('active', {
-        header: 'Status',
+      columnHelper.accessor('type', {
+        header: 'Type',
         cell: (info) => (
           <span
-            className={`inline-block px-1 py-1 rounded-lg text-sm text-center min-w-[60px] ${
-              info.getValue()
-                ? 'bg-active text-green-700'
-                : 'bg-red-100 text-red-700'
+            className={`inline-block px-2 py-1 rounded-lg text-xs text-center min-w-[70px] ${
+              info.getValue() === 'client'
+                ? 'bg-blue-100 text-blue-700'
+                : 'bg-green-100 text-green-700'
             }`}
           >
-            {info.getValue() ? 'Active' : 'Inactive'}
+            {info.getValue() === 'client' ? 'Client' : 'Booking'}
           </span>
         ),
+      }),
+      columnHelper.accessor('phone', {
+        header: 'Phone',
+        cell: (info) => info.getValue() || '-',
+      }),
+      columnHelper.accessor('status', {
+        header: 'Status',
+        cell: (info) => {
+          const status = info.getValue();
+          let colorClasses = 'bg-gray-100 text-gray-700'; // default
+          
+          switch (status) {
+            case 'attended':
+              colorClasses = 'bg-green-100 text-green-700';
+              break;
+            case 'confirmed':
+              colorClasses = 'bg-green-100 text-green-700';
+              break;
+            case 'registered':
+              colorClasses = 'bg-blue-100 text-blue-700';
+              break;
+            case 'cancelled':
+              colorClasses = 'bg-red-100 text-red-700';
+              break;
+            case 'Active':
+              colorClasses = 'bg-green-100 text-green-700';
+              break;
+            case 'Inactive':
+              colorClasses = 'bg-red-100 text-red-700';
+              break;
+            default:
+              colorClasses = 'bg-gray-100 text-gray-700';
+          }
+          
+          return (
+            <span
+              className={`inline-block px-2 py-1 rounded-lg text-xs text-center min-w-[80px] ${colorClasses}`}
+            >
+              {status}
+            </span>
+          );
+        },
       }),
       columnHelper.display({
         id: 'progress',
@@ -522,77 +638,116 @@ const SessionDetails = () => {
                   />
                 </Menu.Target>
                 <Menu.Dropdown>
-                  <Menu.Item
-                    color='green'
-                    onClick={() => {
-                      setSelectedClient(client);
-                      setSelectedStatus('attended');
-                      setIsRemovingClient(false);
-                      handleAttendanceStatusChange();
+                  {client.type === 'client' ? (
+                    // Traditional client actions
+                    <>
+                      <Menu.Item
+                        color='green'
+                        onClick={() => {
+                          setSelectedClient(client);
+                          setSelectedStatus('attended');
+                          setIsRemovingClient(false);
+                          handleAttendanceStatusChange();
 
-                      methods.setValue(
-                        'client_name',
-                        `${client.first_name} ${client.last_name}`
-                      );
-                      open();
-                    }}
-                    className='text-sm'
-                    style={{ textAlign: 'center' }}
-                  >
-                    Attended
-                  </Menu.Item>
+                          methods.setValue(
+                            'client_name',
+                            client.name
+                          );
+                          open();
+                        }}
+                        className='text-sm'
+                        style={{ textAlign: 'center' }}
+                      >
+                        Attended
+                      </Menu.Item>
 
-                  <Menu.Item
-                    color='blue'
-                    onClick={() => {
-                      setSelectedClient(client);
-                      setSelectedStatus('make_up');
-                      setIsRemovingClient(false);
-                      handleAttendanceStatusChange();
+                      <Menu.Item
+                        color='blue'
+                        onClick={() => {
+                          setSelectedClient(client);
+                          setSelectedStatus('make_up');
+                          setIsRemovingClient(false);
+                          handleAttendanceStatusChange();
 
-                      methods.setValue(
-                        'client_name',
-                        `${client.first_name} ${client.last_name}`
-                      );
-                      open();
-                    }}
-                    className='text-sm'
-                    style={{ textAlign: 'center' }}
-                  >
-                    Make-up
-                  </Menu.Item>
-                  <Menu.Item
-                    color='gray'
-                    onClick={() => {
-                      setSelectedClient(client);
-                      setSelectedStatus('cancelled');
-                      setIsRemovingClient(false);
-                      handleAttendanceStatusChange();
+                          methods.setValue(
+                            'client_name',
+                            client.name
+                          );
+                          open();
+                        }}
+                        className='text-sm'
+                        style={{ textAlign: 'center' }}
+                      >
+                        Make-up
+                      </Menu.Item>
+                      
+                      <Menu.Item
+                        color='gray'
+                        onClick={() => {
+                          setSelectedClient(client);
+                          setSelectedStatus('cancelled');
+                          setIsRemovingClient(false);
+                          handleAttendanceStatusChange();
 
-                      methods.setValue(
-                        'client_name',
-                        `${client.first_name} ${client.last_name}`
-                      );
-                      open();
-                    }}
-                    className='text-sm'
-                    style={{ textAlign: 'center' }}
-                  >
-                    Cancelled
-                  </Menu.Item>
-                  <Menu.Item
-                    color='red'
-                    onClick={() => {
-                      setSelectedClient(client);
-                      setIsRemovingClient(true);
-                      setSelectedStatus(null);
-                      open();
-                    }}
-                    className='text-sm'
-                    style={{ textAlign: 'center' }}
-                  >
-                    Remove
-                  </Menu.Item>
+                          methods.setValue(
+                            'client_name',
+                            client.name
+                          );
+                          open();
+                        }}
+                        className='text-sm'
+                        style={{ textAlign: 'center' }}
+                      >
+                        Cancelled
+                      </Menu.Item>
+                      
+                      <Menu.Item
+                        color='red'
+                        onClick={() => {
+                          setSelectedClient(client);
+                          setIsRemovingClient(true);
+                          setSelectedStatus(null);
+                          open();
+                        }}
+                        className='text-sm'
+                        style={{ textAlign: 'center' }}
+                      >
+                        Remove
+                      </Menu.Item>
+                    </>
+                  ) : (
+                    // Booking client actions - limited options
+                    <>
+                      <Menu.Item
+                        color='green'
+                        onClick={() => {
+                          setSelectedClient(client);
+                          setSelectedStatus('attended');
+                          setIsRemovingClient(false);
+                          handleAttendanceStatusChange();
+
+                          methods.setValue(
+                            'client_name',
+                            client.name
+                          );
+                          open();
+                        }}
+                        className='text-sm'
+                        style={{ textAlign: 'center' }}
+                      >
+                        Mark Attended
+                      </Menu.Item>
+                      
+                      <Menu.Item
+                        color='gray'
+                        disabled
+                        className='text-sm'
+                        style={{ textAlign: 'center' }}
+                      >
+                        View Booking Details
+                      </Menu.Item>
+                    </>
+                  )}
                 </Menu.Dropdown>
               </Menu>
             </div>
@@ -858,12 +1013,12 @@ const SessionDetails = () => {
                   <>
                     <div className='flex flex-col items-center border bg-white rounded-xl p-6 space-y-4'>
                       <p className='text-4xl'>
-                        {sessionAnalytics?.total_clients || 0}
+                        {sessionParticipants?.length || 0}
                         <span className='text-lg text-gray-500'>
                           /{session.spots || '∞'}
                         </span>
                       </p>
-                      <p className='text-sm'>Total Clients</p>
+                      <p className='text-sm'>Total Participants</p>
                     </div>
 
                     <div className='flex items-center border bg-white py-6 px-10 rounded-xl'>
@@ -886,7 +1041,7 @@ const SessionDetails = () => {
                   </div>
                   <div className='flex-1 py-2'>
                     <Table
-                      data={clients}
+                      data={sessionParticipants}
                       columns={columns}
                       rowSelection={rowSelection}
                       onRowSelectionChange={setRowSelection}
