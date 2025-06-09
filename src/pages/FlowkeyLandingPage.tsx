@@ -749,6 +749,7 @@ const FlowkeyLandingPage = () => {
         opened={opened}
         onClose={() => setOpened(false)}
         onSubmit={(data: BookingFormData) => {
+          console.log(data);
           setOpened(false);
         }}
       />
