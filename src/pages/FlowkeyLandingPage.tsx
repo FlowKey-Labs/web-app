@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@mantine/core';
-
 import logo from '../assets/landingpageAssets/Icons/logo.svg';
 import headerPhone from '../assets/landingpageAssets/Icons/headerPhone.svg';
 import incomeArrow from '../assets/landingpageAssets/Icons/incomeArrow.svg';
@@ -29,6 +28,9 @@ import instagram from '../assets/landingpageAssets/Icons/instagram.svg';
 
 import headerImage from '../assets/landingpageAssets/images/Hero Section.png';
 import footerImage from '../assets/landingpageAssets/images/Footer.png';
+import DemoBookingForm, {
+  BookingFormData,
+} from '../components/freeDemo/demoBookingform';
 
 import fullPhone from '../assets/landingpageAssets/Icons/fullPhone.svg';
 import payrollMobile from '../assets/landingpageAssets/Icons/payrollMobile.svg';
@@ -36,6 +38,11 @@ import payrollMobile from '../assets/landingpageAssets/Icons/payrollMobile.svg';
 const FlowkeyLandingPage = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
+  const [opened, setOpened] = useState(false);
+
+  const handleBookingFormOpen = () => {
+    setOpened(true);
+  };
 
   const SlideCard = ({
     img,
@@ -160,6 +167,7 @@ const FlowkeyLandingPage = () => {
               </p>
               <div className='w-full py-2 md:hidden'>
                 <Button
+                  onClick={handleBookingFormOpen}
                   color='#1D9B5E'
                   radius='lg'
                   h='55px'
@@ -173,7 +181,13 @@ const FlowkeyLandingPage = () => {
           </div>
 
           <div className='hidden md:flex items-center'>
-            <Button color='#1D9B5E' radius='lg' h='55px' size='lg'>
+            <Button
+              color='#1D9B5E'
+              radius='lg'
+              h='55px'
+              size='lg'
+              onClick={handleBookingFormOpen}
+            >
               Book Free Demo
             </Button>
           </div>
@@ -189,7 +203,14 @@ const FlowkeyLandingPage = () => {
               streamline operations, from bookings and payments to staff and
               client management - without spreadsheets or stress
             </p>
-            <Button color='#1D9B5E' h='50px' radius='md' size='md' mt='30px'>
+            <Button
+              color='#1D9B5E'
+              h='50px'
+              radius='md'
+              size='md'
+              mt='30px'
+              onClick={handleBookingFormOpen}
+            >
               Book Free Demo
             </Button>
           </div>
@@ -640,13 +661,21 @@ const FlowkeyLandingPage = () => {
                   w='170px'
                   radius='lg'
                   size='md'
+                  onClick={handleBookingFormOpen}
                 >
                   Book Free Demo
                 </Button>
               </div>
             </div>
             <div className='md:hidden mt-5 '>
-              <Button color='#1D9B5E' h='70px' w='170px' radius='lg' size='md'>
+              <Button
+                onClick={handleBookingFormOpen}
+                color='#1D9B5E'
+                h='70px'
+                w='170px'
+                radius='lg'
+                size='md'
+              >
                 Book Free Demo
               </Button>
             </div>
@@ -715,6 +744,14 @@ const FlowkeyLandingPage = () => {
           </div>
         </div>
       </div>
+
+      <DemoBookingForm
+        opened={opened}
+        onClose={() => setOpened(false)}
+        onSubmit={(data: BookingFormData) => {
+          setOpened(false);
+        }}
+      />
     </div>
   );
 };
