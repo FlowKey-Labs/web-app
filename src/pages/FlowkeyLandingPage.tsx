@@ -175,10 +175,26 @@ const FlowkeyLandingPage = () => {
               <p className='cursor-pointer hover:text-[#1D9B5E] transition-colors w-full py-2 border-b border-gray-100 md:border-0'>
                 Home
               </p>
-              <p className='cursor-pointer hover:text-[#1D9B5E] transition-colors w-full py-2 border-b border-gray-100 md:border-0'>
+              <p
+                className='cursor-pointer hover:text-[#1D9B5E] transition-colors w-full py-2 border-b border-gray-100 md:border-0'
+                onClick={() => {
+                  const featuresSection = document.getElementById('features');
+                  if (featuresSection) {
+                    featuresSection.scrollIntoView({ behavior: 'smooth' });
+                  }
+                }}
+              >
                 Features
               </p>
-              <p className='cursor-pointer hover:text-[#1D9B5E] transition-colors w-full py-2 border-b border-gray-100 md:border-0'>
+              <p
+                className='cursor-pointer hover:text-[#1D9B5E] transition-colors w-full py-2 border-b border-gray-100 md:border-0'
+                onClick={() => {
+                  const aboutSection = document.getElementById('about');
+                  if (aboutSection) {
+                    aboutSection.scrollIntoView({ behavior: 'smooth' });
+                  }
+                }}
+              >
                 About Us
               </p>
               <div className='w-full py-2 md:hidden'>

@@ -4,7 +4,9 @@ export default {
   theme: {
     fontFamily: {
       sans: ['Urbanist', 'sans-serif'],
-      spaceGrotesk: ['Space Grotesk', 'sans-serif'],
+      // spaceGrotesk: ['Space Grotesk', 'sans-serif'],
+      inter: ['Inter', 'sans-serif'],
+      spaceGrotesk: ['Montserrat', 'sans-serif'],
     },
     extend: {
       colors: {
