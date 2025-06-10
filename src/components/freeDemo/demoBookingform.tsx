@@ -183,6 +183,9 @@ const DemoBookingForm = ({
                 <Controller
                   name='name'
                   control={control}
+                  rules={{
+                    required: 'Name is required',
+                  }}
                   render={({ field }) => (
                     <Input
                       {...field}
@@ -210,6 +213,9 @@ const DemoBookingForm = ({
                 <Controller
                   name='email'
                   control={control}
+                  rules={{
+                    required: 'Email is required',
+                  }}
                   render={({ field }) => (
                     <Input
                       {...field}
@@ -224,6 +230,9 @@ const DemoBookingForm = ({
                 <Controller
                   name='phone'
                   control={control}
+                  rules={{
+                    required: 'Phone number is required',
+                  }}
                   render={({ field }) => (
                     <Input
                       {...field}

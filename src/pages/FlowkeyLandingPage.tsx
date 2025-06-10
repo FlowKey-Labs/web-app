@@ -142,10 +142,26 @@ const FlowkeyLandingPage = () => {
             <p className='cursor-pointer hover:text-[#1D9B5E] transition-colors'>
               Home
             </p>
-            <p className='cursor-pointer hover:text-[#1D9B5E] transition-colors'>
+            <p
+              className='cursor-pointer hover:text-[#1D9B5E] transition-colors'
+              onClick={() => {
+                const featuresSection = document.getElementById('features');
+                if (featuresSection) {
+                  featuresSection.scrollIntoView({ behavior: 'smooth' });
+                }
+              }}
+            >
               Features
             </p>
-            <p className='cursor-pointer hover:text-[#1D9B5E] transition-colors'>
+            <p
+              className='cursor-pointer hover:text-[#1D9B5E] transition-colors'
+              onClick={() => {
+                const aboutSection = document.getElementById('about');
+                if (aboutSection) {
+                  aboutSection.scrollIntoView({ behavior: 'smooth' });
+                }
+              }}
+            >
               About Us
             </p>
           </div>
@@ -265,7 +281,10 @@ const FlowkeyLandingPage = () => {
         </div>
       </div>
       {/* features section */}
-      <div className='flex flex-col bg-white w-full justify-center pt-12'>
+      <div
+        className='flex flex-col bg-white w-full justify-center pt-12'
+        id='features'
+      >
         <div className='flex flex-col w-[50%] mx-auto space-y-4 items-center'>
           <h3 className='text-secondary font-[400] md:font-[600] text-base'>
             Key Features
@@ -557,7 +576,10 @@ const FlowkeyLandingPage = () => {
           />
         </div>
 
-        <div className='flex flex-col items-center justify-center md:w-full md:pt-12 pt-6 bg-white w-[90%] mx-auto'>
+        <div
+          className='flex flex-col items-center justify-center md:w-full md:pt-12 pt-6 bg-white w-[90%] mx-auto'
+          id='about'
+        >
           <div className='flex flex-col gap-4 items-center text-center'>
             <h2 className='md:font-[600] font-[400] text-base text-secondary'>
               Our Story
