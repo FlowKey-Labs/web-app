@@ -1,29 +1,29 @@
-import { useNavigate, useParams } from "react-router-dom";
-import { useState, useEffect, useMemo } from "react";
-import MembersHeader from "../headers/MembersHeader";
+import { useNavigate, useParams } from 'react-router-dom';
+import { useState, useEffect, useMemo } from 'react';
+import MembersHeader from '../headers/MembersHeader';
 import { Loader } from '@mantine/core';
-import Button from "../common/Button";
-import Input from "../common/Input";
-import { useForm, Controller, FormProvider } from "react-hook-form";
-import { notifications } from "@mantine/notifications";
+import Button from '../common/Button';
+import Input from '../common/Input';
+import { useForm, Controller, FormProvider } from 'react-hook-form';
+import { notifications } from '@mantine/notifications';
 
 import {
   useGetRoles,
   useGetStaffMember,
   useGetStaffSessions,
   useUpdateStaffMember,
-} from "../../hooks/reactQuery";
+} from '../../hooks/reactQuery';
 
-import avatar from "../../assets/icons/newAvatar.svg";
-import editIcon from "../../assets/icons/edit.svg";
-import successIcon from "../../assets/icons/success.svg";
-import errorIcon from "../../assets/icons/error.svg";
-import DropdownSelectInput from "../common/Dropdown";
-import { Role } from "../../store/auth";
-import Table from "../common/Table";
-import { navigateToSessionDetails } from "../../utils/navigationHelpers";
-import { Session } from "../../types/sessionTypes";
-import { createColumnHelper } from "@tanstack/react-table";
+import avatar from '../../assets/icons/newAvatar.svg';
+import editIcon from '../../assets/icons/edit.svg';
+import successIcon from '../../assets/icons/success.svg';
+import errorIcon from '../../assets/icons/error.svg';
+import DropdownSelectInput from '../common/Dropdown';
+import { Role } from '../../store/auth';
+import Table from '../common/Table';
+import { navigateToSessionDetails } from '../../utils/navigationHelpers';
+import { Session } from '../../types/sessionTypes';
+import { createColumnHelper } from '@tanstack/react-table';
 
 interface PersonalFormData {
   firstName: string;
@@ -44,11 +44,11 @@ const StaffDetails = () => {
     isError,
     error,
     refetch,
-  } = useGetStaffMember(staffId || "");
+  } = useGetStaffMember(staffId || '');
   const navigate = useNavigate();
   const { data: roles = [] } = useGetRoles();
   const [isEditing, setIsEditing] = useState(false);
-  const [selectedRoleId, setSelectedRoleId] = useState("");
+  const [selectedRoleId, setSelectedRoleId] = useState('');
   const [rowSelection, setRowSelection] = useState({});
 
   const methods = useForm<PersonalFormData>();
@@ -62,12 +62,12 @@ const StaffDetails = () => {
   useEffect(() => {
     if (staffDetails?.user) {
       reset({
-        firstName: staffDetails.user.first_name || "",
-        lastName: staffDetails.user.last_name || "",
-        mobile_number: staffDetails.user.mobile_number || "",
-        email: staffDetails.user.email || "",
-        role: staffDetails.user.role.id || "",
-        staffNumber: staffDetails.member_id || "",
+        firstName: staffDetails.user.first_name || '',
+        lastName: staffDetails.user.last_name || '',
+        mobile_number: staffDetails.user.mobile_number || '',
+        email: staffDetails.user.email || '',
+        role: staffDetails.user.role.id || '',
+        staffNumber: staffDetails.member_id || '',
       });
     }
   }, [staffDetails, reset]);
@@ -233,9 +233,7 @@ const StaffDetails = () => {
     [open]
   );
 
-  const {
-    data: staffSessionsData,
-  } = useGetStaffSessions(staffDetails?.id);
+  const { data: staffSessionsData } = useGetStaffSessions(staffDetails?.id);
 
   const onSubmit = (data: PersonalFormData) => {
     if (!staffId) return;
@@ -254,34 +252,34 @@ const StaffDetails = () => {
         onSuccess: () => {
           setIsEditing(false);
           notifications.show({
-            title: "Success",
-            message: "Staff member updated successfully!",
-            color: "green",
-            radius: "md",
+            title: 'Success',
+            message: 'Staff member updated successfully!',
+            color: 'green',
+            radius: 'md',
             icon: (
-              <span className="flex items-center justify-center w-6 h-6 rounded-full bg-green-200">
-                <img src={successIcon} alt="Success" className="w-4 h-4" />
+              <span className='flex items-center justify-center w-6 h-6 rounded-full bg-green-200'>
+                <img src={successIcon} alt='Success' className='w-4 h-4' />
               </span>
             ),
             withBorder: true,
             autoClose: 3000,
-            position: "top-right",
+            position: 'top-right',
           });
         },
         onError: () => {
           notifications.show({
-            title: "Error",
-            message: "Failed to update staff member. Please try again.",
-            color: "red",
-            radius: "md",
+            title: 'Error',
+            message: 'Failed to update staff member. Please try again.',
+            color: 'red',
+            radius: 'md',
             icon: (
-              <span className="flex items-center justify-center w-6 h-6 rounded-full bg-red-200">
-                <img src={errorIcon} alt="Error" className="w-4 h-4" />
+              <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+                <img src={errorIcon} alt='Error' className='w-4 h-4' />
               </span>
             ),
             withBorder: true,
             autoClose: 3000,
-            position: "top-right",
+            position: 'top-right',
           });
         },
       }
@@ -293,10 +291,10 @@ const StaffDetails = () => {
       reset({
         firstName: staffDetails.user.first_name,
         lastName: staffDetails.user.last_name,
-        mobile_number: staffDetails.user.mobile_number || "",
+        mobile_number: staffDetails.user.mobile_number || '',
         email: staffDetails.user.email,
         role: staffDetails.user.role.id,
-        staffNumber: staffDetails.member_id || "",
+        staffNumber: staffDetails.member_id || '',
       });
     }
     setIsEditing(false);
@@ -304,17 +302,17 @@ const StaffDetails = () => {
 
   if (isLoading) {
     return (
-      <div className="flex flex-col h-screen bg-cardsBg w-full overflow-y-auto">
+      <div className='flex flex-col h-screen bg-cardsBg w-full overflow-y-auto'>
         <MembersHeader
-          title="Staff Details"
+          title='Staff Details'
           showFilterIcons={false}
           showButton={false}
           showSearch={false}
         />
-        <div className="flex justify-center items-center h-[80vh]">
-          <div className="text-center">
-            <Loader color="#1D9B5E" size="xl" />
-            <p className="mt-4 text-gray-600">Loading staff details...</p>
+        <div className='flex justify-center items-center h-[80vh]'>
+          <div className='text-center'>
+            <Loader color='#1D9B5E' size='xl' />
+            <p className='mt-4 text-gray-600'>Loading staff details...</p>
           </div>
         </div>
       </div>
@@ -323,24 +321,24 @@ const StaffDetails = () => {
 
   if (isError) {
     return (
-      <div className="flex flex-col h-screen bg-cardsBg w-full overflow-y-auto">
+      <div className='flex flex-col h-screen bg-cardsBg w-full overflow-y-auto'>
         <MembersHeader
-          title="Staff Details"
+          title='Staff Details'
           showFilterIcons={false}
           showButton={false}
           showSearch={false}
         />
-        <div className="flex justify-center items-center h-[80vh]">
-          <div className="space-y-4 text-center">
-            <p className="text-red-500 font-medium text-lg">
+        <div className='flex justify-center items-center h-[80vh]'>
+          <div className='space-y-4 text-center'>
+            <p className='text-red-500 font-medium text-lg'>
               Error loading staff details
             </p>
-            <p className="text-red-400">
-              {error?.message || "Something went wrong"}
+            <p className='text-red-400'>
+              {error?.message || 'Something went wrong'}
             </p>
             <button
               onClick={() => refetch()}
-              className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90"
+              className='px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90'
             >
               Try Again
             </button>
@@ -352,20 +350,23 @@ const StaffDetails = () => {
 
   if (!staffDetails) {
     return (
-      <div className="flex flex-col h-screen bg-cardsBg w-full overflow-y-auto">
+      <div className='flex flex-col h-screen bg-cardsBg w-full overflow-y-auto'>
         <MembersHeader
-          title="Staff Details"
+          title='Staff Details'
           showFilterIcons={false}
           showButton={false}
           showSearch={false}
         />
-        <div className="flex justify-center items-center h-[80vh]">
-          <div className="space-y-4 text-center">
-            <h2 className="text-2xl font-bold text-primary">Staff not found</h2>
-            <p className="text-gray-500">The staff member you're looking for doesn't exist or has been removed.</p>
+        <div className='flex justify-center items-center h-[80vh]'>
+          <div className='space-y-4 text-center'>
+            <h2 className='text-2xl font-bold text-primary'>Staff not found</h2>
+            <p className='text-gray-500'>
+              The staff member you're looking for doesn't exist or has been
+              removed.
+            </p>
             <button
               onClick={() => navigate('/staff')}
-              className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 mt-4"
+              className='px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 mt-4'
             >
               Back to Staff List
             </button>
@@ -374,34 +375,34 @@ const StaffDetails = () => {
       </div>
     );
   }
-  
+
   return (
     <FormProvider {...methods}>
-      <div className="flex flex-col h-screen bg-cardsBg w-full pl-16 overflow-y-auto">
+      <div className='flex flex-col h-screen bg-cardsBg w-full md:pl-16 overflow-y-auto'>
         <MembersHeader
-          title="Staff Details"
+          title='Staff Details'
           showFilterIcons={false}
           showButton={false}
           showSearch={false}
         />
-        <div className="flex flex-col justify-center items-center mt-10 space-y-4 pb-4">
-          <div className="border items-center rounded-xl w-[95%] p-8 bg-white">
-            <div className="flex justify-between">
-              <div className="flex justify-center items-center gap-4">
+        <div className='flex flex-col justify-center items-center mt-10 space-y-4 pb-4'>
+          <div className='border items-center rounded-xl w-[95%] p-8 bg-white'>
+            <div className='flex justify-between'>
+              <div className='flex justify-center items-center gap-4'>
                 <img
                   src={staffDetails.profileImage || avatar}
-                  alt="avatar"
-                  className="rounded-full w-12 h-12 object-cover"
+                  alt='avatar'
+                  className='rounded-full w-12 h-12 object-cover'
                 />
-                <div className="text-primary space-y-1">
-                  <p className="text-sm font-semibold">
-                    {staffDetails?.user?.first_name}{" "}
+                <div className='text-primary space-y-1'>
+                  <p className='text-sm font-semibold'>
+                    {staffDetails?.user?.first_name}{' '}
                     {staffDetails?.user?.last_name}
                   </p>
-                  <p className="text-xs text-gray-400 font-semibold">
+                  <p className='text-xs text-gray-400 font-semibold'>
                     {staffDetails.role}
                   </p>
-                  <span className="text-xs text-gray-400 font-semibold">
+                  <span className='text-xs text-gray-400 font-semibold'>
                     ID:{staffDetails?.member_id}
                   </span>
                 </div>
@@ -409,42 +410,42 @@ const StaffDetails = () => {
             </div>
           </div>
 
-          <div className="border rounded-xl w-[95%] p-8 bg-white">
-            <div className="flex justify-between items-start">
-              <h3 className="text-primary text-sm font-semibold mb-4">
+          <div className='border rounded-xl w-[95%] p-8 bg-white'>
+            <div className='flex justify-between items-start'>
+              <h3 className='text-primary text-sm font-semibold mb-4'>
                 Personal Information
               </h3>
               {!isEditing ? (
                 <Button
-                  variant="outline"
-                  color="gray"
-                  radius="md"
-                  h="40"
+                  variant='outline'
+                  color='gray'
+                  radius='md'
+                  h='40'
                   leftSection={
-                    <img src={editIcon} alt="edit" className="w-4 h-4" />
+                    <img src={editIcon} alt='edit' className='w-4 h-4' />
                   }
-                  size="sm"
+                  size='sm'
                   onClick={() => setIsEditing(true)}
                 >
                   Edit
                 </Button>
               ) : (
-                <div className="flex gap-2">
+                <div className='flex gap-2'>
                   <Button
-                    variant="outline"
-                    color="red"
-                    radius="md"
-                    h="40"
-                    size="sm"
+                    variant='outline'
+                    color='red'
+                    radius='md'
+                    h='40'
+                    size='sm'
                     onClick={handleCancel}
                   >
                     Cancel
                   </Button>
                   <Button
-                    color="#1D9B5E"
-                    radius="md"
-                    h="40"
-                    size="sm"
+                    color='#1D9B5E'
+                    radius='md'
+                    h='40'
+                    size='sm'
                     onClick={handleSubmit(onSubmit)}
                   >
                     Save
@@ -452,19 +453,24 @@ const StaffDetails = () => {
                 </div>
               )}
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className='grid grid-cols-2 gap-4'>
               {isEditing ? (
                 <Controller
-                  name="firstName"
+                  name='firstName'
                   control={control}
                   render={({ field }) => (
-                    <Input {...field} label="First Name" className="w-full" placeholder="Enter First Name"/>
+                    <Input
+                      {...field}
+                      label='First Name'
+                      className='w-full'
+                      placeholder='Enter First Name'
+                    />
                   )}
                 />
               ) : (
                 <div>
-                  <p className="text-sm text-gray-400">First Name</p>
-                  <p className="text-sm text-gray-500">
+                  <p className='text-sm text-gray-400'>First Name</p>
+                  <p className='text-sm text-gray-500'>
                     {staffDetails?.user?.first_name}
                   </p>
                 </div>
@@ -473,16 +479,21 @@ const StaffDetails = () => {
               {/* Last Name */}
               {isEditing ? (
                 <Controller
-                  name="lastName"
+                  name='lastName'
                   control={control}
                   render={({ field }) => (
-                    <Input {...field} label="Last Name" className="w-full" placeholder="Enter Last Name" />
+                    <Input
+                      {...field}
+                      label='Last Name'
+                      className='w-full'
+                      placeholder='Enter Last Name'
+                    />
                   )}
                 />
               ) : (
                 <div>
-                  <p className="text-sm text-gray-400">Last Name</p>
-                  <p className="text-sm text-gray-500">
+                  <p className='text-sm text-gray-400'>Last Name</p>
+                  <p className='text-sm text-gray-500'>
                     {staffDetails?.user?.last_name}
                   </p>
                 </div>
@@ -490,17 +501,17 @@ const StaffDetails = () => {
 
               {isEditing ? (
                 <Controller
-                  name="email"
+                  name='email'
                   control={control}
                   render={({ field }) => (
                     <Input
                       {...field}
-                      label="Email Address"
-                      className="w-full bg-gray-100 text-gray-500"
+                      label='Email Address'
+                      className='w-full bg-gray-100 text-gray-500'
                       readOnly
                       style={{
-                        backgroundColor: "#80808052",
-                        cursor: "not-allowed",
+                        backgroundColor: '#80808052',
+                        cursor: 'not-allowed',
                       }}
                       onFocus={(e) => {
                         e.target.blur();
@@ -510,8 +521,8 @@ const StaffDetails = () => {
                 />
               ) : (
                 <div>
-                  <p className="text-sm text-gray-400">Email Address</p>
-                  <p className="text-sm text-gray-500">
+                  <p className='text-sm text-gray-400'>Email Address</p>
+                  <p className='text-sm text-gray-500'>
                     {staffDetails?.user?.email}
                   </p>
                 </div>
@@ -519,71 +530,81 @@ const StaffDetails = () => {
 
               {isEditing ? (
                 <Controller
-                  name="mobile_number"
+                  name='mobile_number'
                   control={control}
                   render={({ field }) => (
-                    <Input {...field} label="Phone Number" className="w-full" placeholder="Enter Phone Number"/>
+                    <Input
+                      {...field}
+                      label='Phone Number'
+                      className='w-full'
+                      placeholder='Enter Phone Number'
+                    />
                   )}
                 />
               ) : (
                 <div>
-                  <p className="text-sm text-gray-400">Phone Number</p>
-                  <p className="text-sm text-gray-500">
-                    {staffDetails?.user?.mobile_number || "Not provided"}
+                  <p className='text-sm text-gray-400'>Phone Number</p>
+                  <p className='text-sm text-gray-500'>
+                    {staffDetails?.user?.mobile_number || 'Not provided'}
                   </p>
                 </div>
               )}
 
               {isEditing ? (
                 <Controller
-                  name="role"
+                  name='role'
                   control={control}
                   render={({ field }) => (
                     <DropdownSelectInput
                       {...field}
-                      label="Primary Role"
-                      className="w-full"
+                      label='Primary Role'
+                      className='w-full'
                       options={roleOptions}
                       onSelectItem={(item) => {
-                        console.log("Selected item:", item);
+                        console.log('Selected item:', item);
                         setSelectedRoleId(item.value);
                         field.onChange(item.value);
                       }}
                       value={
-                        roleOptions.find((role: {value: string}) => role.value === selectedRoleId) || null
+                        roleOptions.find(
+                          (role: { value: string }) =>
+                            role.value === selectedRoleId
+                        ) || null
                       }
                     />
                   )}
                 />
               ) : (
                 <div>
-                  <p className="text-sm text-gray-400">Primary Role</p>
-                  <p className="text-sm text-gray-500">
-                    {staffDetails?.user?.role?.name || "Not assigned"}
+                  <p className='text-sm text-gray-400'>Primary Role</p>
+                  <p className='text-sm text-gray-500'>
+                    {staffDetails?.user?.role?.name || 'Not assigned'}
                   </p>
                 </div>
               )}
             </div>
           </div>
 
-          <div className="border rounded-xl w-[95%] p-8 bg-white">
-            <div className="flex justify-between items-start">
-              <h3 className="text-primary text-md font-semibold mb-4">
+          <div className='border rounded-xl w-[95%] md:p-8 p-1 bg-white'>
+            <div className='flex justify-between items-start p-4 md:p-0'>
+              <h3 className='text-primary text-md font-semibold md:mb-4'>
                 Assigned Sessions
               </h3>
             </div>
-            <div className="w-full">
-            <Table
-              data={staffSessionsData || []}
-              columns={sessionColumns}
-              rowSelection={rowSelection}
-              onRowSelectionChange={setRowSelection}
-              className='mt-4'
-              pageSize={7}
-              onRowClick={(row: Session) =>
-                navigateToSessionDetails(navigate, row.id.toString())
-              }
-            />
+            <div className='flex-1 px-2 pt-2 w-full overflow-x-auto'>
+              <div className='min-w-[800px] md:min-w-0'>
+                <Table
+                  data={staffSessionsData || []}
+                  columns={sessionColumns}
+                  rowSelection={rowSelection}
+                  onRowSelectionChange={setRowSelection}
+                  className='mt-4'
+                  pageSize={7}
+                  onRowClick={(row: Session) =>
+                    navigateToSessionDetails(navigate, row.id.toString())
+                  }
+                />
+              </div>
             </div>
           </div>
         </div>

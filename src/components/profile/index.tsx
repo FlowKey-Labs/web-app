@@ -34,7 +34,7 @@ const Profile = () => {
       <div className='mt-2'>
         <Header showSearch={false} />
       </div>
-      <div className='flex-1 p-6'>
+      <div className='flex-1 md:p-6 p-2'>
         <div className='flex justify-between items-center px-4'>
           <h2 className='text-primary text-[24px] font-[600]'>Profile</h2>
         </div>
@@ -53,7 +53,7 @@ const Profile = () => {
           ))}
         </div>
 
-        <div className='mt-6 flex min-h-[350px] px-6'>
+        <div className='mt-6 flex min-h-[350px] md:px-6 px-1'>
           {contentMap[activeTab]}
         </div>
       </div>

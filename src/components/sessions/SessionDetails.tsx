@@ -663,9 +663,9 @@ const SessionDetails = () => {
           showSearch={false}
         />
         <div className='items-center gap-4 p-6'>
-          <div className='flex w-full'>
-            <div className='flex flex-col w-[30%] items-center mt-6'>
-              <div className='flex flex-col px-4 py-8 items-center justify-center border bg-white rounded-xl w-[290px]'>
+          <div className='flex flex-col md:flex-row w-full'>
+            <div className='flex flex-col md:w-[30%] w-full items-center mt-6'>
+              <div className='flex flex-col px-4 py-8 items-center justify-center border bg-white rounded-xl md:w-[290px] w-full mt-4 md:mt-0'>
                 <div className='flex flex-col text-center space-y-1 items-center'>
                   <div className='mb-2'>
                     <img
@@ -832,7 +832,7 @@ const SessionDetails = () => {
                 </div>
               </div>
             </div>
-            <div className=' w-[70%] p-4'>
+            <div className=' md:w-[70%] w-full md:p-4 mt-6 md:mt-0'>
               <div className='space-y-4'>
                 <div className='flex space-x-12 ml-8 relative' role='tablist'>
                   <button
@@ -853,10 +853,10 @@ const SessionDetails = () => {
               </div>
               <div className='flex space-x-16 mt-6'>
                 {analyticsLoading ? (
-                  <Loader color='#1D9B5E' size='xl' />
+                  <Loader color='#1D9B5E' size='md' />
                 ) : (
                   <>
-                    <div className='flex flex-col items-center border bg-white rounded-xl p-6 space-y-4'>
+                    <div className='flex flex-col items-center text-center border bg-white rounded-xl p-6 space-y-4'>
                       <p className='text-4xl'>
                         {sessionAnalytics?.total_clients || 0}
                         <span className='text-lg text-gray-500'>
@@ -867,7 +867,7 @@ const SessionDetails = () => {
                     </div>
 
                     <div className='flex items-center border bg-white py-6 px-10 rounded-xl'>
-                      <div className='flex flex-col items-center rounded-xl space-y-4'>
+                      <div className='flex flex-col text-center items-center rounded-xl space-y-4'>
                         <p className='text-2xl font-semibold text-primary'>
                           {sessionAnalytics?.average_attendance || 0}%
                         </p>
@@ -884,15 +884,17 @@ const SessionDetails = () => {
                       Clients
                     </h3>
                   </div>
-                  <div className='flex-1 py-2'>
-                    <Table
-                      data={clients}
-                      columns={columns}
-                      rowSelection={rowSelection}
-                      onRowSelectionChange={setRowSelection}
-                      className='mt-4'
-                      pageSize={5}
-                    />
+                  <div className='flex-1 md:px-6 md:py-3 w-full overflow-x-auto'>
+                    <div className='min-w-[900px] md:min-w-0'>
+                      <Table
+                        data={clients}
+                        columns={columns}
+                        rowSelection={rowSelection}
+                        onRowSelectionChange={setRowSelection}
+                        className='mt-4'
+                        pageSize={5}
+                      />
+                    </div>
                   </div>
                 </div>
               </div>

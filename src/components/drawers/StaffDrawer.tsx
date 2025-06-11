@@ -261,7 +261,7 @@ export default function StaffDrawer({ entityId, isEditing, zIndex }: StaffDrawer
       <FormProvider {...methods}>
         <div className='bg-white p-6 flex flex-col min-h-[80vh]'>
           <div className='flex-1 flex'>
-            <div className='w-[40%] p-8 border-r border-gray-200'>
+            <div className='w-[40%] md:p-8 p-2 border-r border-gray-200'>
               <div
                 className='flex flex-col gap-12 relative'
                 role='tablist'

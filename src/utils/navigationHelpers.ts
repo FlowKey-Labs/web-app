@@ -1,5 +1,9 @@
 import { useNavigate } from 'react-router-dom';
 
+export const navigateToHome = (navigate: ReturnType<typeof useNavigate>) => {
+  navigate('/');
+};
+
 export const navigateToDashboard = (navigate: ReturnType<typeof useNavigate>) => {
   navigate('/dashboard');
 };
