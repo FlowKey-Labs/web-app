@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Button } from '@mantine/core';
 import logo from '../assets/landingpageAssets/Icons/logo.svg';
 import headerPhone from '../assets/landingpageAssets/Icons/headerPhone.svg';
@@ -34,6 +34,7 @@ import DemoBookingForm, {
 
 import fullPhone from '../assets/landingpageAssets/Icons/fullPhone.svg';
 import payrollMobile from '../assets/landingpageAssets/Icons/payrollMobile.svg';
+import { title } from 'process';
 
 const FlowkeyLandingPage = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -72,23 +73,50 @@ const FlowkeyLandingPage = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  const slides = [
-    {
-      img: storyLocal,
-      title: 'Local Expertise',
-      text: 'We speak your language – literally. FlowKey is Made in Kenya and integrates local payment methods like M-PESA',
-    },
-    {
-      img: storyDesign,
-      title: 'Simple by Design',
-      text: 'No confusing features. Just the tools you need to run your business smoothly.',
-    },
-    {
-      img: storySupport,
-      title: 'Real Human Support',
-      text: 'We offer 24/7 support to our clients. No bots or endless ticket queues.',
-    },
-  ];
+  const slides = useMemo(
+    () => [
+      {
+        img: storyLocal,
+        title: 'Local Expertise',
+        text: 'We speak your language – literally. FlowKey is Made in Kenya and integrates local payment methods like M-PESA',
+      },
+      {
+        img: storyDesign,
+        title: 'Simple by Design',
+        text: 'No confusing features. Just the tools you need to run your business smoothly.',
+      },
+      {
+        img: storySupport,
+        title: 'Real Human Support',
+        text: 'We offer 24/7 support to our clients. No bots or endless ticket queues.',
+      },
+    ],
+    []
+  );
+
+  const features = useMemo(
+    () => [
+      {
+        title: 'Appointment Scheduling',
+      },
+      {
+        title: 'Online Booking',
+      },
+      {
+        title: 'WhatsApp Integration',
+      },
+      {
+        title: 'Progress Tracking',
+      },
+      {
+        title: 'Client Management',
+      },
+      {
+        title: 'Multi-Location Management',
+      },
+    ],
+    []
+  );
 
   return (
     <div className='flex flex-col w-full max-w-[100vw] overflow-x-hidden'>
@@ -201,7 +229,7 @@ const FlowkeyLandingPage = () => {
                 <Button
                   onClick={handleBookingFormOpen}
                   color='#1D9B5E'
-                  radius='lg'
+                  radius='12px'
                   h='55px'
                   size='lg'
                   fullWidth
@@ -215,7 +243,7 @@ const FlowkeyLandingPage = () => {
           <div className='hidden md:flex items-center'>
             <Button
               color='#1D9B5E'
-              radius='lg'
+              radius='12px'
               h='55px'
               size='lg'
               onClick={handleBookingFormOpen}
@@ -231,9 +259,9 @@ const FlowkeyLandingPage = () => {
               Run Your Service Business Smoothly.
             </h3>
             <p className='text-[#8A8D8E] text-base font-[400] md:w-[80%] '>
-              Flowkey is the all-in-one platform for local businesses to
-              streamline operations, from bookings and payments to staff and
-              client management - without spreadsheets or stress
+              Are you ready to take your service business to new heights?
+              Discover the power of automation to simplify and streamline, your
+              operations.
             </p>
             <Button
               color='#1D9B5E'
@@ -313,19 +341,34 @@ const FlowkeyLandingPage = () => {
             eat up your time. Flowkey automates the busywork so you can focus on
             what you do best, serving your clients.
           </p>
+          <div className='w-[900px] flex-wrap justify-center hidden md:flex'>
+            {features.map((feature) => (
+              <div
+                key={feature.title}
+                className='flex flex-col md:flex-row p-2 rounded-md min-w-[200px]'
+              >
+                <h3 className='bg-[#1D9B5E33] py-2 px-6 rounded-xl font-medium text-secondary'>
+                  {feature.title}
+                </h3>
+              </div>
+            ))}
+          </div>
         </div>
         {/* features cards */}
         <div className='flex flex-col md:flex-row w-[90%] md:w-[80%] mx-auto justify-around py-4 md:py-12 mt-4 md:mt-12'>
           <div className='flex flex-col gap-2 md:gap-4 justify-center md:w-[570px]'>
             <h2 className='font-[700] text-[32px] md:text-[40px] w-full text-[#0F2028] font-spaceGrotesk'>
-              Smart Scheduling
+              <span className='text-secondary'>Smart Scheduling</span> to serve
+              your customers better and grow revenue
             </h2>
             <p className='text-[#8A8D8E] text-[20px] font-[400]'>
-              Replace chaotic ordinary time-tables with a color-coded calendar
-              that syncs across devices.
+              Transform your booking process with a fully customizable online
+              booking system.
             </p>
             <p className='text-[#8A8D8E] text-[20px] font-[400]'>
-              Auto-send confirmations and reschedule in one click.
+              Whether you run a Beauty, Wellness, or Fitness business, your
+              clients can seamlessly schedule appointments or classes at their
+              convenience, from anywhere.
             </p>
           </div>
           <div className='relative mt-5 md:mt-0'>
@@ -410,13 +453,17 @@ const FlowkeyLandingPage = () => {
           </div>
           <div className='flex flex-col gap-2 md:gap-4 justify-center md:w-[570px]'>
             <h2 className='font-[700] text-[32px] md:text-[40px] w-full text-[#0F2028] font-spaceGrotesk'>
-              Payments & Invoicing
+              <span className='text-secondary'>Automated WhatsApp</span>{' '}
+              Reminders
             </h2>
             <p className='text-[#8A8D8E] text-[20px] font-[400]'>
-              Generate invoices with one click and track payments in real time.
+              Say goodbye to no-shows! Send timely, personalized WhatsApp
+              reminders directly to your clients' phones, drastically reducing
+              missed appointments and improving attendance.
             </p>
             <p className='text-[#8A8D8E] text-[20px] font-[400]'>
-              Send automatic reminders for overdue bills—no more lost cash.
+              Automated WhatsApp reminders are sent to your clients for their
+              upcoming appointments. Send promotional and Thank-You texts.{' '}
             </p>
           </div>
         </div>
@@ -424,14 +471,17 @@ const FlowkeyLandingPage = () => {
         <div className='flex flex-col md:flex-row w-[90%] md:w-[80%] mx-auto justify-around py-4 md:py-12 md:mt-12'>
           <div className='flex flex-col gap-2 md:gap-4 justify-center md:w-[570px]'>
             <h2 className='font-[700] text-[32px] md:text-[40px] w-full text-[#0F2028] font-spaceGrotesk'>
-              Payroll Made Easy
+              Comprehensive{' '}
+              <span className='text-secondary'>Client Progress</span> &
+              Engagement Tracking
             </h2>
             <p className='text-[#8A8D8E] text-[20px] font-[400]'>
-              Calculate wages, deductions and taxes automatically based on shift
-              logs.
+              Keep detailed records of client journeys, preferences and
+              engagement.
             </p>
             <p className='text-[#8A8D8E] text-[20px] font-[400]'>
-              Print or email pay-slips directly to staff.
+              Understand what motivates your clients and personalize their
+              experience for better retention.
             </p>
           </div>
           <div className='relative'>
@@ -491,14 +541,17 @@ const FlowkeyLandingPage = () => {
           </div>
           <div className='flex flex-col gap-2 md:gap-4 justify-center md:w-[570px]'>
             <h2 className='font-[700] text-[32px] md:text-[40px] w-full text-[#0F2028] font-spaceGrotesk'>
-              Get a 360° view of your business
+              Get a 360°{' '}
+              <span className='text-secondary'>business insights</span> without
+              extra tools
             </h2>
             <p className='text-[#8A8D8E] text-[20px] font-[400]'>
-              Know your cash flow instantly with a simple dashboard showing
-              revenue, expenses, and trends
+              Gain valuable data on what’s working in your business.
             </p>
             <p className='text-[#8A8D8E] text-[20px] font-[400]'>
-              No accounting degree needed.
+              Track popular services, peak booking times, and client activity to
+              make informed decisions without needing complex analytics
+              software.
             </p>
           </div>
         </div>
@@ -506,25 +559,21 @@ const FlowkeyLandingPage = () => {
         <div className='bg-cardsBg mx-auto w-full pt-12 mt-12 items-center justify-center'>
           <div className='flex flex-col md:flex-row mx-auto md:w-[80%] w-[90%] justify-around'>
             <div className='flex flex-col gap-4 md:w-[50%] w-full justify-center'>
-              <h3 className='text-secondary font-[600] text-base hidden md:block'>
-                START SMALL. ADD TOOLS AS YOU GROW.
-              </h3>
-              <h3 className='text-secondary font-[600] text-base md:hidden'>
-                HOW IT WORKS
+              <h3 className='text-secondary font-[600] text-base '>
+                COMING SOON
               </h3>
               <h2 className='md:text-[60px] text-[40px] font-[700] font-spaceGrotesk'>
-                Say Goodbye to Admin Headaches
+                Even More Power to Your Business!
               </h2>
               <p className='text-[#8A8D8E] text-[20px] font-[400] w-[100%] md:w-full'>
-                Need just scheduling today? Add payroll later. FlowKey’s modular
-                design adapts to your business, no bloated features.
+                We're continuously evolving FlowKey to be the ultimate solution
+                for your service business:
               </p>
               <div className='hidden md:block'>
                 <Button
                   color='#1D9B5E'
                   h='55px'
-                  w='200px'
-                  radius='md'
+                  radius='14px'
                   size='md'
                   mt='30px'
                 >
@@ -536,12 +585,13 @@ const FlowkeyLandingPage = () => {
               <div className='flex gap-4 bg-white px-6 py-8 rounded-lg md:w-[500px] w-full shadow-sm'>
                 <img src={tools} alt='' className='self-start' />
                 <div className='flex flex-col gap-1'>
-                  <h3 className='text-[#323232] font-[700] md:text-lg text-sm'>
-                    less time scheduling, more time growing
+                  <h3 className='text-[#323232] font-[700] font-spaceGrotesk md:text-lg text-sm'>
+                    Easy M-Pesa & Card Payments Integration
                   </h3>
                   <p className='font-[400] md:text-base text-xs text-[#969696]'>
-                    Free up hours each week with automated bookings and
-                    payments.
+                    Simplify your financial transactions with seamless payment
+                    processing directly within FlowKey, offering convenience to
+                    both you and your clients.
                   </p>
                 </div>
               </div>
@@ -549,28 +599,16 @@ const FlowkeyLandingPage = () => {
               <div className='flex gap-4 bg-white px-6 py-8 rounded-lg md:w-[500px] w-full shadow-sm'>
                 <img src={tools} alt='' className='self-start' />
                 <div className='flex flex-col gap-1'>
-                  <h3 className='text-[#323232] font-[700] md:text-lg text-sm'>
-                    Get paid faster
+                  <h3 className='text-[#323232] font-[700] font-spaceGrotesk md:text-lg text-sm'>
+                    Simple Payroll & Team Management
                   </h3>
                   <p className='font-[400] md:text-base text-xs text-[#969696]'>
-                    Eliminate late payments with integrated card processing and
-                    auto-billing.
+                    Calculate wages, deductions and taxes automatically based on
+                    shift logs. Print or email pay-slips directly to staff.
                   </p>
                 </div>
               </div>
 
-              <div className='flex gap-4 bg-white px-6 py-8 rounded-lg md:w-[500px] w-full shadow-sm'>
-                <img src={tools} alt='' className='self-start' />
-                <div className='flex flex-col gap-1'>
-                  <h3 className='text-[#323232] font-[700] md:text-lg text-sm'>
-                    Grow with confidence
-                  </h3>
-                  <p className='font-[400] md:text-base text-xs text-[#969696]'>
-                    Track key metrics and make data-driven decisions to scale
-                    your business.
-                  </p>
-                </div>
-              </div>
               <div className='self-start md:hidden'>
                 <Button
                   color='#1D9B5E'
@@ -604,19 +642,13 @@ const FlowkeyLandingPage = () => {
               Built in Kenya, for Kenyan Businesses
             </h3>
             <p className='text-[#969696] text-base font-[400] w-[327px] md:w-[940px]'>
-              Flowkey started from lived frustration—trying to book swim lessons
-              for my child and hitting walls with scheduling, payments, and
-              communication. That pain point turned into a question: What if
-              local service businesses had smarter tools? So we started
-              building. Flowkey is the all-in-one platform built with local
-              businesses in mind. We simplify scheduling, streamline payments,
-              and organize your business operations in one place so you can
-              focus on what you do best - serving your clients. At Flowkey,
-              we're driven by a simple belief: Local businesses are the
-              heartbeat of communities. They deserve intuitive, powerful tools
-              that help them grow - without the complexity or overhead. We're
-              proudly building from Kenya, inspired by real needs and real
-              businesses like yours. And this is just the beginning.
+              FlowKey started in 2024 when our founder, a Nairobi salon owner,
+              got tired of losing money to missed appointments and messy
+              spreadsheets. After struggling with expensive, complex tools that
+              didn’t understand local needs, she teamed up with Kenyan
+              developers to build a better solution. Today, FlowKey powers
+              hundreds of service businesses across Kenya – from salons to
+              tutoring centers – helping them save time and boost profits.
             </p>
           </div>
 
@@ -672,15 +704,16 @@ const FlowkeyLandingPage = () => {
           }}
         >
           <div className='flex flex-col text-center justify-center gap-4'>
-            <h2 className='font-[700] md:text-[48px] text-[32px] text-white md:w-[540px] w-[327px] self-center font-spaceGrotesk'>
-              Ready to{' '}
-              <span className='font-[300] font-sans text-white !italic'>
-                Take Control
-              </span>{' '}
-              of Your Business?
-            </h2>
+            <div>
+              <h2 className='font-[700] md:text-[48px] text-[32px] text-white md:w-[680px] w-[327px] self-center font-spaceGrotesk'>
+                Get Early Access & Start Your Pilot Journey Today
+              </h2>
+              <h2 className='font-[300] md:text-[48px] text-[32px] text-white md:w-[680px] w-[327px] self-center font-sans !italic'>
+                at no cost
+              </h2>
+            </div>
             <p className='text-base font-[400] text-[#969696] md:w-[650px] w-[327px] self-center'>
-              Simplify your operations. Get started with Flowkey and spend less
+              Simplify your operations. Get started with Flowkey and spend less
               time managing your business—and more time running it.
             </p>
             <div className='flex items-center md:w-[500px] w-[327px] h-[72px] shadow-sm bg-white rounded-[24px] md:rounded-xl justify-between p-3 mt-4 self-center'>

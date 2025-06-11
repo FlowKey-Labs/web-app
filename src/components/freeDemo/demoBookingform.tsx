@@ -1,7 +1,7 @@
 import { Modal, Button } from '@mantine/core';
 import { useForm, Controller, FormProvider } from 'react-hook-form';
 import Input from '../common/Input';
-import background from '../../assets/landingpageAssets/images/Footer.png';
+import backgroundImage from '../../assets/landingpageAssets/Images/backgroundImage.png';
 import phoneIcon from '../../assets/freeDemo/icons/phone.svg';
 import emailIcon from '../../assets/freeDemo/icons/email.svg';
 import watermarkIcon from '../../assets/freeDemo/icons/watermark.svg';
@@ -103,7 +103,7 @@ const DemoBookingForm = ({
           <div
             className='text-white p-8 flex flex-col rounded-lg w-full md:w-[45%]'
             style={{
-              backgroundImage: `url(${background})`,
+              backgroundImage: `url(${backgroundImage})`,
               backgroundSize: 'cover',
               backgroundPosition: 'center',
             }}
