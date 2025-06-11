@@ -1,4 +1,6 @@
 import { Button } from '@mantine/core';
+import { useForm, Controller, FormProvider } from 'react-hook-form';
+import { notifications } from '@mantine/notifications';
 import email from '../../assets/landingpageAssets/Icons/email.svg';
 import facebook from '../../assets/landingpageAssets/Icons/facebook.svg';
 import twitter from '../../assets/landingpageAssets/Icons/twitter.svg';
@@ -7,12 +9,56 @@ import instagram from '../../assets/landingpageAssets/Icons/instagram.svg';
 
 import footerImage from '../../assets/landingpageAssets/images/Footer.png';
 import logo from '../../assets/landingpageAssets/Icons/logo.svg';
+import successIcon from '../../assets/icons/success.svg';
+import errorIcon from '../../assets/icons/error.svg';
 
-interface FooterProps {
-  handleBookingFormOpen: () => void;
+interface EmailData {
+  email: string;
 }
 
-export const Footer = ({ handleBookingFormOpen }: FooterProps) => {
+export const Footer = () => {
+  const methods = useForm<EmailData>({
+    defaultValues: { email: '' },
+  });
+
+  const { control, handleSubmit } = methods;
+
+  const onFormSubmit = (data: EmailData) => {
+    console.log('Form submitted:', data);
+    methods.reset();
+    try {
+      notifications.show({
+        title: 'Success',
+        message: 'Your Demo request has been submitted successfully!',
+        color: 'green',
+        radius: 'md',
+        icon: (
+          <span className='flex items-center justify-center w-6 h-6 rounded-full bg-green-200'>
+            <img src={successIcon} alt='Success' className='w-4 h-4' />
+          </span>
+        ),
+        withBorder: true,
+        autoClose: 3000,
+        position: 'top-right',
+      });
+    } catch (error) {
+      notifications.show({
+        title: 'Error',
+        message: 'Failed to submit the Demo request. Please try again.',
+        color: 'red',
+        radius: 'md',
+        icon: (
+          <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+            <img src={errorIcon} alt='Error' className='w-4 h-4' />
+          </span>
+        ),
+        withBorder: true,
+        autoClose: 3000,
+        position: 'top-right',
+      });
+    }
+  };
+
   return (
     <div>
       <div
@@ -36,33 +82,60 @@ export const Footer = ({ handleBookingFormOpen }: FooterProps) => {
             Simplify your operations. Get started with Flowkey and spend less
             time managing your business—and more time running it.
           </p>
-          <div className='flex items-center md:w-[500px] w-[327px] h-[72px] shadow-sm bg-white rounded-[24px] md:rounded-xl justify-between p-3 mt-4 self-center'>
-            <div className='flex items-center gap-2'>
-              <img src={email} alt='email' />
-              <input
-                type='email'
-                placeholder='Enter your email address'
-                className='bg-transparent border-none focus:outline-none'
-              />
-            </div>
-            <div className='hidden md:block'>
-              <Button color='#1D9B5E' h='50px' w='170px' radius='lg' size='md'>
-                Book Free Demo
-              </Button>
-            </div>
-          </div>
-          <div className='md:hidden mt-5 '>
-            <Button
-              onClick={handleBookingFormOpen}
-              color='#1D9B5E'
-              h='70px'
-              w='170px'
-              radius='lg'
-              size='md'
-            >
-              Book Free Demo
-            </Button>
-          </div>
+          <FormProvider {...methods}>
+            <form onSubmit={handleSubmit(onFormSubmit)} className='self-center'>
+              <div className='flex items-center md:w-[500px] w-[327px] h-[72px] shadow-sm bg-white rounded-[24px] md:rounded-xl justify-between p-3 mt-4 self-center'>
+                <div className='flex items-center gap-3'>
+                  <img src={email} alt='email' />
+                  <Controller
+                    name='email'
+                    control={control}
+                    rules={{
+                      required: 'Email is required',
+                      pattern: {
+                        value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                        message: 'Invalid email address',
+                      },
+                    }}
+                    render={({ field }) => (
+                      <div className='flex-1'>
+                        <input
+                          {...field}
+                          type='email'
+                          placeholder='Enter your email address'
+                          className=' bg-transparent border-none focus:outline-none'
+                        />
+                      </div>
+                    )}
+                  />
+                </div>
+                <div className='hidden md:block'>
+                  <Button
+                    type='submit'
+                    color='#1D9B5E'
+                    h='50px'
+                    w='170px'
+                    radius='lg'
+                    size='md'
+                  >
+                    Book Free Demo
+                  </Button>
+                </div>
+              </div>
+              <div className='md:hidden mt-5 '>
+                <Button
+                  type='submit'
+                  color='#1D9B5E'
+                  h='70px'
+                  w='170px'
+                  radius='lg'
+                  size='md'
+                >
+                  Book Free Demo
+                </Button>
+              </div>
+            </form>
+          </FormProvider>
         </div>
       </div>
 

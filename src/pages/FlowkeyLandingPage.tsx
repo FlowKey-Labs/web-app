@@ -716,7 +716,7 @@ const FlowkeyLandingPage = () => {
           </div>
         </div>
 
-        <Footer handleBookingFormOpen={handleBookingFormOpen} />
+        <Footer />
       </div>
 
       <DemoBookingForm
