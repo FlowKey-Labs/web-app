@@ -25,6 +25,7 @@ import facebook from '../assets/landingpageAssets/Icons/facebook.svg';
 import twitter from '../assets/landingpageAssets/Icons/twitter.svg';
 import linkedin from '../assets/landingpageAssets/Icons/linkedin.svg';
 import instagram from '../assets/landingpageAssets/Icons/instagram.svg';
+import arrowRight from '../assets/landingpageAssets/Icons/arrowRight.svg';
 
 import headerImage from '../assets/landingpageAssets/images/Hero Section.png';
 import footerImage from '../assets/landingpageAssets/images/Footer.png';
@@ -34,7 +35,6 @@ import DemoBookingForm, {
 
 import fullPhone from '../assets/landingpageAssets/Icons/fullPhone.svg';
 import payrollMobile from '../assets/landingpageAssets/Icons/payrollMobile.svg';
-import { title } from 'process';
 
 const FlowkeyLandingPage = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -571,11 +571,14 @@ const FlowkeyLandingPage = () => {
               </p>
               <div className='hidden md:block'>
                 <Button
+                  variant='transparent'
+                  rightSection={<img src={arrowRight} alt='arrow' />}
                   color='#1D9B5E'
                   h='55px'
                   radius='14px'
                   size='md'
                   mt='30px'
+                  fw='bolder'
                 >
                   Start Free Trial
                 </Button>
@@ -611,12 +614,15 @@ const FlowkeyLandingPage = () => {
 
               <div className='self-start md:hidden'>
                 <Button
-                  color='#1D9B5E'
                   h='55px'
                   w='200px'
                   radius='md'
                   size='md'
                   mt='30px'
+                  variant='transparent'
+                  rightSection={<img src={arrowRight} alt='arrow' />}
+                  color='#1D9B5E'
+                  fw='bolder'
                 >
                   Start Free Trial
                 </Button>
@@ -650,6 +656,20 @@ const FlowkeyLandingPage = () => {
               hundreds of service businesses across Kenya – from salons to
               tutoring centers – helping them save time and boost profits.
             </p>
+            <div>
+              <Button
+                variant='transparent'
+                rightSection={<img src={arrowRight} alt='arrow' />}
+                color='#1D9B5E'
+                h='55px'
+                radius='14px'
+                size='md'
+                mt='30px'
+                fw='bolder'
+              >
+                Start Free Trial
+              </Button>
+            </div>
           </div>
 
           {/* Slider Container */}
