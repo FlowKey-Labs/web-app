@@ -2,7 +2,7 @@ import { SearchIcon } from '../../assets/icons';
 import SearchInput from '../common/SearchInput';
 import Button from '../common/Button';
 import filterIcon from '../../assets/icons/filter.svg';
-import filter2Icon from '../../assets/icons/filter2.svg'
+import filter2Icon from '../../assets/icons/filter2.svg';
 
 interface HeaderProps {
   title?: string;
@@ -32,18 +32,18 @@ const Header = ({
   showSearch = true,
 }: HeaderProps) => {
   return (
-    <div className='h-[80px] flex items-center justify-between px-8 py-12 space-x-12'>
+    <div className='h-[80px] flex flex-col md:flex-row md:items-center justify-between px-2 md:px-8 md:py-12 py-6 mt-3 md:mt-0 md:space-x-12 space-x-2'>
       <div className='flex-shrink-0 justify-center items-center'>
         {title && (
           <div className='flex-shrink-0 self-start'>
-            <h1 className='text-[32px] font-bold text-primary text-center'>
+            <h1 className='md:text-[32px] text-[24px] font-bold text-primary text-center'>
               {title}
             </h1>
           </div>
         )}
       </div>
 
-      <div className='flex items-center gap-8 flex-1 justify-end'>
+      <div className='flex items-center md:gap-8 gap-4 pt-3 md:pt-0 flex-1 justify-end'>
         {showSearch && (
           <div className=''>
             <SearchInput
@@ -56,7 +56,7 @@ const Header = ({
                 </div>
               }
               containerClassName='w-full'
-              inputClassName='border rounded-full w-[350px] pl-12 h-12'
+              inputClassName='border rounded-full md:w-[350px] w-[180px] pl-12 md:h-12 h-10'
             />
           </div>
         )}
@@ -73,27 +73,54 @@ const Header = ({
         )}
 
         {showButton && (
-          <div>
-            <Button
-              h={52}
-              size='sm'
-              radius='md'
-              leftSection={
-                leftIcon && <img src={leftIcon} alt='Icon' className='w-3 h-3' />
-              }
-              rightSection={
-                buttonIcon && <img src={buttonIcon} alt='Icon' className='w-3 h-3' />
-              }
-              style={{
-                backgroundColor: '#1D9B5E',
-                color: '#fff',
-                fontSize: "16px",
-              }}
-              onClick={onButtonClick}
-            >
-              {buttonText}
-            </Button>
-          </div>
+          <>
+            <div className='hidden md:block'>
+              <Button
+                h={52}
+                size='sm'
+                radius='md'
+                leftSection={
+                  leftIcon && (
+                    <img src={leftIcon} alt='Icon' className='w-3 h-3' />
+                  )
+                }
+                rightSection={
+                  buttonIcon && (
+                    <img src={buttonIcon} alt='Icon' className='w-3 h-3' />
+                  )
+                }
+                style={{
+                  backgroundColor: '#1D9B5E',
+                  color: '#fff',
+                  fontSize: '16px',
+                }}
+                onClick={onButtonClick}
+              >
+                {buttonText}
+              </Button>
+            </div>
+            <div className='flex md:hidden w-full justify-center items-center'>
+              <Button
+                h={40}
+                w={180}
+                size='sm'
+                radius='xl'
+                leftSection={
+                  leftIcon && (
+                    <img src={leftIcon} alt='Icon' className='w-3 h-3' />
+                  )
+                }
+                style={{
+                  backgroundColor: '#1D9B5E',
+                  color: '#fff',
+                  fontSize: '16px',
+                }}
+                onClick={onButtonClick}
+              >
+                {buttonText}
+              </Button>
+            </div>
+          </>
         )}
       </div>
     </div>

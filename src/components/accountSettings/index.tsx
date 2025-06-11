@@ -26,7 +26,7 @@ const Settings = () => {
   return (
     <div className='flex flex-col h-screen bg-cardsBg w-full overflow-y-auto'>
       <div className='mt-2 flex justify-between px-8 py-6'>
-        <h2 className='font-[700] text-[32px]'>Settings</h2>
+        <h2 className='font-[700] text-center w-full text-[32px] md:text-start'>Settings</h2>
       </div>
 
       <div className='flex-1 p-6'>

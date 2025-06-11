@@ -216,8 +216,8 @@ export const BusinessLocation = () => {
                 )}
                 <Group gap={8} ml='auto'>
                   <ActionIcon
-                    color='blue'
-                    variant='light'
+                    color='#1D9B5E'
+                    variant='outline'
                     radius='xl'
                     onClick={() => handleEditLocation(location)}
                     className='hover:bg-blue-50'
@@ -226,7 +226,7 @@ export const BusinessLocation = () => {
                   </ActionIcon>
                   <ActionIcon
                     color='red'
-                    variant='light'
+                    variant='outline'
                     radius='xl'
                     onClick={() => handleDeleteClick(location.id)}
                     className='hover:bg-red-50'

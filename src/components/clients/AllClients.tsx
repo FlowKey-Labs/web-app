@@ -29,14 +29,16 @@ import { useDebounce } from '../../hooks/useDebounce';
 import { useExportClients } from '../../hooks/useExport';
 import { useExportGroups } from '../../hooks/useExport';
 import { useNavigate } from 'react-router-dom';
-import { navigateToClientDetails, navigateToGroupDetails } from '../../utils/navigationHelpers';
+import {
+  navigateToClientDetails,
+  navigateToGroupDetails,
+} from '../../utils/navigationHelpers';
 import { safeToString } from '../../utils/stringUtils';
 import EmptyDataPage from '../common/EmptyDataPage';
 import { useAuthStore } from '../../store/auth';
 import { useUIStore } from '../../store/ui';
 import ErrorBoundary from '../common/ErrorBoundary';
 import { PaginatedResponse } from '../../api/api';
-
 
 const clientColumnHelper = createColumnHelper<Client>();
 const groupColumnHelper = createColumnHelper<GroupData>();
@@ -47,12 +49,13 @@ const AllClients = () => {
   const [rowSelection, setRowSelection] = useState({});
   const [selectedClient, setSelectedClient] = useState<
     Client | GroupData | null
-  >(null); 
+  >(null);
   const [opened, { open, close }] = useDisclosure(false);
   const [isActivating, setIsActivating] = useState(false);
   const [activeView, setActiveView] = useState<'clients' | 'groups'>('clients');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
+  const [showEmptyState, setShowEmptyState] = useState(true);
 
   const navigate = useNavigate();
   const { openDrawer } = useUIStore();
@@ -69,7 +72,7 @@ const AllClients = () => {
     refetch,
   } = useGetClients(pageIndex, 10);
 
-  const allClients = useMemo(() => data.items, [data])
+  const allClients = useMemo(() => data.items, [data]);
 
   const {
     data: allGroups = [],
@@ -81,27 +84,27 @@ const AllClients = () => {
 
   const searchClients = useCallback((clients: Client[], query: string) => {
     if (!query.trim()) return clients;
-    
+
     try {
       const searchTerms = query.toLowerCase().trim().split(/\s+/);
-      
+
       return clients.filter((client) => {
         try {
           const searchableFields = [
-            `${safeToString(client.first_name)} ${safeToString(client.last_name)}`.trim(),
+            `${safeToString(client.first_name)} ${safeToString(
+              client.last_name
+            )}`.trim(),
             safeToString(client.first_name),
             safeToString(client.last_name),
             safeToString(client.email),
             safeToString(client.phone_number),
             safeToString(client.location),
             safeToString(client.id),
-          ].filter(field => field.length > 0); 
-          
+          ].filter((field) => field.length > 0);
+
           const combinedText = searchableFields.join(' ');
-          
-          return searchTerms.every(term => 
-            combinedText.includes(term)
-          );
+
+          return searchTerms.every((term) => combinedText.includes(term));
         } catch (error) {
           console.warn('Error processing client in search:', client.id, error);
           return false;
@@ -115,10 +118,10 @@ const AllClients = () => {
 
   const searchGroups = useCallback((groups: GroupData[], query: string) => {
     if (!query.trim()) return groups;
-    
+
     try {
       const searchTerms = query.toLowerCase().trim().split(/\s+/);
-      
+
       return groups.filter((group) => {
         try {
           const searchableFields = [
@@ -127,17 +130,17 @@ const AllClients = () => {
             safeToString(group.location),
             safeToString(group.contact_person?.first_name),
             safeToString(group.contact_person?.last_name),
-            group.contact_person 
-              ? `${safeToString(group.contact_person.first_name)} ${safeToString(group.contact_person.last_name)}`.trim()
+            group.contact_person
+              ? `${safeToString(
+                  group.contact_person.first_name
+                )} ${safeToString(group.contact_person.last_name)}`.trim()
               : '',
             safeToString(group.id),
-          ].filter(field => field.length > 0);
-          
+          ].filter((field) => field.length > 0);
+
           const combinedText = searchableFields.join(' ');
-          
-          return searchTerms.every(term => 
-            combinedText.includes(term)
-          );
+
+          return searchTerms.every((term) => combinedText.includes(term));
         } catch (error) {
           console.warn('Error processing group in search:', group.id, error);
           return false;
@@ -153,19 +156,32 @@ const AllClients = () => {
     try {
       if (activeView === 'clients') {
         const clientsData = Array.isArray(allClients) ? allClients : [];
-        return debouncedSearchQuery.trim() ? searchClients(clientsData, debouncedSearchQuery) : clientsData;
+        return debouncedSearchQuery.trim()
+          ? searchClients(clientsData, debouncedSearchQuery)
+          : clientsData;
       } else {
         const groupsData = Array.isArray(allGroups) ? allGroups : [];
-        return debouncedSearchQuery.trim() ? searchGroups(groupsData, debouncedSearchQuery) : groupsData;
+        return debouncedSearchQuery.trim()
+          ? searchGroups(groupsData, debouncedSearchQuery)
+          : groupsData;
       }
     } catch (error) {
       console.error('Error in filteredData:', error);
-      return activeView === 'clients' ? (allClients || []) : (allGroups || []);
+      return activeView === 'clients' ? allClients || [] : allGroups || [];
     }
-  }, [activeView, allClients, allGroups, debouncedSearchQuery, searchClients, searchGroups]);
+  }, [
+    activeView,
+    allClients,
+    allGroups,
+    debouncedSearchQuery,
+    searchClients,
+    searchGroups,
+  ]);
 
-  const clients = activeView === 'clients' ? filteredData as Client[] : allClients;
-  const groups = activeView === 'groups' ? filteredData as GroupData[] : allGroups;
+  const clients =
+    activeView === 'clients' ? (filteredData as Client[]) : allClients;
+  const groups =
+    activeView === 'groups' ? (filteredData as GroupData[]) : allGroups;
 
   const handleSearchChange = useCallback((value: string) => {
     setSearchQuery(value);
@@ -178,14 +194,17 @@ const AllClients = () => {
     setRowSelection({});
   }, []);
 
-  const getSelectedIds = useCallback(() => {
+  const getSelectedIds = useCallback((): number[] => {
     const currentData = filteredData;
     if (!currentData) return [];
 
-    return Object.keys(rowSelection).map((index) => {
-      const itemIndex = parseInt(index);
-      return currentData[itemIndex].id;
-    }) || [0];
+    return Object.keys(rowSelection)
+      .map((index) => {
+        const itemIndex = parseInt(index);
+        const item = currentData[itemIndex];
+        return item?.id;
+      })
+      .filter((id): id is number => id !== undefined);
   }, [rowSelection, filteredData]);
 
   const {
@@ -194,7 +213,7 @@ const AllClients = () => {
     closeExportModal,
     handleExport,
     isExporting,
-  } = useExportClients(activeView === 'clients' ? clients || [] : groups || []);
+  } = useExportClients(clients || []);
 
   const {
     exportModalOpened: groupExportModalOpened,
@@ -402,26 +421,25 @@ const AllClients = () => {
         header: 'Location',
         cell: (info) => info.getValue(),
       }),
-      groupColumnHelper.accessor(
-        (row) => row.contact_person,
-        {
-          id: 'contact_person',
-          header: 'Contact Person',
-          cell: (info) => {
-            const contactPerson = info.getValue();
-            if (contactPerson && contactPerson.first_name && contactPerson.last_name) {
-              return `${contactPerson.first_name} ${contactPerson.last_name}`;
-            }
-            return 'N/A';
-          },
-        }
-      ),
+      groupColumnHelper.accessor((row) => row.contact_person, {
+        id: 'contact_person',
+        header: 'Contact Person',
+        cell: (info) => {
+          const contactPerson = info.getValue();
+          if (
+            contactPerson &&
+            contactPerson.first_name &&
+            contactPerson.last_name
+          ) {
+            return `${contactPerson.first_name} ${contactPerson.last_name}`;
+          }
+          return 'N/A';
+        },
+      }),
       groupColumnHelper.accessor('active', {
         id: 'active',
-        header: 'Status', 
-        cell: (
-          info 
-        ) => (
+        header: 'Status',
+        cell: (info) => (
           <span
             className={`inline-block px-2 py-1 rounded-lg text-sm text-center min-w-[70px] ${
               info.getValue()
@@ -623,7 +641,7 @@ const AllClients = () => {
   const handleOpenClientDrawer = () => {
     openDrawer({
       type: 'client',
-      isEditing: false
+      isEditing: false,
     });
   };
 
@@ -676,10 +694,10 @@ const AllClients = () => {
           searchValue={searchQuery}
           onSearchChange={handleSearchChange}
           leftIcon={plusIcon}
-          onButtonClick={handleOpenClientDrawer }
+          onButtonClick={handleOpenClientDrawer}
           showButton={permisions?.can_create_clients}
         />
-        <div className='px-6 pt-4 pb-2'>
+        <div className='px-6 pt-4 mt-10 md:mt-0'>
           <Group>
             <MantineButton
               variant={activeView === 'clients' ? 'filled' : 'outline'}
@@ -701,11 +719,15 @@ const AllClients = () => {
           title={
             searchQuery.trim()
               ? `No ${activeView === 'clients' ? 'Clients' : 'Groups'} Found`
-              : activeView === 'clients' ? 'No Clients Found' : 'No Groups Found'
+              : activeView === 'clients'
+              ? 'No Clients Found'
+              : 'No Groups Found'
           }
           description={
             debouncedSearchQuery.trim()
-              ? `No ${activeView === 'clients' ? 'clients' : 'groups'} match your search "${debouncedSearchQuery}"`
+              ? `No ${
+                  activeView === 'clients' ? 'clients' : 'groups'
+                } match your search "${debouncedSearchQuery}"`
               : activeView === 'clients'
               ? "You don't have any clients yet"
               : "You don't have any groups yet"
@@ -713,50 +735,63 @@ const AllClients = () => {
           buttonText={
             searchQuery.trim()
               ? 'Clear Search'
-              : activeView === 'clients' ? 'Add New Client' : 'Add New Group'
+              : activeView === 'clients'
+              ? 'Add New Client'
+              : 'Add New Group'
           }
-          onButtonClick={searchQuery.trim() ? () => setSearchQuery('') : handleOpenClientDrawer}
-          onClose={() => {}}
+          onButtonClick={
+            searchQuery.trim()
+              ? () => setSearchQuery('')
+              : handleOpenClientDrawer
+          }
+          onClose={() => setShowEmptyState(false)}
           opened={
+            showEmptyState &&
             (activeView === 'clients'
               ? clients.length === 0
-              : groups.length === 0) && !isLoadingCurrent
+              : groups.length === 0) &&
+            !isLoadingCurrent
           }
-          showButton={Boolean(searchQuery.trim()) || Boolean(permisions?.can_create_clients)}
+          showButton={
+            Boolean(searchQuery.trim()) ||
+            Boolean(permisions?.can_create_clients)
+          }
         />
-        <div className='flex-1 px-6 py-3'>
-          {activeView === 'clients' && clients.length > 0 && (
-            <Table<Client>
-              data={clients}
-              columns={columns}
-              rowSelection={rowSelection}
-              onRowSelectionChange={setRowSelection}
-              className='mt-4'
-              pageSize={12}
-              onRowClick={(row: Client) => {
+        <div className='flex-1 px-2 md:px-6 md:py-3 pt-4 w-full overflow-x-auto'>
+          <div className='min-w-[900px] md:min-w-0'>
+            {activeView === 'clients' && clients.length > 0 && (
+              <Table<Client>
+                data={clients}
+                columns={columns}
+                rowSelection={rowSelection}
+                onRowSelectionChange={setRowSelection}
+                className='mt-4'
+                pageSize={12}
+                onRowClick={(row: Client) => {
                   navigateToClientDetails(navigate, row.id.toString());
-              }}
-              paginateServerSide={true}
-              pageIndex={pageIndex}
-              pageCount={data.totalPages}
-              onPageChange={setPageIndex}
-            />
-          )}
-          {activeView === 'groups' && groups.length > 0 && (
-            <Table<GroupData>
-              data={groups}
-              columns={groupColumns}
-              rowSelection={rowSelection}
-              onRowSelectionChange={setRowSelection}
-              className='mt-4'
-              pageSize={12}
-              onRowClick={(row: GroupData) => {
-                if (row.id) { 
-                  navigateToGroupDetails(navigate, row.id.toString());
-                }
-              }}
-            />
-          )}
+                }}
+                paginateServerSide={true}
+                pageIndex={pageIndex}
+                pageCount={data.totalPages}
+                onPageChange={setPageIndex}
+              />
+            )}
+            {activeView === 'groups' && groups.length > 0 && (
+              <Table<GroupData>
+                data={groups}
+                columns={groupColumns}
+                rowSelection={rowSelection}
+                onRowSelectionChange={setRowSelection}
+                className='mt-4'
+                pageSize={12}
+                onRowClick={(row: GroupData) => {
+                  if (row.id) {
+                    navigateToGroupDetails(navigate, row.id.toString());
+                  }
+                }}
+              />
+            )}
+          </div>
         </div>
       </div>
 
@@ -837,7 +872,9 @@ const AllClients = () => {
 
       <Modal
         opened={exportModalOpened || groupExportModalOpened}
-        onClose={activeView === 'clients' ? closeExportModal : closeGroupExportModal}
+        onClose={
+          activeView === 'clients' ? closeExportModal : closeGroupExportModal
+        }
         title={
           <Text fw={600} size='lg'>
             Export {activeView === 'clients' ? 'Clients' : 'Groups'}
@@ -873,10 +910,18 @@ const AllClients = () => {
               variant='outline'
               color='#1D9B5E'
               radius='md'
-              onClick={() => activeView === 'clients' ? handleExport ('excel', getSelectedIds()) : handleGroupExport('excel', getSelectedIds())}
+              onClick={() =>
+                activeView === 'clients'
+                  ? handleExport('excel', getSelectedIds())
+                  : handleGroupExport('excel', getSelectedIds())
+              }
               className='px-6'
-              loading={activeView === 'clients' ? isExporting : groupIsExporting}
-              disabled={activeView === 'clients' ? isExporting : groupIsExporting}
+              loading={
+                activeView === 'clients' ? isExporting : groupIsExporting
+              }
+              disabled={
+                activeView === 'clients' ? isExporting : groupIsExporting
+              }
             >
               Export as Excel (.xlsx)
             </MantineButton>
@@ -885,10 +930,18 @@ const AllClients = () => {
               variant='outline'
               color='#1D9B5E'
               radius='md'
-              onClick={() => activeView === 'clients' ? handleExport('csv', getSelectedIds()) : handleGroupExport('csv', getSelectedIds())}
+              onClick={() =>
+                activeView === 'clients'
+                  ? handleExport('csv', getSelectedIds())
+                  : handleGroupExport('csv', getSelectedIds())
+              }
               className='px-6'
-              loading={activeView === 'clients' ? isExporting : groupIsExporting}
-              disabled={activeView === 'clients' ? isExporting : groupIsExporting}
+              loading={
+                activeView === 'clients' ? isExporting : groupIsExporting
+              }
+              disabled={
+                activeView === 'clients' ? isExporting : groupIsExporting
+              }
             >
               Export as CSV (.csv)
             </MantineButton>
@@ -899,7 +952,11 @@ const AllClients = () => {
               variant='outline'
               color='red'
               radius='md'
-              onClick={activeView === 'clients' ? closeExportModal : closeGroupExportModal}
+              onClick={
+                activeView === 'clients'
+                  ? closeExportModal
+                  : closeGroupExportModal
+              }
               className='px-6'
             >
               Cancel

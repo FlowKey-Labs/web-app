@@ -141,7 +141,7 @@ const NewStaffReview = ({
   };
 
   return (
-    <div className='flex flex-col space-y-6'>
+    <div className='flex flex-col space-y-6 w-[100%]'>
       <h3 className='text-[32px] font-semibold text-primary'>Review</h3>
       <div className='flex bg-[#F0F9F6] py-4 px-6 rounded-md gap-4'>
         <Checkbox
@@ -190,7 +190,7 @@ const NewStaffReview = ({
               </div>
             </Accordion.Control>
             <Accordion.Panel>
-              <div className='py-4'>{section.content}</div>
+              <div className='md:py-4'>{section.content}</div>
             </Accordion.Panel>
           </Accordion.Item>
         ))}

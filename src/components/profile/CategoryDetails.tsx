@@ -146,7 +146,7 @@ const CategoryDetails = ({
     openDrawer({
       type: 'subcategory',
       isEditing: false,
-      extraData: { categoryId }
+      extraData: { categoryId },
     });
   };
 
@@ -155,7 +155,7 @@ const CategoryDetails = ({
       type: 'subcategory',
       entityId: subcategory.id,
       isEditing: true,
-      extraData: { categoryId }
+      extraData: { categoryId },
     });
   };
 
@@ -824,16 +824,16 @@ const CategoryDetails = ({
     );
 
   return (
-    <div className='flex relative'>
+    <div className='flex md:flex-row flex-col relative'>
       <button
         onClick={onBack}
-        className='absolute top-5 left-6 text-sm text-secondary hover:underline mb-4 z-10'
+        className='absolute top-5 md:left-6 left-3 text-sm text-secondary hover:underline md:mb-4 mb-2 z-10'
       >
         &larr; Back to Categories List
       </button>
 
-      <div className='w-[20%] border rounded-lg border-gray-200 p-6 pt-16 overflow-y-auto bg-cardsBg shadow-sm h-[28vh]'>
-        <h2 className='text-xl font-semibold mb-3 text-gray-800 font-sans'>
+      <div className='md:w-[20%] w-full border rounded-lg border-gray-200 md:p-6 p-2 pt-16 overflow-y-auto bg-cardsBg shadow-sm md:h-[28vh]'>
+        <h2 className='text-xl font-semibold mb-3 md:mt-6 text-gray-800 font-sans'>
           {category?.name}
         </h2>
         <p className='text-gray-600 text-sm mb-6 font-sans'>
@@ -841,7 +841,7 @@ const CategoryDetails = ({
         </p>
       </div>
 
-      <div className='w-[80%] px-6 pb-6 overflow-y-auto'>
+      <div className='md:w-[80%] w-full md:px-6 px-2 pb-6 overflow-y-auto mt-6 md:mt-0'>
         <div className='flex justify-between items-center mb-5'>
           <h3 className='text-lg font-semibold text-gray-700 font-sans'>
             Subcategories
@@ -872,17 +872,21 @@ const CategoryDetails = ({
             </Button>
           </div>
         ) : (
-          <Table
-            data={subcategories}
-            columns={columns}
-            pageSize={8}
-            rowSelection={rowSelection}
-            onRowSelectionChange={setRowSelection}
-            onRowClick={(row) => {
-              setSelectedRowData(row);
-              setIsRowDetailModalOpen(true);
-            }}
-          />
+          <div className='flex-1 md:px-6 md:py-3 pt-4 w-full overflow-x-auto'>
+            <div className='min-w-[900px] md:min-w-0'>
+              <Table
+                data={subcategories}
+                columns={columns}
+                pageSize={8}
+                rowSelection={rowSelection}
+                onRowSelectionChange={setRowSelection}
+                onRowClick={(row) => {
+                  setSelectedRowData(row);
+                  setIsRowDetailModalOpen(true);
+                }}
+              />
+            </div>
+          </div>
         )}
       </div>
 
