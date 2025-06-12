@@ -1,10 +1,8 @@
-import { Modal, Button } from '@mantine/core';
+import { useMemo } from 'react';
+import { Modal, Button, Checkbox } from '@mantine/core';
 import { useForm, Controller, FormProvider } from 'react-hook-form';
 import Input from '../common/Input';
 import backgroundImage from '../../assets/landingpageAssets/Images/backgroundImage.png';
-import phoneIcon from '../../assets/freeDemo/icons/phone.svg';
-import emailIcon from '../../assets/freeDemo/icons/email.svg';
-import watermarkIcon from '../../assets/freeDemo/icons/watermark.svg';
 import facebookIcon from '../../assets/freeDemo/icons/facebook.svg';
 import twitterIcon from '../../assets/freeDemo/icons/twitter.svg';
 import instagramIcon from '../../assets/freeDemo/icons/instagram.svg';
@@ -20,7 +18,12 @@ export interface BookingFormData {
   business_name: string;
   email: string;
   phone: string;
-  notes: string;
+  contactMethods: {
+    email: boolean;
+    phoneCall: boolean;
+    whatsapp: boolean;
+    sms: boolean;
+  };
 }
 
 interface BookingFormProps {
@@ -36,14 +39,25 @@ const DemoBookingForm = ({
   onSubmit,
   loading = false,
 }: BookingFormProps) => {
-  const methods = useForm<BookingFormData>({
-    defaultValues: {
+  const defaultValues = useMemo(
+    () => ({
       name: '',
       business_name: '',
       email: '',
       phone: '',
-      notes: '',
-    },
+      contactMethods: {
+        email: false,
+        phoneCall: false,
+        whatsapp: false,
+        sms: false,
+      },
+    }),
+    []
+  );
+
+  const methods = useForm<BookingFormData>({
+    defaultValues,
+    mode: 'onChange',
   });
 
   const { control, handleSubmit } = methods;
@@ -90,7 +104,7 @@ const DemoBookingForm = ({
     <Modal
       opened={opened}
       onClose={onClose}
-      size={isMobile ? '95%' : '60vw'}
+      size={isMobile ? '95%' : '65vw'}
       centered
       withCloseButton={false}
       padding='xs'
@@ -109,35 +123,75 @@ const DemoBookingForm = ({
             }}
           >
             <div className='flex flex-col items-center md:items-start'>
-              <h2 className='text-[28px] font-[600] '>Get in touch with us</h2>
-              <p className='text-[18px] font-[400] mb-6'>Let's have a chat!</p>
+              <h2 className='text-[26px] mb-6 font-[600] '>
+                Run your small business like a pro
+              </h2>
+              <p className='text-lg font-[400] mb-8 font-sans text-[#C9C9C9]'>
+                Get Early Access & Start Your Pilot Journey Today!
+              </p>
 
-              <div className='space-y-10 mt-8'>
-                <div className='flex flex-col items-center md:flex-row md:items-start gap-4 md:gap-0'>
-                  <div className=' mr-6'>
-                    <img src={phoneIcon} alt='Phone' />
-                  </div>
-                  <div className='self-center text-base font-[400]'>
-                    <p>+254 719 254 239</p>
-                  </div>
+              <div className='space-y-6 mt-8 mb-8 '>
+                <div>
+                  <Checkbox
+                    radius='xl'
+                    color='#1D9B5E'
+                    iconColor='#000000'
+                    defaultChecked
+                    styles={{
+                      icon: {
+                        width: '10px',
+                        height: '10px',
+                      },
+                      label: {
+                        fontWeight: 300,
+                        fontSize: '24px',
+                        fontStyle: 'italic',
+                      },
+                    }}
+                    label='Smart Scheduling'
+                  />
                 </div>
 
-                <div className='flex flex-col items-center md:flex-row md:items-start gap-4 md:gap-0'>
-                  <div className=' mr-6'>
-                    <img src={emailIcon} alt='Email' />
-                  </div>
-                  <div className=' self-center text-base font-[400]'>
-                    <p>info@flowkeylabs.com</p>
-                  </div>
+                <div>
+                  <Checkbox
+                    radius='xl'
+                    color='#1D9B5E'
+                    iconColor='#000000'
+                    defaultChecked
+                    styles={{
+                      icon: {
+                        width: '10px',
+                        height: '10px',
+                      },
+                      label: {
+                        fontWeight: 300,
+                        fontSize: '24px',
+                        fontStyle: 'italic',
+                      },
+                    }}
+                    label='Automated WhatsApp reminders'
+                  />
                 </div>
 
-                <div className='flex flex-col items-center md:flex-row md:items-start gap-4 md:gap-0'>
-                  <div className=' mr-6'>
-                    <img src={watermarkIcon} alt='Watermark' />
-                  </div>
-                  <div className=' self-center text-base font-[400]'>
-                    <p>Watermark Business Park, Karen, Nairobi</p>
-                  </div>
+                <div>
+                  <Checkbox
+                    radius='xl'
+                    color='#1D9B5E'
+                    iconColor='#000000'
+                    defaultChecked
+                    styles={{
+                      icon: {
+                        width: '10px',
+                        height: '10px',
+                      },
+                      label: {
+                        fontWeight: 300,
+                        fontSize: '24px',
+                        fontStyle: 'italic',
+                      },
+                    }}
+                    label='Business insights without extra tools'
+                  />
                 </div>
               </div>
               <div className='mt-20 flex items-center gap-4'>
@@ -168,11 +222,11 @@ const DemoBookingForm = ({
           {/* Right side */}
           <div className='w-full md:w-[55%] md:p-8 p-4'>
             <div className='mb-4 hidden md:block'>
-              <h2 className='text-[28px] font-[600] mb-2 text-[#0F2028]'>
-                Contact Information
+              <h2 className='text-[28px] font-[600] mb-2 text-[#0F2028] font-spaceGrotesk'>
+                Get a FREE demo of Flow Key
               </h2>
-              <p className='text-lg mb-4 font-[400] text-[#0F2028]'>
-                Let's call you back
+              <p className='text-lg mb-4 font-[400] text-[#0F2028] font-sans'>
+                Let us call you back
               </p>
             </div>
             <form
@@ -244,20 +298,107 @@ const DemoBookingForm = ({
                 />
               </div>
 
-              <Controller
-                name='notes'
-                control={control}
-                render={({ field }) => (
-                  <Input
-                    {...field}
-                    label='Notes'
-                    placeholder='Enter any special requirements or notes...'
-                    type='textarea'
-                    rows={5}
-                    className='rounded-lg h-24'
+              <div className='space-y-4 py-8'>
+                <h3 className='font-[400] text-sm'>
+                  How do you prefer to be contacted?{' '}
+                  <span className='text-red-500'>*</span>
+                </h3>
+                <div className='flex flex-wrap gap-4'>
+                  <Controller
+                    name='contactMethods.email'
+                    control={control}
+                    render={({ field: { onChange, value } }) => (
+                      <Checkbox
+                        radius='xl'
+                        label='Email'
+                        size='sm'
+                        color='#1D9B5E'
+                        iconColor='#000000'
+                        checked={value}
+                        onChange={(event) =>
+                          onChange(event.currentTarget.checked)
+                        }
+                        styles={{
+                          icon: {
+                            width: '10px',
+                            height: '10px',
+                          },
+                        }}
+                      />
+                    )}
                   />
-                )}
-              />
+                  <Controller
+                    name='contactMethods.phoneCall'
+                    control={control}
+                    render={({ field: { onChange, value } }) => (
+                      <Checkbox
+                        radius='xl'
+                        label='Phone Call'
+                        size='sm'
+                        color='#1D9B5E'
+                        iconColor='#000000'
+                        checked={value}
+                        onChange={(event) =>
+                          onChange(event.currentTarget.checked)
+                        }
+                        styles={{
+                          icon: {
+                            width: '10px',
+                            height: '10px',
+                          },
+                        }}
+                      />
+                    )}
+                  />
+                  <Controller
+                    name='contactMethods.whatsapp'
+                    control={control}
+                    render={({ field: { onChange, value } }) => (
+                      <Checkbox
+                        radius='xl'
+                        label='WhatsApp'
+                        size='sm'
+                        color='#1D9B5E'
+                        iconColor='#000000'
+                        checked={value}
+                        onChange={(event) =>
+                          onChange(event.currentTarget.checked)
+                        }
+                        styles={{
+                          icon: {
+                            width: '10px',
+                            height: '10px',
+                          },
+                        }}
+                      />
+                    )}
+                  />
+                  <Controller
+                    name='contactMethods.sms'
+                    control={control}
+                    render={({ field: { onChange, value } }) => (
+                      <Checkbox
+                        radius='xl'
+                        label='SMS'
+                        size='sm'
+                        color='#1D9B5E'
+                        iconColor='#000000'
+                        checked={value}
+                        onChange={(event) =>
+                          onChange(event.currentTarget.checked)
+                        }
+                        styles={{
+                          icon: {
+                            width: '10px',
+                            height: '10px',
+                          },
+                        }}
+                      />
+                    )}
+                  />
+                </div>
+              </div>
+
               <div className='pt-2 flex justify-end'>
                 <Button
                   h='50px'

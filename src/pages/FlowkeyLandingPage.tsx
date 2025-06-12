@@ -342,13 +342,13 @@ const FlowkeyLandingPage = () => {
             eat up your time. Flowkey automates the busywork so you can focus on
             what you do best, serving your clients.
           </p>
-          <div className='w-full md:w-[900px] flex-wrap justify-center flex'>
+          <div className='w-full flex-wrap justify-center flex'>
             {features.map((feature) => (
               <div
                 key={feature.title}
                 className='flex p-2 rounded-md md:min-w-[200px]'
               >
-                <h3 className='bg-[#1D9B5E33] py-2 px-6 rounded-xl w-[300px] md:w-full text-center md:text-start font-medium text-secondary'>
+                <h3 className='bg-[#1D9B5E33] py-2 px-6 rounded-xl w-[300px] md:w-full text-center md:text-start font-[500] font-sans text-sm text-secondary'>
                   {feature.title}
                 </h3>
               </div>
