@@ -134,6 +134,7 @@ const DemoBookingForm = ({
                 <div>
                   <Checkbox
                     radius='xl'
+                    size='md'
                     color='#1D9B5E'
                     iconColor='#000000'
                     defaultChecked
@@ -155,6 +156,7 @@ const DemoBookingForm = ({
                 <div>
                   <Checkbox
                     radius='xl'
+                    size='md'
                     color='#1D9B5E'
                     iconColor='#000000'
                     defaultChecked
@@ -176,6 +178,7 @@ const DemoBookingForm = ({
                 <div>
                   <Checkbox
                     radius='xl'
+                    size='md'
                     color='#1D9B5E'
                     iconColor='#000000'
                     defaultChecked
