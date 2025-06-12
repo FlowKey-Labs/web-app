@@ -252,6 +252,9 @@ const DemoBookingForm = ({
                 <Controller
                   name='business_name'
                   control={control}
+                  rules={{
+                    required: 'Business name is required',
+                  }}
                   render={({ field }) => (
                     <Input
                       {...field}
