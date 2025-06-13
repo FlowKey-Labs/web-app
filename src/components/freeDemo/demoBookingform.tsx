@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { Modal, Button, Checkbox } from '@mantine/core';
 import { useForm, Controller, FormProvider } from 'react-hook-form';
 import Input from '../common/Input';
-import backgroundImage from '../../assets/landingpageAssets/Images/backgroundImage.png';
+import backgroundImage from '../../assets/landingpageAssets/images/backgroundImage.png';
 import facebookIcon from '../../assets/freeDemo/icons/facebook.svg';
 import twitterIcon from '../../assets/freeDemo/icons/twitter.svg';
 import instagramIcon from '../../assets/freeDemo/icons/instagram.svg';
