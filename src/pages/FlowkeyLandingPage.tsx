@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Button } from '@mantine/core';
-
+import { Footer } from '../components/layout/Footer';
 import logo from '../assets/landingpageAssets/Icons/logo.svg';
 import headerPhone from '../assets/landingpageAssets/Icons/headerPhone.svg';
 import incomeArrow from '../assets/landingpageAssets/Icons/incomeArrow.svg';
@@ -26,9 +26,13 @@ import facebook from '../assets/landingpageAssets/Icons/facebook.svg';
 import twitter from '../assets/landingpageAssets/Icons/twitter.svg';
 import linkedin from '../assets/landingpageAssets/Icons/linkedin.svg';
 import instagram from '../assets/landingpageAssets/Icons/instagram.svg';
+import arrowRight from '../assets/landingpageAssets/Icons/arrowRight.svg';
 
 import headerImage from '../assets/landingpageAssets/images/Hero Section.png';
 import footerImage from '../assets/landingpageAssets/images/Footer.png';
+import DemoBookingForm, {
+  BookingFormData,
+} from '../components/freeDemo/demoBookingform';
 
 import fullPhone from '../assets/landingpageAssets/Icons/fullPhone.svg';
 import payrollMobile from '../assets/landingpageAssets/Icons/payrollMobile.svg';
@@ -36,6 +40,11 @@ import payrollMobile from '../assets/landingpageAssets/Icons/payrollMobile.svg';
 const FlowkeyLandingPage = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
+  const [opened, setOpened] = useState(false);
+
+  const handleBookingFormOpen = () => {
+    setOpened(true);
+  };
 
   const SlideCard = ({
     img,
@@ -65,23 +74,50 @@ const FlowkeyLandingPage = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  const slides = [
-    {
-      img: storyLocal,
-      title: 'Local Expertise',
-      text: 'We speak your language – literally. FlowKey is Made in Kenya and integrates local payment methods like M-PESA',
-    },
-    {
-      img: storyDesign,
-      title: 'Simple by Design',
-      text: 'No confusing features. Just the tools you need to run your business smoothly.',
-    },
-    {
-      img: storySupport,
-      title: 'Real Human Support',
-      text: 'We offer 24/7 support to our clients. No bots or endless ticket queues.',
-    },
-  ];
+  const slides = useMemo(
+    () => [
+      {
+        img: storyLocal,
+        title: 'Local Expertise',
+        text: 'We speak your language – literally. FlowKey is Made in Kenya and integrates local payment methods like M-PESA',
+      },
+      {
+        img: storyDesign,
+        title: 'Simple by Design',
+        text: 'No confusing features. Just the tools you need to run your business smoothly.',
+      },
+      {
+        img: storySupport,
+        title: 'Real Human Support',
+        text: 'We offer 24/7 support to our clients. No bots or endless ticket queues.',
+      },
+    ],
+    []
+  );
+
+  const features = useMemo(
+    () => [
+      {
+        title: 'Appointment Scheduling',
+      },
+      {
+        title: 'Online Booking',
+      },
+      {
+        title: 'WhatsApp Integration',
+      },
+      {
+        title: 'Progress Tracking',
+      },
+      {
+        title: 'Client Management',
+      },
+      {
+        title: 'Multi-Location Management',
+      },
+    ],
+    []
+  );
 
   return (
     <div className='flex flex-col w-full max-w-[100vw] overflow-x-hidden'>
@@ -135,10 +171,26 @@ const FlowkeyLandingPage = () => {
             <p className='cursor-pointer hover:text-[#1D9B5E] transition-colors'>
               Home
             </p>
-            <p className='cursor-pointer hover:text-[#1D9B5E] transition-colors'>
+            <p
+              className='cursor-pointer hover:text-[#1D9B5E] transition-colors'
+              onClick={() => {
+                const featuresSection = document.getElementById('features');
+                if (featuresSection) {
+                  featuresSection.scrollIntoView({ behavior: 'smooth' });
+                }
+              }}
+            >
               Features
             </p>
-            <p className='cursor-pointer hover:text-[#1D9B5E] transition-colors'>
+            <p
+              className='cursor-pointer hover:text-[#1D9B5E] transition-colors'
+              onClick={() => {
+                const aboutSection = document.getElementById('about');
+                if (aboutSection) {
+                  aboutSection.scrollIntoView({ behavior: 'smooth' });
+                }
+              }}
+            >
               About Us
             </p>
           </div>
@@ -152,16 +204,33 @@ const FlowkeyLandingPage = () => {
               <p className='cursor-pointer hover:text-[#1D9B5E] transition-colors w-full py-2 border-b border-gray-100 md:border-0'>
                 Home
               </p>
-              <p className='cursor-pointer hover:text-[#1D9B5E] transition-colors w-full py-2 border-b border-gray-100 md:border-0'>
+              <p
+                className='cursor-pointer hover:text-[#1D9B5E] transition-colors w-full py-2 border-b border-gray-100 md:border-0'
+                onClick={() => {
+                  const featuresSection = document.getElementById('features');
+                  if (featuresSection) {
+                    featuresSection.scrollIntoView({ behavior: 'smooth' });
+                  }
+                }}
+              >
                 Features
               </p>
-              <p className='cursor-pointer hover:text-[#1D9B5E] transition-colors w-full py-2 border-b border-gray-100 md:border-0'>
+              <p
+                className='cursor-pointer hover:text-[#1D9B5E] transition-colors w-full py-2 border-b border-gray-100 md:border-0'
+                onClick={() => {
+                  const aboutSection = document.getElementById('about');
+                  if (aboutSection) {
+                    aboutSection.scrollIntoView({ behavior: 'smooth' });
+                  }
+                }}
+              >
                 About Us
               </p>
               <div className='w-full py-2 md:hidden'>
                 <Button
+                  onClick={handleBookingFormOpen}
                   color='#1D9B5E'
-                  radius='lg'
+                  radius='12px'
                   h='55px'
                   size='lg'
                   fullWidth
@@ -173,7 +242,13 @@ const FlowkeyLandingPage = () => {
           </div>
 
           <div className='hidden md:flex items-center'>
-            <Button color='#1D9B5E' radius='lg' h='55px' size='lg'>
+            <Button
+              color='#1D9B5E'
+              radius='12px'
+              h='55px'
+              size='lg'
+              onClick={handleBookingFormOpen}
+            >
               Book Free Demo
             </Button>
           </div>
@@ -185,11 +260,18 @@ const FlowkeyLandingPage = () => {
               Run Your Service Business Smoothly.
             </h3>
             <p className='text-[#8A8D8E] text-base font-[400] md:w-[80%] '>
-              Flowkey is the all-in-one platform for local businesses to
-              streamline operations, from bookings and payments to staff and
-              client management - without spreadsheets or stress
+              Are you ready to take your service business to new heights?
+              Discover the power of automation to simplify and streamline, your
+              operations.
             </p>
-            <Button color='#1D9B5E' h='50px' radius='md' size='md' mt='30px'>
+            <Button
+              color='#1D9B5E'
+              h='50px'
+              radius='md'
+              size='md'
+              mt='30px'
+              onClick={handleBookingFormOpen}
+            >
               Book Free Demo
             </Button>
           </div>
@@ -244,7 +326,10 @@ const FlowkeyLandingPage = () => {
         </div>
       </div>
       {/* features section */}
-      <div className='flex flex-col bg-white w-full justify-center pt-12'>
+      <div
+        className='flex flex-col bg-white w-full justify-center pt-12'
+        id='features'
+      >
         <div className='flex flex-col w-[50%] mx-auto space-y-4 items-center'>
           <h3 className='text-secondary font-[400] md:font-[600] text-base'>
             Key Features
@@ -257,19 +342,34 @@ const FlowkeyLandingPage = () => {
             eat up your time. Flowkey automates the busywork so you can focus on
             what you do best, serving your clients.
           </p>
+          <div className='w-full flex-wrap justify-center flex'>
+            {features.map((feature) => (
+              <div
+                key={feature.title}
+                className='flex p-2 rounded-md md:min-w-[200px]'
+              >
+                <h3 className='bg-[#1D9B5E33] py-2 px-6 rounded-xl w-[300px] md:w-full text-center md:text-start font-[500] font-sans text-sm text-secondary'>
+                  {feature.title}
+                </h3>
+              </div>
+            ))}
+          </div>
         </div>
         {/* features cards */}
         <div className='flex flex-col md:flex-row w-[90%] md:w-[80%] mx-auto justify-around py-4 md:py-12 mt-4 md:mt-12'>
           <div className='flex flex-col gap-2 md:gap-4 justify-center md:w-[570px]'>
             <h2 className='font-[700] text-[32px] md:text-[40px] w-full text-[#0F2028] font-spaceGrotesk'>
-              Smart Scheduling
+              <span className='text-secondary'>Smart Scheduling</span> to serve
+              your customers better and grow revenue
             </h2>
             <p className='text-[#8A8D8E] text-[20px] font-[400]'>
-              Replace chaotic ordinary time-tables with a color-coded calendar
-              that syncs across devices.
+              Transform your booking process with a fully customizable online
+              booking system.
             </p>
             <p className='text-[#8A8D8E] text-[20px] font-[400]'>
-              Auto-send confirmations and reschedule in one click.
+              Whether you run a Beauty, Wellness, or Fitness business, your
+              clients can seamlessly schedule appointments or classes at their
+              convenience, from anywhere.
             </p>
           </div>
           <div className='relative mt-5 md:mt-0'>
@@ -354,13 +454,17 @@ const FlowkeyLandingPage = () => {
           </div>
           <div className='flex flex-col gap-2 md:gap-4 justify-center md:w-[570px]'>
             <h2 className='font-[700] text-[32px] md:text-[40px] w-full text-[#0F2028] font-spaceGrotesk'>
-              Payments & Invoicing
+              <span className='text-secondary'>Automated WhatsApp</span>{' '}
+              Reminders
             </h2>
             <p className='text-[#8A8D8E] text-[20px] font-[400]'>
-              Generate invoices with one click and track payments in real time.
+              Say goodbye to no-shows! Send timely, personalized WhatsApp
+              reminders directly to your clients' phones, drastically reducing
+              missed appointments and improving attendance.
             </p>
             <p className='text-[#8A8D8E] text-[20px] font-[400]'>
-              Send automatic reminders for overdue bills—no more lost cash.
+              Automated WhatsApp reminders are sent to your clients for their
+              upcoming appointments. Send promotional and Thank-You texts.{' '}
             </p>
           </div>
         </div>
@@ -368,14 +472,17 @@ const FlowkeyLandingPage = () => {
         <div className='flex flex-col md:flex-row w-[90%] md:w-[80%] mx-auto justify-around py-4 md:py-12 md:mt-12'>
           <div className='flex flex-col gap-2 md:gap-4 justify-center md:w-[570px]'>
             <h2 className='font-[700] text-[32px] md:text-[40px] w-full text-[#0F2028] font-spaceGrotesk'>
-              Payroll Made Easy
+              Comprehensive{' '}
+              <span className='text-secondary'>Client Progress</span> &
+              Engagement Tracking
             </h2>
             <p className='text-[#8A8D8E] text-[20px] font-[400]'>
-              Calculate wages, deductions and taxes automatically based on shift
-              logs.
+              Keep detailed records of client journeys, preferences and
+              engagement.
             </p>
             <p className='text-[#8A8D8E] text-[20px] font-[400]'>
-              Print or email pay-slips directly to staff.
+              Understand what motivates your clients and personalize their
+              experience for better retention.
             </p>
           </div>
           <div className='relative'>
@@ -435,14 +542,17 @@ const FlowkeyLandingPage = () => {
           </div>
           <div className='flex flex-col gap-2 md:gap-4 justify-center md:w-[570px]'>
             <h2 className='font-[700] text-[32px] md:text-[40px] w-full text-[#0F2028] font-spaceGrotesk'>
-              Get a 360° view of your business
+              Get a 360°{' '}
+              <span className='text-secondary'>business insights</span> without
+              extra tools
             </h2>
             <p className='text-[#8A8D8E] text-[20px] font-[400]'>
-              Know your cash flow instantly with a simple dashboard showing
-              revenue, expenses, and trends
+              Gain valuable data on what’s working in your business.
             </p>
             <p className='text-[#8A8D8E] text-[20px] font-[400]'>
-              No accounting degree needed.
+              Track popular services, peak booking times, and client activity to
+              make informed decisions without needing complex analytics
+              software.
             </p>
           </div>
         </div>
@@ -450,27 +560,26 @@ const FlowkeyLandingPage = () => {
         <div className='bg-cardsBg mx-auto w-full pt-12 mt-12 items-center justify-center'>
           <div className='flex flex-col md:flex-row mx-auto md:w-[80%] w-[90%] justify-around'>
             <div className='flex flex-col gap-4 md:w-[50%] w-full justify-center'>
-              <h3 className='text-secondary font-[600] text-base hidden md:block'>
-                START SMALL. ADD TOOLS AS YOU GROW.
-              </h3>
-              <h3 className='text-secondary font-[600] text-base md:hidden'>
-                HOW IT WORKS
+              <h3 className='text-secondary font-[600] text-base '>
+                COMING SOON
               </h3>
               <h2 className='md:text-[60px] text-[40px] font-[700] font-spaceGrotesk'>
-                Say Goodbye to Admin Headaches
+                Even More Power to Your Business!
               </h2>
               <p className='text-[#8A8D8E] text-[20px] font-[400] w-[100%] md:w-full'>
-                Need just scheduling today? Add payroll later. FlowKey’s modular
-                design adapts to your business, no bloated features.
+                We're continuously evolving FlowKey to be the ultimate solution
+                for your service business:
               </p>
               <div className='hidden md:block'>
                 <Button
+                  variant='transparent'
+                  rightSection={<img src={arrowRight} alt='arrow' />}
                   color='#1D9B5E'
                   h='55px'
-                  w='200px'
-                  radius='md'
+                  radius='14px'
                   size='md'
                   mt='30px'
+                  fw='bolder'
                 >
                   Start Free Trial
                 </Button>
@@ -480,12 +589,13 @@ const FlowkeyLandingPage = () => {
               <div className='flex gap-4 bg-white px-6 py-8 rounded-lg md:w-[500px] w-full shadow-sm'>
                 <img src={tools} alt='' className='self-start' />
                 <div className='flex flex-col gap-1'>
-                  <h3 className='text-[#323232] font-[700] md:text-lg text-sm'>
-                    less time scheduling, more time growing
+                  <h3 className='text-[#323232] font-[700] font-spaceGrotesk md:text-lg text-sm'>
+                    Easy M-Pesa & Card Payments Integration
                   </h3>
                   <p className='font-[400] md:text-base text-xs text-[#969696]'>
-                    Free up hours each week with automated bookings and
-                    payments.
+                    Simplify your financial transactions with seamless payment
+                    processing directly within FlowKey, offering convenience to
+                    both you and your clients.
                   </p>
                 </div>
               </div>
@@ -493,36 +603,27 @@ const FlowkeyLandingPage = () => {
               <div className='flex gap-4 bg-white px-6 py-8 rounded-lg md:w-[500px] w-full shadow-sm'>
                 <img src={tools} alt='' className='self-start' />
                 <div className='flex flex-col gap-1'>
-                  <h3 className='text-[#323232] font-[700] md:text-lg text-sm'>
-                    Get paid faster
+                  <h3 className='text-[#323232] font-[700] font-spaceGrotesk md:text-lg text-sm'>
+                    Simple Payroll & Team Management
                   </h3>
                   <p className='font-[400] md:text-base text-xs text-[#969696]'>
-                    Eliminate late payments with integrated card processing and
-                    auto-billing.
+                    Calculate wages, deductions and taxes automatically based on
+                    shift logs. Print or email pay-slips directly to staff.
                   </p>
                 </div>
               </div>
 
-              <div className='flex gap-4 bg-white px-6 py-8 rounded-lg md:w-[500px] w-full shadow-sm'>
-                <img src={tools} alt='' className='self-start' />
-                <div className='flex flex-col gap-1'>
-                  <h3 className='text-[#323232] font-[700] md:text-lg text-sm'>
-                    Grow with confidence
-                  </h3>
-                  <p className='font-[400] md:text-base text-xs text-[#969696]'>
-                    Track key metrics and make data-driven decisions to scale
-                    your business.
-                  </p>
-                </div>
-              </div>
               <div className='self-start md:hidden'>
                 <Button
-                  color='#1D9B5E'
                   h='55px'
                   w='200px'
                   radius='md'
                   size='md'
                   mt='30px'
+                  variant='transparent'
+                  rightSection={<img src={arrowRight} alt='arrow' />}
+                  color='#1D9B5E'
+                  fw='bolder'
                 >
                   Start Free Trial
                 </Button>
@@ -536,7 +637,10 @@ const FlowkeyLandingPage = () => {
           />
         </div>
 
-        <div className='flex flex-col items-center justify-center md:w-full md:pt-12 pt-6 bg-white w-[90%] mx-auto'>
+        <div
+          className='flex flex-col items-center justify-center md:w-full md:pt-12 pt-6 bg-white w-[90%] mx-auto'
+          id='about'
+        >
           <div className='flex flex-col gap-4 items-center text-center'>
             <h2 className='md:font-[600] font-[400] text-base text-secondary'>
               Our Story
@@ -545,20 +649,28 @@ const FlowkeyLandingPage = () => {
               Built in Kenya, for Kenyan Businesses
             </h3>
             <p className='text-[#969696] text-base font-[400] w-[327px] md:w-[940px]'>
-              Flowkey started from lived frustration—trying to book swim lessons
-              for my child and hitting walls with scheduling, payments, and
-              communication. That pain point turned into a question: What if
-              local service businesses had smarter tools? So we started
-              building. Flowkey is the all-in-one platform built with local
-              businesses in mind. We simplify scheduling, streamline payments,
-              and organize your business operations in one place so you can
-              focus on what you do best - serving your clients. At Flowkey,
-              we're driven by a simple belief: Local businesses are the
-              heartbeat of communities. They deserve intuitive, powerful tools
-              that help them grow - without the complexity or overhead. We're
-              proudly building from Kenya, inspired by real needs and real
-              businesses like yours. And this is just the beginning.
+              FlowKey started in 2024 when our founder, a Nairobi salon owner,
+              got tired of losing money to missed appointments and messy
+              spreadsheets. After struggling with expensive, complex tools that
+              didn’t understand local needs, she teamed up with Kenyan
+              developers to build a better solution. Today, FlowKey powers
+              hundreds of service businesses across Kenya – from salons to
+              tutoring centers – helping them save time and boost profits.
             </p>
+            <div>
+              <Button
+                variant='transparent'
+                rightSection={<img src={arrowRight} alt='arrow' />}
+                color='#1D9B5E'
+                h='55px'
+                radius='14px'
+                size='md'
+                mt='30px'
+                fw='bolder'
+              >
+                Start Free Trial
+              </Button>
+            </div>
           </div>
 
           {/* Slider Container */}
@@ -604,117 +716,17 @@ const FlowkeyLandingPage = () => {
           </div>
         </div>
 
-        <div
-          className='flex flex-col items-center justify-center w-full md:pt-12 py-12'
-          style={{
-            backgroundImage: `url(${footerImage})`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-          }}
-        >
-          <div className='flex flex-col text-center justify-center gap-4'>
-            <h2 className='font-[700] md:text-[48px] text-[32px] text-white md:w-[540px] w-[327px] self-center font-spaceGrotesk'>
-              Ready to{' '}
-              <span className='font-[300] font-sans text-white !italic'>
-                Take Control
-              </span>{' '}
-              of Your Business?
-            </h2>
-            <p className='text-base font-[400] text-[#969696] md:w-[650px] w-[327px] self-center'>
-              Simplify your operations. Get started with Flowkey and spend less
-              time managing your business—and more time running it.
-            </p>
-            <div className='flex items-center md:w-[500px] w-[327px] h-[72px] shadow-sm bg-white rounded-[24px] md:rounded-xl justify-between p-3 mt-4 self-center'>
-              <div className='flex items-center gap-2'>
-                <img src={email} alt='email' />
-                <input
-                  type='email'
-                  placeholder='Enter your email address'
-                  className='bg-transparent border-none focus:outline-none'
-                />
-              </div>
-              <div className='hidden md:block'>
-                <Button
-                  color='#1D9B5E'
-                  h='50px'
-                  w='170px'
-                  radius='lg'
-                  size='md'
-                >
-                  Book Free Demo
-                </Button>
-              </div>
-            </div>
-            <div className='md:hidden mt-5 '>
-              <Button color='#1D9B5E' h='70px' w='170px' radius='lg' size='md'>
-                Book Free Demo
-              </Button>
-            </div>
-          </div>
-        </div>
-
-        <div className='flex flex-col items-center justify-center w-full pt-12 bg-white md:py-12 py-6'>
-          <div className='md:w-[80%] w-[90%] flex md:flex-row flex-col justify-between mx-auto md:py-4 space-y-6 md:space-y-0'>
-            <div className='flex flex-col gap-8 md:w-[440px] w-[327px]'>
-              <div className='flex items-center gap-2 cursor-pointer'>
-                <img
-                  src={logo}
-                  alt='logo'
-                  className='w-[28px] h-[24px] md:w-[55px] md:h-[48px]'
-                />
-                <p className='text-[24px] md:text-[36px] font-[900] text-[#0F2028]'>
-                  FlowKey
-                </p>
-              </div>
-              <p className='text-[#0F2028] text-xl font-[300]'>
-                Empowering service businesses to run like pros without the
-                overhead
-              </p>
-              <p className='text-[#0F2028] font-[300] text-xl'>
-                Streamline.Track.Grow
-              </p>
-            </div>
-            <div
-              className='flex flex-col gap-4 font-[500] md:text-base text-xs md:text-[#0F2028] text-[#969696]'
-              style={{ fontFamily: 'Inter' }}
-            >
-              <p className='cursor-pointer'>Home</p>
-              <p className='cursor-pointer'>Features</p>
-              <p className='cursor-pointer'>About Us</p>
-            </div>
-            <div className='flex items-center md:justify-end'>
-              <div className='flex gap-4 self-end'>
-                <img src={facebook} alt='facebook' className='cursor-pointer' />
-                <img src={twitter} alt='twitter' className='cursor-pointer' />
-                <img src={linkedin} alt='linkedin' className='cursor-pointer' />
-                <img
-                  src={instagram}
-                  alt='instagram'
-                  className='cursor-pointer'
-                />
-              </div>
-            </div>
-            <div className='flex flex-col md:hidden gap-6'>
-              <p className='font-[700] text-base'>Contact Us</p>
-              <p className='text-[#969696] text-sm'>info@flowwkeylabs.com</p>
-            </div>
-          </div>
-        </div>
-
-        <div className='flex items-center justify-center w-full p-2 bg-[#0F2028]'>
-          <div
-            className='w-[80%] flex justify-between mx-auto py-4 text-white text-base font-[400]'
-            style={{ fontFamily: 'Inter' }}
-          >
-            <p>
-              &copy; {new Date().getFullYear()} FlowKeyLabs. All rights
-              reserved.
-            </p>
-            <p className='cursor-pointer hidden md:block'>Privacy Policy</p>
-            <p className='cursor-pointer hidden md:block'>Terms of Service</p>
-          </div>
-        </div>
+        <Footer />
       </div>
+
+      <DemoBookingForm
+        opened={opened}
+        onClose={() => setOpened(false)}
+        onSubmit={(data: BookingFormData) => {
+          console.log(data);
+          setOpened(false);
+        }}
+      />
     </div>
   );
 };
