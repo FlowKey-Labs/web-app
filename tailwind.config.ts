@@ -6,7 +6,6 @@ export default {
       sans: ['Urbanist', 'sans-serif'],
       spaceGrotesk: ['Space Grotesk', 'sans-serif'],
       inter: ['Inter', 'sans-serif'],
-      // spaceGrotesk: ['Montserrat', 'sans-serif'],
     },
     extend: {
       colors: {
