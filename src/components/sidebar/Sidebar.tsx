@@ -9,6 +9,7 @@ import {
   navigateToCalendar,
   navigateToProfile,
   navigateToSettings,
+  navigateToAuditLogs,
 } from "../../utils/navigationHelpers";
 import { Role, useAuthStore } from "../../store/auth";
 import { useMemo, useState, useEffect } from "react";
@@ -24,6 +25,7 @@ const navigationMap: NavigationMap = {
   staff: navigateToStaff,
   clients: navigateToClients,
   calendar: navigateToCalendar,
+  "audit logs": navigateToAuditLogs,
   profile: navigateToProfile,
   settings: navigateToSettings,
 };

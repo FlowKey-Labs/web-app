@@ -40,7 +40,7 @@ const Home = () => {
   };
 
   return (
-    <div className='flex min-h-screen bg-[#F8F9FA]'>
+    <div className='flex min-h-screen bg-[#F8F9FA] overflow-hidden'>
       <div className='flex w-full relative'>
         {isMobile && (
           <button
@@ -76,7 +76,7 @@ const Home = () => {
         />
 
         <div className={`
-          flex-grow overflow-auto transition-all duration-300 ease-in-out min-h-screen
+          flex-grow transition-all duration-300 ease-in-out h-screen overflow-y-auto
           ${isMobile ? 'w-full' : 'ml-0'}
         `}>
           <Outlet />

@@ -19,6 +19,7 @@ import { useAuthStore } from "../../store/auth";
 import { useUIStore } from "../../store/ui";
 import { mapSessionToFullCalendarEvents as convertSessionToEvents } from "./calendarUtils";
 import { CalendarSessionType } from "../../types/sessionTypes";
+import { getParticipantSummary } from "../../utils/sessionUtils";
 import { Loader } from "@mantine/core";
 
 const popupWidth = 400;
@@ -198,12 +199,13 @@ const CalendarView = () => {
     (eventInfo: {
       timeText: string;
       event: {
-        extendedProps: { session: { date: string } };
+        extendedProps: { session: CalendarSessionType };
         title: string;
         start: Date;
       };
     }) => {
       try {
+        const session = eventInfo.event.extendedProps?.session;
         let displayTime;
         if (eventInfo.timeText) {
           const cleanTime = eventInfo.timeText.replace(/[^0-9:]/g, '').trim();
@@ -224,11 +226,7 @@ const CalendarView = () => {
   
         return (
           <div className="flex justify-between w-full h-full py-1 cursor-pointer">
-            <div
-              className={cn("flex items-center gap-1 w-[70%]", {
-                "w-[40%]": currentView.type === "Week",
-              })}
-            >
+            <div className="flex items-center gap-1 w-[70%]">
               <div
                 className={cn("rounded-full w-2 h-2 bg-green-400", {
                   "bg-gray-500": isPast(new Date(eventInfo.event.start)),
@@ -236,9 +234,13 @@ const CalendarView = () => {
               />
               <i className="text-xs truncate">{eventInfo.event.title}</i>
             </div>
-            {currentView.type !== "Week" && <b className="text-xs flex items-center">
-              {timeString}
-            </b>}
+            <div className="flex items-center gap-1 text-xs">
+              {currentView.type !== "Week" && (
+                <b className="flex items-center">
+                  {timeString}
+                </b>
+              )}
+            </div>
           </div>
         );
       } catch (error) {

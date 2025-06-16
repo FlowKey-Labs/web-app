@@ -28,12 +28,20 @@ export interface Attendance {
     first_name: string;
     last_name: string;
     email: string;
-  };
+  } | null;
   session: number;
   attended: boolean;
   status: AttendanceStatus;
   status_display: string;
   timestamp: string;
+  session_title?: string;
+  client_name?: string;
+  booking_reference?: string;
+  participant_name?: string;
+  participant_type?: 'client' | 'booking';
+  participant_email?: string;
+  participant_phone?: string;
+  display_status?: string;
 }
 
 export interface SessionUser {
@@ -91,6 +99,8 @@ export interface Session
   category: Category;
   location?: Location;
   attendances?: Attendance[];
+  booking_requests?: BookingRequest[];
+  total_participants?: TotalParticipants;
   policies?: Policy[];
   policy_ids?: number[];
   _frontend_start_time?: string;
@@ -176,6 +186,28 @@ export interface ProgressFeedback {
   attachment: File;
 }
 
+export interface BookingRequest {
+  id: number;
+  booking_reference: string;
+  client_name: string;
+  client_email: string;
+  client_phone: string;
+  status: 'pending' | 'approved' | 'rejected' | 'expired' | 'cancelled';
+  quantity: number;
+  is_group_booking: boolean;
+  created_at: string;
+  approved_at: string | null;
+  approved_by: string | null;
+}
+
+export interface TotalParticipants {
+  attendance_count: number;
+  booking_count: number;
+  total: number;
+  capacity: number;
+  available: number;
+}
+
 /**
  * Extended Session type used specifically for calendar event generation
  * This type includes all fields needed for proper recurrence handling
@@ -188,6 +220,10 @@ export interface CalendarSessionType extends Omit<Session, "repeat_end_date"> {
   repeat_every?: number;
   repeat_unit?: RepeatUnit;
   repeat_occurrences?: number | null;
+  
+  // Booking-related fields for calendar display
+  booking_requests?: BookingRequest[];
+  total_participants?: TotalParticipants;
 
   // Allow for any additional properties coming from the backend
   [key: string]: unknown;

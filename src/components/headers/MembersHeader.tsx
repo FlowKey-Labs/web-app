@@ -3,6 +3,7 @@ import SearchInput from '../common/SearchInput';
 import Button from '../common/Button';
 import filterIcon from '../../assets/icons/filter.svg';
 import filter2Icon from '../../assets/icons/filter2.svg'
+import { useRef, useEffect } from 'react';
 
 interface HeaderProps {
   title?: string;
@@ -31,6 +32,22 @@ const Header = ({
   showButton = true,
   showSearch = true,
 }: HeaderProps) => {
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  // Preserve cursor position and focus during value updates
+  useEffect(() => {
+    if (searchInputRef.current && document.activeElement === searchInputRef.current) {
+      const input = searchInputRef.current;
+      const cursorPosition = input.selectionStart;
+      // Small delay to ensure the value has been updated
+      setTimeout(() => {
+        if (input && cursorPosition !== null) {
+          input.setSelectionRange(cursorPosition, cursorPosition);
+        }
+      }, 0);
+    }
+  }, [searchValue]);
+
   return (
     <div className='h-[80px] flex items-center justify-between px-8 py-12 space-x-12'>
       <div className='flex-shrink-0 justify-center items-center'>
@@ -47,6 +64,7 @@ const Header = ({
         {showSearch && (
           <div className=''>
             <SearchInput
+              ref={searchInputRef}
               placeholder={searchPlaceholder}
               value={searchValue}
               onChange={(e) => onSearchChange?.(e.target.value)}

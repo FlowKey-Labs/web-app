@@ -63,3 +63,9 @@ export const navigateToSettings = (
 ) => {
   navigate('/settings');
 };
+
+export const navigateToAuditLogs = (
+  navigate: ReturnType<typeof useNavigate>
+) => {
+  navigate('/audit-logs');
+};

@@ -37,7 +37,7 @@ interface SessionModalProps {
   onUpdateSuccess?: () => void;
   zIndex?: number;
   fromClientDrawer?: boolean;
-  pendingClientData?: Record<string, any>;
+  pendingClientData?: Record<string, unknown>;
 }
 
 const UpdateSession = ({
@@ -217,7 +217,11 @@ const UpdateSession = ({
         ? moment(sessionData.date).format('YYYY-MM-DD')
         : '';
 
-      const clientIds = sessionData.attendances?.map(a => {
+      // Extract both regular clients (with client IDs) and booking clients (with participant names)
+      // Only include regular clients in client_ids for form submission
+      const clientIds = sessionData.attendances?.filter(a => 
+        a.client !== null && a.participant_type === 'client'
+      ).map(a => {
         return typeof a.client === 'object' && a.client !== null
           ? a.client.id 
           : typeof a.client === 'number'
@@ -226,6 +230,15 @@ const UpdateSession = ({
       }).filter(id => id !== null) || [];
       
       console.log("Extracted client IDs:", clientIds);
+      
+      // Log all participants for debugging
+      console.log("All session participants:", sessionData.attendances?.map(a => ({
+        id: a.id,
+        name: a.participant_name,
+        type: a.participant_type,
+        client_id: a.client,
+        booking_ref: a.booking_reference
+      })));
 
       const policyIds = sessionData.policy_ids || sessionData.policies?.map(p => p.id) || [];
       console.log("Extracted policy IDs:", policyIds);
@@ -1018,6 +1031,11 @@ const UpdateSession = ({
                         control={methods.control}
                         render={({ field }) => {
                           console.log("Client field value:", field.value);
+                          // Handle both paginated response and direct array
+                          const clientsItems = Array.isArray(clientsData) 
+                            ? clientsData 
+                            : clientsData?.items || [];
+                          
                           return (
                             <DropdownSelectInput
                               label='Name'
@@ -1026,7 +1044,7 @@ const UpdateSession = ({
                               options={
                                 isClientsLoading
                                   ? [{ label: 'Loading...', value: '' }]
-                                  : clientsData?.filter(Boolean).map((client: any) => ({
+                                  : clientsItems?.filter(Boolean).map((client: any) => ({
                                       label: `${client.first_name} ${client.last_name}`,
                                       value: client.id.toString(),
                                     })) || []
@@ -1162,6 +1180,11 @@ const UpdateSession = ({
                         control={methods.control}
                         render={({ field }) => {
                           console.log("Client field value:", field.value);
+                          // Handle both paginated response and direct array
+                          const clientsItems = Array.isArray(clientsData) 
+                            ? clientsData 
+                            : clientsData?.items || [];
+                          
                           return (
                             <DropdownSelectInput
                               label='Name'
@@ -1170,7 +1193,7 @@ const UpdateSession = ({
                               options={
                                 isClientsLoading
                                   ? [{ label: 'Loading...', value: '' }]
-                                  : clientsData?.filter(Boolean).map((client: any) => ({
+                                  : clientsItems?.filter(Boolean).map((client: any) => ({
                                       label: `${client.first_name} ${client.last_name}`,
                                       value: client.id.toString(),
                                     })) || []
@@ -1679,41 +1702,48 @@ const UpdateSession = ({
                       <Controller
                         name='client_ids'
                         control={methods.control}
-                        render={({ field }) => (
-                          <DropdownSelectInput
-                            label='Clients'
-                            placeholder='Select Clients'
-                            singleSelect={false}
-                            options={
-                              isClientsLoading
-                                ? [{ label: 'Loading...', value: '' }]
-                                : clientsData?.filter(Boolean).map((client: any) => ({
-                                    label: `${client.first_name} ${client.last_name}`,
-                                    value: client.id.toString(),
-                                  })) || []
-                            }
-                            value={
-                              Array.isArray(field.value)
-                                ? field.value
-                                    .filter((id) => id != null)
-                                    .map((id) => id.toString())
-                                : []
-                            }
-                            onSelectItem={(selectedItems) => {
-                              console.log("Selected clients:", selectedItems);
-                              const values = Array.isArray(selectedItems)
-                                ? selectedItems.map((item) =>
-                                    parseInt(item.value)
-                                  )
-                                : selectedItems
-                                ? [parseInt(selectedItems.value)]
-                                : [];
-                              field.onChange(values);
-                            }}
-                            createLabel="Add new client"
-                            createDrawerType="client"
-                          />
-                        )}
+                        render={({ field }) => {
+                          // Handle both paginated response and direct array
+                          const clientsItems = Array.isArray(clientsData) 
+                            ? clientsData 
+                            : clientsData?.items || [];
+                          
+                          return (
+                            <DropdownSelectInput
+                              label='Clients'
+                              placeholder='Select Clients'
+                              singleSelect={false}
+                              options={
+                                isClientsLoading
+                                  ? [{ label: 'Loading...', value: '' }]
+                                  : clientsItems?.filter(Boolean).map((client: any) => ({
+                                      label: `${client.first_name} ${client.last_name}`,
+                                      value: client.id.toString(),
+                                    })) || []
+                              }
+                              value={
+                                Array.isArray(field.value)
+                                  ? field.value
+                                      .filter((id) => id != null)
+                                      .map((id) => id.toString())
+                                  : []
+                              }
+                              onSelectItem={(selectedItems) => {
+                                console.log("Selected clients:", selectedItems);
+                                const values = Array.isArray(selectedItems)
+                                  ? selectedItems.map((item) =>
+                                      parseInt(item.value)
+                                    )
+                                  : selectedItems
+                                  ? [parseInt(selectedItems.value)]
+                                  : [];
+                                field.onChange(values);
+                              }}
+                              createLabel="Add new client"
+                              createDrawerType="client"
+                            />
+                          );
+                        }}
                       />
                       <Controller
                         name='policy_ids'
@@ -1721,38 +1751,38 @@ const UpdateSession = ({
                         render={({ field }) => {
                           console.log("Policy field value:", field.value);
                           return (
-                          <DropdownSelectInput
-                            label='Policies'
-                            placeholder='Select Policies'
-                            singleSelect={false}
-                            options={
-                              isPoliciesLoading
-                                ? [{ label: 'Loading...', value: '' }]
-                                : policiesData?.map((policy: Policy) => ({
-                                    label: policy.title,
-                                    value: policy.id.toString(),
-                                  })) || []
-                            }
-                            value={field.value ? Array.isArray(field.value) ? field.value.map(String) : [String(field.value)] : []}
-                            onSelectItem={(selectedItems) => {
-                              console.log("Selected policies:", selectedItems);
-                              const values = (
-                                Array.isArray(selectedItems)
-                                  ? selectedItems
-                                  : [selectedItems]
-                              )
-                                .filter(Boolean)
-                                .map((item) =>
-                                  Number(
-                                    typeof item === 'string' ? item : item.value
-                                  )
-                                );
-                              field.onChange(values);
-                            }}
-                            createLabel="Create new policy"
-                            createDrawerType="policy"
-                          />
-                        );
+                            <DropdownSelectInput
+                              label='Policies'
+                              placeholder='Select Policies'
+                              singleSelect={false}
+                              options={
+                                isPoliciesLoading
+                                  ? [{ label: 'Loading...', value: '' }]
+                                  : policiesData?.map((policy: Policy) => ({
+                                      label: policy.title,
+                                      value: policy.id.toString(),
+                                    })) || []
+                              }
+                              value={field.value ? Array.isArray(field.value) ? field.value.map(String) : [String(field.value)] : []}
+                              onSelectItem={(selectedItems) => {
+                                console.log("Selected policies:", selectedItems);
+                                const values = (
+                                  Array.isArray(selectedItems)
+                                    ? selectedItems
+                                    : [selectedItems]
+                                )
+                                  .filter(Boolean)
+                                  .map((item) =>
+                                    Number(
+                                      typeof item === 'string' ? item : item.value
+                                    )
+                                  );
+                                field.onChange(values);
+                              }}
+                              createLabel="Create new policy"
+                              createDrawerType="policy"
+                            />
+                          );
                         }}
                       />
                     </div>

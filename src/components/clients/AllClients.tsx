@@ -1,12 +1,17 @@
 import MembersHeader from '../headers/MembersHeader';
 import plusIcon from '../../assets/icons/plusWhite.svg';
-import { Client, GroupData } from '../../types/clientTypes';
+import { Client, GroupData, BookingRequest, ClientSource } from '../../types/clientTypes';
 import Table from '../common/Table';
+import BookingRequestsTable from './BookingRequestsTable';
 import {
   useGetClients,
   useDeactivateClient,
   useActivateClient,
   useGetGroups,
+  useGetBookingRequests,
+  useApproveBookingRequest,
+  useRejectBookingRequest,
+  useCancelBookingRequest,
 } from '../../hooks/reactQuery';
 import { createColumnHelper, ColumnDef } from '@tanstack/react-table';
 import {
@@ -16,8 +21,8 @@ import {
   Text,
   Button as MantineButton,
   Menu,
-  Stack,
   Loader,
+  Badge,
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
@@ -41,6 +46,40 @@ import { PaginatedResponse } from '../../api/api';
 const clientColumnHelper = createColumnHelper<Client>();
 const groupColumnHelper = createColumnHelper<GroupData>();
 
+// Client Source Badge Component
+const ClientSourceBadge = ({ source, className = "" }: { source?: ClientSource; className?: string }) => {
+  const getBadgeProps = (source?: ClientSource) => {
+    switch (source) {
+      case 'booking_link':
+        return {
+          color: 'blue',
+          variant: 'light',
+          label: 'Booking'
+        };
+      case 'manual':
+      default:
+        return {
+          color: 'gray',
+          variant: 'light',
+          label: 'Manual'
+        };
+    }
+  };
+
+  const props = getBadgeProps(source);
+  
+  return (
+    <Badge 
+      color={props.color} 
+      variant={props.variant}
+      size="sm"
+      className={className}
+    >
+      {props.label}
+    </Badge>
+  );
+};
+
 const AllClients = () => {
   const [pageIndex, setPageIndex] = useState(1);
 
@@ -50,7 +89,7 @@ const AllClients = () => {
   >(null); 
   const [opened, { open, close }] = useDisclosure(false);
   const [isActivating, setIsActivating] = useState(false);
-  const [activeView, setActiveView] = useState<'clients' | 'groups'>('clients');
+  const [activeView, setActiveView] = useState<'clients' | 'groups' | 'bookings'>('clients');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
 
@@ -67,9 +106,24 @@ const AllClients = () => {
     isError,
     error,
     refetch,
-  } = useGetClients(pageIndex, 10);
+  } = useGetClients(
+    pageIndex, 
+    10, 
+    activeView === 'clients' ? debouncedSearchQuery : undefined
+  );
 
-  const allClients = useMemo(() => data.items, [data])
+  // Filter out empty/invalid client records
+  const validClients = useMemo(() => {
+    if (!data.items) return [];
+    return data.items.filter((client: Client) => {
+      // Filter out clients with completely empty data
+      return client && 
+             client.id && 
+             (client.first_name?.trim() || client.last_name?.trim() || client.email?.trim());
+    });
+  }, [data.items]);
+
+  const allClients = useMemo(() => validClients, [validClients])
 
   const {
     data: allGroups = [],
@@ -79,114 +133,80 @@ const AllClients = () => {
     refetch: refetchGroups,
   } = useGetGroups();
 
-  const searchClients = useCallback((clients: Client[], query: string) => {
-    if (!query.trim()) return clients;
-    
-    try {
-      const searchTerms = query.toLowerCase().trim().split(/\s+/);
-      
-      return clients.filter((client) => {
-        try {
-          const searchableFields = [
-            `${safeToString(client.first_name)} ${safeToString(client.last_name)}`.trim(),
-            safeToString(client.first_name),
-            safeToString(client.last_name),
-            safeToString(client.email),
-            safeToString(client.phone_number),
-            safeToString(client.location),
-            safeToString(client.id),
-          ].filter(field => field.length > 0); 
-          
-          const combinedText = searchableFields.join(' ');
-          
-          return searchTerms.every(term => 
-            combinedText.includes(term)
-          );
-        } catch (error) {
-          console.warn('Error processing client in search:', client.id, error);
-          return false;
-        }
-      });
-    } catch (error) {
-      console.error('Error in searchClients:', error);
-      return clients;
-    }
-  }, []);
+  const {
+    data: bookingRequestsData = {} as PaginatedResponse<BookingRequest>,
+    isLoading: bookingRequestsLoading,
+    isError: bookingRequestsError,
+    error: bookingRequestsGetError,
+    refetch: refetchBookingRequests,
+  } = useGetBookingRequests(
+    pageIndex, 
+    10, 
+    activeView === 'bookings' ? debouncedSearchQuery : undefined
+  );
+
+  const approveBookingMutation = useApproveBookingRequest();
+  const rejectBookingMutation = useRejectBookingRequest();
+  const cancelBookingMutation = useCancelBookingRequest();
 
   const searchGroups = useCallback((groups: GroupData[], query: string) => {
-    if (!query.trim()) return groups;
+    if (!query || !query.trim()) return groups;
     
-    try {
-      const searchTerms = query.toLowerCase().trim().split(/\s+/);
-      
-      return groups.filter((group) => {
-        try {
-          const searchableFields = [
-            safeToString(group.name),
-            safeToString(group.description),
-            safeToString(group.location),
-            safeToString(group.contact_person?.first_name),
-            safeToString(group.contact_person?.last_name),
-            group.contact_person 
-              ? `${safeToString(group.contact_person.first_name)} ${safeToString(group.contact_person.last_name)}`.trim()
-              : '',
-            safeToString(group.id),
-          ].filter(field => field.length > 0);
-          
-          const combinedText = searchableFields.join(' ');
-          
-          return searchTerms.every(term => 
-            combinedText.includes(term)
-          );
-        } catch (error) {
-          console.warn('Error processing group in search:', group.id, error);
-          return false;
-        }
-      });
-    } catch (error) {
-      console.error('Error in searchGroups:', error);
-      return groups;
-    }
+    const searchTerm = query.toLowerCase().trim();
+    return groups.filter((group) => {
+      const name = safeToString(group?.name);
+      const description = safeToString(group?.description);
+      const location = safeToString(group?.location);
+
+      return (
+        name.includes(searchTerm) ||
+        description.includes(searchTerm) ||
+        location.includes(searchTerm)
+      );
+    });
   }, []);
 
   const filteredData = useMemo(() => {
     try {
       if (activeView === 'clients') {
-        const clientsData = Array.isArray(allClients) ? allClients : [];
-        return debouncedSearchQuery.trim() ? searchClients(clientsData, debouncedSearchQuery) : clientsData;
-      } else {
+        // For clients, we use server-side search, so return the data as-is
+        return Array.isArray(allClients) ? allClients : [];
+      } else if (activeView === 'groups') {
         const groupsData = Array.isArray(allGroups) ? allGroups : [];
         return debouncedSearchQuery.trim() ? searchGroups(groupsData, debouncedSearchQuery) : groupsData;
+      } else if (activeView === 'bookings') {
+        // For bookings, we use server-side search, so return the data as-is
+        return Array.isArray(bookingRequestsData?.items) ? bookingRequestsData.items : [];
+      } else {
+        return [];
       }
     } catch (error) {
       console.error('Error in filteredData:', error);
-      return activeView === 'clients' ? (allClients || []) : (allGroups || []);
+      if (activeView === 'clients') {
+        return allClients || [];
+      } else if (activeView === 'groups') {
+        return allGroups || [];
+      } else {
+        return bookingRequestsData?.items || [];
+      }
     }
-  }, [activeView, allClients, allGroups, debouncedSearchQuery, searchClients, searchGroups]);
+  }, [activeView, allClients, allGroups, bookingRequestsData?.items, debouncedSearchQuery, searchGroups]);
 
   const clients = activeView === 'clients' ? filteredData as Client[] : allClients;
   const groups = activeView === 'groups' ? filteredData as GroupData[] : allGroups;
+  // For bookings, always use the server-side filtered data
+  const bookingRequests: BookingRequest[] = bookingRequestsData?.items || [];
 
   const handleSearchChange = useCallback((value: string) => {
     setSearchQuery(value);
     setRowSelection({});
   }, []);
 
-  const handleViewChange = useCallback((view: 'clients' | 'groups') => {
+  const handleViewChange = useCallback((view: 'clients' | 'groups' | 'bookings') => {
     setActiveView(view);
     setSearchQuery('');
     setRowSelection({});
   }, []);
-
-  const getSelectedIds = useCallback(() => {
-    const currentData = filteredData;
-    if (!currentData) return [];
-
-    return Object.keys(rowSelection).map((index) => {
-      const itemIndex = parseInt(index);
-      return currentData[itemIndex].id;
-    }) || [0];
-  }, [rowSelection, filteredData]);
 
   const {
     exportModalOpened,
@@ -194,7 +214,7 @@ const AllClients = () => {
     closeExportModal,
     handleExport,
     isExporting,
-  } = useExportClients(activeView === 'clients' ? clients || [] : groups || []);
+  } = useExportClients(clients);
 
   const {
     exportModalOpened: groupExportModalOpened,
@@ -227,7 +247,12 @@ const AllClients = () => {
         ),
       }),
       clientColumnHelper.accessor(
-        (row) => `${row.first_name} ${row.last_name}`,
+        (row) => {
+          const firstName = row.first_name?.trim() || '';
+          const lastName = row.last_name?.trim() || '';
+          const fullName = `${firstName} ${lastName}`.trim();
+          return fullName || 'Unnamed Client';
+        },
         {
           id: 'name',
           header: 'Name',
@@ -243,10 +268,11 @@ const AllClients = () => {
       ),
       clientColumnHelper.accessor('phone_number', {
         header: 'Phone',
+        cell: (info) => info.getValue() || '-',
       }),
       clientColumnHelper.accessor('email', {
         header: 'Email',
-        cell: (info) => info.getValue(),
+        cell: (info) => info.getValue() || '-',
       }),
       clientColumnHelper.accessor('active', {
         header: 'Status',
@@ -260,6 +286,12 @@ const AllClients = () => {
           >
             {info.getValue() ? 'Active' : 'Inactive'}
           </span>
+        ),
+      }),
+      clientColumnHelper.accessor('source', {
+        header: 'Source',
+        cell: (info) => (
+          <ClientSourceBadge source={info.getValue()} />
         ),
       }),
       clientColumnHelper.display({
@@ -433,6 +465,12 @@ const AllClients = () => {
           </span>
         ),
       }),
+      groupColumnHelper.accessor('source', {
+        header: 'Source',
+        cell: (info) => (
+          <ClientSourceBadge source={info.getValue()} />
+        ),
+      }),
       groupColumnHelper.display({
         id: 'actions',
         header: () => (
@@ -601,7 +639,7 @@ const AllClients = () => {
         if (activeView === 'clients') refetch();
         else refetchGroups();
       },
-      onError: (_error: unknown) => {
+      onError: () => {
         notifications.show({
           title: 'Error',
           message: `Failed to activate ${entityType}. Please try again.`,
@@ -627,10 +665,53 @@ const AllClients = () => {
     });
   };
 
-  const isLoadingCurrent = activeView === 'clients' ? isLoading : groupsLoading;
-  const isErrorCurrent = activeView === 'clients' ? isError : groupsError;
-  const errorCurrent = activeView === 'clients' ? error : getGroupsError;
-  const refetchCurrent = activeView === 'clients' ? refetch : refetchGroups;
+  const isLoadingCurrent = activeView === 'clients' ? isLoading : activeView === 'groups' ? groupsLoading : bookingRequestsLoading;
+  const isErrorCurrent = activeView === 'clients' ? isError : activeView === 'groups' ? groupsError : bookingRequestsError;
+  const errorCurrent = activeView === 'clients' ? error : activeView === 'groups' ? getGroupsError : bookingRequestsGetError;
+  const refetchCurrent = activeView === 'clients' ? refetch : activeView === 'groups' ? refetchGroups : refetchBookingRequests;
+
+  const handleApproveBooking = async (requestId: number) => {
+    try {
+      await approveBookingMutation.mutateAsync(requestId);
+      notifications.show({
+        title: 'Success',
+        message: 'Booking request approved successfully',
+        color: 'green',
+      });
+      refetchBookingRequests();
+      refetch(); // Refresh clients list as new client may have been created
+    } catch (error) {
+      console.error('Error approving booking:', error);
+    }
+  };
+
+  const handleRejectBooking = async (requestId: number, reason?: string) => {
+    try {
+      await rejectBookingMutation.mutateAsync({ requestId, reason });
+      notifications.show({
+        title: 'Success',
+        message: 'Booking request rejected',
+        color: 'orange',
+      });
+      refetchBookingRequests();
+    } catch (error) {
+      console.error('Error rejecting booking:', error);
+    }
+  };
+
+  const handleCancelBooking = async (requestId: number, reason?: string) => {
+    try {
+      await cancelBookingMutation.mutateAsync({ requestId, reason });
+      notifications.show({
+        title: 'Success',
+        message: 'Booking request cancelled',
+        color: 'orange',
+      });
+      refetchBookingRequests();
+    } catch (error) {
+      console.error('Error cancelling booking:', error);
+    }
+  };
 
   if (isLoadingCurrent) {
     return (
@@ -666,12 +747,14 @@ const AllClients = () => {
     <ErrorBoundary>
       <div className='flex flex-col h-screen bg-cardsBg w-full overflow-y-auto'>
         <MembersHeader
-          title={activeView === 'clients' ? 'All Clients' : 'All Groups'}
-          buttonText={activeView === 'clients' ? 'Add Client' : 'Add Group'}
+          title={activeView === 'clients' ? 'All Clients' : activeView === 'groups' ? 'All Groups' : 'Client Booking Requests'}
+          buttonText={activeView === 'clients' ? 'Add Client' : activeView === 'groups' ? 'Add Group' : 'Manage Bookings'}
           searchPlaceholder={
             activeView === 'clients'
               ? 'Search by Name, Email or Phone Number'
-              : 'Search by Group Name or Description'
+              : activeView === 'groups'
+              ? 'Search by Group Name or Description'
+              : 'Search booking requests by client name or email'
           }
           searchValue={searchQuery}
           onSearchChange={handleSearchChange}
@@ -695,32 +778,43 @@ const AllClients = () => {
             >
               Groups
             </MantineButton>
+            <MantineButton
+              variant={activeView === 'bookings' ? 'filled' : 'outline'}
+              onClick={() => handleViewChange('bookings')}
+              color={activeView === 'bookings' ? '#1D9B5E' : '#1D9B5E'}
+            >
+              Client Bookings
+            </MantineButton>
           </Group>
         </div>
         <EmptyDataPage
           title={
             searchQuery.trim()
-              ? `No ${activeView === 'clients' ? 'Clients' : 'Groups'} Found`
-              : activeView === 'clients' ? 'No Clients Found' : 'No Groups Found'
+              ? `No ${activeView === 'clients' ? 'Clients' : activeView === 'groups' ? 'Groups' : 'Booking Requests'} Found`
+              : activeView === 'clients' ? 'No Clients Found' : activeView === 'groups' ? 'No Groups Found' : 'No Booking Requests Found'
           }
           description={
             debouncedSearchQuery.trim()
-              ? `No ${activeView === 'clients' ? 'clients' : 'groups'} match your search "${debouncedSearchQuery}"`
+              ? `No ${activeView === 'clients' ? 'clients' : activeView === 'groups' ? 'groups' : 'booking requests'} match your search "${debouncedSearchQuery}"`
               : activeView === 'clients'
               ? "You don't have any clients yet"
-              : "You don't have any groups yet"
+              : activeView === 'groups'
+              ? "You don't have any groups yet"
+              : "No booking requests at this time. Client booking requests will appear here when submitted through your booking links."
           }
           buttonText={
             searchQuery.trim()
               ? 'Clear Search'
-              : activeView === 'clients' ? 'Add New Client' : 'Add New Group'
+              : activeView === 'clients' ? 'Add New Client' : activeView === 'groups' ? 'Add New Group' : 'Manage Booking Settings'
           }
           onButtonClick={searchQuery.trim() ? () => setSearchQuery('') : handleOpenClientDrawer}
           onClose={() => {}}
           opened={
             (activeView === 'clients'
               ? clients.length === 0
-              : groups.length === 0) && !isLoadingCurrent
+              : activeView === 'groups'
+              ? groups.length === 0
+              : bookingRequests.length === 0) && !isLoadingCurrent
           }
           showButton={Boolean(searchQuery.trim()) || Boolean(permisions?.can_create_clients)}
         />
@@ -755,6 +849,15 @@ const AllClients = () => {
                   navigateToGroupDetails(navigate, row.id.toString());
                 }
               }}
+            />
+          )}
+          {activeView === 'bookings' && (
+            <BookingRequestsTable
+              data={bookingRequests}
+              onApprove={handleApproveBooking}
+              onReject={handleRejectBooking}
+              onCancel={handleCancelBooking}
+              isLoading={bookingRequestsLoading}
             />
           )}
         </div>
@@ -863,48 +966,27 @@ const AllClients = () => {
             selected {activeView === 'clients' ? 'clients' : 'groups'}:{' '}
             {Object.keys(rowSelection).length > 0
               ? Object.keys(rowSelection).length
-              : `All ${
-                  activeView === 'clients' ? clients.length : groups.length
-                } (if none selected)`}
+              : 'All'}
           </Text>
-
-          <Stack gap='md'>
+          <Group gap="sm" style={{ marginTop: "2rem" }}>
             <MantineButton
-              variant='outline'
-              color='#1D9B5E'
-              radius='md'
-              onClick={() => activeView === 'clients' ? handleExport ('excel', getSelectedIds()) : handleGroupExport('excel', getSelectedIds())}
-              className='px-6'
+              color="#1D9B5E"
+              onClick={() => activeView === 'clients' ? handleExport('csv', Object.keys(rowSelection).map(Number)) : handleGroupExport('csv', Object.keys(rowSelection).map(Number))}
               loading={activeView === 'clients' ? isExporting : groupIsExporting}
-              disabled={activeView === 'clients' ? isExporting : groupIsExporting}
+              radius="md"
             >
-              Export as Excel (.xlsx)
+              CSV Export
             </MantineButton>
-
             <MantineButton
-              variant='outline'
-              color='#1D9B5E'
-              radius='md'
-              onClick={() => activeView === 'clients' ? handleExport('csv', getSelectedIds()) : handleGroupExport('csv', getSelectedIds())}
-              className='px-6'
+              color="#1D9B5E"
+              variant="outline"
+              onClick={() => activeView === 'clients' ? handleExport('excel', Object.keys(rowSelection).map(Number)) : handleGroupExport('excel', Object.keys(rowSelection).map(Number))}
               loading={activeView === 'clients' ? isExporting : groupIsExporting}
-              disabled={activeView === 'clients' ? isExporting : groupIsExporting}
+              radius="md"
             >
-              Export as CSV (.csv)
+              Excel Export
             </MantineButton>
-          </Stack>
-
-          <div className='flex justify-end space-x-4 mt-8'>
-            <MantineButton
-              variant='outline'
-              color='red'
-              radius='md'
-              onClick={activeView === 'clients' ? closeExportModal : closeGroupExportModal}
-              className='px-6'
-            >
-              Cancel
-            </MantineButton>
-          </div>
+          </Group>
         </div>
       </Modal>
     </ErrorBoundary>
