@@ -580,6 +580,7 @@ const FlowkeyLandingPage = () => {
                   size='md'
                   mt='30px'
                   fw='bolder'
+                  onClick={handleBookingFormOpen}
                 >
                   Start Free Trial
                 </Button>
@@ -624,6 +625,7 @@ const FlowkeyLandingPage = () => {
                   rightSection={<img src={arrowRight} alt='arrow' />}
                   color='#1D9B5E'
                   fw='bolder'
+                  onClick={handleBookingFormOpen}
                 >
                   Start Free Trial
                 </Button>
@@ -667,6 +669,7 @@ const FlowkeyLandingPage = () => {
                 size='md'
                 mt='30px'
                 fw='bolder'
+                onClick={handleBookingFormOpen}
               >
                 Start Free Trial
               </Button>
