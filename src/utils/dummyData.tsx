@@ -26,7 +26,6 @@ import {
   ProfileIconWhite,
 } from "../assets/icons";
 
-// Temporary inline audit logs icons until we add them to the main icons file
 const AuditLogsIcon = (props: any) => (
   <svg
     width='24'
@@ -329,7 +328,6 @@ export const paymentHistories: PaymentHistory[] = [
     date: "2024-03-20",
   },
 
-  // New records for Client ID 5
   {
     id: 20,
     clientId: 5,

@@ -29,7 +29,7 @@ function bookingReducer(state: BookingFlowState, action: BookingAction): Booking
       return {
         ...state,
         selectedService: action.payload as PublicService,
-        selectedDate: null, // Reset subsequent selections
+        selectedDate: null, 
         selectedSlot: null,
         selectedTimeSlot: null,
         formData: { ...state.formData, session_id: action.payload?.id },
@@ -37,8 +37,8 @@ function bookingReducer(state: BookingFlowState, action: BookingAction): Booking
     case 'SELECT_DATE':
       return {
         ...state,
-        selectedDate: action.payload.date || action.payload, // Handle both Date objects and date strings
-        selectedSlot: null, // Reset subsequent selections
+        selectedDate: action.payload.date || action.payload,  
+        selectedSlot: null, 
         selectedTimeSlot: null,
       };
     case 'SELECT_SLOT':
@@ -52,7 +52,7 @@ function bookingReducer(state: BookingFlowState, action: BookingAction): Booking
         ...state,
         selectedDate: action.payload.date,
         selectedTimeSlot: action.payload.timeSlot,
-        selectedSlot: action.payload.timeSlot, // Keep backward compatibility
+        selectedSlot: action.payload.timeSlot, 
         selectedTimezone: action.payload.timezone || state.selectedTimezone,
         formData: { 
           ...state.formData, 

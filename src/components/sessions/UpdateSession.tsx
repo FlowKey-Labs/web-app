@@ -217,8 +217,6 @@ const UpdateSession = ({
         ? moment(sessionData.date).format('YYYY-MM-DD')
         : '';
 
-      // Extract both regular clients (with client IDs) and booking clients (with participant names)
-      // Only include regular clients in client_ids for form submission
       const clientIds = sessionData.attendances?.filter(a => 
         a.client !== null && a.participant_type === 'client'
       ).map(a => {
@@ -231,7 +229,6 @@ const UpdateSession = ({
       
       console.log("Extracted client IDs:", clientIds);
       
-      // Log all participants for debugging
       console.log("All session participants:", sessionData.attendances?.map(a => ({
         id: a.id,
         name: a.participant_name,

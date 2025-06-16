@@ -8,10 +8,9 @@ interface HeaderProps {
   showSearch?: boolean;
 }
 
-// API Notification interface (matches actual API response)
 interface ApiNotification {
   id: number;
-  type: string; // API uses 'type' not 'notification_type'
+  type: string;
   title: string;
   message: string;
   is_read: boolean;
@@ -24,7 +23,6 @@ interface ApiNotification {
   time_since: string;
 }
 
-// Notification categorization for tabs
 const NOTIFICATION_CATEGORIES = {
   'booking_request': 'requests',
   'booking_approved': 'approved',
@@ -37,7 +35,6 @@ const NOTIFICATION_CATEGORIES = {
   'default': 'others'
 };
 
-// Tab configuration
 const NOTIFICATION_TABS = [
   {
     key: 'requests',
@@ -74,11 +71,9 @@ const Header = ({ showSearch = true }: HeaderProps) => {
   const [notificationDropdownOpen, setNotificationDropdownOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<string | null>('requests');
   
-  // Handle the API response structure - it returns an object with results array
   const notifications: ApiNotification[] = notificationData?.results || [];
   const unreadCount = notificationData?.unread_count || notifications.filter((n: ApiNotification) => !n.is_read).length;
   
-  // Categorize notifications by tab
   const categorizedNotifications = notifications.reduce((acc: Record<string, ApiNotification[]>, notification: ApiNotification) => {
     const category = NOTIFICATION_CATEGORIES[notification.type as keyof typeof NOTIFICATION_CATEGORIES] || 'others';
     if (!acc[category]) {
@@ -88,26 +83,21 @@ const Header = ({ showSearch = true }: HeaderProps) => {
     return acc;
   }, {});
 
-  // Sort notifications within each category by date (newest first)
   Object.keys(categorizedNotifications).forEach(category => {
     categorizedNotifications[category].sort((a: ApiNotification, b: ApiNotification) => 
       new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
     );
   });
 
-  // Get unread count per tab
   const getTabUnreadCount = (tabKey: string) => {
     const tabNotifications = categorizedNotifications[tabKey] || [];
     return tabNotifications.filter((n: ApiNotification) => !n.is_read).length;
   };
 
-  // Filter tabs based on content
   const visibleTabs = NOTIFICATION_TABS.filter(tab => {
-    // Always show requests, approved, and cancelled tabs
     if (['requests', 'approved', 'cancelled'].includes(tab.key)) {
       return true;
     }
-    // Only show others/system tab if there are notifications
     if (tab.key === 'others') {
       return categorizedNotifications[tab.key]?.length > 0;
     }
@@ -165,7 +155,6 @@ const Header = ({ showSearch = true }: HeaderProps) => {
       )}
 
       <div className='flex items-center justify-end gap-3 sm:gap-6 lg:gap-12 ml-auto'>
-        {/* Notifications Dropdown */}
         <Menu
           shadow="md"
           width={600}
@@ -310,8 +299,6 @@ const Header = ({ showSearch = true }: HeaderProps) => {
             )}
           </Menu.Dropdown>
         </Menu>
-
-        {/* User Profile */}
         <span className='text-primary cursor-pointer text-sm sm:text-base font-medium truncate max-w-[120px] sm:max-w-none hover:text-secondary transition-colors duration-200'>
           <span className="hidden sm:inline">{userProfile?.first_name} {userProfile?.last_name}</span>
           <span className="sm:hidden">{userProfile?.first_name || 'User'}</span>
