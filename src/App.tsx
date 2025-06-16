@@ -44,7 +44,7 @@ import AuditLogs from './components/auditLogs/AuditLogs';
 import './App.css';
 import FlowkeyLandingPage from './pages/FlowkeyLandingPage';
 import PublicBookingPage from './pages/PublicBookingPage';
-import PublicBookingDemo from './pages/PublicBookingDemo';
+
 import BookingCancel from './pages/booking/BookingCancel';
 import BookingManage from './pages/booking/BookingManage';
 import { TimezoneProvider } from './contexts/TimezoneContext';
@@ -96,17 +96,7 @@ function App() {
               }
             />
             
-            {/* Demo route for development */}
-            {import.meta.env.VITE_APP_ENVIRONMENT === 'development' && (
-              <Route
-                path='/booking-demo'
-                element={
-                  <AuthWrapper requireAuth={false} allowPublicAccess={true}>
-                    <PublicBookingDemo />
-                  </AuthWrapper>
-                }
-              />
-            )}
+
             
             <Route
               path='/login'

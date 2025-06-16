@@ -163,7 +163,7 @@ export function DateSelectionStep({ businessSlug, businessInfo }: DateSelectionS
     setSelectedTimeSlot(slot);
     
     // Ensure the date is consistent - use the slot's date as the authoritative source
-    const slotDate = slot.date; // This should be in YYYY-MM-DD format from the API
+          const slotDate = slot.date;
     
     // Convert the slot date to a Date object for the state
     const dateObject = new Date(slotDate + 'T00:00:00'); // Add time to avoid timezone issues
@@ -200,7 +200,7 @@ export function DateSelectionStep({ businessSlug, businessInfo }: DateSelectionS
     goToPreviousStep();
   };
 
-  // Check if date should be disabled (past dates or no availability)
+  
   const isDateDisabled = (date: Date) => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);

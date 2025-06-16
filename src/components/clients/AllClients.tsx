@@ -548,7 +548,7 @@ const AllClients = () => {
 
   const handleDeactivateEntity = () => {
     if (!selectedClient) return;
-    // TODO: Add deactivateGroupMutation if groups can be deactivated
+    
 
     const mutation = activeView === 'clients' ? deactivateClientMutation : null; // Replace null with deactivateGroupMutation
     const entityId = selectedClient.id?.toString();
@@ -605,7 +605,7 @@ const AllClients = () => {
 
   const handleActivateEntity = () => {
     if (!selectedClient) return;
-    // TODO: Add activateGroupMutation if groups can be activated
+    
     const mutation = activeView === 'clients' ? activateClientMutation : null; // Replace null with activateGroupMutation
     const entityId = selectedClient.id?.toString();
     const entityType = activeView === 'clients' ? 'Client' : 'Group';

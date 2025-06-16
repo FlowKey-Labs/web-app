@@ -72,7 +72,7 @@ export function TimeSelectionStep({ businessSlug, businessInfo }: TimeSelectionS
 
   const handleSlotSelect = (slot: AvailabilitySlot) => {
     // Ensure the date is consistent - use the slot's date as the authoritative source
-    const slotDate = slot.date; // This should be in YYYY-MM-DD format from the API
+    const slotDate = slot.date;
     
     console.log('Time slot selection debug:', {
       slotDate: slotDate,

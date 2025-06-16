@@ -25,7 +25,6 @@ interface ClientSession {
   class_type: string;
 }
 
-// New booking-related types
 export interface BookingRequest {
   id: number;
   booking_reference: string;
@@ -79,13 +78,12 @@ export interface Client {
   assignedTo?: string;
   attendances?: any[];
   location?: string;
-  dob?: string; // YYYY-MM-DD format
-  gender: string; // 'M' or 'F'
+  dob?: string;
+  gender: string;
   sessions?: ClientSession[];
-  // New booking-related fields
-  source?: ClientSource; // How the client was created - defaults to 'manual' if not provided
-  booking_request_id?: number; // Reference to original booking request if applicable
-  can_book_makeup?: boolean; // Whether booking clients can book makeup classes
+  source?: ClientSource;
+  booking_request_id?: number;
+  can_book_makeup?: boolean;
   booking_restrictions?: {
     max_future_bookings?: number;
     require_approval?: boolean;
@@ -110,11 +108,11 @@ export interface AddClient {
   assignedTo?: string;
   attendances?: any[];
   location: string;
-  dob?: string; // YYYY-MM-DD format
-  gender: string; // 'M' or 'F'
-  group_id?: number | null; // ID of the group this client belongs to
-  session_ids?: number[]; // Optional session IDs for initial session assignments
-  sessions?: Array<{ // For dropdown selection
+  dob?: string;
+  gender: string;
+  group_id?: number | null;
+  session_ids?: number[];
+  sessions?: Array<{
     label: string;
     value: string;
   }>;
@@ -148,7 +146,7 @@ export interface GroupData {
   created_at?: string;
   client_ids?: number[];
   session_ids?: number[];
-  source?: ClientSource; // Add source field for groups too if needed
+  source?: ClientSource;
 }
 
 export interface ClientData {
@@ -170,9 +168,7 @@ export interface ClientData {
   session_ids?: number[];
 }
 
-// ========================================
-// PUBLIC BOOKING TYPES
-// ========================================
+
 
 export interface PublicBusinessInfo {
   slug: string;
@@ -210,9 +206,9 @@ export interface PublicService {
 export interface AvailabilitySlot {
   id?: string;
   session_id: number;
-  date: string; // YYYY-MM-DD format
-  start_time: string; // HH:MM format
-  end_time: string; // HH:MM format
+  date: string;
+  start_time: string;
+  end_time: string;
   duration_minutes: number;
   session_title: string;
   available_spots: number;
@@ -316,7 +312,7 @@ export interface RescheduleOption {
     capacity_status: 'available' | 'low' | 'full';
   };
   is_available: boolean;
-  reason?: string; // If not available
+  reason?: string;
 }
 
 export interface RescheduleInfo {

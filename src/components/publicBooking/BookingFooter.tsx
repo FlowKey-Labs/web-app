@@ -4,19 +4,17 @@ import { FlowKeyIcon } from '../../assets/icons';
 
 export function BookingFooter() {
   const handleCookieSettings = () => {
-    // Handle cookie settings - this would typically open a modal
     console.log('Cookie settings clicked');
   };
 
   const handleSupport = () => {
-    // Handle support - this could open a chat widget or mailto
     window.open('mailto:support@flowkeylabs.com', '_blank');
   };
 
   return (
     <Box mt="xl" pt="lg" style={{ borderTop: '1px solid #e9ecef' }}>
       <Group justify="space-between" align="center">
-        {/* Powered by FlowKey */}
+
         <Group gap="xs">
           <Text size="sm" c="dimmed">
             Powered by
@@ -37,7 +35,7 @@ export function BookingFooter() {
           </Group>
         </Group>
 
-        {/* Footer Actions */}
+
         <Group gap="md">
           <Button
             variant="subtle"

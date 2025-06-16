@@ -54,7 +54,7 @@ const AuthWrapper = ({ children, requireAuth, allowPublicAccess = false }: AuthW
     }
     
     // If allowPublicAccess is false and user is authenticated, redirect to dashboard
-    // This applies to auth pages like /login, /signup, etc.
+    
     if (isAuthenticated) {
       const authPages = ['/login', '/signup', '/forgot-password', '/reset-password', '/set-password', '/password-reset', '/successful-password-reset'];
       if (authPages.includes(location.pathname)) {
