@@ -516,4 +516,106 @@ export function formatBookingTimeRange(
     const timezoneAbbr = getTimezoneAbbreviation(targetTimezone);
     return `${startTime} - ${endTime} ${timezoneAbbr}`;
   }
+}
+
+/**
+ * Convert frontend time input to business timezone for backend
+ * This ensures the backend interprets times as business local time
+ */
+export function formatTimeForBackend(
+  date: string,
+  time: string,
+  businessTimezone: string = 'Africa/Nairobi'
+): { date: string; time: string; timezone: string } {
+  try {
+    // Combine date and time in business timezone
+    const datetime = DateTime.fromISO(`${date}T${time}:00`, { zone: businessTimezone });
+    
+    if (!datetime.isValid) {
+      console.warn('Invalid datetime for backend formatting:', { date, time, businessTimezone });
+      return { date, time, timezone: businessTimezone };
+    }
+    
+    // Return formatted date and time that backend expects
+    return {
+      date: datetime.toFormat('yyyy-MM-dd'),
+      time: datetime.toFormat('HH:mm'),
+      timezone: businessTimezone
+    };
+  } catch (error) {
+    console.error('Error formatting time for backend:', error);
+    return { date, time, timezone: businessTimezone };
+  }
+}
+
+/**
+ * Parse backend datetime response and convert to display timezone
+ */
+export function parseBackendDateTime(
+  datetimeString: string,
+  targetTimezone: string = 'Africa/Nairobi'
+): DateTime | null {
+  try {
+    // Backend returns UTC times, so parse as UTC first
+    const utcDateTime = DateTime.fromISO(datetimeString, { zone: 'UTC' });
+    
+    if (!utcDateTime.isValid) {
+      console.warn('Invalid datetime from backend:', datetimeString);
+      return null;
+    }
+    
+    // Convert to target timezone for display
+    return utcDateTime.setZone(targetTimezone);
+  } catch (error) {
+    console.error('Error parsing backend datetime:', error);
+    return null;
+  }
+}
+
+/**
+ * Format session times consistently throughout the app
+ */
+export function formatSessionTimes(
+  startTime: string,
+  endTime: string,
+  timezone: string = 'Africa/Nairobi'
+): { 
+  startFormatted: string;
+  endFormatted: string;
+  timeRange: string;
+  timezoneAbbr: string;
+} {
+  try {
+    const start = DateTime.fromISO(startTime).setZone(timezone);
+    const end = DateTime.fromISO(endTime).setZone(timezone);
+    
+    if (!start.isValid || !end.isValid) {
+      return {
+        startFormatted: 'Invalid time',
+        endFormatted: 'Invalid time',
+        timeRange: 'Invalid time range',
+        timezoneAbbr: getTimezoneAbbreviation(timezone)
+      };
+    }
+    
+    const startFormatted = start.toFormat('h:mm a');
+    const endFormatted = end.toFormat('h:mm a');
+    const timezoneAbbr = getTimezoneAbbreviation(timezone);
+    
+    return {
+      startFormatted,
+      endFormatted,
+      timeRange: `${startFormatted} - ${endFormatted} ${timezoneAbbr}`,
+      timezoneAbbr
+    };
+  } catch (error) {
+    console.error('Error formatting session times:', error);
+    const timezoneAbbr = getTimezoneAbbreviation(timezone);
+    return {
+      startFormatted: 'Error',
+      endFormatted: 'Error',
+      timeRange: 'Error formatting time',
+      timezoneAbbr
+    };
+  }
 } 

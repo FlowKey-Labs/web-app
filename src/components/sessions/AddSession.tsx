@@ -23,6 +23,7 @@ import {
 import { useCreateSession } from '../../hooks/reactQuery';
 import moment from 'moment';
 import { Modal, Drawer } from '@mantine/core';
+import { useTimezone } from '../../contexts/TimezoneContext';
 
 interface Client {
   id: number;
@@ -79,6 +80,7 @@ type FormData = Omit<
 };
 
 const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientData }: SessionModalProps) => {
+  const { state: timezoneState } = useTimezone();
   const methods = useForm<FormData>({
     mode: 'onSubmit',
     defaultValues: {
@@ -195,19 +197,21 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
         }
       }
 
-      
       const dateOnly = moment(dateObj).format('YYYY-MM-DD');
       
+      // CRITICAL TIMEZONE FIX: Format times properly for backend with business timezone awareness
+      const businessTimezone = timezoneState.businessTimezone || 'Africa/Nairobi';
       
-      const formattedStartTime = data.start_time && dateOnly ? `${dateOnly}T${data.start_time}:00.000Z` : null;
-      const formattedEndTime = data.end_time && dateOnly ? `${dateOnly}T${data.end_time}:00.000Z` : null;
+      // Format times for backend - these will be interpreted as business local time
+      const formattedStartTime = data.start_time && dateOnly ? `${dateOnly}T${data.start_time}:00` : null;
+      const formattedEndTime = data.end_time && dateOnly ? `${dateOnly}T${data.end_time}:00` : null;
 
-      
+      console.log("Business timezone:", businessTimezone);
       console.log("Date value:", dateOnly);
       console.log("Start time input:", data.start_time);
       console.log("End time input:", data.end_time);
-      console.log("Formatted start time:", formattedStartTime);
-      console.log("Formatted end time:", formattedEndTime);
+      console.log("Formatted start time (business local):", formattedStartTime);
+      console.log("Formatted end time (business local):", formattedEndTime);
 
       let repeatEndDateObj = null;
       if (data.repeat_end_date) {
@@ -472,8 +476,8 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
             padding: 0,
           },
         }}
-      >
-        <div className='flex flex-col'>
+              >
+          <div className='flex flex-col'>
           <div className='flex gap-4 pt-8 px-8'>
             <button
               type='button'
