@@ -636,7 +636,7 @@ export function ConfirmationStep({ businessSlug, businessInfo }: ConfirmationSte
                   <div className="flex justify-between">
                     <Text className="text-slate-600">Duration</Text>
                     <Text className="font-semibold text-slate-800">
-                      {state.selectedService?.duration_minutes} minutes
+                      {(state.selectedTimeSlot?.duration_minutes ?? state.selectedService?.duration_minutes ?? 0)} minutes
                     </Text>
                   </div>
                   
@@ -697,7 +697,7 @@ export function ConfirmationStep({ businessSlug, businessInfo }: ConfirmationSte
                     <div className="flex justify-between pt-2 border-t border-slate-200">
                       <Text className="text-slate-600 font-medium">Total</Text>
                       <Text className="font-bold text-emerald-600 text-lg">
-                        KSh {(state.selectedService.price * (state.formData.quantity || 1)).toFixed(2)}
+                        KSh {(Number(state.selectedService.price) * (state.formData.quantity || 1)).toFixed(2)}
                       </Text>
                     </div>
                   )}

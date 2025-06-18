@@ -6,7 +6,12 @@ import { GlobalDrawerManager } from '../drawers';
 const Home = () => {
   const location = useLocation();
   const path = location.pathname.split('/')[1];
-  const activeSection = path === '' ? 'dashboard' : path;
+  let activeSection = path === '' ? 'dashboard' : path;
+  
+  if (activeSection === 'audit-logs') {
+    activeSection = 'audit logs';
+  }
+  
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 

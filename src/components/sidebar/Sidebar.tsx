@@ -43,6 +43,7 @@ const permissionMap: Record<string, keyof Role> = {
   Calendar: "can_view_calendar",
   Profile: "can_manage_profile",
   Settings: "can_manage_settings",
+  "Audit Logs": "can_view_audit_logs",
 };
 
 function filterMenuItemsByRole<T extends { name: string }>(
@@ -50,6 +51,11 @@ function filterMenuItemsByRole<T extends { name: string }>(
   role: Role
 ): T[] {
   return items.filter((item) => {
+    // Always show logout button
+    if (item.name === "Logout") {
+      return true;
+    }
+    
     const permissionKey = permissionMap[item.name];
     return permissionKey ? role[permissionKey] : true;
   });

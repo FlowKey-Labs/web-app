@@ -109,17 +109,27 @@ export interface BookingRequest {
 // Booking Notification Types
 export interface BookingNotification {
   id: number;
-  notification_type: 'booking_request' | 'booking_approved' | 'booking_rejected' | 'booking_cancelled' | 'booking_expired';
+  type: 'booking_request' | 'booking_approved' | 'booking_rejected' | 'booking_cancelled' | 'booking_expired';
   title: string;
   message: string;
   is_read: boolean;
+  read_at: string | null;
   created_at: string;
   booking_request: {
+    id: number;
     booking_reference: string;
     client_name: string;
-    session_title: string;
-  };
+    client_email: string;
+    status: 'pending' | 'approved' | 'rejected' | 'cancelled' | 'expired';
+    session: {
+      id: number;
+      title: string;
+      start_time: string;
+      end_time: string;
+    } | null;
+  } | null;
   time_since: string;
+  data: Record<string, any>;
 }
 
 // Booking Audit Log Types

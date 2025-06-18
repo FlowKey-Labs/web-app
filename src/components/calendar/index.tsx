@@ -19,7 +19,6 @@ import { useAuthStore } from "../../store/auth";
 import { useUIStore } from "../../store/ui";
 import { mapSessionToFullCalendarEvents as convertSessionToEvents } from "./calendarUtils";
 import { CalendarSessionType } from "../../types/sessionTypes";
-import { getParticipantSummary } from "../../utils/sessionUtils";
 import { Loader } from "@mantine/core";
 
 const popupWidth = 400;
@@ -205,7 +204,6 @@ const CalendarView = () => {
       };
     }) => {
       try {
-        const session = eventInfo.event.extendedProps?.session;
         let displayTime;
         if (eventInfo.timeText) {
           const cleanTime = eventInfo.timeText.replace(/[^0-9:]/g, '').trim();

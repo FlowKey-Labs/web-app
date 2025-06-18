@@ -331,6 +331,7 @@ export function ServiceSelectionStep({ businessSlug, businessInfo }: ServiceSele
               <Title order={4} className="text-slate-800 mb-4 text-base">
                 How it works
               </Title>
+           
               <Stack gap="md">
                 <Text size="xs" className="text-slate-600 flex items-center gap-3">
                   <span className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-xs font-medium flex-shrink-0">1</span>

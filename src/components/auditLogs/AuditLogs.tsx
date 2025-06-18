@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { createColumnHelper } from '@tanstack/react-table';
 import { Group, Menu, Badge, TextInput, Select, Button as MantineButton, Card, Loader } from '@mantine/core';
 import { DateInput } from '@mantine/dates';
@@ -8,7 +8,7 @@ import MembersHeader from '../headers/MembersHeader';
 import Table from '../common/Table';
 import EmptyDataPage from '../common/EmptyDataPage';
 import ErrorBoundary from '../common/ErrorBoundary';
-import actionOptionIcon from '../../assets/icons/actionOption.svg';
+// Removed unused actionOptionIcon import
 import filterIcon from '../../assets/icons/filter.svg';
 import { SearchIcon } from '../../assets/icons';
 
@@ -115,6 +115,8 @@ const AuditLogs = () => {
   const [actionFilter, setActionFilter] = useState<string | null>(null);
   const [dateFrom, setDateFrom] = useState<Date | null>(null);
   const [dateTo, setDateTo] = useState<Date | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize] = useState(20);
 
   // Action type options for filtering
   const actionOptions = [
@@ -130,17 +132,67 @@ const AuditLogs = () => {
     { value: 'CLIENT_CREATION_FAILED', label: 'Client Creation Failed' },
   ];
 
-  // Filter logs based on search and filters
+  // Enhanced search function that properly handles booking references
+  const searchMatches = useCallback((log: BookingAuditLog, term: string) => {
+    if (!term) return true;
+    
+    const searchLower = term.toLowerCase().trim();
+    
+    // Search in booking reference (handle # symbol properly)
+    const bookingRef = log.booking_request?.booking_reference || '';
+    const bookingRefSearch = bookingRef.toLowerCase();
+    // Check both with and without # symbol
+    const refWithHash = `#${bookingRef.toLowerCase()}`;
+    const refWithoutHash = bookingRef.replace('#', '').toLowerCase();
+    
+    if (bookingRefSearch.includes(searchLower) || 
+        refWithHash.includes(searchLower) || 
+        refWithoutHash.includes(searchLower)) {
+      return true;
+    }
+    
+    // Search in client name
+    const clientName = log.booking_request?.client_name || '';
+    if (clientName.toLowerCase().includes(searchLower)) {
+      return true;
+    }
+    
+    // Search in session title
+    const sessionTitle = log.booking_request?.session?.title || '';
+    if (sessionTitle.toLowerCase().includes(searchLower)) {
+      return true;
+    }
+    
+    // Search in details
+    const details = log.details || '';
+    if (details.toLowerCase().includes(searchLower)) {
+      return true;
+    }
+    
+    // Search in user information
+    const userName = log.user?.full_name || '';
+    const userEmail = log.user?.email || '';
+    if (userName.toLowerCase().includes(searchLower) || 
+        userEmail.toLowerCase().includes(searchLower)) {
+      return true;
+    }
+    
+    // Search in action display
+    const actionDisplay = log.action_display || log.action || '';
+    if (actionDisplay.toLowerCase().includes(searchLower)) {
+      return true;
+    }
+    
+    return false;
+  }, []);
+
+  // Filter logs based on search and filters - ENHANCED VERSION
   const filteredLogs = useMemo(() => {
     if (!auditLogs) return [];
 
-    return auditLogs.filter((log: BookingAuditLog) => {
-      // Search filter
-      const matchesSearch = !searchTerm || 
-        log.details.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        log.booking_request.booking_reference.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        log.booking_request.client_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (log.user?.full_name && log.user.full_name.toLowerCase().includes(searchTerm.toLowerCase()));
+    const filtered = auditLogs.filter((log: BookingAuditLog) => {
+      // Enhanced search filter
+      const matchesSearch = searchMatches(log, searchTerm);
 
       // Action filter
       const matchesAction = !actionFilter || log.action === actionFilter;
@@ -152,7 +204,27 @@ const AuditLogs = () => {
 
       return matchesSearch && matchesAction && matchesDateFrom && matchesDateTo;
     });
-  }, [auditLogs, searchTerm, actionFilter, dateFrom, dateTo]);
+
+    // Don't reset page if filtered results can accommodate current page
+    const maxPossiblePage = Math.ceil(filtered.length / pageSize);
+    if (currentPage > maxPossiblePage && maxPossiblePage > 0) {
+      setCurrentPage(1);
+    }
+    
+    return filtered;
+  }, [auditLogs, searchTerm, actionFilter, dateFrom, dateTo, searchMatches, pageSize, currentPage]);
+
+  // Paginated logs for display - FIXED
+  const paginatedLogs = useMemo(() => {
+    const startIndex = (currentPage - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
+    return filteredLogs.slice(startIndex, endIndex);
+  }, [filteredLogs, currentPage, pageSize]);
+
+  // Calculate pagination info - FIXED
+  const totalPages = Math.ceil(filteredLogs.length / pageSize) || 1;
+  const hasNextPage = currentPage < totalPages;
+  const hasPrevPage = currentPage > 1;
 
   const getActionBadgeColor = (action: string) => {
     switch (action) {
@@ -280,46 +352,7 @@ const AuditLogs = () => {
         size: 100,
       }),
 
-      columnHelper.display({
-        id: 'actions',
-        header: () => (
-          <div className='flex space-x-2' onClick={(e) => e.stopPropagation()}>
-            <Group justify='center'>
-              <Menu
-                width={150}
-                shadow='md'
-                position='bottom'
-                radius='md'
-                withArrow
-                offset={4}
-              >
-                <Menu.Target>
-                  <img src={actionOptionIcon} alt='Action options' />
-                </Menu.Target>
-              </Menu>
-            </Group>
-          </div>
-        ),
-        cell: () => (
-          <div className='flex space-x-2' onClick={(e) => e.stopPropagation()}>
-            <Group justify='center'>
-              <Menu
-                width={150}
-                shadow='md'
-                position='bottom'
-                radius='md'
-                withArrow
-                offset={4}
-              >
-                <Menu.Target>
-                  <img src={actionOptionIcon} alt='Action options' />
-                </Menu.Target>
-              </Menu>
-            </Group>
-          </div>
-        ),
-        size: 80,
-      }),
+      // Removed the problematic action column with ellipsis menu - not needed for audit logs
     ],
     []
   );
@@ -329,13 +362,17 @@ const AuditLogs = () => {
     setActionFilter(null);
     setDateFrom(null);
     setDateTo(null);
+    setCurrentPage(1);
   };
 
   if (isLoading) {
     return (
       <div className='flex flex-col h-screen bg-gray-50 w-full overflow-y-auto'>
         <div className='bg-white border-b border-gray-100 shadow-sm'>
-          <MembersHeader showSearch={true} />
+          <div className='px-6 py-4'>
+            <h1 className='text-primary text-2xl font-bold'>Audit Logs</h1>
+            <p className='text-gray-600 text-sm mt-1'>Track all system activities and changes</p>
+          </div>
         </div>
         <div className='flex-1 p-3 sm:p-4 lg:p-6'>
           <div className="flex items-center justify-center min-h-[400px]">
@@ -353,7 +390,10 @@ const AuditLogs = () => {
     return (
       <div className='flex flex-col h-screen bg-gray-50 w-full overflow-y-auto'>
         <div className='bg-white border-b border-gray-100 shadow-sm'>
-          <MembersHeader showSearch={true} />
+          <div className='px-6 py-4'>
+            <h1 className='text-primary text-2xl font-bold'>Audit Logs</h1>
+            <p className='text-gray-600 text-sm mt-1'>Track all system activities and changes</p>
+          </div>
         </div>
         <div className='flex-1 p-3 sm:p-4 lg:p-6'>
           <ErrorBoundary />
@@ -365,19 +405,15 @@ const AuditLogs = () => {
   return (
     <ErrorBoundary>
       <div className='flex flex-col h-screen bg-gray-50 w-full overflow-y-auto'>
+        {/* Clean custom header without the problematic green button */}
         <div className='bg-white border-b border-gray-100 shadow-sm'>
-          <MembersHeader showSearch={true} />
+          <div className='px-6 py-4'>
+            <h1 className='text-primary text-2xl font-bold'>Audit Logs</h1>
+            <p className='text-gray-600 text-sm mt-1'>Track all system activities and changes</p>
+          </div>
         </div>
         
         <div className='flex-1 p-3 sm:p-4 lg:p-6'>
-          {/* Header */}
-          <div className='mb-6 lg:mb-8'>
-            <div className='px-2 sm:px-4 lg:px-6'>
-              <h1 className='text-primary text-xl sm:text-2xl lg:text-3xl font-bold mb-2'>Audit Logs</h1>
-              <p className='text-gray-600 text-sm lg:text-base'>Track all system activities and changes</p>
-            </div>
-          </div>
-
           <div className='px-2 sm:px-4 lg:px-6'>
             <div className='bg-white rounded-lg shadow-sm border border-gray-200'>
               {/* Filters Section */}
@@ -429,7 +465,8 @@ const AuditLogs = () => {
                 {/* Filter Stats and Clear */}
                 <div className='flex flex-col sm:flex-row sm:items-center justify-between gap-3 mt-4 pt-4 border-t border-gray-100'>
                   <p className='text-sm text-gray-600'>
-                    Showing {filteredLogs.length} of {auditLogs?.length || 0} audit logs
+                    Page {currentPage} of {totalPages} • Showing {paginatedLogs.length} of {filteredLogs.length} audit logs 
+                    {filteredLogs.length !== auditLogs?.length && ` (filtered from ${auditLogs?.length} total)`}
                   </p>
                   {(searchTerm || actionFilter || dateFrom || dateTo) && (
                     <MantineButton
@@ -447,28 +484,134 @@ const AuditLogs = () => {
               {/* Content */}
               <div className='p-4 lg:p-6'>
                 {filteredLogs.length === 0 ? (
-                  <EmptyDataPage 
-                    message="No audit logs found"
-                    description="No logs match your current filter criteria"
-                  />
+                  <div className='flex flex-col items-center justify-center py-12'>
+                    <div className='w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4'>
+                      <svg className='w-8 h-8 text-gray-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                        <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' />
+                      </svg>
+                    </div>
+                    <h3 className='text-lg font-medium text-gray-900 mb-2'>No audit logs found</h3>
+                    <p className='text-gray-500 text-center max-w-md'>
+                      {searchTerm || actionFilter || dateFrom || dateTo 
+                        ? `No logs match your search criteria "${searchTerm}". Try adjusting your filters or search term.`
+                        : 'No audit logs have been recorded yet. Activity will appear here once users start interacting with the system.'
+                      }
+                    </p>
+                    {searchTerm && (
+                      <MantineButton
+                        variant='light'
+                        color='blue'
+                        size='sm'
+                        className='mt-4'
+                        onClick={() => setSearchTerm('')}
+                      >
+                        Clear search
+                      </MantineButton>
+                    )}
+                  </div>
                 ) : (
                   <>
-                    {/* Mobile Card View */}
-                    <div className='block lg:hidden space-y-3'>
-                      {filteredLogs.map((log) => (
-                        <AuditLogCard key={`${log.id}-${log.timestamp}`} log={log} />
-                      ))}
+                    {/* Mobile Card View with Pagination */}
+                    <div className='block lg:hidden'>
+                      <div className='space-y-3 mb-6'>
+                        {paginatedLogs.map((log) => (
+                          <AuditLogCard key={`${log.id}-${log.timestamp}`} log={log} />
+                        ))}
+                      </div>
+                      
+                      {/* Mobile Pagination */}
+                      {totalPages > 1 && (
+                        <div className='flex flex-col sm:flex-row items-center justify-between gap-4 p-4 bg-gray-50 rounded-lg'>
+                          <div className='text-sm text-gray-600'>
+                            Page {currentPage} of {totalPages} • {filteredLogs.length} total results
+                          </div>
+                          <div className='flex items-center gap-2'>
+                            <MantineButton
+                              variant='outline'
+                              size='sm'
+                              disabled={!hasPrevPage}
+                              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                            >
+                              Previous
+                            </MantineButton>
+                            <MantineButton
+                              variant='outline'
+                              size='sm'
+                              disabled={!hasNextPage}
+                              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                            >
+                              Next
+                            </MantineButton>
+                          </div>
+                        </div>
+                      )}
                     </div>
 
                     {/* Desktop Table View */}
                     <div className='hidden lg:block'>
                       <Table
-                        data={filteredLogs}
+                        data={paginatedLogs}
                         columns={columns}
-                        pageSize={20}
-                        showPagination={true}
+                        pageSize={pageSize}
+                        showPagination={false}
                         className='shadow-none border-none'
                       />
+                      
+                      {/* Desktop Pagination */}
+                      {totalPages > 1 && (
+                        <div className='flex items-center justify-between mt-6 p-4 bg-gray-50 rounded-lg'>
+                          <div className='text-sm text-gray-600'>
+                            Showing {((currentPage - 1) * pageSize) + 1} to {Math.min(currentPage * pageSize, filteredLogs.length)} of {filteredLogs.length} results
+                          </div>
+                          <div className='flex items-center gap-2'>
+                            <MantineButton
+                              variant='outline'
+                              size='sm'
+                              disabled={!hasPrevPage}
+                              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                            >
+                              Previous
+                            </MantineButton>
+                            
+                            {/* Page numbers */}
+                            <div className='flex items-center gap-1'>
+                              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                                let pageNum;
+                                if (totalPages <= 5) {
+                                  pageNum = i + 1;
+                                } else if (currentPage <= 3) {
+                                  pageNum = i + 1;
+                                } else if (currentPage >= totalPages - 2) {
+                                  pageNum = totalPages - 4 + i;
+                                } else {
+                                  pageNum = currentPage - 2 + i;
+                                }
+                                
+                                return (
+                                  <MantineButton
+                                    key={pageNum}
+                                    variant={currentPage === pageNum ? 'filled' : 'outline'}
+                                    size='sm'
+                                    onClick={() => setCurrentPage(pageNum)}
+                                    className='w-10'
+                                  >
+                                    {pageNum}
+                                  </MantineButton>
+                                );
+                              })}
+                            </div>
+                            
+                            <MantineButton
+                              variant='outline'
+                              size='sm'
+                              disabled={!hasNextPage}
+                              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                            >
+                              Next
+                            </MantineButton>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </>
                 )}

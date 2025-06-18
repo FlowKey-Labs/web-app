@@ -207,8 +207,10 @@ function App() {
                 <Route path='settings' element={<Settings />} />
               )}
 
-              {/* Audit Logs route - available to all authenticated users */}
-              <Route path='audit-logs' element={<AuditLogs />} />
+              {/* Audit Logs route - Permission-based access */}
+              {permisions?.can_view_audit_logs && (
+                <Route path='audit-logs' element={<AuditLogs />} />
+              )}
 
               {/* Catch-all route for authenticated users */}
               <Route path='*' element={<ComingSoon />} />

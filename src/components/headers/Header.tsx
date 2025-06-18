@@ -1,8 +1,10 @@
-import { useState } from 'react';
-import { Menu, Indicator, ScrollArea, Button, Tabs } from '@mantine/core';
-import { useGetUserProfile, useGetBookingNotifications, useMarkNotificationAsRead, useMarkAllNotificationsAsRead } from '../../hooks/reactQuery';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Menu, Indicator, ScrollArea, Button, Tabs, Group } from '@mantine/core';
+import { useGetUserProfile, useGetBookingNotifications, useMarkNotificationAsRead, useMarkAllNotificationsAsRead, useApproveBookingRequest, useRejectBookingRequest } from '../../hooks/reactQuery';
 import { NotificationBingIcon, MessageNotificationIcon } from '../../assets/icons';
 import SearchBar from '../common/SearchBar';
+import { notifications as mantineNotifications } from '@mantine/notifications';
 
 interface HeaderProps {
   showSearch?: boolean;
@@ -67,6 +69,9 @@ const Header = ({ showSearch = true }: HeaderProps) => {
   const { data: notificationData } = useGetBookingNotifications();
   const markAsRead = useMarkNotificationAsRead();
   const markAllAsRead = useMarkAllNotificationsAsRead();
+  const approveRequest = useApproveBookingRequest();
+  const rejectRequest = useRejectBookingRequest();
+  const navigate = useNavigate();
   
   const [notificationDropdownOpen, setNotificationDropdownOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<string | null>('requests');
@@ -146,6 +151,63 @@ const Header = ({ showSearch = true }: HeaderProps) => {
     return typeMap[type] || typeMap.default;
   };
 
+  const handleApproveRequest = async (notification: ApiNotification) => {
+    try {
+      if (!notification.booking_request) return;
+      
+      // Find the booking request ID (we need this from the notification data)
+      const bookingId = notification.id; // This would need to be adjusted based on actual API structure
+      await approveRequest.mutateAsync(bookingId);
+      
+      mantineNotifications.show({
+        title: 'Success',
+        message: 'Booking request approved successfully',
+        color: 'green',
+      });
+    } catch (error) {
+      console.error('Error approving booking request:', error);
+      mantineNotifications.show({
+        title: 'Error',
+        message: 'Failed to approve booking request',
+        color: 'red',
+      });
+    }
+  };
+
+  const handleRejectRequest = async (notification: ApiNotification) => {
+    try {
+      if (!notification.booking_request) return;
+      
+      // Find the booking request ID (we need this from the notification data)
+      const bookingId = notification.id; // This would need to be adjusted based on actual API structure
+      await rejectRequest.mutateAsync({ 
+        requestId: bookingId, 
+        reason: 'Rejected via notification' 
+      });
+      
+      mantineNotifications.show({
+        title: 'Success',
+        message: 'Booking request rejected successfully',
+        color: 'orange',
+      });
+    } catch (error) {
+      console.error('Error rejecting booking request:', error);
+      mantineNotifications.show({
+        title: 'Error',
+        message: 'Failed to reject booking request',
+        color: 'red',
+      });
+    }
+  };
+
+  const handleViewBookingDetails = (notification: ApiNotification) => {
+    if (notification.booking_request) {
+      // Navigate to booking details page
+      navigate(`/clients?tab=bookings&ref=${notification.booking_request.booking_reference}`);
+      setNotificationDropdownOpen(false);
+    }
+  };
+
   return (
     <div className='h-[70px] sm:h-[80px] flex items-center justify-between px-4 sm:px-6 lg:px-11'>
       {showSearch && (
@@ -179,7 +241,7 @@ const Header = ({ showSearch = true }: HeaderProps) => {
             </div>
           </Menu.Target>
 
-          <Menu.Dropdown className="p-0">
+          <Menu.Dropdown className="p-0 shadow-lg">
             <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-gray-50">
               <div>
                 <h3 className="text-xl font-bold text-gray-900">Notifications</h3>
@@ -250,13 +312,12 @@ const Header = ({ showSearch = true }: HeaderProps) => {
                           {categorizedNotifications[tab.key]?.map((notification: ApiNotification) => (
                             <div
                               key={notification.id}
-                              className={`p-6 hover:bg-gray-50 cursor-pointer transition-colors ${
+                              className={`p-4 hover:bg-gray-50 transition-colors ${
                                 !notification.is_read ? 'bg-secondary/5 border-l-4 border-l-secondary' : ''
                               }`}
-                              onClick={() => handleMarkAsRead(notification.id)}
                             >
-                              <div className="flex items-start justify-between">
-                                <div className="flex-1 min-w-0 pr-4">
+                              <div className="flex items-start gap-4">
+                                <div className="flex-1 min-w-0">
                                   <div className="flex items-center justify-between mb-2">
                                     <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
                                       {getNotificationTypeDisplay(notification.type)}
@@ -266,26 +327,100 @@ const Header = ({ showSearch = true }: HeaderProps) => {
                                     )}
                                   </div>
                                   
-                                  <h4 className={`text-base font-semibold mb-2 ${
+                                  <h4 className={`text-sm font-semibold mb-2 cursor-pointer hover:text-secondary ${
                                     !notification.is_read ? 'text-gray-900' : 'text-gray-700'
-                                  }`}>
+                                  }`} onClick={() => handleViewBookingDetails(notification)}>
                                     {notification.title}
                                   </h4>
                                   
-                                  <p className="text-sm text-gray-600 mb-3 line-clamp-2">
+                                  <p className="text-xs text-gray-600 mb-3 line-clamp-2">
                                     {notification.message}
                                   </p>
                                   
-                                  <div className="flex items-center justify-between">
+                                  <div className="flex items-center justify-between mb-3">
                                     <p className="text-xs text-gray-500 font-medium">
                                       {formatTimeAgo(notification.created_at)}
                                     </p>
                                     {notification.booking_request && (
-                                      <span className="text-xs bg-secondary/10 text-secondary px-3 py-1 rounded-full font-semibold">
+                                      <span className="text-xs bg-secondary/10 text-secondary px-2 py-1 rounded-full font-semibold">
                                         #{notification.booking_request.booking_reference}
                                       </span>
                                     )}
                                   </div>
+
+                                  {/* Quick Actions for Booking Requests */}
+                                  {notification.type === 'booking_request' && notification.booking_request && (
+                                    <Group gap="xs" className="mt-3">
+                                      <Button
+                                        size="xs"
+                                        variant="light"
+                                        color="blue"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleViewBookingDetails(notification);
+                                        }}
+                                        className="flex-1"
+                                      >
+                                        View Details
+                                      </Button>
+                                      <Button
+                                        size="xs"
+                                        variant="light"
+                                        color="green"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleApproveRequest(notification);
+                                        }}
+                                        loading={approveRequest.isPending}
+                                        className="flex-1"
+                                      >
+                                        Approve
+                                      </Button>
+                                      <Button
+                                        size="xs"
+                                        variant="light"
+                                        color="red"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleRejectRequest(notification);
+                                        }}
+                                        loading={rejectRequest.isPending}
+                                        className="flex-1"
+                                      >
+                                        Reject
+                                      </Button>
+                                    </Group>
+                                  )}
+                                  
+                                  {/* Quick Actions for Other Notifications */}
+                                  {notification.type !== 'booking_request' && notification.booking_request && (
+                                    <Group gap="xs" className="mt-3">
+                                      <Button
+                                        size="xs"
+                                        variant="light"
+                                        color="blue"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleViewBookingDetails(notification);
+                                        }}
+                                        className="flex-1"
+                                      >
+                                        View Booking
+                                      </Button>
+                                      <Button
+                                        size="xs"
+                                        variant="subtle"
+                                        color="gray"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleMarkAsRead(notification.id);
+                                        }}
+                                        className="flex-1"
+                                      >
+                                        Mark Read
+                                      </Button>
+                                    </Group>
+                                  )}
                                 </div>
                               </div>
                             </div>

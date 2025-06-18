@@ -17,6 +17,9 @@ export interface Role {
   can_manage_profile: boolean;
   can_manage_settings: boolean;
   can_view_calendar: boolean;
+  can_view_audit_logs: boolean;
+  can_view_bookings: boolean;
+  can_manage_bookings: boolean;
   business: string;
 }
 
