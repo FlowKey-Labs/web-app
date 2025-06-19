@@ -539,6 +539,15 @@ const AllClients = () => {
         title: 'Error',
         message: `Deactivation for ${entityType}s not implemented.`,
         color: 'red',
+        radius: 'md',
+        icon: (
+          <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+            <img src={errorIcon} alt='Error' className='w-4 h-4' />
+          </span>
+        ),
+        withBorder: true,
+        autoClose: 3000,
+        position: 'top-right',
       });
       close();
       return;

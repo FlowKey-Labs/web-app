@@ -1,25 +1,30 @@
-import editIcon from "../../assets/icons/edit.svg";
-import deleteIcon from "../../assets/icons/delete.svg";
-import closeIcon from "../../assets/icons/close.svg";
-import { Dictionary } from "@fullcalendar/core/internal";
-import { CalendarSessionType } from "../../types/sessionTypes";
-import moment from "moment";
-import { subHours } from "date-fns";
+import editIcon from '../../assets/icons/edit.svg';
+import deleteIcon from '../../assets/icons/delete.svg';
+import closeIcon from '../../assets/icons/close.svg';
+import { Dictionary } from '@fullcalendar/core/internal';
+import { CalendarSessionType } from '../../types/sessionTypes';
+import moment from 'moment';
+import { subHours } from 'date-fns';
+import successIcon from '../../assets/icons/success.svg';
+import errorIcon from '../../assets/icons/error.svg';
+
+import { useDeleteSession } from '../../hooks/reactQuery';
+import { notifications } from '@mantine/notifications';
 
 const formatSessionInfo = (
   session: CalendarSessionType | null
 ): { dateStr: string; timeStr: string; repeatStr: string } => {
   if (!session) {
-    return { dateStr: "", timeStr: "", repeatStr: "" };
+    return { dateStr: '', timeStr: '', repeatStr: '' };
   }
 
   const start = moment(subHours(new Date(session.start_time), 3));
   const end = moment(subHours(new Date(session.end_time), 3));
 
-  const dateStr = start.format("dddd, MMMM D");
-  const timeStr = `${start.format("h:mm a")} – ${end.format("h:mm a")}`;
+  const dateStr = start.format('dddd, MMMM D');
+  const timeStr = `${start.format('h:mm a')} – ${end.format('h:mm a')}`;
 
-  let repeatStr = "";
+  let repeatStr = '';
   if (
     session.repeat_every &&
     session.repeat_unit &&
@@ -29,7 +34,7 @@ const formatSessionInfo = (
       session.repeat_every > 1
         ? `${session.repeat_unit}s`
         : session.repeat_unit;
-    const repeatDays = session.repeat_on.join(", ");
+    const repeatDays = session.repeat_on.join(', ');
     repeatStr = `Every ${session.repeat_every} ${pluralUnit} on ${repeatDays}`;
   }
 
@@ -54,122 +59,175 @@ const EventCard = ({
   const attendedCount = attendances.filter(
     (a: { attended: boolean }) => a.attended
   ).length;
-  const { dateStr, timeStr, repeatStr } = formatSessionInfo(data?.session || {});
+  const { dateStr, timeStr, repeatStr } = formatSessionInfo(
+    data?.session || {}
+  );
+  const deleteSession = useDeleteSession();
+
+  const handleDeleteClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    deleteSession.mutate(data?.session?.id, {
+      onSuccess: () => {
+        onClose?.();
+        handleRemoveEvent?.();
+        notifications.show({
+          title: 'Success',
+          message: 'Session deleted successfully',
+          color: 'green',
+          radius: 'md',
+          icon: (
+            <span className='flex items-center justify-center w-6 h-6 rounded-full bg-green-200'>
+              <img src={successIcon} alt='Success' className='w-4 h-4' />
+            </span>
+          ),
+          withBorder: true,
+          autoClose: 3000,
+          position: 'top-right',
+        });
+      },
+      onError: () => {
+        console.error('Error deleting session:');
+        notifications.show({
+          title: 'Error',
+          message: 'Failed to delete session',
+          color: 'red',
+          radius: 'md',
+          icon: (
+            <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+              <img src={errorIcon} alt='Error' className='w-4 h-4' />
+            </span>
+          ),
+          withBorder: true,
+          autoClose: 3000,
+          position: 'top-right',
+        });
+      },
+    });
+  };
 
   return (
-    <div className="w-full h-full bg-white space-y-6">
-      <div className="flex w-full items-center justify-end gap-3">
-        <img 
-          src={editIcon} 
-          className="cursor-pointer hover:opacity-70 transition-opacity" 
-          onClick={() => handleEditEvent(data?.session?.id)}
-          alt="Edit event"
-        />
-        <img
-          src={deleteIcon}
-          className="cursor-pointer hover:opacity-70 transition-opacity"
-          onClick={() => handleRemoveEvent?.()}
-          alt="Delete event"
-        />
-        <img
-          src={closeIcon}
-          className="cursor-pointer hover:opacity-70 transition-opacity"
-          onClick={() => onClose?.()}
-          alt="Close popup"
-        />
-      </div>
-
-      <div className="flex items-start space-x-3">
-        <span className="w-3 h-3 bg-blue-500 rounded-full mt-1.5 flex-shrink-0" />
-        <h2 className="text-xl font-semibold text-gray-900 leading-tight">{data?.session?.title}</h2>
-      </div>
-
-      <div className="space-y-3 pl-6">
-        <div className="flex items-center space-x-3">
-          <div className="w-5 h-5 flex items-center justify-center">
-            <span className="text-gray-500 text-lg">📅</span>
-          </div>
-          <p className="text-gray-700 font-medium">{dateStr}</p>
-        </div>
-        
-        <div className="flex items-center space-x-3">
-          <div className="w-5 h-5 flex items-center justify-center">
-            <span className="text-gray-500 text-lg">⏰</span>
-          </div>
-          <p className="text-gray-700">{timeStr}</p>
+    <>
+      <div className='w-full h-full bg-white space-y-6'>
+        <div className='flex w-full items-center justify-end gap-3'>
+          <img
+            src={editIcon}
+            className='cursor-pointer hover:opacity-70 transition-opacity'
+            onClick={() => handleEditEvent(data?.session?.id)}
+            alt='Edit event'
+          />
+          <img
+            src={deleteIcon}
+            className='cursor-pointer hover:opacity-70 transition-opacity'
+            onClick={handleDeleteClick}
+            alt='Delete event'
+          />
+          <img
+            src={closeIcon}
+            className='cursor-pointer hover:opacity-70 transition-opacity'
+            onClick={() => onClose?.()}
+            alt='Close popup'
+          />
         </div>
 
-        {repeatStr && (
-          <div className="flex items-center space-x-3">
-            <div className="w-5 h-5 flex items-center justify-center">
-              <span className="text-gray-500 text-sm">🔄</span>
+        <div className='flex items-start space-x-3'>
+          <span className='w-3 h-3 bg-blue-500 rounded-full mt-1.5 flex-shrink-0' />
+          <h2 className='text-xl font-semibold text-gray-900 leading-tight'>
+            {data?.session?.title}
+          </h2>
+        </div>
+
+        <div className='space-y-3 pl-6'>
+          <div className='flex items-center space-x-3'>
+            <div className='w-5 h-5 flex items-center justify-center'>
+              <span className='text-gray-500 text-lg'>📅</span>
             </div>
-            <p className="text-gray-600 text-sm">{repeatStr}</p>
+            <p className='text-gray-700 font-medium'>{dateStr}</p>
           </div>
-        )}
-      </div>
-      <div className="border-t pt-4">
-        <div className="flex gap-3 items-start">
-          <div className="w-6 h-6 mt-0.5 flex-shrink-0 flex items-center justify-center">
-            <span className="text-gray-500 text-xl">👥</span>
+
+          <div className='flex items-center space-x-3'>
+            <div className='w-5 h-5 flex items-center justify-center'>
+              <span className='text-gray-500 text-lg'>⏰</span>
+            </div>
+            <p className='text-gray-700'>{timeStr}</p>
           </div>
-          <div className="flex-1">
-            <p className="text-gray-900 font-semibold mb-1">
-              {data?.session?.spots} Slots
-            </p>
-            <p className="text-gray-500 text-sm mb-3">
-              {invitedCount} Invited · {attendedCount} Attended
-            </p>
-            
-            {data?.session?.attendances?.length > 0 && (
-              <div className="max-h-32 overflow-y-auto space-y-2">
-                {data?.session?.attendances.map(
-                  (user: { client_name: string; attended?: boolean }, index: number) => (
-                    <div key={index} className="flex items-center space-x-3">
-                      <span className="w-2.5 h-2.5 bg-blue-500 rounded-full flex-shrink-0"></span>
-                      <p className="text-gray-700 text-sm">{user?.client_name}</p>
-                      {user?.attended && (
-                        <span className="text-green-600 text-xs">✓</span>
-                      )}
-                    </div>
-                  )
-                )}
+
+          {repeatStr && (
+            <div className='flex items-center space-x-3'>
+              <div className='w-5 h-5 flex items-center justify-center'>
+                <span className='text-gray-500 text-sm'>🔄</span>
               </div>
-            )}
+              <p className='text-gray-600 text-sm'>{repeatStr}</p>
+            </div>
+          )}
+        </div>
+        <div className='border-t pt-4'>
+          <div className='flex gap-3 items-start'>
+            <div className='w-6 h-6 mt-0.5 flex-shrink-0 flex items-center justify-center'>
+              <span className='text-gray-500 text-xl'>👥</span>
+            </div>
+            <div className='flex-1'>
+              <p className='text-gray-900 font-semibold mb-1'>
+                {data?.session?.spots} Slots
+              </p>
+              <p className='text-gray-500 text-sm mb-3'>
+                {invitedCount} Invited · {attendedCount} Attended
+              </p>
+
+              {data?.session?.attendances?.length > 0 && (
+                <div className='max-h-32 overflow-y-auto space-y-2'>
+                  {data?.session?.attendances.map(
+                    (
+                      user: { client_name: string; attended?: boolean },
+                      index: number
+                    ) => (
+                      <div key={index} className='flex items-center space-x-3'>
+                        <span className='w-2.5 h-2.5 bg-blue-500 rounded-full flex-shrink-0'></span>
+                        <p className='text-gray-700 text-sm'>
+                          {user?.client_name}
+                        </p>
+                        {user?.attended && (
+                          <span className='text-green-600 text-xs'>✓</span>
+                        )}
+                      </div>
+                    )
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </div>
-      </div>
-      <div className="border-t pt-4 space-y-3">
-        {data?.session?.assigned_staff && (
-          <div className="flex items-center space-x-3">
-            <div className="w-5 h-5 flex items-center justify-center">
-              <span className="text-gray-500 text-lg">👤</span>
+        <div className='border-t pt-4 space-y-3'>
+          {data?.session?.assigned_staff && (
+            <div className='flex items-center space-x-3'>
+              <div className='w-5 h-5 flex items-center justify-center'>
+                <span className='text-gray-500 text-lg'>👤</span>
+              </div>
+              <p className='text-gray-700'>
+                <span className='font-medium'>Staff:</span>{' '}
+                {data?.session?.assigned_staff?.user?.first_name}{' '}
+                {data?.session?.assigned_staff?.user?.last_name}
+              </p>
             </div>
-            <p className="text-gray-700">
-              <span className="font-medium">Staff:</span>{" "}
-              {data?.session?.assigned_staff?.user?.first_name}{" "}
-              {data?.session?.assigned_staff?.user?.last_name}
+          )}
+
+          <div className='flex items-center space-x-3'>
+            <div className='w-5 h-5 flex items-center justify-center'>
+              <span className='text-gray-500 text-lg'>🔔</span>
+            </div>
+            <p className='text-gray-700'>
+              <span className='font-medium'>Reminder:</span> 30 minutes before
             </p>
           </div>
-        )}
-
-        <div className="flex items-center space-x-3">
-          <div className="w-5 h-5 flex items-center justify-center">
-            <span className="text-gray-500 text-lg">🔔</span>
-          </div>
-          <p className="text-gray-700">
-            <span className="font-medium">Reminder:</span> 30 minutes before
-          </p>
         </div>
-      </div>
 
-      <button
-        onClick={() => handleEditEvent(data?.session?.id)}
-        className="w-full bg-green-600 text-white py-3 rounded-lg text-lg font-semibold hover:bg-green-700 transition-colors"
-      >
-        + Add Clients
-      </button>
-    </div>
+        <button
+          onClick={() => handleEditEvent(data?.session?.id)}
+          className='w-full bg-green-600 text-white py-3 rounded-lg text-lg font-semibold hover:bg-green-700 transition-colors'
+        >
+          + Add Clients
+        </button>
+      </div>
+    </>
   );
 };
 
