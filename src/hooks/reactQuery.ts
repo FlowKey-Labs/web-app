@@ -602,6 +602,8 @@ export const useGetSessionAnalytics = (sessionId: string) => {
     staleTime: 0, // Set to 0 to ensure it always fetches fresh data
     refetchOnWindowFocus: true,
     enabled: !!sessionId,
+    refetchInterval: 10000, // Refetch every 10 seconds
+    refetchIntervalInBackground: true, // Continue polling when tab is inactive
   });
 };
 
