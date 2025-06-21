@@ -12,6 +12,7 @@ import {
 import { CreateLocationData } from '../types/location';
 import { Role } from '../store/auth';
 import { Client } from '../types/clientTypes';
+import moment from 'moment';
 
 // Define a type for the session filters
 interface SessionFilters {
@@ -417,8 +418,8 @@ const get_sessions = async (
 
 const delete_session = async (sessionId: string) => {
   const { data } = await api.delete(
-      END_POINTS.SESSION.DELETE_SESSION(sessionId)
-    );
+    END_POINTS.SESSION.DELETE_SESSION(sessionId)
+  );
   return data;
 };
 

@@ -273,17 +273,58 @@ const SessionDetails = () => {
   };
 
   const handleCreateAttendanceRecord = () => {
-    if (!sessionId) return;
+    if (!sessionId || !selectedClient?.id) {
+      notifications.show({
+        title: 'Error',
+        message: 'Please select a client',
+        color: 'red',
+        radius: 'md',
+        icon: (
+          <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+            <img src={errorIcon} alt='Error' className='w-4 h-4' />
+          </span>
+        ),
+        withBorder: true,
+        autoClose: 3000,
+        position: 'top-right',
+      });
+      return;
+    }
+
+    const selectedDate = methods.getValues('date');
+
+    if (!selectedDate) {
+      notifications.show({
+        title: 'Error',
+        message: 'Please select a date',
+        color: 'red',
+        radius: 'md',
+        icon: (
+          <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+            <img src={errorIcon} alt='Error' className='w-4 h-4' />
+          </span>
+        ),
+        withBorder: true,
+        autoClose: 3000,
+        position: 'top-right',
+      });
+      return;
+    }
+
+    const formattedDate = moment(selectedDate).format('YYYY-MM-DD');
+
+    console.log('Date information:', {
+      sessionStartDate: session?.date,
+      selectedDate: selectedDate,
+      formattedDate: formattedDate,
+      momentParsed: moment(selectedDate).toString(),
+    });
 
     createAttendedSessionMutation.mutate(
       {
-        session_title: methods.getValues('session_title'),
-        client_name: methods.getValues('client_name'),
         session: sessionId,
-        client: selectedClient?.id || '',
-        date: moment(session?.date).format('YYYY-MM-DD'),
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
+        client: selectedClient.id,
+        date: formattedDate,
       },
       {
         onSuccess: () => {
@@ -326,17 +367,57 @@ const SessionDetails = () => {
   };
 
   const handleCreateCancelledSession = () => {
-    if (!sessionId) return;
+    if (!sessionId || !selectedClient?.id) {
+      notifications.show({
+        title: 'Error',
+        message: 'Please select a client',
+        color: 'red',
+        radius: 'md',
+        icon: (
+          <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+            <img src={errorIcon} alt='Error' className='w-4 h-4' />
+          </span>
+        ),
+        withBorder: true,
+        autoClose: 3000,
+        position: 'top-right',
+      });
+      return;
+    }
+    const selectedDate = methods.getValues('date');
+
+    if (!selectedDate) {
+      notifications.show({
+        title: 'Error',
+        message: 'Please select a date',
+        color: 'red',
+        radius: 'md',
+        icon: (
+          <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+            <img src={errorIcon} alt='Error' className='w-4 h-4' />
+          </span>
+        ),
+        withBorder: true,
+        autoClose: 3000,
+        position: 'top-right',
+      });
+      return;
+    }
+
+    const formattedDate = moment(selectedDate).format('YYYY-MM-DD');
+
+    console.log('Date information:', {
+      sessionStartDate: session?.date,
+      selectedDate: selectedDate,
+      formattedDate: formattedDate,
+      momentParsed: moment(selectedDate).toString(),
+    });
 
     createCancelledSessionMutation.mutate(
       {
-        session_title: methods.getValues('session_title'),
-        client_name: methods.getValues('client_name'),
         session: sessionId,
         client: selectedClient?.id || '',
-        date: moment(session?.date).format('YYYY-MM-DD'),
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
+        date: formattedDate,
       },
       {
         onSuccess: () => {
