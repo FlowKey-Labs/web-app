@@ -79,7 +79,7 @@ const END_POINTS = {
     STAFF_SESSIONS: (id: string) => `${BASE_URL}/api/staff/sessions/${id}/`,
     SUBCATEGORIES: `${BASE_URL}/api/session/subcategories/`,
     SUBSKILLS: `${BASE_URL}/api/session/subskills/`,
-    MAKEUP_SESSIONS: `${BASE_URL}/api/session/makeup-sessions/`,
+    MAKEUP_SESSIONS: `${BASE_URL}/api/attendance/makeup-sessions/`,
     ATTENDED_SESSIONS: `${BASE_URL}/api/attendance/`,
     CANCELLED_SESSIONS: `${BASE_URL}/api/attendance/cancelled/`,
     DELETE_SESSION: (id: string) => `${BASE_URL}/api/session/${id}/`,

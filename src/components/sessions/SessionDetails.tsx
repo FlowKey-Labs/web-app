@@ -202,32 +202,75 @@ const SessionDetails = () => {
     );
   };
 
-  const dateOnly = moment(methods.getValues('new_date')).format('YYYY-MM-DD');
-
-  const formattedStartTime =
-    methods.getValues('new_start_time') && dateOnly
-      ? `${dateOnly}T${methods.getValues('new_start_time')}:00.000Z`
-      : '';
-  const formattedEndTime =
-    methods.getValues('new_end_time') && dateOnly
-      ? `${dateOnly}T${methods.getValues('new_end_time')}:00.000Z`
-      : '';
-
   const handleCreateMakeupSession = () => {
-    if (!sessionId) return;
+    if (!sessionId || !selectedClient?.id) {
+      notifications.show({
+        title: 'Error',
+        message: 'Please select a client',
+        color: 'red',
+        radius: 'md',
+        icon: (
+          <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+            <img src={errorIcon} alt='Error' className='w-4 h-4' />
+          </span>
+        ),
+        withBorder: true,
+        autoClose: 3000,
+        position: 'top-right',
+      });
+      return;
+    }
+
+    const originalDate = methods.getValues('original_date');
+    const newDate = methods.getValues('new_date');
+    const newStartTime = methods.getValues('new_start_time');
+    const newEndTime = methods.getValues('new_end_time');
+
+    if (!originalDate || !newDate) {
+      notifications.show({
+        title: 'Error',
+        message: 'Please select both original and new dates',
+        color: 'red',
+        radius: 'md',
+        icon: (
+          <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+            <img src={errorIcon} alt='Error' className='w-4 h-4' />
+          </span>
+        ),
+        withBorder: true,
+        autoClose: 3000,
+        position: 'top-right',
+      });
+      return;
+    }
+
+    const formattedOriginalDate = moment(originalDate).format('YYYY-MM-DD');
+    const formattedNewDate = moment(newDate).format('YYYY-MM-DD');
+
+    const formattedStartTime = newStartTime
+      ? `${formattedNewDate}T${newStartTime}:00.000Z`
+      : '';
+    const formattedEndTime = newEndTime
+      ? `${formattedNewDate}T${newEndTime}:00.000Z`
+      : '';
+
+    console.log('Sending to API:', {
+      session: sessionId,
+      client: selectedClient.id,
+      original_date: formattedOriginalDate,
+      new_date: formattedNewDate,
+      new_start_time: formattedStartTime,
+      new_end_time: formattedEndTime,
+    });
 
     createMakeupSessionMutation.mutate(
       {
-        session_title: methods.getValues('session_title'),
-        client_name: methods.getValues('client_name'),
         session: sessionId,
-        client: selectedClient?.id || '',
-        original_date: moment(session?.date).format('YYYY-MM-DD'),
-        new_date: moment(methods.getValues('new_date')).format('YYYY-MM-DD'),
+        client: selectedClient.id,
+        original_date: formattedOriginalDate,
+        new_date: formattedNewDate,
         new_start_time: formattedStartTime,
         new_end_time: formattedEndTime,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
       },
       {
         onSuccess: () => {
