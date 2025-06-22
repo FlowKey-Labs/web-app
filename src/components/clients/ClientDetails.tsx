@@ -286,39 +286,6 @@ const ClientDetails = () => {
               </div>
               {activeTab === 'overview' ? (
                 <>
-                  <div className='flex space-x-16 mt-6 w-full'>
-                    <div className='flex items-center border py-6 px-10 bg-white rounded-xl'>
-                      <div className='flex flex-col items-center rounded-xl  space-y-4'>
-                        <p className='text-4xl'>
-                          {analyticsLoading ? (
-                            <Loader color='#1D9B5E' size='md' />
-                          ) : (
-                            <>
-                              {clientAnalytics?.attended_sessions}
-                              <span className='text-lg text-gray-500'>
-                                /{clientAnalytics?.total_sessions || 0}
-                              </span>
-                            </>
-                          )}
-                        </p>
-                        <p className='text-sm text-center'>Sessions</p>
-                      </div>
-                    </div>
-                    <div className='flex items-center border py-6 px-10 bg-white rounded-xl'>
-                      <div className='flex flex-col items-center rounded-xl  space-y-4'>
-                        <p className='text-2xl font-semibold  test-primary'>
-                          {analyticsLoading ? (
-                            <Loader color='#1D9B5E' size='md' />
-                          ) : (
-                            `${clientAnalytics?.average_attendance || 0}%`
-                          )}
-                        </p>
-                        <p className='text-sm text-center'>
-                          Average Attendance
-                        </p>
-                      </div>
-                    </div>
-                  </div>
                   <div className='flex-1 mt-6'>
                     <div className=''>
                       <div className='flex flex-col md:flex-row md:gap-4 gap-2 w-[60%] md:w-full mx-auto mb-3'>
@@ -365,7 +332,7 @@ const ClientDetails = () => {
                           Cancelled Sessions
                         </Button>
                       </div>
-                      <div className='flex-1 px-2 md:px-6 md:py-3 pb-6 md:pb-0 w-full overflow-x-auto'>
+                      <div className='flex-1 px-2 md:py-3 pb-6 md:pb-0 w-full overflow-x-auto'>
                         <div className='min-w-[800px] md:min-w-0'>
                           {isActive === 'Client Sessions' ? (
                             clientSessions && clientSessions.length > 0 ? (
