@@ -472,6 +472,8 @@ export const useGetClient = (id: string) => {
     refetchOnWindowFocus: false,
     retry: 2,
     enabled: !!id,
+    refetchInterval: 5000, // Refetch every 5 seconds
+    refetchIntervalInBackground: true, // Continue polling when tab is inactive
   });
 };
 
@@ -602,7 +604,7 @@ export const useGetSessionAnalytics = (sessionId: string) => {
     staleTime: 0, // Set to 0 to ensure it always fetches fresh data
     refetchOnWindowFocus: true,
     enabled: !!sessionId,
-    refetchInterval: 10000, // Refetch every 10 seconds
+    refetchInterval: 5000, // Refetch every 5 seconds
     refetchIntervalInBackground: true, // Continue polling when tab is inactive
   });
 };
@@ -614,6 +616,8 @@ export const useGetClientAnalytics = (clientId: string) => {
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
     enabled: !!clientId,
+    refetchInterval: 5000, // Refetch every 5 seconds
+    refetchIntervalInBackground: true, // Continue polling when tab is inactive
   });
 };
 
@@ -894,6 +898,8 @@ export const useGetSessionClients = (sessionId: string) => {
     refetchOnWindowFocus: false,
     retry: 2,
     enabled: !!sessionId,
+    refetchInterval: 5000, // Refetch every 5 seconds
+    refetchIntervalInBackground: true, // Continue polling when tab is inactive
   });
 };
 
