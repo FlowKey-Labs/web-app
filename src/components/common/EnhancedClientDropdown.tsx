@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { Select, MultiSelect, Group, Badge, Text, Divider, ScrollArea } from '@mantine/core';
-import { Client, ClientSource } from '../../types/clientTypes';
+import { Select, MultiSelect } from '@mantine/core';
+import { Client } from '../../types/clientTypes';
 import BookingClientWarning from '../sessions/BookingClientWarning';
 
 interface ClientOption {
@@ -19,7 +19,6 @@ interface EnhancedClientDropdownProps {
   label?: string;
   disabled?: boolean;
   isLoading?: boolean;
-  onCreateNew?: () => void;
   showBookingWarning?: boolean;
   operationType?: 'add' | 'remove' | 'edit';
 }
@@ -33,14 +32,13 @@ const EnhancedClientDropdown: React.FC<EnhancedClientDropdownProps> = ({
   label = 'Clients',
   disabled = false,
   isLoading = false,
-  onCreateNew,
   showBookingWarning = false,
   operationType = 'add'
 }) => {
   const [showWarning, setShowWarning] = useState(false);
   const [pendingValue, setPendingValue] = useState<string | string[] | null>(null);
 
-  const { regularClients, bookingClients, groupedOptions } = useMemo(() => {
+  const { bookingClients, groupedOptions } = useMemo(() => {
     const regular = clients.filter(c => c.source === 'manual');
     const booking = clients.filter(c => c.source === 'booking_link');
     
@@ -70,7 +68,6 @@ const EnhancedClientDropdown: React.FC<EnhancedClientDropdownProps> = ({
     ].filter(g => g.items.length > 0);
 
     return {
-      regularClients: regular,
       bookingClients: booking,
       groupedOptions: grouped
     };
@@ -82,7 +79,6 @@ const EnhancedClientDropdown: React.FC<EnhancedClientDropdownProps> = ({
       return;
     }
 
-    // Check if any selected clients are booking clients
     const selectedIds = Array.isArray(newValue) ? newValue : [newValue];
     const selectedBookingClients = bookingClients.filter(c => 
       selectedIds.includes(c.id.toString())
@@ -110,20 +106,6 @@ const EnhancedClientDropdown: React.FC<EnhancedClientDropdownProps> = ({
     setPendingValue(null);
   };
 
-  const renderOption = (option: ClientOption) => (
-    <Group justify="space-between" style={{ width: '100%' }}>
-      <Text size="sm">{option.label}</Text>
-      <Badge
-        size="xs"
-        color={option.group === 'booking' ? 'blue' : 'gray'}
-        variant="light"
-      >
-        {option.group === 'booking' ? 'Booking' : 'Regular'}
-      </Badge>
-    </Group>
-  );
-
-  // Prepare data for Mantine components
   const allOptions = groupedOptions.flatMap(g => g.items);
   const selectData = allOptions.map(option => ({
     value: option.value,
@@ -149,31 +131,33 @@ const EnhancedClientDropdown: React.FC<EnhancedClientDropdownProps> = ({
     );
   }
 
-  const commonProps = {
-    label,
-    placeholder,
-    disabled: disabled || isLoading,
-    searchable: true,
-    clearable: true,
-    maxDropdownHeight: 300,
-    value,
-    data: selectData,
-    onChange: handleValueChange
-  };
-
   if (multiple) {
     return (
       <MultiSelect
-        {...commonProps}
+        label={label}
+        placeholder={placeholder}
+        disabled={disabled || isLoading}
+        searchable={true}
+        clearable={true}
+        maxDropdownHeight={300}
         value={value as string[]}
+        data={selectData}
+        onChange={(newValue) => handleValueChange(newValue)}
       />
     );
   }
 
   return (
     <Select
-      {...commonProps}
+      label={label}
+      placeholder={placeholder}
+      disabled={disabled || isLoading}
+      searchable={true}
+      clearable={true}
+      maxDropdownHeight={300}
       value={value as string}
+      data={selectData}
+      onChange={(newValue) => handleValueChange(newValue || '')}
     />
   );
 };

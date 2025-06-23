@@ -1,4 +1,3 @@
-import React from 'react';
 import { useParams } from 'react-router-dom';
 import { Box } from '@mantine/core';
 import { PublicBookingWidget } from '../components/publicBooking';

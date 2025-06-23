@@ -191,6 +191,59 @@ const BookingPoliciesIcon = ({ isActive }: { isActive: boolean }) => (
   </svg>
 );
 
+const FlexibleBookingIcon = ({ isActive }: { isActive: boolean }) => (
+  <svg
+    width='24'
+    height='24'
+    viewBox='0 0 24 24'
+    fill='none'
+    xmlns='http://www.w3.org/2000/svg'
+    className='w-6 h-6'
+  >
+    <path
+      d='M9 3H15L19 7V20C19 20.5523 18.5523 21 18 21H6C5.44772 21 5 20.5523 5 20V4C5 3.44772 5.44772 3 6 3H8'
+      stroke={isActive ? '#1D9B5E' : '#6D7172'}
+      strokeWidth='1.5'
+      strokeLinecap='round'
+      strokeLinejoin='round'
+    />
+    <path
+      d='M15 3V7H19'
+      stroke={isActive ? '#1D9B5E' : '#6D7172'}
+      strokeWidth='1.5'
+      strokeLinecap='round'
+      strokeLinejoin='round'
+    />
+    <path
+      d='M8 10H16'
+      stroke={isActive ? '#1D9B5E' : '#6D7172'}
+      strokeWidth='1.5'
+      strokeLinecap='round'
+      strokeLinejoin='round'
+    />
+    <path
+      d='M8 13H13'
+      stroke={isActive ? '#1D9B5E' : '#6D7172'}
+      strokeWidth='1.5'
+      strokeLinecap='round'
+      strokeLinejoin='round'
+    />
+    <circle
+      cx="15"
+      cy="15"
+      r="3"
+      stroke={isActive ? '#1D9B5E' : '#6D7172'}
+      strokeWidth='1.5'
+    />
+    <path
+      d='M14 14L16 16'
+      stroke={isActive ? '#1D9B5E' : '#6D7172'}
+      strokeWidth='1.5'
+      strokeLinecap='round'
+    />
+  </svg>
+);
+
 const PageCustomizationIcon = ({ isActive }: { isActive: boolean }) => (
   <svg
     width='24'
@@ -259,6 +312,14 @@ interface BookingFormData {
   max_group_size: number;
   group_booking_requires_approval: boolean;
   allow_duplicate_bookings: boolean;
+  
+  // Flexible booking settings
+  enable_flexible_booking: boolean;
+  enable_staff_selection: boolean;
+  enable_location_selection: boolean;
+  require_staff_confirmation: boolean;
+  staff_confirmation_timeout_hours: number;
+  send_staff_booking_notifications: boolean;
   
   // Email notification settings
   send_confirmation_emails: boolean;
@@ -697,6 +758,183 @@ const BookingSettings: React.FC<BookingSettingsProps> = ({
                     className='w-auto'
                   >
                     Save Group Settings
+                  </Button>
+                </div>
+              </div>
+            </Accordion.Panel>
+          </Accordion.Item>
+
+          {/* Flexible Booking */}
+          <Accordion.Item value='flexible' className="border border-gray-200 rounded-lg overflow-hidden mb-4">
+            <Accordion.Control
+              className={`transition-all duration-200 ${
+                openedAccordion === 'flexible' 
+                  ? 'bg-gradient-to-r from-secondary/10 to-secondary/5 border-secondary/20 shadow-md' 
+                  : 'hover:bg-gray-50'
+              }`}
+              icon={
+                <div className={`rounded-full p-2.5 transition-colors duration-200 ${
+                  openedAccordion === 'flexible' 
+                    ? 'bg-secondary/15 ring-2 ring-secondary/30' 
+                    : 'bg-gray-100'
+                }`}>
+                  <FlexibleBookingIcon isActive={openedAccordion === 'flexible'} />
+                </div>
+              }
+            >
+              <div className='flex flex-col gap-1'>
+                <h3 className={`text-sm lg:text-base font-semibold transition-colors duration-200 ${
+                  openedAccordion === 'flexible' 
+                    ? 'text-secondary' 
+                    : 'text-primary'
+                }`}>
+                  Flexible Booking
+                </h3>
+                <p className={`text-xs lg:text-sm transition-colors duration-200 ${
+                  openedAccordion === 'flexible' 
+                    ? 'text-secondary/80' 
+                    : 'text-gray-500'
+                }`}>
+                  Configure staff selection and location-based booking
+                </p>
+              </div>
+            </Accordion.Control>
+            <Accordion.Panel>
+              <div className='px-6 py-4 space-y-4'>
+                <div className='flex items-center justify-between p-4 bg-blue-50 rounded-lg border border-blue-200'>
+                  <div>
+                    <label className='text-primary text-sm font-medium'>Enable Flexible Booking</label>
+                    <p className='text-gray-500 text-xs'>Allow clients to select staff and locations during booking</p>
+                  </div>
+                  <Controller
+                    name='enable_flexible_booking'
+                    control={methods.control}
+                    render={({ field }) => (
+                      <input
+                        type='checkbox'
+                        checked={field.value}
+                        onChange={field.onChange}
+                        className='w-5 h-5 text-secondary bg-gray-100 border-gray-300 rounded focus:ring-secondary focus:ring-2'
+                      />
+                    )}
+                  />
+                </div>
+
+                {methods.watch('enable_flexible_booking') && (
+                  <div className='space-y-4 p-4 bg-gray-50 rounded-lg'>
+                    <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+                      <div className='flex items-center justify-between'>
+                        <div>
+                          <label className='text-primary text-sm font-medium'>Staff Selection</label>
+                          <p className='text-gray-500 text-xs'>Allow clients to choose specific staff members</p>
+                        </div>
+                        <Controller
+                          name='enable_staff_selection'
+                          control={methods.control}
+                          render={({ field }) => (
+                            <input
+                              type='checkbox'
+                              checked={field.value}
+                              onChange={field.onChange}
+                              className='w-4 h-4 text-secondary bg-gray-100 border-gray-300 rounded focus:ring-secondary focus:ring-2'
+                            />
+                          )}
+                        />
+                      </div>
+
+                      <div className='flex items-center justify-between'>
+                        <div>
+                          <label className='text-primary text-sm font-medium'>Location Selection</label>
+                          <p className='text-gray-500 text-xs'>Allow clients to choose specific locations</p>
+                        </div>
+                        <Controller
+                          name='enable_location_selection'
+                          control={methods.control}
+                          render={({ field }) => (
+                            <input
+                              type='checkbox'
+                              checked={field.value}
+                              onChange={field.onChange}
+                              className='w-4 h-4 text-secondary bg-gray-100 border-gray-300 rounded focus:ring-secondary focus:ring-2'
+                            />
+                          )}
+                        />
+                      </div>
+                    </div>
+
+                    {methods.watch('enable_staff_selection') && (
+                      <div className='space-y-4 p-4 bg-white rounded-lg border'>
+                        <h5 className='text-primary text-sm font-medium'>Staff Confirmation Settings</h5>
+                        
+                        <div className='flex items-center justify-between'>
+                          <div>
+                            <label className='text-primary text-sm font-medium'>Require Staff Confirmation</label>
+                            <p className='text-gray-500 text-xs'>Staff must confirm bookings before they're finalized</p>
+                          </div>
+                          <Controller
+                            name='require_staff_confirmation'
+                            control={methods.control}
+                            render={({ field }) => (
+                              <input
+                                type='checkbox'
+                                checked={field.value}
+                                onChange={field.onChange}
+                                className='w-4 h-4 text-secondary bg-gray-100 border-gray-300 rounded focus:ring-secondary focus:ring-2'
+                              />
+                            )}
+                          />
+                        </div>
+
+                        {methods.watch('require_staff_confirmation') && (
+                          <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+                            <Controller
+                              name='staff_confirmation_timeout_hours'
+                              control={methods.control}
+                              render={({ field }) => (
+                                <Input
+                                  type='number'
+                                  label='Confirmation Timeout (hours)'
+                                  placeholder='24'
+                                  {...field}
+                                  value={field.value?.toString() || ''}
+                                  onChange={(e) => field.onChange(parseInt(e.target.value) || 24)}
+                                />
+                              )}
+                            />
+
+                            <div className='flex items-center justify-between'>
+                              <div>
+                                <label className='text-primary text-sm font-medium'>Notify Staff</label>
+                                <p className='text-gray-500 text-xs'>Send notifications to staff about new bookings</p>
+                              </div>
+                              <Controller
+                                name='send_staff_booking_notifications'
+                                control={methods.control}
+                                render={({ field }) => (
+                                  <input
+                                    type='checkbox'
+                                    checked={field.value}
+                                    onChange={field.onChange}
+                                    className='w-4 h-4 text-secondary bg-gray-100 border-gray-300 rounded focus:ring-secondary focus:ring-2'
+                                  />
+                                )}
+                              />
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                <div className='pt-4'>
+                  <Button
+                    type='submit'
+                    loading={updateSettings.isPending}
+                    onClick={methods.handleSubmit(onSubmit)}
+                    className='w-auto'
+                  >
+                    Save Flexible Booking Settings
                   </Button>
                 </div>
               </div>

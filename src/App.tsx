@@ -47,6 +47,7 @@ import PublicBookingPage from './pages/PublicBookingPage';
 
 import BookingCancel from './pages/booking/BookingCancel';
 import BookingManage from './pages/booking/BookingManage';
+import { BookingCancelled, BookingRescheduled } from './pages/booking/BookingSuccess';
 import { TimezoneProvider } from './contexts/TimezoneContext';
 
 function App() {
@@ -92,6 +93,24 @@ function App() {
               element={
                 <AuthWrapper requireAuth={false} allowPublicAccess={true}>
                   <BookingManage />
+                </AuthWrapper>
+              }
+            />
+            
+            <Route
+              path='/booking/cancelled'
+              element={
+                <AuthWrapper requireAuth={false} allowPublicAccess={true}>
+                  <BookingCancelled />
+                </AuthWrapper>
+              }
+            />
+            
+            <Route
+              path='/booking/rescheduled'
+              element={
+                <AuthWrapper requireAuth={false} allowPublicAccess={true}>
+                  <BookingRescheduled />
                 </AuthWrapper>
               }
             />

@@ -4,6 +4,7 @@ export { BusinessProfileCard } from './BusinessProfileCard';
 export { PublicBookingHeader } from './PublicBookingHeader';
 export { BookingFooter } from './BookingFooter';
 export { BookingProgressIndicator } from './BookingProgressIndicator';
+export { BookingSidebar } from './BookingSidebar';
 
 // Step components
 export { ServiceSelectionStep } from './steps/ServiceSelectionStep';

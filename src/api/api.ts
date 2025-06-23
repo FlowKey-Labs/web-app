@@ -1326,6 +1326,8 @@ const create_public_booking = async (
     group_booking_notes?: string;
     client_timezone?: string;
     business_timezone?: string;
+    selected_staff_id?: number;
+    selected_location_id?: number;
   }
 ) => {
   const { data } = await api.post(`/api/booking/${businessSlug}/book/`, bookingData);
@@ -1359,11 +1361,13 @@ const cancel_client_booking = async (
 const get_client_reschedule_options = async (
   bookingReference: string,
   dateFrom?: string,
-  dateTo?: string
+  dateTo?: string,
+  filterType?: string
 ) => {
   const params: Record<string, string> = {};
   if (dateFrom) params.date_from = dateFrom;
   if (dateTo) params.date_to = dateTo;
+  if (filterType) params.filter_type = filterType;
   
   const { data } = await api.get(
     `/api/booking/client/${bookingReference}/reschedule-options/`,
@@ -1375,11 +1379,66 @@ const get_client_reschedule_options = async (
 // Client self-service: Reschedule booking
 const reschedule_client_booking = async (
   bookingReference: string,
-  newSessionId: number
+  newSessionId: number,
+  newDate?: string,
+  newStartTime?: string,
+  newEndTime?: string,
+  identityVerification?: {
+    email?: string;
+    phone?: string;
+  },
+  reason?: string
 ) => {
-  const { data } = await api.post(`/api/booking/client/${bookingReference}/reschedule/`, {
+  const payload: any = {
     new_session_id: newSessionId,
+  };
+  
+  if (newDate) payload.new_date = newDate;
+  if (newStartTime) payload.new_start_time = newStartTime;
+  if (newEndTime) payload.new_end_time = newEndTime;
+  
+  if (identityVerification) {
+    payload.identity_verification = identityVerification;
+  }
+  
+  if (reason) {
+    payload.reason = reason;
+  }
+  
+  const { data } = await api.post(`/api/booking/client/${bookingReference}/reschedule/`, payload);
+  return data;
+};
+
+// Get available staff for flexible booking
+const get_public_available_staff = async (businessSlug: string, params: {
+  session_id: number;
+  date?: string;
+}) => {
+  const searchParams = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null) {
+      searchParams.append(key, value.toString());
+    }
   });
+  
+  const { data } = await api.get(`/api/booking/${businessSlug}/available-staff/?${searchParams.toString()}`);
+  return data;
+};
+
+// Get available locations for flexible booking
+const get_public_available_locations = async (businessSlug: string, params: {
+  session_id: number;
+  staff_id?: number;
+  date?: string;
+}) => {
+  const searchParams = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null) {
+      searchParams.append(key, value.toString());
+    }
+  });
+  
+  const { data } = await api.get(`/api/booking/${businessSlug}/available-locations/?${searchParams.toString()}`);
   return data;
 };
 
@@ -1518,4 +1577,6 @@ export {
   cancel_client_booking,
   get_client_reschedule_options,
   reschedule_client_booking,
+  get_public_available_staff,
+  get_public_available_locations,
 };

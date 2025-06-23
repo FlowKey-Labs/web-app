@@ -20,9 +20,10 @@ import {
   useGetStaff,
   useGetClients,
   useGetSessionCategories,
-  useUpdateSession,
   useGetLocations,
   useGetPolicies,
+  useUpdateSession,
+  useGetBookingSettings,
 } from '../../hooks/reactQuery';
 import { useGetSessionDetail } from '../../hooks/reactQuery';
 import moment from 'moment';
@@ -88,6 +89,7 @@ const UpdateSession = ({
   const { data: locationsData, isLoading: isLocationsLoading } =
     useGetLocations();
   const { data: policiesData, isLoading: isPoliciesLoading } = useGetPolicies();
+  const { data: bookingSettings } = useGetBookingSettings();
 
   const [
     isRepetitionModalOpen,
@@ -286,6 +288,13 @@ const UpdateSession = ({
         repeat_occurrences: sessionData.repeat_occurrences,
         policy_ids: policyIds,
         staff: staffId,
+        
+        // Flexible booking fields
+        allow_staff_selection: sessionData.allow_staff_selection || false,
+        allow_location_selection: sessionData.allow_location_selection || false,
+        require_staff_confirmation: sessionData.require_staff_confirmation || false,
+        staff_confirmation_timeout_hours: sessionData.staff_confirmation_timeout_hours || 24,
+        auto_assign_when_single_option: sessionData.auto_assign_when_single_option || false,
       });
 
       console.log("Form reset with values:", {
@@ -450,6 +459,13 @@ const UpdateSession = ({
         selected_class: data.selected_class,
         client_ids: [],
         policy_ids: data.policy_ids || [],
+        
+        // Flexible booking fields
+        allow_staff_selection: data.allow_staff_selection || false,
+        allow_location_selection: data.allow_location_selection || false,
+        require_staff_confirmation: data.require_staff_confirmation || false,
+        staff_confirmation_timeout_hours: data.staff_confirmation_timeout_hours || 24,
+        auto_assign_when_single_option: data.auto_assign_when_single_option || false,
       };
       
       console.log("Formatted date:", dateOnly);
@@ -1137,6 +1153,137 @@ const UpdateSession = ({
                         );
                         }}
                       />
+
+                      {/* Flexible Booking Options for Classes */}
+                      {bookingSettings?.enable_flexible_booking && (
+                        <div className='space-y-4 p-4 bg-blue-50 rounded-lg border border-blue-200'>
+                          <div className='flex items-center justify-between'>
+                            <div>
+                              <h3 className='text-lg font-bold text-gray-700'>
+                                Flexible Booking Options
+                              </h3>
+                              <p className='text-sm text-gray-500'>
+                                Configure how clients can book this class
+                              </p>
+                            </div>
+                            <svg 
+                              className="w-5 h-5 text-blue-500" 
+                              fill="none" 
+                              stroke="currentColor" 
+                              viewBox="0 0 24 24"
+                            >
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                          </div>
+                          
+                          <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+                            <div className='flex items-center justify-between p-3 bg-white rounded-lg border'>
+                              <div>
+                                <label className='text-sm font-medium text-gray-700'>Staff Selection</label>
+                                <p className='text-xs text-gray-500'>Allow clients to choose specific staff</p>
+                              </div>
+                              <Controller
+                                name='allow_staff_selection'
+                                control={methods.control}
+                                render={({ field }) => (
+                                  <input
+                                    type='checkbox'
+                                    checked={field.value || false}
+                                    onChange={field.onChange}
+                                    className='w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2'
+                                  />
+                                )}
+                              />
+                            </div>
+
+                            <div className='flex items-center justify-between p-3 bg-white rounded-lg border'>
+                              <div>
+                                <label className='text-sm font-medium text-gray-700'>Location Selection</label>
+                                <p className='text-xs text-gray-500'>Allow clients to choose locations</p>
+                              </div>
+                              <Controller
+                                name='allow_location_selection'
+                                control={methods.control}
+                                render={({ field }) => (
+                                  <input
+                                    type='checkbox'
+                                    checked={field.value || false}
+                                    onChange={field.onChange}
+                                    className='w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2'
+                                  />
+                                )}
+                              />
+                            </div>
+                          </div>
+
+                          {methods.watch('allow_staff_selection') && (
+                            <div className='space-y-4 p-3 bg-white rounded-lg border'>
+                              <h4 className='text-sm font-medium text-gray-700'>Staff Confirmation Settings</h4>
+                              
+                              <div className='flex items-center justify-between'>
+                                <div>
+                                  <label className='text-sm font-medium text-gray-700'>Require Staff Confirmation</label>
+                                  <p className='text-xs text-gray-500'>Staff must confirm before booking is finalized</p>
+                                </div>
+                                <Controller
+                                  name='require_staff_confirmation'
+                                  control={methods.control}
+                                  render={({ field }) => (
+                                    <input
+                                      type='checkbox'
+                                      checked={field.value || false}
+                                      onChange={field.onChange}
+                                      className='w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2'
+                                    />
+                                  )}
+                                />
+                              </div>
+
+                              {methods.watch('require_staff_confirmation') && (
+                                <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+                                  <Controller
+                                    name='staff_confirmation_timeout_hours'
+                                    control={methods.control}
+                                    render={({ field }) => (
+                                      <Input
+                                        {...field}
+                                        type='number'
+                                        label='Confirmation Timeout (hours)'
+                                        placeholder='24'
+                                        value={field.value?.toString() || '24'}
+                                        onChange={(e) => field.onChange(parseInt(e.target.value) || 24)}
+                                      />
+                                    )}
+                                  />
+
+                                  <div className='flex items-center justify-between p-3 bg-gray-50 rounded-lg border'>
+                                    <div>
+                                      <label className='text-sm font-medium text-gray-700'>Auto-assign if single option</label>
+                                      <p className='text-xs text-gray-500'>Skip selection if only one staff/location available</p>
+                                    </div>
+                                    <Controller
+                                      name='auto_assign_when_single_option'
+                                      control={methods.control}
+                                      render={({ field }) => (
+                                        <input
+                                          type='checkbox'
+                                          checked={field.value || false}
+                                          onChange={field.onChange}
+                                          className='w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2'
+                                        />
+                                      )}
+                                    />
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          )}
+
+                          <div className='text-xs text-blue-600 bg-blue-100 p-2 rounded-lg'>
+                            💡 <strong>Tip:</strong> Flexible booking allows clients to choose their preferred staff and locations when booking this class. Enable business-level flexible booking in Profile → Booking Settings first.
+                          </div>
+                        </div>
+                      )}
                     </div>
                   ) : methods.watch('session_type') === 'appointment' ? (
                     <div className='space-y-4'>
@@ -1354,157 +1501,183 @@ const UpdateSession = ({
                       </div>
 
                       <Controller
-                        name='staff'
+                        name='repetition'
                         control={methods.control}
-                        render={({ field }) => {
-                          const staffId = field.value
-                            ? typeof field.value === 'object' &&
-                              field.value !== null
-                              ? (field.value as any).id
-                              : field.value
-                            : null;
+                        render={({ field }) => (
+                          <div>
+                            <DropdownSelectInput
+                              value={field.value}
+                              label='Set Repetition'
+                              placeholder='Does not repeat'
+                              options={[
+                                { label: 'Does not repeat', value: 'none' },
+                                { label: 'Daily', value: 'daily' },
+                                { label: 'Weekly', value: 'weekly' },
+                                { label: 'Monthly', value: 'monthly' },
+                                { label: 'Custom', value: 'custom' },
+                                ...(field.value &&
+                                ![
+                                  'none',
+                                  'daily',
+                                  'weekly',
+                                  'monthly',
+                                  'custom',
+                                ].includes(field.value)
+                                  ? [
+                                      {
+                                        label: field.value,
+                                        value: field.value,
+                                      },
+                                    ]
+                                  : []),
+                              ]}
+                              onSelectItem={(selectedItem) => {
+                                const value =
+                                  typeof selectedItem === 'string'
+                                    ? selectedItem
+                                    : selectedItem?.value;
 
-                          const selectedStaff = staffData?.find(
-                            (staff: any) => {
-                              return (
-                                staff.id?.toString() === staffId?.toString()
-                              );
-                            }
-                          );
+                                field.onChange(value);
 
-                          const staffValue = selectedStaff
-                            ? selectedStaff.id.toString()
-                            : typeof field.value === 'string' ||
-                              typeof field.value === 'number'
-                            ? field.value.toString()
-                            : '';
+                                if (value === 'custom') {
+                                  openRepetitionModal();
+                                }
+                              }}
+                            />
+                          </div>
+                        )}
+                      />
 
-                          return (
-                            <div className='flex flex-col'>
-                              <DropdownSelectInput
-                                label='Assign Staff'
-                                placeholder='Select Staff'
-                                options={
-                                  isStaffLoading
-                                    ? []
-                                    : staffData?.map((staff: any) => {
-                                        if (!staff || !staff.id) {
-                                          console.warn('Invalid staff data:', staff);
-                                          return null;
-                                        }
-                                        
-                                        const userData = staff.user || {};
-                                        const email = userData.email || staff.email || '';
-                                        const isActive = staff.isActive ?? false;
-                                        const status = isActive ? 'active' : 'inactive';
-                                        
-                                        if (userData.first_name && userData.last_name) {
-                                          return {
-                                            label: `${userData.first_name} ${userData.last_name}`,
-                                            value: staff.id.toString(),
-                                            subLabel: email,
-                                            status
-                                          };
-                                        } else if (email) {
-                                          return {
-                                            label: email,
-                                            value: staff.id.toString(),
-                                            subLabel: `Staff ${staff.id}`,
-                                            status
-                                          };
-                                        } else {
-                                          return {
-                                            label: `Staff ${staff.id}`,
-                                            value: staff.id.toString(),
-                                            status
-                                          };
-                                        }
-                                      }).filter(Boolean) || []
-                                }
-                                value={staffValue}
-                                onSelectItem={(selectedItem) => {
-                                  field.onChange(selectedItem.value)}
-                                }
-                                createLabel="Add new staff member"
-                                createDrawerType="staff"
-                              />
-                              {(() => {
-                                if (!staffId) return null;
-                                
-                                let staffIdValue: string | null = null;
-                                if (typeof staffId === 'object' && staffId !== null) {
-                                  if ('value' in staffId) {
-                                    staffIdValue = String(staffId.value);
-                                  } else if ('id' in staffId) {
-                                    staffIdValue = String(staffId.id);
-                                  }
-                                } else if (staffId) {
-                                  staffIdValue = String(staffId);
-                                }
-                                
-                                if (!staffIdValue) return null;
-                                
-                                const selectedStaff = staffData?.find((staff: any) => 
-                                  staff.id.toString() === staffIdValue
-                                );
-                                
-                                if (selectedStaff && !(selectedStaff.isActive ?? true)) {
-                                  return (
-                                    <div className="mt-1 text-amber-600 text-xs flex items-center">
-                                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                                      </svg>
-                                      Note: This staff member has not completed their account setup yet.
-                                    </div>
-                                  );
-                                }
-                                
-                                return null;
-                              })()}
+                      {/* Flexible Booking Options for Appointments */}
+                      {bookingSettings?.enable_flexible_booking && (
+                        <div className='space-y-4 p-4 bg-blue-50 rounded-lg border border-blue-200'>
+                          <div className='flex items-center justify-between'>
+                            <div>
+                              <h3 className='text-lg font-bold text-gray-700'>
+                                Flexible Booking Options
+                              </h3>
+                              <p className='text-sm text-gray-500'>
+                                Configure how clients can book this appointment
+                              </p>
                             </div>
-                          );
-                        }}
-                      />
-                      <Controller
-                        name='policy_ids'
-                        control={methods.control}
-                        render={({ field }) => {
-                          console.log("Policy field value:", field.value);
-                          return (
-                          <DropdownSelectInput
-                            label='Policies'
-                            placeholder='Select Policies'
-                            singleSelect={false}
-                            options={
-                              isPoliciesLoading
-                                ? [{ label: 'Loading...', value: '' }]
-                                : policiesData?.map((policy: Policy) => ({
-                                    label: policy.title,
-                                    value: policy.id.toString(),
-                                  })) || []
-                            }
-                            value={field.value ? Array.isArray(field.value) ? field.value.map(String) : [String(field.value)] : []}
-                            onSelectItem={(selectedItems) => {
-                              console.log("Selected policies:", selectedItems);
-                              const values = (
-                                Array.isArray(selectedItems)
-                                  ? selectedItems
-                                  : [selectedItems]
-                              )
-                                .filter(Boolean)
-                                .map((item) =>
-                                  Number(
-                                    typeof item === 'string' ? item : item.value
-                                  )
-                                );
-                              field.onChange(values);
-                            }}
-                            createLabel="Create new policy"
-                            createDrawerType="policy"
-                          />
-                        );
-                        }}
-                      />
+                            <svg 
+                              className="w-5 h-5 text-blue-500" 
+                              fill="none" 
+                              stroke="currentColor" 
+                              viewBox="0 0 24 24"
+                            >
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                          </div>
+                          
+                          <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+                            <div className='flex items-center justify-between p-3 bg-white rounded-lg border'>
+                              <div>
+                                <label className='text-sm font-medium text-gray-700'>Staff Selection</label>
+                                <p className='text-xs text-gray-500'>Allow clients to choose specific staff</p>
+                              </div>
+                              <Controller
+                                name='allow_staff_selection'
+                                control={methods.control}
+                                render={({ field }) => (
+                                  <input
+                                    type='checkbox'
+                                    checked={field.value || false}
+                                    onChange={field.onChange}
+                                    className='w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2'
+                                  />
+                                )}
+                              />
+                            </div>
+
+                            <div className='flex items-center justify-between p-3 bg-white rounded-lg border'>
+                              <div>
+                                <label className='text-sm font-medium text-gray-700'>Location Selection</label>
+                                <p className='text-xs text-gray-500'>Allow clients to choose locations</p>
+                              </div>
+                              <Controller
+                                name='allow_location_selection'
+                                control={methods.control}
+                                render={({ field }) => (
+                                  <input
+                                    type='checkbox'
+                                    checked={field.value || false}
+                                    onChange={field.onChange}
+                                    className='w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2'
+                                  />
+                                )}
+                              />
+                            </div>
+                          </div>
+
+                          {methods.watch('allow_staff_selection') && (
+                            <div className='space-y-4 p-3 bg-white rounded-lg border'>
+                              <h4 className='text-sm font-medium text-gray-700'>Staff Confirmation Settings</h4>
+                              
+                              <div className='flex items-center justify-between'>
+                                <div>
+                                  <label className='text-sm font-medium text-gray-700'>Require Staff Confirmation</label>
+                                  <p className='text-xs text-gray-500'>Staff must confirm before booking is finalized</p>
+                                </div>
+                                <Controller
+                                  name='require_staff_confirmation'
+                                  control={methods.control}
+                                  render={({ field }) => (
+                                    <input
+                                      type='checkbox'
+                                      checked={field.value || false}
+                                      onChange={field.onChange}
+                                      className='w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2'
+                                    />
+                                  )}
+                                />
+                              </div>
+
+                              {methods.watch('require_staff_confirmation') && (
+                                <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+                                  <Controller
+                                    name='staff_confirmation_timeout_hours'
+                                    control={methods.control}
+                                    render={({ field }) => (
+                                      <Input
+                                        {...field}
+                                        type='number'
+                                        label='Confirmation Timeout (hours)'
+                                        placeholder='24'
+                                        value={field.value?.toString() || '24'}
+                                        onChange={(e) => field.onChange(parseInt(e.target.value) || 24)}
+                                      />
+                                    )}
+                                  />
+
+                                  <div className='flex items-center justify-between p-3 bg-gray-50 rounded-lg border'>
+                                    <div>
+                                      <label className='text-sm font-medium text-gray-700'>Auto-assign if single option</label>
+                                      <p className='text-xs text-gray-500'>Skip selection if only one staff/location available</p>
+                                    </div>
+                                    <Controller
+                                      name='auto_assign_when_single_option'
+                                      control={methods.control}
+                                      render={({ field }) => (
+                                        <input
+                                          type='checkbox'
+                                          checked={field.value || false}
+                                          onChange={field.onChange}
+                                          className='w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2'
+                                        />
+                                      )}
+                                    />
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          )}
+
+                          <div className='text-xs text-blue-600 bg-blue-100 p-2 rounded-lg'>
+                            💡 <strong>Tip:</strong> Flexible booking allows clients to choose their preferred staff and locations when booking this appointment. Enable business-level flexible booking in Profile → Booking Settings first.
+                          </div>
+                        </div>
+                      )}
                     </div>
                   ) : methods.watch('session_type') === 'event' ? (
                     <div className='space-y-4'>

@@ -29,7 +29,7 @@ const WithBrandingLayout: React.FC<WithBrandingLayoutProps> = ({
       )}
 
       <div className='flex flex-1 w-full'>
-        <div className='w-full px-4 lg:px-8'>
+        <div className='w-full px-2 lg:px-0'>
           <div className='w-full h-full flex justify-center'>
             {children}
           </div>

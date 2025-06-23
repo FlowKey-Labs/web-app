@@ -1,4 +1,3 @@
-import React from 'react';
 import { Box, Group, Avatar, Title, Text, Badge } from '@mantine/core';
 import { FlowKeyIcon } from '../../assets/icons';
 import { PublicBusinessInfo } from '../../types/clientTypes';
@@ -10,7 +9,6 @@ interface PublicBookingHeaderProps {
 export function PublicBookingHeader({ businessInfo }: PublicBookingHeaderProps) {
   return (
     <Box py="xl">
-      {/* FlowKey Header */}
       <Box mb="xl">
         <Group gap="xs" mb="lg">
           <FlowKeyIcon className="w-8 h-8" style={{ color: '#1D9B5E' }} />
@@ -27,7 +25,6 @@ export function PublicBookingHeader({ businessInfo }: PublicBookingHeaderProps) 
         </Group>
       </Box>
 
-      {/* Business Profile */}
       <Group gap="lg" mb="lg">
         <Avatar 
           size={60} 

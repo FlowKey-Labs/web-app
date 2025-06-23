@@ -41,17 +41,9 @@ const BookingRequestsTable: React.FC<BookingRequestsTableProps> = ({
     setActionLoading(true);
     try {
       await onApprove(request.id);
-      notifications.show({
-        title: 'Success',
-        message: `Booking request from ${request.client_name} has been approved`,
-        color: 'green',
-      });
+      // Success notification handled by parent component
     } catch {
-      notifications.show({
-        title: 'Error',
-        message: 'Failed to approve booking request',
-        color: 'red',
-      });
+      // Error notification handled by parent component  
     } finally {
       setActionLoading(false);
     }
@@ -63,19 +55,11 @@ const BookingRequestsTable: React.FC<BookingRequestsTableProps> = ({
     setActionLoading(true);
     try {
       await onReject(selectedRequest.id, rejectionReason);
-      notifications.show({
-        title: 'Success',
-        message: `Booking request from ${selectedRequest.client_name} has been rejected`,
-        color: 'orange',
-      });
+      // Success notification handled by parent component
       closeRejectModal();
       setRejectionReason('');
     } catch {
-      notifications.show({
-        title: 'Error',
-        message: 'Failed to reject booking request',
-        color: 'red',
-      });
+      // Error notification handled by parent component
     } finally {
       setActionLoading(false);
     }
@@ -94,19 +78,11 @@ const BookingRequestsTable: React.FC<BookingRequestsTableProps> = ({
           reason: cancellationReason 
         });
       }
-      notifications.show({
-        title: 'Success',
-        message: `Booking from ${selectedRequest.client_name} has been cancelled`,
-        color: 'orange',
-      });
+      // Success notification handled by parent component or mutation
       closeCancelModal();
       setCancellationReason('');
     } catch {
-      notifications.show({
-        title: 'Error',
-        message: 'Failed to cancel booking',
-        color: 'red',
-      });
+      // Error notification handled by parent component or mutation
     } finally {
       setActionLoading(false);
     }

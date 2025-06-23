@@ -1,5 +1,4 @@
-import React from 'react';
-import { Group, Text, ActionIcon, Box, Button } from '@mantine/core';
+import { Group, Text, Box, Button } from '@mantine/core';
 import { FlowKeyIcon } from '../../assets/icons';
 
 export function BookingFooter() {

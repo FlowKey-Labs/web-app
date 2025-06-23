@@ -1,4 +1,4 @@
-import React from 'react';
+import { useMemo } from 'react';
 import { Box, Group, Text, Progress, Stack } from '@mantine/core';
 import { CheckIcon } from './bookingIcons';
 import { BookingStep } from '../../types/clientTypes';
@@ -8,16 +8,31 @@ const stepLabels: Record<BookingStep, string> = {
   service: 'Select Service',
   date: 'Choose Date',
   time: 'Pick Time',
+  staff: 'Choose Staff',
+  location: 'Select Location',
   details: 'Your Details',
   confirmation: 'Confirmation',
 };
 
-const stepOrder: BookingStep[] = ['service', 'date', 'time', 'details', 'confirmation'];
+const stepOrder: BookingStep[] = ['service', 'date', 'time', 'staff', 'location', 'details', 'confirmation'];
 
 export function BookingProgressIndicator() {
   const { state } = useBookingFlow();
-  const currentStepIndex = stepOrder.indexOf(state.currentStep);
-  const progressPercentage = ((currentStepIndex + 1) / stepOrder.length) * 100;
+  
+  const availableSteps = useMemo(() => {
+    return stepOrder.filter(step => {
+      if (step === 'staff' && !state.flexibleBookingSettings?.allow_staff_selection) {
+        return false;
+      }
+      if (step === 'location' && !state.flexibleBookingSettings?.allow_location_selection) {
+        return false;
+      }
+      return true;
+    });
+  }, [state.flexibleBookingSettings]);
+
+  const currentStepIndex = availableSteps.indexOf(state.currentStep);
+  const progressPercentage = ((currentStepIndex + 1) / availableSteps.length) * 100;
 
   return (
     <Stack gap="lg">
@@ -34,10 +49,9 @@ export function BookingProgressIndicator() {
       
       {/* Step Indicators */}
       <Group justify="space-between" gap="xs">
-        {stepOrder.map((step, index) => {
+        {availableSteps.map((step, index) => {
           const isCompleted = index < currentStepIndex;
           const isCurrent = index === currentStepIndex;
-          const isUpcoming = index > currentStepIndex;
 
           return (
             <Group key={step} gap="xs" style={{ flex: 1, minWidth: 0 }}>

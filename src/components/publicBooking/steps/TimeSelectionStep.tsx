@@ -1,26 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Box, 
-  Title, 
-  Text, 
-  Group, 
-  Stack,
-  Card,
-  Divider,
-  Badge,
-  Alert,
-  LoadingOverlay,
-  ScrollArea
-} from '@mantine/core';
+import { useState, useEffect, useCallback } from 'react';
+import { motion } from 'framer-motion';
+import { Title, Text, Group, Card, Badge, Alert, LoadingOverlay, ScrollArea } from '@mantine/core';
 import { ArrowLeftIcon, InfoIcon, ClockIcon, LocationIcon } from '../bookingIcons';
 import { useBookingFlow } from '../PublicBookingProvider';
 import { PublicBusinessInfo, AvailabilitySlot } from '../../../types/clientTypes';
 import { useGetPublicAvailability } from '../../../hooks/reactQuery';
 import { useViewportSize } from '@mantine/hooks';
 import { MobileBusinessHeader } from '../components/MobileBusinessHeader';
-import { UnifiedProgressIndicator } from '../components/UnifiedProgressIndicator';
-import { FlowKeyIcon } from '../../../assets/icons';
 import Button from '../../common/Button';
 
 interface TimeSelectionStepProps {
@@ -38,15 +24,9 @@ export function TimeSelectionStep({ businessSlug, businessInfo }: TimeSelectionS
   const [scrollY, setScrollY] = useState(0);
 
   // Track scroll position for mobile header morphing
-  useEffect(() => {
+  const handleScroll = useCallback(() => {
     if (!isMobile) return;
-
-    const handleScroll = () => {
-      setScrollY(window.scrollY);
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    setScrollY(window.scrollY);
   }, [isMobile]);
 
   // Format selected date for API query
@@ -68,51 +48,43 @@ export function TimeSelectionStep({ businessSlug, businessInfo }: TimeSelectionS
     selectedDateString || ''
   );
 
-  const availableSlots = availabilityData?.slots || [];
+  const availableSlots: AvailabilitySlot[] = (availabilityData as { slots?: AvailabilitySlot[] })?.slots || [];
 
-  const handleSlotSelect = (slot: AvailabilitySlot) => {
-    // Ensure the date is consistent - use the slot's date as the authoritative source
+  const handleSlotSelect = useCallback((slot: AvailabilitySlot) => {
     const slotDate = slot.date;
-    
-    console.log('Time slot selection debug:', {
-      slotDate: slotDate,
-      stateSelectedDate: state.selectedDate,
-      slot: slot
-    });
     
     dispatch({ 
       type: 'SELECT_TIME_SLOT', 
       payload: {
-        date: slotDate, // Use the slot's date for consistency
+        date: slotDate,
         timeSlot: slot,
-        timezone: 'Africa/Nairobi' // Default timezone
+        timezone: 'Africa/Nairobi'
       }
     });
     
-    // Auto-advance to next step after brief delay
     setTimeout(() => {
       goToNextStep();
     }, 500);
-  };
+  }, [dispatch, goToNextStep]);
 
-  const handleBack = () => {
+  const handleBack = useCallback(() => {
     goToPreviousStep();
-  };
+  }, [goToPreviousStep]);
 
-  const handleServiceChange = () => {
+  const handleServiceChange = useCallback(() => {
     dispatch({ type: 'RESET_SELECTIONS' });
     dispatch({ type: 'SET_CURRENT_STEP', payload: 'service' });
-  };
+  }, [dispatch]);
 
-  const formatTime = (time: string) => {
+  const formatTime = useCallback((time: string) => {
     const [hours, minutes] = time.split(':');
     const hour24 = parseInt(hours);
     const period = hour24 >= 12 ? 'PM' : 'AM';
     const hour12 = hour24 === 0 ? 12 : hour24 > 12 ? hour24 - 12 : hour24;
     return `${hour12}:${minutes} ${period}`;
-  };
+  }, []);
 
-  const formatDate = (dateInput: Date | string) => {
+  const formatDate = useCallback((dateInput: Date | string) => {
     const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
     return date.toLocaleDateString('en-US', {
       weekday: 'long',
@@ -120,11 +92,18 @@ export function TimeSelectionStep({ businessSlug, businessInfo }: TimeSelectionS
       day: 'numeric',
       year: 'numeric',
     });
-  };
+  }, []);
+
+  useEffect(() => {
+    if (!isMobile) return;
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [isMobile, handleScroll]);
 
   if (!businessInfo || !state.selectedService || !state.selectedDate) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+      <div className="flex items-center justify-center min-h-screen bg-gray-50">
         <Alert 
           icon={<InfoIcon className="w-5 h-5" />} 
           color="red" 
@@ -138,8 +117,7 @@ export function TimeSelectionStep({ businessSlug, businessInfo }: TimeSelectionS
     );
   }
 
-  const businessName = businessInfo.business_name || 'Business';
-  const serviceName = state.selectedService.name || 'Service';
+
 
   return (
     <div className="h-full w-full relative overflow-hidden">
@@ -152,142 +130,13 @@ export function TimeSelectionStep({ businessSlug, businessInfo }: TimeSelectionS
         onServiceChange={handleServiceChange}
       />
       
-      <div className="flex flex-col lg:flex-row h-full relative z-10">
-        {/* LEFT SECTION - Business Profile & Service Summary */}
+      <div className="flex flex-col h-full relative z-10">
         <motion.div 
-          initial={{ opacity: 0, x: -50 }}
-          animate={{ opacity: 1, x: 0 }}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: "easeOut" }}
-          className="hidden lg:block w-96 flex-shrink-0 pr-8 business-section"
+          className="flex-1 p-4 lg:p-8 flex flex-col min-h-0"
         >
-          <div className="space-y-6">
-            {/* Business Logo */}
-            <motion.div 
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ delay: 0.2, duration: 0.5 }}
-              className="relative mx-auto w-fit"
-            >
-              <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center shadow-xl border-4 border-white/50 business-logo">
-                <span className="text-2xl font-bold text-white relative z-10">
-                  {businessName.charAt(0).toUpperCase()}
-                </span>
-              </div>
-              <div className="absolute -inset-2 bg-gradient-to-r from-emerald-500/20 to-green-500/20 rounded-3xl blur-xl"></div>
-            </motion.div>
-            
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3, duration: 0.5 }}
-              className="text-center space-y-3"
-            >
-              <Title 
-                order={2} 
-                className="text-xl font-bold text-slate-900 leading-tight"
-              >
-                {businessName}
-              </Title>
-              
-              <Badge 
-                variant="light" 
-                color="gray" 
-                size="md"
-                className="bg-slate-100 text-slate-700 border border-slate-200"
-              >
-                {businessInfo.business_type || 'Service Provider'}
-              </Badge>
-            </motion.div>
-
-            {/* Selected Service & Date Summary */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4, duration: 0.5 }}
-              className="bg-white/40 backdrop-blur-sm rounded-2xl p-6 border border-white/20"
-            >
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-100 to-green-100 flex items-center justify-center">
-                  <span className="text-xl">🎯</span>
-                </div>
-                <div className="flex-1">
-                  <Title order={4} className="text-slate-800 mb-1 text-base">
-                    Your Selection
-                  </Title>
-                </div>
-              </div>
-              
-              <div className="space-y-3">
-                <div>
-                  <Text className="text-sm text-slate-600 mb-1">Service</Text>
-                  <Text className="font-semibold text-slate-800">{serviceName}</Text>
-                </div>
-                
-                <div>
-                  <Text className="text-sm text-slate-600 mb-1">Date</Text>
-                  <Text className="font-semibold text-slate-800">
-                    {formatDate(state.selectedDate)}
-                  </Text>
-                </div>
-                
-                <div className="flex items-center justify-between text-sm text-slate-600">
-                  {state.selectedService.duration_minutes && (
-                    <span className="flex items-center gap-1">
-                      <ClockIcon className="w-4 h-4" />
-                      {state.selectedService.duration_minutes} min
-                    </span>
-                  )}
-                  {state.selectedService.price ? (
-                    <Text className="font-bold text-emerald-600">
-                      KSh {state.selectedService.price}
-                    </Text>
-                  ) : (
-                    <Badge color="green" variant="light" size="xs">
-                      Free
-                    </Badge>
-                  )}
-                </div>
-              </div>
-              
-              <Button
-                variant="outline"
-                size="xs"
-                className="w-full mt-3 border-emerald-200 text-emerald-700 hover:bg-emerald-50"
-                onClick={handleServiceChange}
-              >
-                Change Selection
-              </Button>
-            </motion.div>
-
-            {/* Unified Progress Indicator for Desktop */}
-            <UnifiedProgressIndicator />
-
-            {/* Powered by */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.6, duration: 0.5 }}
-              className="text-center pt-4"
-            >
-              <div className="flex items-center justify-center gap-2">
-                <Text size="xs" className="text-slate-500">Powered by</Text>
-                <div className="flex items-center gap-1">
-                  <FlowKeyIcon className="w-8 h-auto opacity-60" />
-                  <Text size="xs" className="text-slate-600 font-medium">FlowKey</Text>
-                </div>
-              </div>
-            </motion.div>
-          </div>
-        </motion.div>
-
-        {/* RIGHT SECTION - Time Selection */}
-        <motion.div 
-          initial={{ opacity: 0, x: 50 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.6, ease: "easeOut", delay: 0.2 }}
-          className="flex-1 p-4 lg:p-8 lg:pl-0 flex flex-col min-h-0"
-        >
-          {/* Header */}
           <div className="mb-6 lg:mb-8 lg:ml-8 lg:mt-12">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -326,7 +175,6 @@ export function TimeSelectionStep({ businessSlug, businessInfo }: TimeSelectionS
             </motion.div>
           </div>
 
-          {/* Time Slots */}
           <div className="flex-1 overflow-y-auto lg:ml-8 booking-mobile-content-with-footer">
             {isLoading ? (
               <div className="flex items-center justify-center h-64">
@@ -368,8 +216,8 @@ export function TimeSelectionStep({ businessSlug, businessInfo }: TimeSelectionS
                 <ScrollArea className="h-full">
                   <div className="space-y-4">
                     {availableSlots
-                      .filter(slot => slot.capacity_status === 'available' && slot.available_spots > 0)
-                      .map((slot, index) => (
+                      .filter((slot: AvailabilitySlot) => slot.capacity_status === 'available' && slot.available_spots > 0)
+                      .map((slot: AvailabilitySlot, index: number) => (
                         <motion.div
                           key={`${slot.date}-${slot.start_time}-${slot.session_id}`}
                           initial={{ opacity: 0, x: -20 }}
@@ -435,41 +283,6 @@ export function TimeSelectionStep({ businessSlug, businessInfo }: TimeSelectionS
                 </ScrollArea>
               </div>
             )}
-          </div>
-
-          {/* Mobile Footer with Cookie Settings and Support */}
-          <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-white/20 p-4 z-30 shadow-lg">
-            <div className="flex items-center justify-between text-sm">
-              <div className="flex items-center gap-2">
-                <Text size="xs" className="text-slate-500">Powered by</Text>
-                <div className="flex items-center gap-1">
-                  <FlowKeyIcon className="w-6 h-auto opacity-60" />
-                  <Text size="xs" className="text-slate-600 font-medium">FlowKey</Text>
-                </div>
-              </div>
-              
-              <div className="flex items-center gap-4">
-                <Button
-                  variant="subtle"
-                  size="xs"
-                  color="gray"
-                  onClick={() => console.log('Cookie settings')}
-                  className="text-slate-500 p-1"
-                >
-                  Cookie settings
-                </Button>
-                
-                <Button
-                  variant="subtle"
-                  size="xs"
-                  color="gray"
-                  onClick={() => window.open('mailto:support@flowkeylabs.com', '_blank')}
-                  className="text-slate-500 p-1"
-                >
-                  📞 Support
-                </Button>
-              </div>
-            </div>
           </div>
         </motion.div>
       </div>

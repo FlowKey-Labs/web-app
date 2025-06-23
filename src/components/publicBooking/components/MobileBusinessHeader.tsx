@@ -13,20 +13,6 @@ interface MobileBusinessHeaderProps {
   onServiceChange?: () => void;
 }
 
-const stepLabels = {
-  service: 'Select Service',
-  date: 'Choose Date & Time', 
-  details: 'Your Details',
-  confirmation: 'Confirm Booking'
-};
-
-const stepNumbers = {
-  service: 1,
-  date: 2,
-  details: 3,
-  confirmation: 4
-};
-
 export function MobileBusinessHeader({ 
   businessInfo, 
   scrollY, 
@@ -40,10 +26,38 @@ export function MobileBusinessHeader({
   const businessName = businessInfo.business_name || 'Business';
   const serviceName = state.selectedService?.name || 'Service';
   
-  // Calculate progress
-  const currentStepNumber = stepNumbers[state.currentStep] || 1;
-  const totalSteps = 4;
-  const progressPercentage = (currentStepNumber / totalSteps) * 100;
+  // Dynamically calculate steps and labels based on flexible booking settings
+  const getStepOrder = () => {
+    const baseSteps = ['service', 'date'];
+    const flexibleSteps = [];
+    
+    if (state.flexibleBookingSettings?.allow_staff_selection) {
+      flexibleSteps.push('staff');
+    }
+    if (state.flexibleBookingSettings?.allow_location_selection) {
+      flexibleSteps.push('location');
+    }
+    
+    return [...baseSteps, ...flexibleSteps, 'details', 'confirmation'];
+  };
+
+  const getStepLabels = () => {
+    return {
+      service: 'Select Service',
+      date: 'Choose Date & Time',
+      staff: 'Select Staff',
+      location: 'Choose Location',
+      details: 'Your Details',
+      confirmation: 'Confirm Booking'
+    };
+  };
+
+  const stepOrder = getStepOrder();
+  const stepLabels = getStepLabels();
+  const currentStepIndex = stepOrder.indexOf(state.currentStep);
+  const totalSteps = stepOrder.length;
+  const progressPercentage = ((currentStepIndex + 1) / totalSteps) * 100;
+  const currentStepNumber = currentStepIndex + 1;
 
   return (
     <motion.div
@@ -140,17 +154,41 @@ export function MobileBusinessHeader({
                 </div>
               </div>
             )}
+
+            {state.selectedStaff && (
+              <div className="bg-purple-50 rounded-lg p-3">
+                <Text className="text-sm font-medium text-purple-800 mb-1">Selected Staff</Text>
+                <Text className="text-xs text-purple-700">{state.selectedStaff.user?.first_name} {state.selectedStaff.user?.last_name}</Text>
+                {state.selectedStaff.user?.specializations && (
+                  <Text className="text-xs text-purple-600 mt-1">
+                    {state.selectedStaff.user.specializations}
+                  </Text>
+                )}
+              </div>
+            )}
+
+            {state.selectedLocation && (
+              <div className="bg-blue-50 rounded-lg p-3">
+                <Text className="text-sm font-medium text-blue-800 mb-1">Selected Location</Text>
+                <Text className="text-xs text-blue-700">{state.selectedLocation.name}</Text>
+                {state.selectedLocation.address && (
+                  <Text className="text-xs text-blue-600 mt-1">
+                    {state.selectedLocation.address}
+                  </Text>
+                )}
+              </div>
+            )}
             
             {state.selectedDate && state.selectedTimeSlot && (
-              <div className="bg-blue-50 rounded-lg p-3">
-                <Text className="text-sm font-medium text-blue-800 mb-1">Selected Date & Time</Text>
-                <Text className="text-xs text-blue-700">
+              <div className="bg-orange-50 rounded-lg p-3">
+                <Text className="text-sm font-medium text-orange-800 mb-1">Selected Date & Time</Text>
+                <Text className="text-xs text-orange-700">
                   {typeof state.selectedDate === 'string' 
                     ? new Date(state.selectedDate).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
                     : state.selectedDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
                   }
                 </Text>
-                <Text className="text-xs text-blue-700">
+                <Text className="text-xs text-orange-700">
                   {state.selectedTimeSlot.start_time} - {state.selectedTimeSlot.end_time}
                 </Text>
               </div>

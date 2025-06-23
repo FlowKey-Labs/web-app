@@ -90,6 +90,13 @@ export interface CreateSessionData {
   repeat_end_type?: EndType;
   repeat_end_date?: string;
   repeat_occurrences?: number | null;
+  
+  // Flexible booking fields
+  allow_staff_selection?: boolean;
+  allow_location_selection?: boolean;
+  require_staff_confirmation?: boolean;
+  staff_confirmation_timeout_hours?: number;
+  auto_assign_when_single_option?: boolean;
 }
 
 export interface Session
@@ -106,6 +113,13 @@ export interface Session
   _frontend_start_time?: string;
   _frontend_end_time?: string;
   client_ids?: number[];
+  
+  // Flexible booking fields 
+  allow_staff_selection?: boolean;
+  allow_location_selection?: boolean;
+  require_staff_confirmation?: boolean;
+  staff_confirmation_timeout_hours?: number;
+  auto_assign_when_single_option?: boolean;
 }
 
 export interface SessionTableData {

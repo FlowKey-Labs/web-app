@@ -17,6 +17,14 @@ export interface BookingSettings {
   group_booking_requires_approval: boolean;
   allow_duplicate_bookings: boolean;
   
+  // Flexible booking settings
+  enable_flexible_booking: boolean;
+  enable_staff_selection: boolean;
+  enable_location_selection: boolean;
+  require_staff_confirmation: boolean;
+  staff_confirmation_timeout_hours: number;
+  send_staff_booking_notifications: boolean;
+  
   // Email notification settings
   send_confirmation_emails: boolean;
   send_reminder_emails: boolean;

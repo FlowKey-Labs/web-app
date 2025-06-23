@@ -168,8 +168,6 @@ export interface ClientData {
   session_ids?: number[];
 }
 
-
-
 export interface PublicBusinessInfo {
   slug: string;
   business_name: string;
@@ -231,10 +229,12 @@ export interface PublicAvailabilityResponse {
 }
 
 export interface PublicBookingFormData {
-  session_id: number;
-  client_name: string;
-  client_email: string;
-  client_phone: string;
+  session_id?: number;
+  selected_staff_id?: number;
+  selected_location_id?: number;
+  client_name?: string;
+  client_email?: string;
+  client_phone?: string;
   notes?: string;
   quantity: number;
   is_group_booking?: boolean;
@@ -278,46 +278,116 @@ export interface ClientBookingInfo {
   session: {
     id: number;
     title: string;
+    date: string;
     start_time: string;
     end_time: string;
     location?: string;
     category_name: string;
+    timezone: string;
   };
   business: {
     name: string;
     slug: string;
+    business_type: string;
     contact_email?: string;
-    contact_phone?: string;
+    phone?: string;
+    address?: string;
+    timezone: string;
+    location?: {
+      id: number;
+      name: string;
+      address: string;
+      city: string;
+      state: string;
+      zip_code: string;
+      country: string;
+      full_address: string;
+    };
   };
   created_at: string;
   expires_at?: string;
   approved_at?: string;
   can_cancel: boolean;
   can_reschedule: boolean;
-  cancellation_deadline?: string;
-  reschedule_deadline?: string;
-  reschedule_count: number;
-  max_reschedules: number;
+  cancellation_policy: {
+    allowed: boolean;
+    deadline_hours: number;
+    fee_policy?: string;
+    time_remaining_seconds: number;
+  };
+  reschedule_policy: {
+    allowed: boolean;
+    deadline_hours: number;
+    max_reschedules: number;
+    current_reschedules: number;
+    reschedules_remaining: number;
+  };
+  client_email_hint?: string;
+  client_phone_hint?: string;
 }
 
 export interface RescheduleOption {
-  session: {
-    id: number;
-    title: string;
-    start_time: string;
-    end_time: string;
-    location?: string;
-    available_spots: number;
-    total_spots: number;
-    capacity_status: 'available' | 'low' | 'full';
-  };
-  is_available: boolean;
-  reason?: string;
+  session_id: number;
+  id: number;
+  title: string;
+  date: string;
+  start_time: string;
+  end_time: string;
+  duration_minutes: number;
+  location: string;
+  available_spots: number;
+  total_spots: number;
+  capacity_status: 'available' | 'low' | 'full';
+  category_name: string;
+  staff_name?: string;
 }
 
 export interface RescheduleInfo {
-  current_booking: ClientBookingInfo;
+  current_booking: {
+    booking_reference: string;
+    client_name: string;
+    client_email_masked: string;
+    client_phone_masked: string;
+    session: {
+      id: number;
+      title: string;
+      start_time: string;
+      end_time: string;
+      duration_minutes: number;
+      location: string;
+      category_name: string;
+    };
+    quantity: number;
+    status: string;
+  };
+  business: {
+    name: string;
+    slug: string;
+    business_type: string;
+    contact_email: string;
+    phone?: string;
+    address?: string;
+    timezone: string;
+    location?: {
+      id: number;
+      name: string;
+      address: string;
+      city: string;
+      state: string;
+      zip_code: string;
+      country: string;
+      full_address: string;
+    };
+  };
   available_sessions: RescheduleOption[];
+  filter_options: {
+    current_filter: string;
+    available_filters: Array<{
+      value: string;
+      label: string;
+      count: number;
+    }>;
+  };
   reschedule_policy: {
     allowed: boolean;
     deadline_hours: number;
@@ -327,23 +397,53 @@ export interface RescheduleInfo {
     current_reschedules: number;
     reschedules_remaining: number;
   };
-  reschedule_fee_policy?: {
-    has_fee: boolean;
-    fee_amount?: string;
-    free_reschedules?: number;
-  };
+  reschedule_fee_policy: string;
 }
 
 // Booking step management
-export type BookingStep = 'service' | 'date' | 'time' | 'details' | 'confirmation';
+export type BookingStep = 'service' | 'staff' | 'location' | 'date' | 'time' | 'details' | 'confirmation';
+
+export interface PublicStaff {
+  id: number;
+  name: string;
+  specializations?: string[];
+  availability_hours?: {
+    [key: string]: { start: string; end: string }[];
+  };
+  image_url?: string;
+  bio?: string;
+  is_available?: boolean;
+  rating?: number;
+}
+
+export interface PublicLocation {
+  id: number;
+  name: string;
+  address: string;
+  city: string;
+  amenities?: string[];
+  capacity?: number;
+  image_url?: string;
+  is_available?: boolean;
+}
+
+export interface FlexibleBookingSettings {
+  allow_staff_selection: boolean;
+  allow_location_selection: boolean;
+  require_staff_confirmation: boolean;
+  auto_assign_when_single_option: boolean;
+}
 
 export interface BookingFlowState {
   currentStep: BookingStep;
   selectedService: PublicService | null;
+  selectedStaff: PublicStaff | null;
+  selectedLocation: PublicLocation | null;
   selectedDate: string | Date | null;
   selectedSlot: AvailabilitySlot | null;
   selectedTimeSlot: AvailabilitySlot | null;
   selectedTimezone?: string;
   formData: Partial<PublicBookingFormData>;
   businessInfo: PublicBusinessInfo | null;
+  flexibleBookingSettings?: FlexibleBookingSettings;
 }

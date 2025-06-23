@@ -1,4 +1,3 @@
-import React from 'react';
 import { Box, Title, Text, Group } from '@mantine/core';
 import { FlowKeyIcon } from '../../assets/icons';
 import { LocationIcon, PhoneIcon, EmailIcon } from './bookingIcons';

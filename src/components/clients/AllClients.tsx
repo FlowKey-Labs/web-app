@@ -1,5 +1,9 @@
 import MembersHeader from '../headers/MembersHeader';
 import plusIcon from '../../assets/icons/plusWhite.svg';
+import usersIcon from '../../assets/icons/users.svg';
+import totalClientsIcon from '../../assets/icons/totalClients.svg';
+import emptyIcon from '../../assets/icons/empty.svg';
+import ActivityIndicator from '../common/ActivityIndicator';
 import { Client, GroupData, BookingRequest, ClientSource } from '../../types/clientTypes';
 import Table from '../common/Table';
 import BookingRequestsTable from './BookingRequestsTable';
@@ -23,6 +27,7 @@ import {
   Menu,
   Loader,
   Badge,
+  Stack,
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
@@ -36,57 +41,93 @@ import { useExportGroups } from '../../hooks/useExport';
 import { useNavigate } from 'react-router-dom';
 import { navigateToClientDetails, navigateToGroupDetails } from '../../utils/navigationHelpers';
 import { safeToString } from '../../utils/stringUtils';
-import EmptyDataPage from '../common/EmptyDataPage';
 import { useAuthStore } from '../../store/auth';
 import { useUIStore } from '../../store/ui';
 import ErrorBoundary from '../common/ErrorBoundary';
 import { PaginatedResponse } from '../../api/api';
 
+// Enhanced Empty State Component
+const EmptyStateCard = ({ 
+  title, 
+  description, 
+  icon, 
+  buttonText, 
+  onButtonClick, 
+  showButton = true 
+}: {
+  title: string;
+  description: string;
+  icon: string;
+  buttonText?: string;
+  onButtonClick?: () => void;
+  showButton?: boolean;
+}) => (
+  <div className="flex flex-col items-center justify-center py-16 px-6 bg-white rounded-lg border-2 border-dashed border-gray-200 mx-6 my-4">
+    <div className="relative mb-4">
+      <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-2">
+        <img src={icon} alt="" className="w-8 h-8 opacity-60" />
+      </div>
+      <div className="absolute inset-0 bg-gradient-to-tr from-primary/5 to-secondary/5 rounded-full animate-pulse" />
+    </div>
+    <h3 className="text-lg font-semibold text-gray-900 mb-2">{title}</h3>
+    <p className="text-sm text-gray-500 text-center max-w-sm mb-6">{description}</p>
+    {showButton && onButtonClick && (
+      <MantineButton
+        color="#1D9B5E"
+        radius="md"
+        size="md"
+        onClick={onButtonClick}
+        className="shadow-sm hover:shadow-md transition-shadow"
+      >
+        {buttonText}
+      </MantineButton>
+    )}
+  </div>
+);
+
+// Enhanced Tab Button Component
+const TabButton = ({ 
+  active, 
+  onClick, 
+  children, 
+  hasActivity 
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+  hasActivity?: boolean;
+}) => (
+  <div className="relative">
+    <MantineButton
+      variant={active ? 'filled' : 'outline'}
+      onClick={onClick}
+      color="#1D9B5E"
+      size="sm"
+    >
+      {children}
+    </MantineButton>
+    <ActivityIndicator
+      visible={Boolean(hasActivity) && !active}
+      color="#ef4444"
+      size={10}
+      top="-4px"
+      right="-4px"
+      animation="glow"
+      animationDuration={2}
+      showBorder={true}
+      borderColor="#ffffff"
+      zIndex={60}
+    />
+  </div>
+);
 
 const clientColumnHelper = createColumnHelper<Client>();
 const groupColumnHelper = createColumnHelper<GroupData>();
 
-// Client Source Badge Component
-const ClientSourceBadge = ({ source, className = "" }: { source?: ClientSource; className?: string }) => {
-  const getBadgeProps = (source?: ClientSource) => {
-    switch (source) {
-      case 'booking_link':
-        return {
-          color: 'blue',
-          variant: 'light',
-          label: 'Booking'
-        };
-      case 'manual':
-      default:
-        return {
-          color: 'gray',
-          variant: 'light',
-          label: 'Manual'
-        };
-    }
-  };
-
-  const props = getBadgeProps(source);
-  
-  return (
-    <Badge 
-      color={props.color} 
-      variant={props.variant}
-      size="sm"
-      className={className}
-    >
-      {props.label}
-    </Badge>
-  );
-};
-
 const AllClients = () => {
   const [pageIndex, setPageIndex] = useState(1);
-
   const [rowSelection, setRowSelection] = useState({});
-  const [selectedClient, setSelectedClient] = useState<
-    Client | GroupData | null
-  >(null); 
+  const [selectedClient, setSelectedClient] = useState<Client | GroupData | null>(null); 
   const [opened, { open, close }] = useDisclosure(false);
   const [isActivating, setIsActivating] = useState(false);
   const [activeView, setActiveView] = useState<'clients' | 'groups' | 'bookings'>('clients');
@@ -133,36 +174,62 @@ const AllClients = () => {
     refetch: refetchGroups,
   } = useGetGroups();
 
+  // Booking requests data
   const {
-    data: bookingRequestsData = {} as PaginatedResponse<BookingRequest>,
+    data: bookingRequestsData,
     isLoading: bookingRequestsLoading,
     isError: bookingRequestsError,
-    error: bookingRequestsGetError,
+    error: bookingRequestsApiError,
     refetch: refetchBookingRequests,
-  } = useGetBookingRequests(
-    pageIndex, 
-    10, 
-    activeView === 'bookings' ? debouncedSearchQuery : undefined
-  );
+  } = useGetBookingRequests(1, 10, activeView === 'bookings' ? debouncedSearchQuery : undefined);
 
   const approveBookingMutation = useApproveBookingRequest();
   const rejectBookingMutation = useRejectBookingRequest();
   const cancelBookingMutation = useCancelBookingRequest();
 
-  const searchGroups = useCallback((groups: GroupData[], query: string) => {
-    if (!query || !query.trim()) return groups;
-    
-    const searchTerm = query.toLowerCase().trim();
-    return groups.filter((group) => {
-      const name = safeToString(group?.name);
-      const description = safeToString(group?.description);
-      const location = safeToString(group?.location);
+  // Count pending booking requests for badge
+  const pendingBookingCount = useMemo(() => {
+    if (!bookingRequestsData?.items) return 0;
+    const count = bookingRequestsData.items.filter((booking: BookingRequest) => booking.status === 'pending').length;
+    console.log('Pending booking count:', count, 'Total bookings:', bookingRequestsData.items.length);
+    return count;
+  }, [bookingRequestsData?.items]);
 
-      return (
-        name.includes(searchTerm) ||
-        description.includes(searchTerm) ||
-        location.includes(searchTerm)
-      );
+  const handleApproveBooking = useCallback(async (requestId: number) => {
+    try {
+      await approveBookingMutation.mutateAsync(requestId);
+      // Success notification and refetch handled by mutation
+    } catch (error) {
+      // Error notification handled by mutation
+    }
+  }, [approveBookingMutation]);
+
+  const handleRejectBooking = useCallback(async (requestId: number, reason?: string) => {
+    try {
+      await rejectBookingMutation.mutateAsync({ requestId, reason: reason || '' });
+      // Success notification and refetch handled by mutation
+    } catch (error) {
+      // Error notification handled by mutation
+    }
+  }, [rejectBookingMutation]);
+
+  const handleCancelBooking = useCallback(async (requestId: number, reason?: string) => {
+    try {
+      await cancelBookingMutation.mutateAsync({ requestId, reason: reason || '' });
+      // Success notification and refetch handled by mutation
+    } catch (error) {
+      // Error notification handled by mutation
+    }
+  }, [cancelBookingMutation]);
+
+  const searchGroups = useCallback((groups: GroupData[], query: string) => {
+    if (!query.trim()) return groups;
+    
+    const lowercaseQuery = query.toLowerCase();
+    return groups.filter((group) => {
+      const name = safeToString(group.name).toLowerCase();
+      const description = safeToString(group.description).toLowerCase();
+      return name.includes(lowercaseQuery) || description.includes(lowercaseQuery);
     });
   }, []);
 
@@ -221,62 +288,62 @@ const AllClients = () => {
     openExportModal: openGroupExportModal,
     closeExportModal: closeGroupExportModal,
     handleExport: handleGroupExport,
-    isExporting: groupIsExporting,
-  } = useExportGroups(groups || []);
+    isExporting: isExportingGroups,
+  } = useExportGroups(groups);
+
+  // Client source badge component
+  const ClientSourceBadge = ({ source }: { source: ClientSource }) => {
+    const getSourceConfig = (source: ClientSource) => {
+      switch (source) {
+        case 'manual':
+          return { color: 'blue', label: 'Manual' };
+        case 'booking_link':
+          return { color: 'green', label: 'Booking Link' };
+        default:
+          return { color: 'gray', label: 'Unknown' };
+      }
+    };
+
+    const config = getSourceConfig(source);
+    return (
+      <Badge color={config.color} variant="light" size="sm">
+        {config.label}
+      </Badge>
+    );
+  };
 
   const columns: ColumnDef<Client, any>[] = useMemo(
     () => [
-      clientColumnHelper.display({
-        id: 'select',
-        header: ({ table }) => (
-          <input
-            type='checkbox'
-            checked={table.getIsAllRowsSelected()}
-            onChange={table.getToggleAllRowsSelectedHandler()}
-            className='w-4 h-4 rounded cursor-pointer bg-[#F7F8FA] accent-[#DBDEDF]'
-          />
-        ),
-        cell: ({ row }) => (
-          <input
-            type='checkbox'
-            checked={row.getIsSelected()}
-            onClick={(e) => e.stopPropagation()}
-            onChange={row.getToggleSelectedHandler()}
-            className='w-4 h-4 rounded cursor-pointer bg-[#F7F8FA] accent-[#DBDEDF]'
-          />
-        ),
-      }),
-      clientColumnHelper.accessor(
-        (row) => {
-          const firstName = row.first_name?.trim() || '';
-          const lastName = row.last_name?.trim() || '';
-          const fullName = `${firstName} ${lastName}`.trim();
-          return fullName || 'Unnamed Client';
+      clientColumnHelper.accessor('first_name', {
+        header: 'Name',
+        cell: (info) => {
+          const firstName = safeToString(info.getValue());
+          const lastName = safeToString(info.row.original.last_name);
+          return `${firstName} ${lastName}`.trim() || 'N/A';
         },
-        {
-          id: 'name',
-          header: 'Name',
-          cell: (info) => (
-            <div className='flex flex-col'>
-              <span className='text-sm text-primary'>{info.getValue()}</span>
-              <span className='text-xs text-[#8A8D8E]'>
-                {info.row.original.id}
-              </span>
-            </div>
-          ),
-        }
-      ),
-      clientColumnHelper.accessor('phone_number', {
-        header: 'Phone',
-        cell: (info) => info.getValue() || '-',
       }),
       clientColumnHelper.accessor('email', {
         header: 'Email',
-        cell: (info) => info.getValue() || '-',
+        cell: (info) => safeToString(info.getValue()) || 'N/A',
+      }),
+      clientColumnHelper.accessor('phone_number', {
+        header: 'Phone Number',
+        cell: (info) => safeToString(info.getValue()) || 'N/A',
+      }),
+      clientColumnHelper.accessor('location', {
+        header: 'Location',
+        cell: (info) => safeToString(info.getValue()) || 'N/A',
+      }),
+      clientColumnHelper.accessor('assigned_classes', {
+        header: 'Sessions',
+        cell: (info) => info.getValue() || 0,
       }),
       clientColumnHelper.accessor('active', {
-        header: 'Status',
-        cell: (info) => (
+        id: 'active',
+        header: 'Status', 
+        cell: (
+          info 
+        ) => (
           <span
             className={`inline-block px-2 py-1 rounded-lg text-sm text-center min-w-[70px] ${
               info.getValue()
@@ -292,13 +359,6 @@ const AllClients = () => {
         header: 'Source',
         cell: (info) => (
           <ClientSourceBadge source={info.getValue()} />
-        ),
-      }),
-      clientColumnHelper.display({
-        id: 'progress',
-        header: 'Progress',
-        cell: () => (
-          <Progress color='#A6EECB' size='sm' radius='xl' value={50} />
         ),
       }),
       clientColumnHelper.display({
@@ -335,119 +395,66 @@ const AllClients = () => {
             </Group>
           </div>
         ),
-        cell: (info) => {
-          const client = info.row.original;
+        cell: ({ row }) => {
+          const client = row.original;
           return (
-            <div
-              className='flex space-x-2'
-              onClick={(e) => e.stopPropagation()}
-            >
-              <Group justify='center'>
-                <Menu
-                  width={150}
-                  shadow='md'
-                  position='bottom'
-                  radius='md'
-                  withArrow
-                  offset={4}
-                >
-                  <Menu.Target>
-                    <img
-                      src={actionOptionIcon}
-                      alt='Options'
-                      className='w-4 h-4 cursor-pointer'
-                    />
-                  </Menu.Target>
-                  <Menu.Dropdown>
-                    {client.active ? (
-                      <Menu.Item
-                        color='red'
-                        onClick={() => {
-                          setSelectedClient(client);
-                          setIsActivating(false);
-                          open();
-                        }}
-                        className='text-sm'
-                        style={{ textAlign: 'center' }}
-                      >
-                        Deactivate
-                      </Menu.Item>
-                    ) : (
-                      <Menu.Item
-                        color='green'
-                        onClick={() => {
-                          setSelectedClient(client);
-                          setIsActivating(true);
-                          open();
-                        }}
-                        className='text-sm'
-                        style={{ textAlign: 'center' }}
-                      >
-                        Activate
-                      </Menu.Item>
-                    )}
-                  </Menu.Dropdown>
-                </Menu>
-              </Group>
+            <div className='flex space-x-2 items-center' onClick={(e) => e.stopPropagation()}>
+              <Menu
+                width={150}
+                shadow='md'
+                position='bottom'
+                radius='md'
+                withArrow
+                offset={4}
+              >
+                <Menu.Target>
+                  <img
+                    src={actionOptionIcon}
+                    alt='Options'
+                    className='w-4 h-4 cursor-pointer'
+                  />
+                </Menu.Target>
+                <Menu.Dropdown>
+                  <Menu.Item
+                    color='#162F3B'
+                    className='text-sm'
+                    onClick={() => {
+                      setSelectedClient(client);
+                      setIsActivating(!client.active);
+                      open();
+                    }}
+                  >
+                    {client.active ? 'Deactivate' : 'Activate'}
+                  </Menu.Item>
+                </Menu.Dropdown>
+              </Menu>
             </div>
           );
         },
       }),
     ],
-    [setSelectedClient, open, openExportModal]
+    [openExportModal, open]
   );
 
   const groupColumns: ColumnDef<GroupData, any>[] = useMemo(
     () => [
-      groupColumnHelper.display({
-        id: 'select',
-        header: ({ table }) => (
-          <input
-            type='checkbox'
-            checked={table.getIsAllRowsSelected()}
-            onChange={table.getToggleAllRowsSelectedHandler()}
-            className='w-4 h-4 rounded cursor-pointer bg-[#F7F8FA] accent-[#DBDEDF]'
-          />
-        ),
-        cell: ({ row }) => (
-          <input
-            type='checkbox'
-            checked={row.getIsSelected()}
-            onClick={(e) => e.stopPropagation()}
-            onChange={row.getToggleSelectedHandler()}
-            className='w-4 h-4 rounded cursor-pointer bg-[#F7F8FA] accent-[#DBDEDF]'
-          />
-        ),
-      }),
       groupColumnHelper.accessor('name', {
-        id: 'name',
-        header: 'Name',
-        cell: (info) => info.getValue(),
+        header: 'Group Name',
+        cell: (info) => safeToString(info.getValue()) || 'N/A',
       }),
       groupColumnHelper.accessor('description', {
-        id: 'description',
         header: 'Description',
-        cell: (info) => info.getValue(),
+        cell: (info) => {
+          const description = safeToString(info.getValue());
+          return description.length > 50 
+            ? `${description.substring(0, 50)}...`
+            : description || 'N/A';
+        },
       }),
       groupColumnHelper.accessor('location', {
-        id: 'location',
         header: 'Location',
-        cell: (info) => info.getValue(),
+        cell: (info) => safeToString(info.getValue()) || 'N/A',
       }),
-      groupColumnHelper.accessor(
-        (row) => row.contact_person,
-        {
-          id: 'contact_person',
-          header: 'Contact Person',
-          cell: (info) => {
-            const contactPerson = info.getValue();
-            if (contactPerson && contactPerson.first_name && contactPerson.last_name) {
-              return `${contactPerson.first_name} ${contactPerson.last_name}`;
-            }
-            return 'N/A';
-          },
-        }
-      ),
       groupColumnHelper.accessor('active', {
         id: 'active',
         header: 'Status', 
@@ -505,51 +512,19 @@ const AllClients = () => {
             </Group>
           </div>
         ),
-        cell: (info) => (
-          <div className='flex space-x-2' onClick={(e) => e.stopPropagation()}>
-            <Group justify='center'>
-              <Menu
-                width={150}
-                shadow='md'
-                position='bottom'
-                radius='md'
-                withArrow
-                offset={4}
-              >
-                <Menu.Target>
-                  <img
-                    src={actionOptionIcon}
-                    alt='Options'
-                    className='w-4 h-4 cursor-pointer'
-                  />
-                </Menu.Target>
-                <Menu.Dropdown>
-                  <Menu.Item
-                    color='red'
-                    onClick={() => {
-                      setSelectedClient(info.row.original);
-                      setIsActivating(false);
-                      open();
-                    }}
-                    className='text-sm'
-                    style={{ textAlign: 'center' }}
-                  >
-                    Deactivate
-                  </Menu.Item>
-                </Menu.Dropdown>
-              </Menu>
-            </Group>
+        cell: () => (
+          <div className='flex space-x-2 items-center' onClick={(e) => e.stopPropagation()}>
+            {/* Add group-specific actions here if needed */}
           </div>
         ),
       }),
     ],
-    [openGroupExportModal, open]
+    [openGroupExportModal]
   );
 
   const handleDeactivateEntity = () => {
     if (!selectedClient) return;
     
-
     const mutation = activeView === 'clients' ? deactivateClientMutation : null; // Replace null with deactivateGroupMutation
     const entityId = selectedClient.id?.toString();
     const entityType = activeView === 'clients' ? 'Client' : 'Group';
@@ -667,61 +642,8 @@ const AllClients = () => {
 
   const isLoadingCurrent = activeView === 'clients' ? isLoading : activeView === 'groups' ? groupsLoading : bookingRequestsLoading;
   const isErrorCurrent = activeView === 'clients' ? isError : activeView === 'groups' ? groupsError : bookingRequestsError;
-  const errorCurrent = activeView === 'clients' ? error : activeView === 'groups' ? getGroupsError : bookingRequestsGetError;
+  const errorCurrent = activeView === 'clients' ? error : activeView === 'groups' ? getGroupsError : bookingRequestsApiError;
   const refetchCurrent = activeView === 'clients' ? refetch : activeView === 'groups' ? refetchGroups : refetchBookingRequests;
-
-  const handleApproveBooking = async (requestId: number) => {
-    try {
-      await approveBookingMutation.mutateAsync(requestId);
-      notifications.show({
-        title: 'Success',
-        message: 'Booking request approved successfully',
-        color: 'green',
-      });
-      refetchBookingRequests();
-      refetch(); // Refresh clients list as new client may have been created
-    } catch (error) {
-      console.error('Error approving booking:', error);
-    }
-  };
-
-  const handleRejectBooking = async (requestId: number, reason?: string) => {
-    try {
-      await rejectBookingMutation.mutateAsync({ requestId, reason });
-      notifications.show({
-        title: 'Success',
-        message: 'Booking request rejected',
-        color: 'orange',
-      });
-      refetchBookingRequests();
-    } catch (error) {
-      console.error('Error rejecting booking:', error);
-    }
-  };
-
-  const handleCancelBooking = async (requestId: number, reason?: string) => {
-    try {
-      await cancelBookingMutation.mutateAsync({ requestId, reason });
-      notifications.show({
-        title: 'Success',
-        message: 'Booking request cancelled',
-        color: 'orange',
-      });
-      refetchBookingRequests();
-    } catch (error) {
-      console.error('Error cancelling booking:', error);
-    }
-  };
-
-  if (isLoadingCurrent) {
-    return (
-      <ErrorBoundary>
-        <div className='flex justify-center items-center h-screen p-6 pt-12'>
-          <Loader size='xl' color='#1D9B5E' />
-        </div>
-      </ErrorBoundary>
-    );
-  }
 
   if (isErrorCurrent) {
     return (
@@ -748,7 +670,7 @@ const AllClients = () => {
       <div className='flex flex-col h-screen bg-cardsBg w-full overflow-y-auto'>
         <MembersHeader
           title={activeView === 'clients' ? 'All Clients' : activeView === 'groups' ? 'All Groups' : 'Client Booking Requests'}
-          buttonText={activeView === 'clients' ? 'Add Client' : activeView === 'groups' ? 'Add Group' : 'Manage Bookings'}
+          buttonText={activeView === 'clients' ? 'Add Client' : activeView === 'groups' ? 'Add Group' : undefined}
           searchPlaceholder={
             activeView === 'clients'
               ? 'Search by Name, Email or Phone Number'
@@ -759,236 +681,220 @@ const AllClients = () => {
           searchValue={searchQuery}
           onSearchChange={handleSearchChange}
           leftIcon={plusIcon}
-          onButtonClick={handleOpenClientDrawer }
-          showButton={permisions?.can_create_clients}
+          onButtonClick={activeView !== 'bookings' ? handleOpenClientDrawer : undefined}
+          showButton={activeView !== 'bookings' && permisions?.can_create_clients}
         />
+        
+        {/* Enhanced Tab Navigation */}
         <div className='px-6 pt-4 pb-2'>
           <Group>
-            <MantineButton
-              variant={activeView === 'clients' ? 'filled' : 'outline'}
+            <TabButton
+              active={activeView === 'clients'}
               onClick={() => handleViewChange('clients')}
-              color={activeView === 'clients' ? '#1D9B5E' : '#1D9B5E'}
             >
               Clients
-            </MantineButton>
-            <MantineButton
-              variant={activeView === 'groups' ? 'filled' : 'outline'}
+            </TabButton>
+            <TabButton
+              active={activeView === 'groups'}
               onClick={() => handleViewChange('groups')}
-              color={activeView === 'groups' ? '#1D9B5E' : '#1D9B5E'}
             >
               Groups
-            </MantineButton>
-            <MantineButton
-              variant={activeView === 'bookings' ? 'filled' : 'outline'}
+            </TabButton>
+            <TabButton
+              active={activeView === 'bookings'}
               onClick={() => handleViewChange('bookings')}
-              color={activeView === 'bookings' ? '#1D9B5E' : '#1D9B5E'}
+              hasActivity={pendingBookingCount > 0}
             >
               Client Bookings
-            </MantineButton>
+            </TabButton>
           </Group>
         </div>
-        <EmptyDataPage
-          title={
-            searchQuery.trim()
-              ? `No ${activeView === 'clients' ? 'Clients' : activeView === 'groups' ? 'Groups' : 'Booking Requests'} Found`
-              : activeView === 'clients' ? 'No Clients Found' : activeView === 'groups' ? 'No Groups Found' : 'No Booking Requests Found'
-          }
-          description={
-            debouncedSearchQuery.trim()
-              ? `No ${activeView === 'clients' ? 'clients' : activeView === 'groups' ? 'groups' : 'booking requests'} match your search "${debouncedSearchQuery}"`
-              : activeView === 'clients'
-              ? "You don't have any clients yet"
-              : activeView === 'groups'
-              ? "You don't have any groups yet"
-              : "No booking requests at this time. Client booking requests will appear here when submitted through your booking links."
-          }
-          buttonText={
-            searchQuery.trim()
-              ? 'Clear Search'
-              : activeView === 'clients' ? 'Add New Client' : activeView === 'groups' ? 'Add New Group' : 'Manage Booking Settings'
-          }
-          onButtonClick={searchQuery.trim() ? () => setSearchQuery('') : handleOpenClientDrawer}
-          onClose={() => {}}
-          opened={
-            (activeView === 'clients'
-              ? clients.length === 0
-              : activeView === 'groups'
-              ? groups.length === 0
-              : bookingRequests.length === 0) && !isLoadingCurrent
-          }
-          showButton={Boolean(searchQuery.trim()) || Boolean(permisions?.can_create_clients)}
-        />
+
         <div className='flex-1 px-6 py-3'>
-          {activeView === 'clients' && clients.length > 0 && (
-            <Table<Client>
-              data={clients}
-              columns={columns}
-              rowSelection={rowSelection}
-              onRowSelectionChange={setRowSelection}
-              className='mt-4'
-              pageSize={12}
-              onRowClick={(row: Client) => {
-                  navigateToClientDetails(navigate, row.id.toString());
-              }}
-              paginateServerSide={true}
-              pageIndex={pageIndex}
-              pageCount={data.totalPages}
-              onPageChange={setPageIndex}
-            />
-          )}
-          {activeView === 'groups' && groups.length > 0 && (
-            <Table<GroupData>
-              data={groups}
-              columns={groupColumns}
-              rowSelection={rowSelection}
-              onRowSelectionChange={setRowSelection}
-              className='mt-4'
-              pageSize={12}
-              onRowClick={(row: GroupData) => {
-                if (row.id) { 
-                  navigateToGroupDetails(navigate, row.id.toString());
-                }
-              }}
-            />
-          )}
-          {activeView === 'bookings' && (
-            <BookingRequestsTable
-              data={bookingRequests}
-              onApprove={handleApproveBooking}
-              onReject={handleRejectBooking}
-              onCancel={handleCancelBooking}
-              isLoading={bookingRequestsLoading}
-            />
+          {isLoadingCurrent ? (
+            <div className='flex justify-center items-center py-16'>
+              <Loader color='#1D9B5E' size='xl' />
+            </div>
+          ) : (
+            <>
+              {/* Clients View */}
+              {activeView === 'clients' && (
+                <>
+                  {clients.length > 0 ? (
+                    <Table<Client>
+                      data={clients}
+                      columns={columns}
+                      rowSelection={rowSelection}
+                      onRowSelectionChange={setRowSelection}
+                      className='mt-4'
+                      pageSize={12}
+                      onRowClick={(row: Client) => {
+                          navigateToClientDetails(navigate, row.id.toString());
+                      }}
+                      paginateServerSide={true}
+                      pageIndex={pageIndex}
+                      pageCount={data.totalPages}
+                      onPageChange={setPageIndex}
+                    />
+                  ) : (
+                    <EmptyStateCard
+                      title={searchQuery.trim() ? "No Clients Found" : "No Clients Yet"}
+                      description={
+                        searchQuery.trim()
+                          ? `No clients match your search "${searchQuery}". Try different search terms or add a new client.`
+                          : "You haven't added any clients yet. Clients will appear here once you start adding them to your system."
+                      }
+                      icon={usersIcon}
+                      buttonText={searchQuery.trim() ? "Clear Search" : "Add Your First Client"}
+                      onButtonClick={searchQuery.trim() ? () => setSearchQuery('') : handleOpenClientDrawer}
+                      showButton={Boolean(searchQuery.trim()) || Boolean(permisions?.can_create_clients)}
+                    />
+                  )}
+                </>
+              )}
+
+              {/* Groups View */}
+              {activeView === 'groups' && (
+                <>
+                  {groups.length > 0 ? (
+                    <Table<GroupData>
+                      data={groups}
+                      columns={groupColumns}
+                      rowSelection={rowSelection}
+                      onRowSelectionChange={setRowSelection}
+                      className='mt-4'
+                      pageSize={12}
+                      onRowClick={(row: GroupData) => {
+                        if (row.id) { 
+                          navigateToGroupDetails(navigate, row.id.toString());
+                        }
+                      }}
+                    />
+                  ) : (
+                    <EmptyStateCard
+                      title={searchQuery.trim() ? "No Groups Found" : "No Groups Yet"}
+                      description={
+                        searchQuery.trim()
+                          ? `No groups match your search "${searchQuery}". Try different search terms or create a new group.`
+                          : "You haven't created any client groups yet. Groups help you organize and manage multiple clients together."
+                      }
+                      icon={totalClientsIcon}
+                      buttonText={searchQuery.trim() ? "Clear Search" : "Create Your First Group"}
+                      onButtonClick={searchQuery.trim() ? () => setSearchQuery('') : handleOpenClientDrawer}
+                      showButton={Boolean(searchQuery.trim()) || Boolean(permisions?.can_create_clients)}
+                    />
+                  )}
+                </>
+              )}
+
+              {/* Bookings View */}
+              {activeView === 'bookings' && (
+                <>
+                  {bookingRequests.length > 0 ? (
+                    <BookingRequestsTable
+                      data={bookingRequests}
+                      onApprove={handleApproveBooking}
+                      onReject={handleRejectBooking}
+                      onCancel={handleCancelBooking}
+                      isLoading={bookingRequestsLoading}
+                    />
+                  ) : (
+                    <EmptyStateCard
+                      title={searchQuery.trim() ? "No Booking Requests Found" : "No Booking Requests"}
+                      description={
+                        searchQuery.trim()
+                          ? `No booking requests match your search "${searchQuery}". Try different search terms.`
+                          : "No client booking requests at this time. Booking requests from clients will appear here when they book through your public booking links."
+                      }
+                      icon={emptyIcon}
+                      buttonText={searchQuery.trim() ? "Clear Search" : undefined}
+                      onButtonClick={searchQuery.trim() ? () => setSearchQuery('') : undefined}
+                      showButton={Boolean(searchQuery.trim())}
+                    />
+                  )}
+                </>
+              )}
+            </>
           )}
         </div>
-      </div>
 
-      <Modal
-        opened={opened}
-        onClose={close}
-        title={
-          <Text fw={600} size='lg'>
-            {isActivating
-              ? `Activate ${activeView === 'clients' ? 'Client' : 'Group'}`
-              : `Deactivate ${activeView === 'clients' ? 'Client' : 'Group'}`}
-          </Text>
-        }
-        centered
-        radius='md'
-        size='md'
-        withCloseButton={false}
-        overlayProps={{
-          backgroundOpacity: 0.55,
-          blur: 3,
-        }}
-        shadow='xl'
-      >
-        <div className='flex items-start space-x-4 mb-6'>
-          <div
-            className={`flex-shrink-0 w-10 h-10 rounded-full ${
-              isActivating ? 'bg-green-100' : 'bg-red-100'
-            } flex items-center justify-center`}
-          >
-            <img
-              src={isActivating ? successIcon : errorIcon}
-              alt='Warning'
-              className='w-5 h-5'
-            />
-          </div>
-          <div>
-            <Text fw={500} size='md' mb={8} c='gray.8'>
-              Are you sure you want to{' '}
-              {isActivating ? 'activate' : 'deactivate'} this{' '}
+        {/* Confirmation Modal */}
+        <Modal
+          opened={opened}
+          onClose={close}
+          title={`${isActivating ? 'Activate' : 'Deactivate'} ${activeView === 'clients' ? 'Client' : 'Group'}`}
+          centered
+        >
+          <Stack>
+            <Text>
+              Are you sure you want to {isActivating ? 'activate' : 'deactivate'} this{' '}
               {activeView === 'clients' ? 'client' : 'group'}?
             </Text>
-            <Text size='sm' c='gray.6'>
-              {isActivating
-                ? `This action will make the ${
-                    activeView === 'clients' ? 'client' : 'group'
-                  } active in the system. They will appear in active ${
-                    activeView === 'clients' ? 'client' : 'group'
-                  } lists.`
-                : `This action will make the ${
-                    activeView === 'clients' ? 'client' : 'group'
-                  } inactive in the system. They will no longer appear in active ${
-                    activeView === 'clients' ? 'client' : 'group'
-                  } lists.`}
+            <Group justify='flex-end'>
+              <MantineButton variant='outline' onClick={close}>
+                Cancel
+              </MantineButton>
+              <MantineButton
+                color={isActivating ? 'green' : 'red'}
+                onClick={isActivating ? handleActivateEntity : handleDeactivateEntity}
+              >
+                {isActivating ? 'Activate' : 'Deactivate'}
+              </MantineButton>
+            </Group>
+          </Stack>
+        </Modal>
+
+        {/* Export Modals */}
+        <Modal
+          opened={exportModalOpened}
+          onClose={closeExportModal}
+          title='Export Clients'
+          centered
+        >
+          <Stack>
+            <Text size='sm'>
+              Export all client data to CSV format for backup or analysis.
             </Text>
-          </div>
-        </div>
+            <Group justify='flex-end'>
+              <MantineButton variant='outline' onClick={closeExportModal}>
+                Cancel
+              </MantineButton>
+              <MantineButton
+                onClick={() => handleExport('csv', Object.keys(rowSelection).map(Number))}
+                loading={isExporting}
+                color='green'
+              >
+                Export
+              </MantineButton>
+            </Group>
+          </Stack>
+        </Modal>
 
-        <div className='flex justify-end gap-2 mt-4'>
-          <MantineButton
-            color={isActivating ? 'green' : 'red'}
-            onClick={
-              isActivating ? handleActivateEntity : handleDeactivateEntity
-            }
-            loading={
-              (isActivating &&
-                activeView === 'clients' &&
-                activateClientMutation.isPending) ||
-              (!isActivating &&
-                activeView === 'clients' &&
-                deactivateClientMutation.isPending)
-            }
-            radius='md'
-          >
-            {isActivating ? 'Activate' : 'Deactivate'}
-          </MantineButton>
-        </div>
-      </Modal>
-
-      <Modal
-        opened={exportModalOpened || groupExportModalOpened}
-        onClose={activeView === 'clients' ? closeExportModal : closeGroupExportModal}
-        title={
-          <Text fw={600} size='lg'>
-            Export {activeView === 'clients' ? 'Clients' : 'Groups'}
-          </Text>
-        }
-        centered
-        radius='md'
-        size='md'
-        withCloseButton={false}
-        overlayProps={{
-          backgroundOpacity: 0.55,
-          blur: 3,
-        }}
-        shadow='xl'
-      >
-        <div className='py-2'>
-          <Text size='sm' style={{ marginBottom: '2rem' }}>
-            Select the format to export your{' '}
-            {activeView === 'clients' ? 'clients' : 'groups'}. The export will
-            include all currently filtered{' '}
-            {activeView === 'clients' ? 'clients' : 'groups'} or selected{' '}
-            {activeView === 'clients' ? 'clients' : 'groups'} if any. Number of
-            selected {activeView === 'clients' ? 'clients' : 'groups'}:{' '}
-            {Object.keys(rowSelection).length > 0
-              ? Object.keys(rowSelection).length
-              : 'All'}
-          </Text>
-          <Group gap="sm" style={{ marginTop: "2rem" }}>
-            <MantineButton
-              color="#1D9B5E"
-              onClick={() => activeView === 'clients' ? handleExport('csv', Object.keys(rowSelection).map(Number)) : handleGroupExport('csv', Object.keys(rowSelection).map(Number))}
-              loading={activeView === 'clients' ? isExporting : groupIsExporting}
-              radius="md"
-            >
-              CSV Export
-            </MantineButton>
-            <MantineButton
-              color="#1D9B5E"
-              variant="outline"
-              onClick={() => activeView === 'clients' ? handleExport('excel', Object.keys(rowSelection).map(Number)) : handleGroupExport('excel', Object.keys(rowSelection).map(Number))}
-              loading={activeView === 'clients' ? isExporting : groupIsExporting}
-              radius="md"
-            >
-              Excel Export
-            </MantineButton>
-          </Group>
-        </div>
-      </Modal>
+        <Modal
+          opened={groupExportModalOpened}
+          onClose={closeGroupExportModal}
+          title='Export Groups'
+          centered
+        >
+          <Stack>
+            <Text size='sm'>
+              Export all group data to CSV format for backup or analysis.
+            </Text>
+            <Group justify='flex-end'>
+              <MantineButton variant='outline' onClick={closeGroupExportModal}>
+                Cancel
+              </MantineButton>
+              <MantineButton
+                onClick={() => handleGroupExport('csv', Object.keys(rowSelection).map(Number))}
+                loading={isExportingGroups}
+                color='green'
+              >
+                Export
+              </MantineButton>
+            </Group>
+          </Stack>
+        </Modal>
+      </div>
     </ErrorBoundary>
   );
 };

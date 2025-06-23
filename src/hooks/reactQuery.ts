@@ -141,6 +141,8 @@ import {
   cancel_client_booking,
   get_client_reschedule_options,
   reschedule_client_booking,
+  get_public_available_staff,
+  get_public_available_locations,
 } from "../api/api";
 import { Role, useAuthStore } from "../store/auth";
 import { AddClient, Client, ClientData } from "../types/clientTypes";
@@ -1699,11 +1701,32 @@ export const useApproveBookingRequest = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (requestId: number) => approve_booking_request(requestId),
-    onSuccess: () => {
+    onSuccess: (data) => {
+      // Invalidate queries to refresh the table
       queryClient.invalidateQueries({ queryKey: ["booking_requests"] });
       queryClient.invalidateQueries({ queryKey: ["clients"] });
+      queryClient.invalidateQueries({ queryKey: ["booking-notifications"] });
+      
+      // Show success notification
+      import('@mantine/notifications').then(({ notifications }) => {
+        notifications.show({
+          title: 'Success',
+          message: 'Booking request approved successfully',
+          color: 'green',
+        });
+      });
     },
-    onError: (error) => console.error("Approve booking request error:", error),
+    onError: (error) => {
+      console.error("Approve booking request error:", error);
+      // Show error notification
+      import('@mantine/notifications').then(({ notifications }) => {
+        notifications.show({
+          title: 'Error',
+          message: 'Failed to approve booking request',
+          color: 'red',
+        });
+      });
+    },
   });
 };
 
@@ -1712,10 +1735,32 @@ export const useRejectBookingRequest = () => {
   return useMutation({
     mutationFn: ({ requestId, reason }: { requestId: number; reason?: string }) => 
       reject_booking_request(requestId, reason),
-    onSuccess: () => {
+    onSuccess: (data) => {
+      // Invalidate queries to refresh the table
       queryClient.invalidateQueries({ queryKey: ["booking_requests"] });
+      queryClient.invalidateQueries({ queryKey: ["clients"] });
+      queryClient.invalidateQueries({ queryKey: ["booking-notifications"] });
+      
+      // Show success notification
+      import('@mantine/notifications').then(({ notifications }) => {
+        notifications.show({
+          title: 'Success',
+          message: 'Booking request rejected successfully',
+          color: 'orange',
+        });
+      });
     },
-    onError: (error) => console.error("Reject booking request error:", error),
+    onError: (error) => {
+      console.error("Reject booking request error:", error);
+      // Show error notification
+      import('@mantine/notifications').then(({ notifications }) => {
+        notifications.show({
+          title: 'Error',
+          message: 'Failed to reject booking request',
+          color: 'red',
+        });
+      });
+    },
   });
 };
 
@@ -1764,10 +1809,32 @@ export const useCancelBookingRequest = () => {
   return useMutation({
     mutationFn: ({ requestId, reason }: { requestId: number; reason?: string }) => 
       cancel_booking_request(requestId, reason),
-    onSuccess: () => {
+    onSuccess: (data) => {
+      // Invalidate queries to refresh the table
       queryClient.invalidateQueries({ queryKey: ["booking_requests"] });
+      queryClient.invalidateQueries({ queryKey: ["clients"] });
+      queryClient.invalidateQueries({ queryKey: ["booking-notifications"] });
+      
+      // Show success notification
+      import('@mantine/notifications').then(({ notifications }) => {
+        notifications.show({
+          title: 'Success',
+          message: 'Booking request cancelled successfully',
+          color: 'orange',
+        });
+      });
     },
-    onError: (error) => console.error("Cancel booking request error:", error),
+    onError: (error) => {
+      console.error("Cancel booking request error:", error);
+      // Show error notification
+      import('@mantine/notifications').then(({ notifications }) => {
+        notifications.show({
+          title: 'Error',
+          message: 'Failed to cancel booking request',
+          color: 'red',
+        });
+      });
+    },
   });
 };
 
@@ -1902,7 +1969,7 @@ export const useCreatePublicBooking = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: ({ 
+    mutationFn: async ({ 
       businessSlug, 
       bookingData 
     }: { 
@@ -1914,8 +1981,57 @@ export const useCreatePublicBooking = () => {
         client_phone: string;
         notes?: string;
         quantity?: number;
+        selected_staff_id?: number;
+        selected_location_id?: number;
+        is_group_booking?: boolean;
+        group_booking_notes?: string;
+        client_timezone?: string;
+        business_timezone?: string;
+        selected_date?: string;
+        selected_time?: string;
+        selected_end_time?: string;
+        session_title?: string;
+        business_name?: string;
+        business_email?: string;
       }
-    }) => create_public_booking(businessSlug, bookingData),
+    }) => {
+      const response = await create_public_booking(businessSlug, bookingData);
+      
+      // Transform backend response to match BookingConfirmation interface
+      const sessionTitle = bookingData.session_title || 'Session';
+      const bookingDate = bookingData.selected_date || new Date().toISOString().split('T')[0];
+      const startTime = bookingData.selected_time || '09:00';
+      const endTime = bookingData.selected_end_time || '10:00';
+      
+      return {
+        booking_reference: response.booking_reference,
+        status: response.status === 'approved' ? 'auto_approved' : response.status,
+        message: response.message || (response.requires_approval ? 'Your booking request has been submitted and is pending approval.' : 'Your booking has been confirmed successfully!'),
+        requires_approval: response.requires_approval || false,
+        session_details: {
+          title: sessionTitle,
+          date: bookingDate,
+          start_time: startTime,
+          end_time: endTime,
+          location: undefined
+        },
+        client_info: {
+          name: bookingData.client_name,
+          email: bookingData.client_email,
+          phone: bookingData.client_phone
+        },
+        business_info: {
+          name: bookingData.business_name || 'Business',
+          email: bookingData.business_email,
+          phone: undefined
+        },
+        next_steps: [
+          response.requires_approval ? 'You\'ll receive an email once your booking is approved' : 'Check your email for booking confirmation and details',
+          'Add the appointment to your calendar',
+          'Arrive on time for your appointment'
+        ]
+      };
+    },
     onSuccess: () => {
       // Invalidate availability queries as they might have changed
       queryClient.invalidateQueries({ queryKey: ['public-availability'] });
@@ -1974,13 +2090,25 @@ export const useCancelClientBooking = () => {
 export const useGetClientRescheduleOptions = (
   bookingReference: string,
   dateFrom?: string,
-  dateTo?: string
+  dateTo?: string,
+  filterType?: string
 ) => {
   return useQuery({
-    queryKey: ['client-reschedule-options', bookingReference, dateFrom, dateTo],
-    queryFn: () => get_client_reschedule_options(bookingReference, dateFrom, dateTo),
+    queryKey: ['client-reschedule-options', bookingReference, dateFrom, dateTo, filterType],
+    queryFn: () => get_client_reschedule_options(bookingReference, dateFrom, dateTo, filterType),
     enabled: !!bookingReference,
-    staleTime: 1000 * 60 * 2, // 2 minutes
+    staleTime: 1000 * 60 * 5, // 5 minutes - longer cache time to prevent refetches
+    refetchOnWindowFocus: false, // Don't refetch when window focuses
+    refetchOnMount: false, // Don't refetch when component mounts if data is fresh
+    refetchInterval: false, // Disable automatic refetch
+    retry: (failureCount, error) => {
+      // Don't retry if it's a reschedule not allowed error (400)
+      if (error && 'status' in error && error.status === 400) {
+        return false;
+      }
+      // Only retry once for other errors
+      return failureCount < 1;
+    },
   });
 };
 
@@ -1991,11 +2119,24 @@ export const useRescheduleClientBooking = () => {
   return useMutation({
     mutationFn: ({ 
       bookingReference, 
-      newSessionId 
+      newSessionId,
+      newDate,
+      newStartTime,
+      newEndTime,
+      identityVerification,
+      reason
     }: { 
       bookingReference: string;
       newSessionId: number;
-    }) => reschedule_client_booking(bookingReference, newSessionId),
+      newDate?: string;
+      newStartTime?: string;
+      newEndTime?: string;
+      identityVerification?: {
+        email?: string;
+        phone?: string;
+      };
+      reason?: string;
+    }) => reschedule_client_booking(bookingReference, newSessionId, newDate, newStartTime, newEndTime, identityVerification, reason),
     onSuccess: (_, variables) => {
       // Invalidate relevant queries
       queryClient.invalidateQueries({ queryKey: ['client-booking-info', variables.bookingReference] });
@@ -2016,6 +2157,28 @@ export const useGetAvailableSlots = (businessSlug: string, serviceId: string, da
     enabled: !!businessSlug && !!serviceId && !!date,
     refetchOnWindowFocus: true, // Refresh when user comes back to the page
     staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
+  });
+};
+
+// Get available staff for flexible booking
+export const useGetPublicAvailableStaff = (businessSlug: string, sessionId: number, date?: string) => {
+  return useQuery({
+    queryKey: ['publicAvailableStaff', businessSlug, sessionId, date],
+    queryFn: () => get_public_available_staff(businessSlug, { session_id: sessionId, date }),
+    enabled: !!businessSlug && !!sessionId,
+    staleTime: 1000 * 60 * 2, // 2 minutes
+    refetchOnWindowFocus: false,
+  });
+};
+
+// Get available locations for flexible booking
+export const useGetPublicAvailableLocations = (businessSlug: string, sessionId: number, staffId?: number, date?: string) => {
+  return useQuery({
+    queryKey: ['publicAvailableLocations', businessSlug, sessionId, staffId, date],
+    queryFn: () => get_public_available_locations(businessSlug, { session_id: sessionId, staff_id: staffId, date }),
+    enabled: !!businessSlug && !!sessionId,
+    staleTime: 1000 * 60 * 2, // 2 minutes
+    refetchOnWindowFocus: false,
   });
 };
 

@@ -7,19 +7,41 @@ interface UnifiedProgressIndicatorProps {
   className?: string;
 }
 
-const stepNumbers: Record<BookingStep, number> = {
-  service: 1,
-  date: 2,
-  time: 2,
-  details: 3,
-  confirmation: 4
-};
-
 export function UnifiedProgressIndicator({ className = '' }: UnifiedProgressIndicatorProps) {
   const { state } = useBookingFlow();
-  const currentStepNumber = stepNumbers[state.currentStep] || 1;
-  const totalSteps = 4;
-  const progressPercentage = (currentStepNumber / totalSteps) * 100;
+
+  // Dynamically calculate steps based on flexible booking settings
+  const getStepOrder = () => {
+    const baseSteps = ['service', 'date'];
+    const flexibleSteps = [];
+    
+    if (state.flexibleBookingSettings?.allow_staff_selection) {
+      flexibleSteps.push('staff');
+    }
+    if (state.flexibleBookingSettings?.allow_location_selection) {
+      flexibleSteps.push('location');
+    }
+    
+    return [...baseSteps, ...flexibleSteps, 'details', 'confirmation'];
+  };
+
+  const getStepLabels = () => {
+    const labels: Record<string, string> = {
+      service: 'Service',
+      date: 'Date',
+      staff: 'Staff',
+      location: 'Location',
+      details: 'Details',
+      confirmation: 'Confirm'
+    };
+    return labels;
+  };
+
+  const stepOrder = getStepOrder();
+  const stepLabels = getStepLabels();
+  const currentStepIndex = stepOrder.indexOf(state.currentStep);
+  const totalSteps = stepOrder.length;
+  const progressPercentage = ((currentStepIndex + 1) / totalSteps) * 100;
 
   // Only render desktop variant - mobile progress is handled in MobileBusinessHeader
   return (
@@ -34,7 +56,7 @@ export function UnifiedProgressIndicator({ className = '' }: UnifiedProgressIndi
           Progress
         </Text>
         <Text size="xs" className="text-slate-600">
-          Step {currentStepNumber} of {totalSteps}
+          Step {currentStepIndex + 1} of {totalSteps}
         </Text>
       </div>
       
@@ -51,19 +73,27 @@ export function UnifiedProgressIndicator({ className = '' }: UnifiedProgressIndi
         </Text>
       </div>
       
-      <div className="flex justify-between mt-2 text-xs">
-        <span className={currentStepNumber > 1 ? "text-emerald-600" : "text-slate-900 font-medium"}>
-          {currentStepNumber > 1 ? "✓" : ""} Service
-        </span>
-        <span className={currentStepNumber > 2 ? "text-emerald-600" : currentStepNumber === 2 ? "text-slate-900 font-medium" : "text-slate-400"}>
-          {currentStepNumber > 2 ? "✓" : ""} Date
-        </span>
-        <span className={currentStepNumber > 3 ? "text-emerald-600" : currentStepNumber === 3 ? "text-slate-900 font-medium" : "text-slate-400"}>
-          {currentStepNumber > 3 ? "✓" : ""} Details
-        </span>
-        <span className={currentStepNumber === 4 ? "text-slate-900 font-medium" : "text-slate-400"}>
-          Confirm
-        </span>
+      {/* Dynamic Step Labels */}
+      <div className="flex justify-between mt-2 text-xs flex-wrap gap-1">
+        {stepOrder.map((step, index) => {
+          const isCompleted = index < currentStepIndex;
+          const isCurrent = index === currentStepIndex;
+          
+          return (
+            <span 
+              key={step}
+              className={
+                isCompleted 
+                  ? "text-emerald-600" 
+                  : isCurrent 
+                  ? "text-slate-900 font-medium" 
+                  : "text-slate-400"
+              }
+            >
+              {isCompleted ? "✓ " : ""}{stepLabels[step]}
+            </span>
+          );
+        })}
       </div>
     </motion.div>
   );

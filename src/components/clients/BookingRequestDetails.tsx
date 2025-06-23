@@ -63,18 +63,9 @@ const BookingRequestDetails: React.FC = () => {
     setActionLoading(true);
     try {
       await approveBookingMutation.mutateAsync(booking.id);
-      notifications.show({
-        title: 'Success',
-        message: `Booking request from ${booking.client_name} has been approved`,
-        color: 'green',
-      });
-      refetch();
+      // Success notification and refetch handled by mutation
     } catch {
-      notifications.show({
-        title: 'Error',
-        message: 'Failed to approve booking request',
-        color: 'red',
-      });
+      // Error notification handled by mutation
     } finally {
       setActionLoading(false);
     }
@@ -89,20 +80,11 @@ const BookingRequestDetails: React.FC = () => {
         requestId: booking.id, 
         reason: rejectionReason 
       });
-      notifications.show({
-        title: 'Success',
-        message: `Booking request from ${booking.client_name} has been rejected`,
-        color: 'orange',
-      });
+      // Success notification and refetch handled by mutation
       closeRejectModal();
       setRejectionReason('');
-      refetch();
     } catch {
-      notifications.show({
-        title: 'Error',
-        message: 'Failed to reject booking request',
-        color: 'red',
-      });
+      // Error notification handled by mutation
     } finally {
       setActionLoading(false);
     }
@@ -117,20 +99,11 @@ const BookingRequestDetails: React.FC = () => {
         requestId: booking.id, 
         reason: cancellationReason 
       });
-      notifications.show({
-        title: 'Success',
-        message: `Booking request from ${booking.client_name} has been cancelled`,
-        color: 'orange',
-      });
+      // Success notification and refetch handled by mutation
       closeCancelModal();
       setCancellationReason('');
-      refetch();
     } catch {
-      notifications.show({
-        title: 'Error',
-        message: 'Failed to cancel booking request',
-        color: 'red',
-      });
+      // Error notification handled by mutation
     } finally {
       setActionLoading(false);
     }
