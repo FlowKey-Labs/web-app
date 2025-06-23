@@ -179,13 +179,17 @@ const AllSessions = () => {
     searchSessions,
   ]);
 
+  const clearRowSelection = useCallback(() => {
+    setRowSelection({});
+  }, []);
+
   const {
     exportModalOpened,
     openExportModal,
     closeExportModal,
     handleExport,
     isExporting,
-  } = useExportSessions(filteredSessions || []);
+  } = useExportSessions(filteredSessions || [], clearRowSelection);
 
   const getSelectedSessionIds = useCallback(() => {
     if (!filteredSessions) return [];
@@ -905,6 +909,13 @@ const AllSessions = () => {
           ) : (
             <div className='flex-1 md:px-6 md:py-3 pt-4 w-full overflow-x-auto'>
               <div className='min-w-[1100px] md:min-w-0'>
+                <div className='mb-2 text-sm text-gray-500'>
+                  {Object.keys(rowSelection).length > 0 && (
+                    <span className='text-sm font-[400] text-gray-500 mt-1 border rounded-full p-2 border-secondary'>
+                      {Object.keys(rowSelection).length} selected
+                    </span>
+                  )}
+                </div>
                 <Table
                   data={filteredSessions || []}
                   columns={columns}

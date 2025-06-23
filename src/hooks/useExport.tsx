@@ -23,7 +23,7 @@ import errorIcon from '../assets/icons/error.svg';
  * @param sessions Array of sessions to export
  * @returns Export functionality and state
  */
-export const useExportSessions = (sessions: Session[]) => {
+export const useExportSessions = (sessions: Session[], onSuccess?: () => void) => {
   const [isExporting, setIsExporting] = useState(false);
   const [
     exportModalOpened,
@@ -98,6 +98,11 @@ export const useExportSessions = (sessions: Session[]) => {
 
         exportDataToFile(dataToExport, type, 'sessions', ['id']);
 
+        // Call onSuccess callback before showing the success notification
+        if (onSuccess) {
+          onSuccess();
+        }
+
         notifications.show({
           title: 'Export successful',
           message: `${
@@ -135,7 +140,7 @@ export const useExportSessions = (sessions: Session[]) => {
         closeExportModal();
       }
     },
-    [sessions, closeExportModal]
+    [sessions, closeExportModal, onSuccess]
   );
 
   return {
