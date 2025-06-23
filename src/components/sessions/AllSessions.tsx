@@ -15,7 +15,7 @@ import {
 import { Session } from '../../types/sessionTypes';
 import { navigateToSessionDetails } from '../../utils/navigationHelpers';
 import { safeToString } from '../../utils/stringUtils';
-import { DatePickerInput } from '@mantine/dates';
+
 import DropDownMenu from '../common/DropdownMenu';
 import { useExportSessions } from '../../hooks/useExport';
 import actionOptionIcon from '../../assets/icons/actionOption.svg';
@@ -64,10 +64,7 @@ const AllSessions = () => {
   const [tempSelectedCategories, setTempSelectedCategories] = useState<
     string[]
   >([]);
-  const [dateRange, setDateRange] = useState<[Date | null, Date | null]>([
-    null,
-    null,
-  ]);
+
   const [showEmptyState, setShowEmptyState] = useState(true);
 
   const { openDrawer } = useUIStore();
@@ -169,42 +166,6 @@ const AllSessions = () => {
         });
       }
 
-      if (dateRange[0] && dateRange[1]) {
-        filtered = filtered.filter((session) => {
-          try {
-            const sessionDate = new Date(session.date);
-            const startDate = new Date(dateRange[0]!);
-            const endDate = new Date(dateRange[1]!);
-
-            if (
-              isNaN(sessionDate.getTime()) ||
-              isNaN(startDate.getTime()) ||
-              isNaN(endDate.getTime())
-            ) {
-              console.warn(
-                'Invalid date in session:',
-                session?.id,
-                session?.date
-              );
-              return false;
-            }
-
-            sessionDate.setHours(0, 0, 0, 0);
-            startDate.setHours(0, 0, 0, 0);
-            endDate.setHours(0, 0, 0, 0);
-
-            return sessionDate >= startDate && sessionDate <= endDate;
-          } catch (error) {
-            console.warn(
-              'Error filtering session by date:',
-              session?.id,
-              error
-            );
-            return false;
-          }
-        });
-      }
-
       return filtered;
     } catch (error) {
       console.error('Error in filteredSessions:', error);
@@ -214,7 +175,6 @@ const AllSessions = () => {
     allSessionsData,
     selectedTypes,
     selectedCategories,
-    dateRange,
     debouncedSearchQuery,
     searchSessions,
   ]);
@@ -531,7 +491,6 @@ const AllSessions = () => {
   const resetFilters = () => {
     setSelectedTypes([]);
     setSelectedCategories([]);
-    setDateRange([null, null]);
     setSearchQuery('');
     setClassTypeDropdownOpen(false);
     setCategoryTypeDropdownOpen(false);
@@ -674,39 +633,7 @@ const AllSessions = () => {
                 </p>
               </div>
             </div>
-            <div className='h-full w-[1px] bg-gray-200'></div>
 
-            <div
-              className='flex items-center space-x-2 cursor-pointer border-b border-gray-200 pb-1 w-full md:w-auto justify-center md:border-b-0'
-              onClick={() => {}}
-            >
-              <DatePickerInput
-                type='range'
-                pointer
-                value={dateRange}
-                onChange={setDateRange}
-                placeholder='Pick a date'
-                styles={{
-                  input: {
-                    border: 'none',
-                    padding: '0',
-                    color: '#162F3B',
-                    fontSize: '14px',
-                    fontWeight: 'normal',
-                    cursor: 'pointer',
-                    '&:focus': {
-                      border: 'none',
-                      outline: 'none',
-                    },
-                  },
-                  placeholder: {
-                    color: '#162F3B',
-                    fontSize: '14px',
-                    fontWeight: 'normal',
-                  },
-                }}
-              />
-            </div>
             <div className='h-full w-[1px] bg-gray-200'></div>
 
             <div className='flex items-center border-b border-gray-200 pb-1 w-full md:w-auto justify-center md:border-b-0'>
@@ -892,33 +819,28 @@ const AllSessions = () => {
           title={
             searchQuery.trim() ||
             selectedTypes.length > 0 ||
-            selectedCategories.length > 0 ||
-            (dateRange[0] && dateRange[1])
+            selectedCategories.length > 0
               ? 'No Sessions Found!'
               : 'No Sessions Found!'
           }
           description={
             debouncedSearchQuery.trim()
               ? `No sessions match your search "${debouncedSearchQuery}"`
-              : selectedTypes.length > 0 ||
-                selectedCategories.length > 0 ||
-                (dateRange[0] && dateRange[1])
+              : selectedTypes.length > 0 || selectedCategories.length > 0
               ? 'No sessions match your current filters'
               : "You don't have any sessions yet"
           }
           buttonText={
             debouncedSearchQuery.trim() ||
             selectedTypes.length > 0 ||
-            selectedCategories.length > 0 ||
-            (dateRange[0] && dateRange[1])
+            selectedCategories.length > 0
               ? 'Clear Filters'
               : 'Create New Session'
           }
           onButtonClick={
             debouncedSearchQuery.trim() ||
             selectedTypes.length > 0 ||
-            selectedCategories.length > 0 ||
-            (dateRange[0] && dateRange[1])
+            selectedCategories.length > 0
               ? resetFilters
               : handleOpenAddSession
           }
@@ -928,7 +850,6 @@ const AllSessions = () => {
             if (
               selectedTypes.length > 0 ||
               selectedCategories.length > 0 ||
-              (dateRange[0] && dateRange[1]) ||
               searchQuery.trim()
             ) {
               resetFilters();
