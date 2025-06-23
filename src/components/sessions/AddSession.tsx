@@ -63,9 +63,11 @@ type FormData = Omit<
   title: string;
   class_type: DropDownItem | ClassFields['class_type'];
   spots: number;
-  staff?: DropDownItem | number;
+  staff?: DropDownItem | number; // Single staff for backward compatibility
+  staff_ids?: number[]; // Multiple staff for flexible booking
   category_id?: DropDownItem | number;
-  location_id?: DropDownItem | number;
+  location_id?: DropDownItem | number; // Single location for backward compatibility
+  location_ids?: number[]; // Multiple locations for flexible booking
   client_ids: number[];
   policy_ids?: number[];
   description?: string;
@@ -101,8 +103,10 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
       repeat_unit: undefined,
       repeat_on: undefined,
       staff: undefined,
+      staff_ids: [],
       category_id: undefined,
       location_id: undefined,
+      location_ids: [],
       client_ids: [],
       policy_ids: [],
       repeat_end_type: 'never',
@@ -247,13 +251,28 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
       };
 
       
+      // Handle staff assignment - prioritize multi-select if available
+      const staffAssignment = data.staff_ids && data.staff_ids.length > 0 
+        ? { staff_ids: data.staff_ids }
+        : data.staff
+        ? { staff: extractValue(data.staff) }
+        : {};
+      
+      // Handle location assignment - prioritize multi-select if available
+      const locationAssignment = data.location_ids && data.location_ids.length > 0
+        ? { location_ids: data.location_ids }
+        : data.location_id
+        ? { location_id: extractValue(data.location_id) }
+        : {};
+
       const formattedData: any = {
         title: data.title,
         session_type: data.session_type,
         date: dateOnly,
         spots: parseInt(data.spots.toString()),
         category: extractValue(data.category_id),
-        staff: extractValue(data.staff),
+        ...staffAssignment,
+        ...locationAssignment,
         client_ids: data.client_ids || [],
         description: data.description,
         repeat_end_date: formattedRepeatEndDate,
@@ -267,7 +286,6 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
         email: data.email,
         phone_number: data.phone_number,
         selected_class: extractValue(data.selected_class),
-        location_id: extractValue(data.location_id),
         policy_ids: data.policy_ids || [],
         _pendingClientFromDrawer: fromClientDrawer ? true : undefined,
         
@@ -771,90 +789,167 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
                               )}
                             />
                             <div className='w-full mt-4'>
-                              <Controller
-                                name='staff'
-                                control={methods.control}
-                                render={({ field }) => (
-                                  <DropdownSelectInput
-                                    label='Assign Staff'
-                                    placeholder='Select Staff'
-                                    options={
-                                      isStaffLoading
-                                        ? [{ label: 'Loading...', value: '' }]
-                                        : staffData
-                                            ?.map((staff: any) => {
-                                              if (!staff || !staff.id) {
-                                                console.warn(
-                                                  'Invalid staff data:',
-                                                  staff
-                                                );
-                                                return null;
-                                              }
+                              {/* Multi-select Staff for Flexible Booking */}
+                              {bookingSettings?.enable_flexible_booking && methods.watch('allow_staff_selection') ? (
+                                <div className="relative">
+                                  <Controller
+                                    name='staff_ids'
+                                    control={methods.control}
+                                    render={({ field }) => (
+                                      <div className={`transition-all duration-300 ${
+                                        methods.watch('allow_staff_selection') ? 'ring-2 ring-blue-400 ring-opacity-50' : ''
+                                      }`}>
+                                        <DropdownSelectInput
+                                          label='Assign Staff (Multiple)'
+                                          placeholder='Select Multiple Staff'
+                                          singleSelect={false}
+                                          options={
+                                            isStaffLoading
+                                              ? [{ label: 'Loading...', value: '' }]
+                                              : staffData
+                                                  ?.map((staff: any) => {
+                                                    if (!staff || !staff.id) {
+                                                      console.warn('Invalid staff data:', staff);
+                                                      return null;
+                                                    }
 
-                                              const userData = staff.user || {};
-                                              const email = userData.email || staff.email || '';
-                                              const isActive = staff.isActive ?? false;
-                                              const status = isActive ? 'active' : 'inactive';
-                                              
-                                              if (userData.first_name && userData.last_name) {
-                                                return {
-                                                  label: `${userData.first_name} ${userData.last_name}`,
-                                                  value: staff.id.toString(),
-                                                  subLabel: email,
-                                                  status
-                                                };
-                                              } else if (email) {
-                                                return {
-                                                  label: email,
-                                                  value: staff.id.toString(),
-                                                  subLabel: `Staff ${staff.id}`,
-                                                  status
-                                                };
-                                              } else {
-                                                return {
-                                                  label: `Staff ${staff.id}`,
-                                                  value: staff.id.toString(),
-                                                  status
-                                                };
-                                              }
-                                            })
-                                            .filter(Boolean) || []
-                                    }
-                                    value={
-                                      field.value?.toString
-                                        ? field.value?.toString()
-                                        : field.value?.toString
-                                        ? field.value.toString()
-                                        : ''
-                                    }
-                                    onSelectItem={(selectedItem) => {
-                                      const value = selectedItem?.value;
-                                      field.onChange(
-                                        value ? parseInt(value) : undefined
-                                      );
-                                    }}
-                                    createLabel="Create new staff"
-                                    createDrawerType="staff"
+                                                    const userData = staff.user || {};
+                                                    const email = userData.email || staff.email || '';
+                                                    const isActive = staff.isActive ?? false;
+                                                    const status = isActive ? 'active' : 'inactive';
+                                                    
+                                                    if (userData.first_name && userData.last_name) {
+                                                      return {
+                                                        label: `${userData.first_name} ${userData.last_name}`,
+                                                        value: staff.id.toString(),
+                                                        subLabel: email,
+                                                        status
+                                                      };
+                                                    } else if (email) {
+                                                      return {
+                                                        label: email,
+                                                        value: staff.id.toString(),
+                                                        subLabel: `Staff ${staff.id}`,
+                                                        status
+                                                      };
+                                                    } else {
+                                                      return {
+                                                        label: `Staff ${staff.id}`,
+                                                        value: staff.id.toString(),
+                                                        status
+                                                      };
+                                                    }
+                                                  })
+                                                  .filter(Boolean) || []
+                                          }
+                                          value={field.value ? field.value.map(String) : []}
+                                          onSelectItem={(selectedItems) => {
+                                            const values = Array.isArray(selectedItems)
+                                              ? selectedItems.map((item) => parseInt(item.value))
+                                              : selectedItems
+                                              ? [parseInt(selectedItems.value)]
+                                              : [];
+                                            field.onChange(values);
+                                            // Clear single staff selection when multi-select is used
+                                            methods.setValue('staff', undefined);
+                                          }}
+                                          createLabel="Create new staff"
+                                          createDrawerType="staff"
+                                        />
+                                      </div>
+                                    )}
                                   />
-                                )}
-                              />
+                                  <div className="absolute -top-1 -right-1 text-xs bg-blue-500 text-white px-2 py-1 rounded-full">
+                                    Multi-select
+                                  </div>
+                                </div>
+                              ) : (
+                                <Controller
+                                  name='staff'
+                                  control={methods.control}
+                                  render={({ field }) => (
+                                    <DropdownSelectInput
+                                      label='Assign Staff'
+                                      placeholder='Select Staff'
+                                      options={
+                                        isStaffLoading
+                                          ? [{ label: 'Loading...', value: '' }]
+                                          : staffData
+                                              ?.map((staff: any) => {
+                                                if (!staff || !staff.id) {
+                                                  console.warn('Invalid staff data:', staff);
+                                                  return null;
+                                                }
+
+                                                const userData = staff.user || {};
+                                                const email = userData.email || staff.email || '';
+                                                const isActive = staff.isActive ?? false;
+                                                const status = isActive ? 'active' : 'inactive';
+                                                
+                                                if (userData.first_name && userData.last_name) {
+                                                  return {
+                                                    label: `${userData.first_name} ${userData.last_name}`,
+                                                    value: staff.id.toString(),
+                                                    subLabel: email,
+                                                    status
+                                                  };
+                                                } else if (email) {
+                                                  return {
+                                                    label: email,
+                                                    value: staff.id.toString(),
+                                                    subLabel: `Staff ${staff.id}`,
+                                                    status
+                                                  };
+                                                } else {
+                                                  return {
+                                                    label: `Staff ${staff.id}`,
+                                                    value: staff.id.toString(),
+                                                    status
+                                                  };
+                                                }
+                                              })
+                                              .filter(Boolean) || []
+                                      }
+                                      value={
+                                        field.value?.toString
+                                          ? field.value?.toString()
+                                          : field.value?.toString
+                                          ? field.value.toString()
+                                          : ''
+                                      }
+                                      onSelectItem={(selectedItem) => {
+                                        const value = selectedItem?.value;
+                                        field.onChange(value ? parseInt(value) : undefined);
+                                        // Clear multi-select when single selection is used
+                                        methods.setValue('staff_ids', []);
+                                      }}
+                                      createLabel="Create new staff"
+                                      createDrawerType="staff"
+                                    />
+                                  )}
+                                />
+                              )}
+                              
                               {(() => {
                                 const staffId = methods.watch('staff');
-                                if (!staffId) return null;
+                                const staffIds = methods.watch('staff_ids');
+                                const relevantStaffIds = bookingSettings?.enable_flexible_booking && methods.watch('allow_staff_selection') 
+                                  ? staffIds || []
+                                  : staffId ? [staffId] : [];
                                 
-                                const selectedStaff = staffData?.find((staff: any) => {
-                                  const staffIdStr = typeof staffId === 'object' && staffId !== null ? 
-                                    String((staffId as any).value || staffId) : String(staffId);
-                                  return staff.id.toString() === staffIdStr;
-                                });
+                                if (relevantStaffIds.length === 0) return null;
                                 
-                                if (selectedStaff && !(selectedStaff.isActive ?? true)) {
+                                const inactiveStaff = relevantStaffIds
+                                  .map(id => staffData?.find((staff: any) => staff.id.toString() === id.toString()))
+                                  .filter(staff => staff && !(staff.isActive ?? true));
+                                
+                                if (inactiveStaff.length > 0) {
                                   return (
                                     <div className="mt-1 text-amber-600 text-xs flex items-center">
                                       <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                                       </svg>
-                                      Note: This staff member has not completed their account setup yet.
+                                      Note: {inactiveStaff.length} selected staff {inactiveStaff.length === 1 ? 'member has' : 'members have'} not completed their account setup yet.
                                     </div>
                                   );
                                 }
@@ -887,7 +982,10 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
                                   options={
                                     isClientsLoading
                                       ? [{ label: 'Loading...', value: '' }]
-                                      : clientsData?.map((client: Client) => ({
+                                      : (Array.isArray(clientsData) 
+                                          ? clientsData 
+                                          : clientsData?.items || []
+                                        )?.map((client: Client) => ({
                                           label: `${client.first_name} ${client.last_name}`,
                                           value: client.id.toString(),
                                         })) || []
@@ -908,50 +1006,99 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
                             </>
                           )}
                         />
-                        <Controller
-                          name='location_id'
-                          control={methods.control}
-                          render={({ field }) => (
-                            <DropdownSelectInput
-                              label='Location'
-                              placeholder='Select Location'
-                              options={
-                                isLocationsLoading
-                                  ? [{ label: 'Loading...', value: '' }]
-                                  : locationsData
-                                      ?.map((location: any) => {
-                                        if (!location || !location.id) {
-                                          console.warn(
-                                            'Invalid location data:',
-                                            location
-                                          );
-                                          return null;
-                                        }
-                                        return {
-                                          label: location.name,
-                                          value: location.id.toString(),
-                                        };
-                                      })
-                                      .filter(
-                                        (item): item is DropDownItem =>
-                                          item !== null
-                                      ) || []
-                              }
-                              value={
-                                field.value?.toString
-                                  ? field.value?.toString()
-                                  : field.value?.toString
-                                  ? field.value.toString()
-                                  : ''
-                              }
-                              onSelectItem={(selectedItem) => {
-                                field.onChange(selectedItem);
-                              }}
-                              createLabel="Create new location"
-                              createDrawerType="location"
+                        {/* Multi-select Location for Flexible Booking */}
+                        {bookingSettings?.enable_flexible_booking && methods.watch('allow_location_selection') ? (
+                          <div className="relative">
+                            <Controller
+                              name='location_ids'
+                              control={methods.control}
+                              render={({ field }) => (
+                                <div className={`transition-all duration-300 ${
+                                  methods.watch('allow_location_selection') ? 'ring-2 ring-green-400 ring-opacity-50' : ''
+                                }`}>
+                                  <DropdownSelectInput
+                                    label='Locations (Multiple)'
+                                    placeholder='Select Multiple Locations'
+                                    singleSelect={false}
+                                    options={
+                                      isLocationsLoading
+                                        ? [{ label: 'Loading...', value: '' }]
+                                        : locationsData
+                                            ?.map((location: any) => {
+                                              if (!location || !location.id) {
+                                                console.warn('Invalid location data:', location);
+                                                return null;
+                                              }
+                                              return {
+                                                label: location.name,
+                                                value: location.id.toString(),
+                                              };
+                                            })
+                                            .filter((item): item is DropDownItem => item !== null) || []
+                                    }
+                                    value={field.value ? field.value.map(String) : []}
+                                    onSelectItem={(selectedItems) => {
+                                      const values = Array.isArray(selectedItems)
+                                        ? selectedItems.map((item) => parseInt(item.value))
+                                        : selectedItems
+                                        ? [parseInt(selectedItems.value)]
+                                        : [];
+                                      field.onChange(values);
+                                      // Clear single location selection when multi-select is used
+                                      methods.setValue('location_id', undefined);
+                                    }}
+                                    createLabel="Create new location"
+                                    createDrawerType="location"
+                                  />
+                                </div>
+                              )}
                             />
-                          )}
-                        />
+                            <div className="absolute -top-1 -right-1 text-xs bg-green-500 text-white px-2 py-1 rounded-full">
+                              Multi-select
+                            </div>
+                          </div>
+                        ) : (
+                          <Controller
+                            name='location_id'
+                            control={methods.control}
+                            render={({ field }) => (
+                              <DropdownSelectInput
+                                label='Location'
+                                placeholder='Select Location'
+                                options={
+                                  isLocationsLoading
+                                    ? [{ label: 'Loading...', value: '' }]
+                                    : locationsData
+                                        ?.map((location: any) => {
+                                          if (!location || !location.id) {
+                                            console.warn('Invalid location data:', location);
+                                            return null;
+                                          }
+                                          return {
+                                            label: location.name,
+                                            value: location.id.toString(),
+                                          };
+                                        })
+                                        .filter((item): item is DropDownItem => item !== null) || []
+                                }
+                                value={
+                                  field.value?.toString
+                                    ? field.value?.toString()
+                                    : field.value?.toString
+                                    ? field.value.toString()
+                                    : ''
+                                }
+                                onSelectItem={(selectedItem) => {
+                                  field.onChange(selectedItem);
+                                  // Clear multi-select when single selection is used
+                                  methods.setValue('location_ids', []);
+                                }}
+                                createLabel="Create new location"
+                                createDrawerType="location"
+                              />
+                            )}
+                          />
+                        )}
                         <Controller
                           name='policy_ids'
                           control={methods.control}
@@ -1144,14 +1291,17 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
                                   <DropdownSelectInput
                                     label='Client Name'
                                     placeholder='Select or create Clients'
-                                    options={
-                                      isClientsLoading
-                                        ? [{ label: 'Loading...', value: '' }]
-                                        : clientsData?.map((client: any) => ({
-                                            label: `${client.first_name} ${client.last_name}`,
-                                            value: client.id.toString(),
-                                          })) || []
-                                    }
+                                                                      options={
+                                    isClientsLoading
+                                      ? [{ label: 'Loading...', value: '' }]
+                                      : (Array.isArray(clientsData) 
+                                          ? clientsData 
+                                          : clientsData?.items || []
+                                        )?.map((client: any) => ({
+                                          label: `${client.first_name} ${client.last_name}`,
+                                          value: client.id.toString(),
+                                        })) || []
+                                  }
                                     onSelectItem={(selectedItems) => {
                                       const values = Array.isArray(selectedItems)
                                         ? selectedItems.map((item) => item.value)
@@ -1161,7 +1311,10 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
                                       field.onChange(values);
                                       if (values.length > 0) {
                                         const clientId = values[0];
-                                        const selectedClient = clientsData?.find(
+                                        const clientsList = Array.isArray(clientsData) 
+                                          ? clientsData 
+                                          : clientsData?.items || [];
+                                        const selectedClient = clientsList.find(
                                           (client: Client) =>
                                             client.id.toString() === clientId
                                         );
@@ -1852,7 +2005,10 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
                                   options={
                                     isClientsLoading
                                       ? [{ label: 'Loading...', value: '' }]
-                                      : clientsData?.map((client: Client) => ({
+                                      : (Array.isArray(clientsData) 
+                                          ? clientsData 
+                                          : clientsData?.items || []
+                                        )?.map((client: Client) => ({
                                           label: `${client.first_name} ${client.last_name}`,
                                           value: client.id.toString(),
                                         })) || []

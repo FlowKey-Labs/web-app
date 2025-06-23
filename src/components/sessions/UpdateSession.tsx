@@ -69,8 +69,10 @@ const UpdateSession = ({
       repeat_unit: undefined,
       repeat_on: undefined,
       staff: undefined,
+      staff_ids: [],
       category: undefined,
       location_id: undefined,
+      location_ids: [],
       client_ids: [],
       repeat_end_type: 'never',
       repeat_end_date: undefined,
@@ -289,6 +291,18 @@ const UpdateSession = ({
         policy_ids: policyIds,
         staff: staffId,
         
+        // Multi-select fields - populate from available staff/locations if present, otherwise from single selections
+        staff_ids: sessionData.allow_staff_selection ? 
+          (sessionData.available_staff && sessionData.available_staff.length > 0 
+            ? sessionData.available_staff.map((staff: any) => staff.id)
+            : (staffId ? [staffId] : [])
+          ) : [],
+        location_ids: sessionData.allow_location_selection ? 
+          (sessionData.available_locations && sessionData.available_locations.length > 0 
+            ? sessionData.available_locations.map((location: any) => location.id)
+            : (sessionData.location?.id ? [sessionData.location.id] : [])
+          ) : [],
+        
         // Flexible booking fields
         allow_staff_selection: sessionData.allow_staff_selection || false,
         allow_location_selection: sessionData.allow_location_selection || false,
@@ -297,14 +311,32 @@ const UpdateSession = ({
         auto_assign_when_single_option: sessionData.auto_assign_when_single_option || false,
       });
 
-      console.log("Form reset with values:", {
+              const staff_ids_value = sessionData.allow_staff_selection ? 
+          (sessionData.available_staff && sessionData.available_staff.length > 0 
+            ? sessionData.available_staff.map((staff: any) => staff.id)
+            : (staffId ? [staffId] : [])
+          ) : [];
+        
+        const location_ids_value = sessionData.allow_location_selection ? 
+          (sessionData.available_locations && sessionData.available_locations.length > 0 
+            ? sessionData.available_locations.map((location: any) => location.id)
+            : (sessionData.location?.id ? [sessionData.location.id] : [])
+          ) : [];
+
+        console.log("Form reset with values:", {
         client_ids: clientIds,
         date: formattedDate,
         start_time: formattedStartTime,
         end_time: formattedEndTime,
         staff: staffId,
+        staff_ids: staff_ids_value,
         policy_ids: policyIds,
         location_id: sessionData.location?.id,
+        location_ids: location_ids_value,
+        allow_staff_selection: sessionData.allow_staff_selection,
+        allow_location_selection: sessionData.allow_location_selection,
+        available_staff: sessionData.available_staff,
+        available_locations: sessionData.available_locations,
       });
 
       methods.setValue('date', formattedDate);
@@ -313,6 +345,23 @@ const UpdateSession = ({
       methods.setValue('client_ids', clientIds);
       methods.setValue('policy_ids', policyIds);
       methods.setValue('staff', staffId);
+
+      // Populate multi-select fields when flexible booking is enabled
+      if (sessionData.allow_staff_selection) {
+        const staff_ids_value = sessionData.available_staff && sessionData.available_staff.length > 0 
+          ? sessionData.available_staff.map((staff: any) => staff.id)
+          : (staffId ? [staffId] : []);
+        methods.setValue('staff_ids', staff_ids_value);
+        console.log("Populating staff_ids with:", staff_ids_value);
+      }
+      
+      if (sessionData.allow_location_selection) {
+        const location_ids_value = sessionData.available_locations && sessionData.available_locations.length > 0 
+          ? sessionData.available_locations.map((location: any) => location.id)
+          : (sessionData.location?.id ? [sessionData.location.id] : []);
+        methods.setValue('location_ids', location_ids_value);
+        console.log("Populating location_ids with:", location_ids_value);
+      }
 
       if (sessionData.repeat_on && Array.isArray(sessionData.repeat_on)) {
         const dayNames = sessionData.repeat_on.map((day) => {
@@ -435,6 +484,20 @@ const UpdateSession = ({
         clientIds = [...new Set(clientIds)];
       }
 
+      // Handle staff assignment - prioritize multi-select if available
+      const staffAssignment = data.staff_ids && data.staff_ids.length > 0 
+        ? { staff_ids: data.staff_ids }
+        : data.staff
+        ? { staff: extractValue(data.staff) }
+        : {};
+      
+      // Handle location assignment - prioritize multi-select if available
+      const locationAssignment = data.location_ids && data.location_ids.length > 0
+        ? { location_ids: data.location_ids }
+        : data.location_id
+        ? { location_id: extractValue(data.location_id) }
+        : {};
+
       const formattedData: any = {
         title: data.title,
         description: data.description,
@@ -443,8 +506,8 @@ const UpdateSession = ({
         date: dateOnly,
         spots: data.spots ? parseInt(data.spots.toString()) : undefined,
         category: extractValue(data.category),
-        location_id: extractValue(data.location_id),
-        staff: extractValue(data.staff),
+        ...locationAssignment,
+        ...staffAssignment,
         repeat_every: repeatEvery,
         repeat_unit: repeatUnit,
         repeat_on: repeatOn,
@@ -923,119 +986,222 @@ const UpdateSession = ({
                           />
 
                           <div className='w-full mt-4'>
-                            <Controller
-                              name='staff'
-                              control={methods.control}
-                              render={({ field }) => {
-                                const staffId = field.value
-                                  ? typeof field.value === 'object' &&
-                                    field.value !== null
-                                    ? (field.value as any).id
-                                    : field.value
-                                  : null;
+                            {/* Multi-select Staff for Flexible Booking */}
+                            {bookingSettings?.enable_flexible_booking && methods.watch('allow_staff_selection') ? (
+                              <div className="relative">
+                                <Controller
+                                  name='staff_ids'
+                                  control={methods.control}
+                                  render={({ field }) => (
+                                    <div className={`transition-all duration-300 ${
+                                      methods.watch('allow_staff_selection') ? 'ring-2 ring-blue-400 ring-opacity-50' : ''
+                                    }`}>
+                                      <DropdownSelectInput
+                                        label='Assign Staff (Multiple)'
+                                        placeholder='Select Multiple Staff'
+                                        singleSelect={false}
+                                        options={
+                                          isStaffLoading
+                                            ? [{ label: 'Loading...', value: '' }]
+                                            : staffData?.map((staff: any) => {
+                                                if (!staff || !staff.id) {
+                                                  console.warn('Invalid staff data:', staff);
+                                                  return null;
+                                                }
 
-                                const selectedStaff = staffData?.find(
-                                  (staff: any) => {
-                                    return (
-                                      staff.id?.toString() ===
-                                      staffId?.toString()
-                                    );
-                                  }
-                                );
-
-                                const staffValue = selectedStaff
-                                  ? selectedStaff.id.toString()
-                                  : typeof field.value === 'string' ||
-                                    typeof field.value === 'number'
-                                  ? field.value.toString()
-                                  : '';
-
-                                return (
-                                  <div className='flex flex-col'>
-                                    <DropdownSelectInput
-                                      label='Assign Staff'
-                                      placeholder='Select Staff'
-                                      options={
-                                        isStaffLoading
-                                          ? []
-                                          : staffData?.map((staff: any) => {
-                                              if (!staff || !staff.id) {
-                                                console.warn('Invalid staff data:', staff);
-                                                return null;
-                                              }
-                                              
-                                              const userData = staff.user || {};
-                                              const email = userData.email || staff.email || '';
-                                              const isActive = staff.isActive ?? false;
-                                              const status = isActive ? 'active' : 'inactive';
-                                              
-                                              if (userData.first_name && userData.last_name) {
-                                                return {
-                                                  label: `${userData.first_name} ${userData.last_name}`,
-                                                  value: staff.id.toString(),
-                                                  subLabel: email,
-                                                  status
-                                                };
-                                              } else if (email) {
-                                                return {
-                                                  label: email,
-                                                  value: staff.id.toString(),
-                                                  subLabel: `Staff ${staff.id}`,
-                                                  status
-                                                };
-                                              } else {
-                                                return {
-                                                  label: `Staff ${staff.id}`,
-                                                  value: staff.id.toString(),
-                                                  status
-                                                };
-                                              }
-                                            }).filter(Boolean) || []
-                                      }
-                                      value={staffValue}
-                                      onSelectItem={(selectedItem) => {
-                                        field.onChange(selectedItem.value)}
-                                      }
-                                      createLabel="Add new staff member"
-                                      createDrawerType="staff"
-                                    />
-                                    {(() => {
-                                      if (!staffId) return null;
-                                      
-                                      let staffIdValue: string | null = null;
-                                      if (typeof staffId === 'object' && staffId !== null) {
-                                        if ('value' in staffId) {
-                                          staffIdValue = String(staffId.value);
-                                        } else if ('id' in staffId) {
-                                          staffIdValue = String(staffId.id);
+                                                const userData = staff.user || {};
+                                                const email = userData.email || staff.email || '';
+                                                const isActive = staff.isActive ?? false;
+                                                const status = isActive ? 'active' : 'inactive';
+                                                
+                                                if (userData.first_name && userData.last_name) {
+                                                  return {
+                                                    label: `${userData.first_name} ${userData.last_name}`,
+                                                    value: staff.id.toString(),
+                                                    subLabel: email,
+                                                    status
+                                                  };
+                                                } else if (email) {
+                                                  return {
+                                                    label: email,
+                                                    value: staff.id.toString(),
+                                                    subLabel: `Staff ${staff.id}`,
+                                                    status
+                                                  };
+                                                } else {
+                                                  return {
+                                                    label: `Staff ${staff.id}`,
+                                                    value: staff.id.toString(),
+                                                    status
+                                                  };
+                                                }
+                                              }).filter(Boolean) || []
                                         }
-                                      } else if (staffId) {
-                                        staffIdValue = String(staffId);
-                                      }
-                                      
-                                      if (!staffIdValue) return null;
-                                      
-                                      const selectedStaff = staffData?.find((staff: any) => 
-                                        staff.id.toString() === staffIdValue
+                                        value={field.value ? field.value.map(String) : []}
+                                        onSelectItem={(selectedItems) => {
+                                          const values = Array.isArray(selectedItems)
+                                            ? selectedItems.map((item) => parseInt(item.value))
+                                            : selectedItems
+                                            ? [parseInt(selectedItems.value)]
+                                            : [];
+                                          field.onChange(values);
+                                          // Clear single staff selection when multi-select is used
+                                          methods.setValue('staff', undefined);
+                                        }}
+                                        createLabel="Add new staff member"
+                                        createDrawerType="staff"
+                                      />
+                                    </div>
+                                  )}
+                                />
+                                <div className="absolute -top-1 -right-1 text-xs bg-blue-500 text-white px-2 py-1 rounded-full">
+                                  Multi-select
+                                </div>
+                              </div>
+                            ) : (
+                              <Controller
+                                name='staff'
+                                control={methods.control}
+                                render={({ field }) => {
+                                  const staffId = field.value
+                                    ? typeof field.value === 'object' &&
+                                      field.value !== null
+                                      ? (field.value as any).id
+                                      : field.value
+                                    : null;
+
+                                  const selectedStaff = staffData?.find(
+                                    (staff: any) => {
+                                      return (
+                                        staff.id?.toString() ===
+                                        staffId?.toString()
                                       );
-                                      
-                                      if (selectedStaff && !(selectedStaff.isActive ?? true)) {
-                                        return (
-                                          <div className="mt-1 text-amber-600 text-xs flex items-center">
-                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                                            </svg>
-                                            Note: This staff member has not completed their account setup yet.
-                                          </div>
+                                    }
+                                  );
+
+                                  const staffValue = selectedStaff
+                                    ? selectedStaff.id.toString()
+                                    : typeof field.value === 'string' ||
+                                      typeof field.value === 'number'
+                                    ? field.value.toString()
+                                    : '';
+
+                                  return (
+                                    <div className='flex flex-col'>
+                                      <DropdownSelectInput
+                                        label='Assign Staff'
+                                        placeholder='Select Staff'
+                                        options={
+                                          isStaffLoading
+                                            ? []
+                                            : staffData?.map((staff: any) => {
+                                                if (!staff || !staff.id) {
+                                                  console.warn('Invalid staff data:', staff);
+                                                  return null;
+                                                }
+                                                
+                                                const userData = staff.user || {};
+                                                const email = userData.email || staff.email || '';
+                                                const isActive = staff.isActive ?? false;
+                                                const status = isActive ? 'active' : 'inactive';
+                                                
+                                                if (userData.first_name && userData.last_name) {
+                                                  return {
+                                                    label: `${userData.first_name} ${userData.last_name}`,
+                                                    value: staff.id.toString(),
+                                                    subLabel: email,
+                                                    status
+                                                  };
+                                                } else if (email) {
+                                                  return {
+                                                    label: email,
+                                                    value: staff.id.toString(),
+                                                    subLabel: `Staff ${staff.id}`,
+                                                    status
+                                                  };
+                                                } else {
+                                                  return {
+                                                    label: `Staff ${staff.id}`,
+                                                    value: staff.id.toString(),
+                                                    status
+                                                  };
+                                                }
+                                              }).filter(Boolean) || []
+                                        }
+                                        value={staffValue}
+                                        onSelectItem={(selectedItem) => {
+                                          field.onChange(selectedItem.value);
+                                          // Clear multi-select when single selection is used
+                                          methods.setValue('staff_ids', []);
+                                        }}
+                                        createLabel="Add new staff member"
+                                        createDrawerType="staff"
+                                      />
+                                      {(() => {
+                                        if (!staffId) return null;
+                                        
+                                        let staffIdValue: string | null = null;
+                                        if (typeof staffId === 'object' && staffId !== null) {
+                                          if ('value' in staffId) {
+                                            staffIdValue = String(staffId.value);
+                                          } else if ('id' in staffId) {
+                                            staffIdValue = String(staffId.id);
+                                          }
+                                        } else if (staffId) {
+                                          staffIdValue = String(staffId);
+                                        }
+                                        
+                                        if (!staffIdValue) return null;
+                                        
+                                        const selectedStaff = staffData?.find((staff: any) => 
+                                          staff.id.toString() === staffIdValue
                                         );
-                                      }
-                                      
-                                      return null;
-                                    })()}
+                                        
+                                        if (selectedStaff && !(selectedStaff.isActive ?? true)) {
+                                          return (
+                                            <div className="mt-1 text-amber-600 text-xs flex items-center">
+                                              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                              </svg>
+                                              Note: This staff member has not completed their account setup yet.
+                                            </div>
+                                          );
+                                        }
+                                        
+                                        return null;
+                                      })()}
+                                    </div>
+                                  );
+                                }}
+                              />
+                            )}
+                            
+                            {(() => {
+                              const staffId = methods.watch('staff');
+                              const staffIds = methods.watch('staff_ids');
+                              const relevantStaffIds = bookingSettings?.enable_flexible_booking && methods.watch('allow_staff_selection') 
+                                ? staffIds || []
+                                : staffId ? [staffId] : [];
+                              
+                              if (relevantStaffIds.length === 0) return null;
+                              
+                              const inactiveStaff = relevantStaffIds
+                                .map(id => staffData?.find((staff: any) => staff.id.toString() === id.toString()))
+                                .filter(staff => staff && !(staff.isActive ?? true));
+                              
+                              if (inactiveStaff.length > 0) {
+                                return (
+                                  <div className="mt-1 text-amber-600 text-xs flex items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                    </svg>
+                                    Note: {inactiveStaff.length} selected staff {inactiveStaff.length === 1 ? 'member has' : 'members have'} not completed their account setup yet.
                                   </div>
                                 );
-                              }}
-                            />
+                              }
+                              
+                              return null;
+                            })()}
                           </div>
                         </div>
                       </div>
@@ -1086,33 +1252,80 @@ const UpdateSession = ({
                           );
                         }}
                       />
-                      <Controller
-                        name='location_id'
-                        control={methods.control}
-                        render={({ field }) => {
-                          // Display the location's formatted address if available
-                          return (
-                            <DropdownSelectInput
-                              label='Location'
-                              placeholder='Select Location'
-                              options={
-                                isLocationsLoading
-                                  ? []
-                                  : locationsData?.map((location: Location) => ({
-                                      label: location.name,
-                                      value: location.id ? location.id.toString() : '',
-                                    })) || []
-                              }
-                              value={field.value ? field.value.toString() : ''}
-                              onSelectItem={(selectedItem) => {
-                                field.onChange(selectedItem.value)}
-                              }
-                              createLabel="Create new location"
-                              createDrawerType="location"
-                            />
-                          );
-                        }}
-                      />
+                      {/* Multi-select Location for Flexible Booking */}
+                      {bookingSettings?.enable_flexible_booking && methods.watch('allow_location_selection') ? (
+                        <div className="relative">
+                          <Controller
+                            name='location_ids'
+                            control={methods.control}
+                            render={({ field }) => (
+                              <div className={`transition-all duration-300 ${
+                                methods.watch('allow_location_selection') ? 'ring-2 ring-green-400 ring-opacity-50' : ''
+                              }`}>
+                                <DropdownSelectInput
+                                  label='Location (Multiple)'
+                                  placeholder='Select Multiple Locations'
+                                  singleSelect={false}
+                                  options={
+                                    isLocationsLoading
+                                      ? [{ label: 'Loading...', value: '' }]
+                                      : locationsData?.map((location: any) => ({
+                                          label: location.name,
+                                          value: location.id ? location.id.toString() : '',
+                                        })) || []
+                                  }
+                                  value={field.value ? field.value.map(String) : []}
+                                  onSelectItem={(selectedItems) => {
+                                    const values = Array.isArray(selectedItems)
+                                      ? selectedItems.map((item) => parseInt(item.value))
+                                      : selectedItems
+                                      ? [parseInt(selectedItems.value)]
+                                      : [];
+                                    field.onChange(values);
+                                    // Clear single location selection when multi-select is used
+                                    methods.setValue('location_id', undefined);
+                                  }}
+                                  createLabel="Create new location"
+                                  createDrawerType="location"
+                                />
+                              </div>
+                            )}
+                          />
+                          <div className="absolute -top-1 -right-1 text-xs bg-green-500 text-white px-2 py-1 rounded-full">
+                            Multi-select
+                          </div>
+                        </div>
+                      ) : (
+                        <Controller
+                          name='location_id'
+                          control={methods.control}
+                          render={({ field }) => {
+                            // Display the location's formatted address if available
+                            return (
+                              <DropdownSelectInput
+                                label='Location'
+                                placeholder='Select Location'
+                                options={
+                                  isLocationsLoading
+                                    ? []
+                                    : locationsData?.map((location: any) => ({
+                                        label: location.name,
+                                        value: location.id ? location.id.toString() : '',
+                                      })) || []
+                                }
+                                value={field.value ? field.value.toString() : ''}
+                                onSelectItem={(selectedItem) => {
+                                  field.onChange(selectedItem.value);
+                                  // Clear multi-select when single selection is used
+                                  methods.setValue('location_ids', []);
+                                }}
+                                createLabel="Create new location"
+                                createDrawerType="location"
+                              />
+                            );
+                          }}
+                        />
+                      )}
                       <Controller
                         name='policy_ids'
                         control={methods.control}
@@ -1378,7 +1591,7 @@ const UpdateSession = ({
                               options={
                                 isLocationsLoading
                                   ? [{ label: 'Loading...', value: '' }]
-                                  : locationsData?.map((location: Location) => ({
+                                  : locationsData?.map((location: any) => ({
                                       label: location.name,
                                       value: location.id ? location.id.toString() : '',
                                     })) || []
@@ -1723,7 +1936,7 @@ const UpdateSession = ({
                               options={
                                 isLocationsLoading
                                   ? [{ label: 'Loading...', value: '' }]
-                                  : locationsData?.map((location: Location) => ({
+                                  : locationsData?.map((location: any) => ({
                                       label: location.name,
                                       value: location.id ? location.id.toString() : '',
                                     })) || []

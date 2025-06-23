@@ -69,13 +69,15 @@ export interface CreateSessionData {
   title: string;
   session_type: SessionType;
   class_type: ClassType;
-  staff: number;
+  staff?: number;
+  staff_ids?: number[];
   date: string;
   start_time: string;
   end_time: string;
   spots: number;
   category: number;
   location_id?: number;
+  location_ids?: number[];
   is_active?: boolean;
   client_ids?: number[];
   policy_ids?: number[];
@@ -100,11 +102,14 @@ export interface CreateSessionData {
 }
 
 export interface Session
-  extends Omit<CreateSessionData, "category" | "client_ids" | "location_id"> {
+  extends Omit<CreateSessionData, "category" | "client_ids" | "location_id" | "location_ids"> {
   id: number;
   assigned_staff: AssignedStaff | null;
   category: Category;
   location?: Location;
+  locations?: Location[]; // For multiple locations
+  available_staff?: AssignedStaff[]; // Staff available for flexible booking
+  available_locations?: Location[]; // Locations available for flexible booking
   attendances?: Attendance[];
   booking_requests?: BookingRequest[];
   total_participants?: TotalParticipants;
