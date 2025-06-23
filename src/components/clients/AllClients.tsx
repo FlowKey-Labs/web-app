@@ -24,7 +24,7 @@ import { notifications } from '@mantine/notifications';
 import successIcon from '../../assets/icons/success.svg';
 import errorIcon from '../../assets/icons/error.svg';
 import actionOptionIcon from '../../assets/icons/actionOption.svg';
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { useDebounce } from '../../hooks/useDebounce';
 import { useExportClients } from '../../hooks/useExport';
 import { useExportGroups } from '../../hooks/useExport';
@@ -207,13 +207,26 @@ const AllClients = () => {
       .filter((id): id is number => id !== undefined);
   }, [rowSelection, filteredData]);
 
+  const clearRowSelection = useCallback(() => {
+    setRowSelection({});
+  }, []);
+
   const {
     exportModalOpened,
     openExportModal,
     closeExportModal,
     handleExport,
     isExporting,
-  } = useExportClients(clients || []);
+  } = useExportClients(clients || [], clearRowSelection);
+
+  const clearGroupSelection = useCallback(() => {
+    setRowSelection({});
+  }, []);
+
+  // Clear row selection when changing views or pages
+  useEffect(() => {
+    setRowSelection({});
+  }, [activeView, pageIndex]);
 
   const {
     exportModalOpened: groupExportModalOpened,
@@ -221,7 +234,7 @@ const AllClients = () => {
     closeExportModal: closeGroupExportModal,
     handleExport: handleGroupExport,
     isExporting: groupIsExporting,
-  } = useExportGroups(groups || []);
+  } = useExportGroups(groups || [], clearGroupSelection);
 
   const columns: ColumnDef<Client, any>[] = useMemo(
     () => [
@@ -230,8 +243,8 @@ const AllClients = () => {
         header: ({ table }) => (
           <input
             type='checkbox'
-            checked={table.getIsAllRowsSelected()}
-            onChange={table.getToggleAllRowsSelectedHandler()}
+            checked={table.getIsAllPageRowsSelected()}
+            onChange={table.getToggleAllPageRowsSelectedHandler()}
             className='w-4 h-4 rounded cursor-pointer bg-[#F7F8FA] accent-[#DBDEDF]'
           />
         ),
@@ -391,8 +404,8 @@ const AllClients = () => {
         header: ({ table }) => (
           <input
             type='checkbox'
-            checked={table.getIsAllRowsSelected()}
-            onChange={table.getToggleAllRowsSelectedHandler()}
+            checked={table.getIsAllPageRowsSelected()}
+            onChange={table.getToggleAllPageRowsSelectedHandler()}
             className='w-4 h-4 rounded cursor-pointer bg-[#F7F8FA] accent-[#DBDEDF]'
           />
         ),
@@ -659,36 +672,6 @@ const AllClients = () => {
   const errorCurrent = activeView === 'clients' ? error : getGroupsError;
   const refetchCurrent = activeView === 'clients' ? refetch : refetchGroups;
 
-  if (isLoadingCurrent) {
-    return (
-      <ErrorBoundary>
-        <div className='flex justify-center items-center h-screen p-6 pt-12'>
-          <Loader size='xl' color='#1D9B5E' />
-        </div>
-      </ErrorBoundary>
-    );
-  }
-
-  if (isErrorCurrent) {
-    return (
-      <ErrorBoundary>
-        <div className='w-full space-y-6 bg-white rounded-lg p-6'>
-          <div className='space-y-4'>
-            <p className='text-red-500'>
-              Error loading {activeView}: {errorCurrent?.message}
-            </p>
-            <button
-              onClick={() => refetchCurrent()}
-              className='px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90'
-            >
-              Try Again
-            </button>
-          </div>
-        </div>
-      </ErrorBoundary>
-    );
-  }
-
   return (
     <ErrorBoundary>
       <div className='flex flex-col h-screen bg-cardsBg w-full overflow-y-auto'>
@@ -768,37 +751,79 @@ const AllClients = () => {
         />
         <div className='flex-1 px-2 md:px-6 md:py-3 pt-4 w-full overflow-x-auto'>
           <div className='min-w-[900px] md:min-w-0'>
+            {isLoadingCurrent && (
+              <ErrorBoundary>
+                <div className='flex justify-center items-center h-[70vh] w-full shadow-lg bg-white self-center border rounded-xl p-6 pt-12'>
+                  <Loader size='lg' color='#1D9B5E' />
+                </div>
+              </ErrorBoundary>
+            )}
+            {isErrorCurrent && (
+              <ErrorBoundary>
+                <div className='w-full space-y-6 bg-white rounded-lg p-6'>
+                  <div className='flex justify-center items-center h-[80%] w-full shadow-lg bg-white self-center border rounded-xl p-6 pt-12'>
+                    <p className='text-red-500'>
+                      Error loading {activeView}: {errorCurrent?.message}
+                    </p>
+                    <button
+                      onClick={() => refetchCurrent()}
+                      className='px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90'
+                    >
+                      Try Again
+                    </button>
+                  </div>
+                </div>
+              </ErrorBoundary>
+            )}
             {activeView === 'clients' && clients.length > 0 && (
-              <Table<Client>
-                data={clients}
-                columns={columns}
-                rowSelection={rowSelection}
-                onRowSelectionChange={setRowSelection}
-                className='mt-4'
-                pageSize={12}
-                onRowClick={(row: Client) => {
-                  navigateToClientDetails(navigate, row.id.toString());
-                }}
-                paginateServerSide={true}
-                pageIndex={pageIndex}
-                pageCount={data.totalPages}
-                onPageChange={setPageIndex}
-              />
+              <>
+                <div className='mb-2 py-2 text-sm text-gray-500'>
+                  {Object.keys(rowSelection).length > 0 && (
+                    <span className='text-sm font-[400] text-gray-500 mt-1 border rounded-full p-2 border-secondary'>
+                      {Object.keys(rowSelection).length} selected
+                    </span>
+                  )}
+                </div>
+                <Table<Client>
+                  data={clients}
+                  columns={columns}
+                  rowSelection={rowSelection}
+                  onRowSelectionChange={setRowSelection}
+                  className='mt-4'
+                  pageSize={12}
+                  onRowClick={(row: Client) => {
+                    navigateToClientDetails(navigate, row.id.toString());
+                  }}
+                  paginateServerSide={true}
+                  pageIndex={pageIndex}
+                  pageCount={data.totalPages}
+                  onPageChange={setPageIndex}
+                />
+              </>
             )}
             {activeView === 'groups' && groups.length > 0 && (
-              <Table<GroupData>
-                data={groups}
-                columns={groupColumns}
-                rowSelection={rowSelection}
-                onRowSelectionChange={setRowSelection}
-                className='mt-4'
-                pageSize={12}
-                onRowClick={(row: GroupData) => {
-                  if (row.id) {
-                    navigateToGroupDetails(navigate, row.id.toString());
-                  }
-                }}
-              />
+              <>
+                <div className='mb-2 py-2 text-sm text-gray-500'>
+                  {Object.keys(rowSelection).length > 0 && (
+                    <span className='text-sm font-[400] text-gray-500 mt-1 border rounded-full p-2 border-secondary'>
+                      {Object.keys(rowSelection).length} selected
+                    </span>
+                  )}
+                </div>
+                <Table<GroupData>
+                  data={groups}
+                  columns={groupColumns}
+                  rowSelection={rowSelection}
+                  onRowSelectionChange={setRowSelection}
+                  className='mt-4'
+                  pageSize={12}
+                  onRowClick={(row: GroupData) => {
+                    if (row.id) {
+                      navigateToGroupDetails(navigate, row.id.toString());
+                    }
+                  }}
+                />
+              </>
             )}
           </div>
         </div>

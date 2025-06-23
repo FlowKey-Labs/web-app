@@ -103,20 +103,18 @@ const Table = <T extends object>({
     : table.getState().pagination.pageIndex + 1;
 
   // Total number of pages
-  const totalPages = paginateServerSide
-    ? pageCount
-    : table.getPageCount();
+  const totalPages = paginateServerSide ? pageCount : table.getPageCount();
 
   return (
     <div className={`overflow-x-auto shadow-lg rounded-lg ${className}`}>
-      <table className="min-w-full bg-white overflow-hidden">
+      <table className='min-w-full bg-white overflow-hidden'>
         <thead className={`${headerBg} h-[62px]`}>
           {table.getHeaderGroups().map((headerGroup) => (
             <tr key={headerGroup.id}>
               {headerGroup.headers.map((header) => (
                 <th
                   key={header.id}
-                  className="px-6 py-3 text-xs text-start font-medium text-primary uppercase tracking-wider"
+                  className='px-6 py-3 text-xs text-start font-medium text-primary uppercase tracking-wider'
                 >
                   {flexRender(
                     header.column.columnDef.header,
@@ -128,8 +126,8 @@ const Table = <T extends object>({
           ))}
           {showHeaderDivider && (
             <tr>
-              <td 
-                colSpan={columns.length} 
+              <td
+                colSpan={columns.length}
                 className={`${headerDividerColor} h-[1px] p-0`}
               />
             </tr>
@@ -152,7 +150,7 @@ const Table = <T extends object>({
               {row.getVisibleCells().map((cell) => (
                 <td
                   key={cell.id}
-                  className="px-6 py-3 text-sm text-start text-primary"
+                  className='px-6 py-3 text-sm text-start text-primary'
                 >
                   {flexRender(cell.column.columnDef.cell, cell.getContext())}
                 </td>
@@ -164,10 +162,10 @@ const Table = <T extends object>({
         {showPagination && totalPages > 1 && (
           <tfoot>
             <tr>
-              <td colSpan={columns.length} className="pb-4">
-                <div className="w-full mx-auto border-t border-gray-200 mb-4" />
+              <td colSpan={columns.length} className='pb-4'>
+                <div className='w-full mx-auto border-t border-gray-200 mb-4' />
 
-                <div className="flex justify-between items-center px-6">
+                <div className='flex justify-between items-center px-6'>
                   <button
                     onClick={handlePreviousPage}
                     disabled={
@@ -175,25 +173,31 @@ const Table = <T extends object>({
                         ? pageIndex <= 1
                         : !table.getCanPreviousPage()
                     }
-                    className="flex items-center px-2 py-2 border border-gray-300 rounded-lg text-xs text-[#6D7172] hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className='flex items-center px-2 py-2 border border-gray-300 rounded-lg text-xs text-[#6D7172] hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed'
                   >
-                    <img src={tableLeftIcon} alt="Previous" className="w-3 h-3" />
+                    <img
+                      src={tableLeftIcon}
+                      alt='Previous'
+                      className='w-3 h-3'
+                    />
                   </button>
 
-                  <div className="flex space-x-2">
-                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                      <button
-                        key={page}
-                        onClick={() => handlePageChange(page)}
-                        className={`px-2 py-1 border border-gray-300 rounded-lg text-xs ${
-                          page === currentPageNumber
-                            ? 'bg-[#DBDEDF] text-primary'
-                            : 'text-[#6D7172] hover:bg-gray-50'
-                        }`}
-                      >
-                        {page}
-                      </button>
-                    ))}
+                  <div className='flex space-x-2'>
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                      (page) => (
+                        <button
+                          key={page}
+                          onClick={() => handlePageChange(page)}
+                          className={`px-2 py-1 border border-gray-300 rounded-lg text-xs ${
+                            page === currentPageNumber
+                              ? 'bg-[#DBDEDF] text-primary'
+                              : 'text-[#6D7172] hover:bg-gray-50'
+                          }`}
+                        >
+                          {page}
+                        </button>
+                      )
+                    )}
                   </div>
 
                   <button
@@ -203,9 +207,9 @@ const Table = <T extends object>({
                         ? pageIndex >= pageCount
                         : !table.getCanNextPage()
                     }
-                    className="flex items-center px-2 py-2 border border-gray-300 rounded-lg text-xs text-[#6D7172] hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className='flex items-center px-2 py-2 border border-gray-300 rounded-lg text-xs text-[#6D7172] hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed'
                   >
-                    <img src={tableRightIcon} alt="Next" className="w-3 h-3" />
+                    <img src={tableRightIcon} alt='Next' className='w-3 h-3' />
                   </button>
                 </div>
               </td>

@@ -157,7 +157,7 @@ export const useExportSessions = (sessions: Session[], onSuccess?: () => void) =
  * @param clients Array of clients to export
  * @returns Export functionality and state
  */
-export const useExportClients = (clients: Client[]) => {
+export const useExportClients = (clients: Client[], onSuccess?: () => void) => {
   const [isExporting, setIsExporting] = useState(false);
   const [
     exportModalOpened,
@@ -229,6 +229,11 @@ export const useExportClients = (clients: Client[]) => {
       try {
         const dataToExport = processClientsForExport(selectedIds);
         exportDataToFile(dataToExport, type, 'clients', ['id']);
+
+        // Call onSuccess callback before showing the success notification
+        if (onSuccess) {
+          onSuccess();
+        }
 
         notifications.show({
           title: 'Export successful',
@@ -769,7 +774,7 @@ export const useExportSessionClients = (clients: Client[]) => {
   };
 };
 
-export const useExportGroups = (groups: GroupData[]) => {
+export const useExportGroups = (groups: GroupData[], onSuccess?: () => void) => {
   const [isExporting, setIsExporting] = useState(false);
   const [
     exportModalOpened,
@@ -835,6 +840,11 @@ export const useExportGroups = (groups: GroupData[]) => {
       try {
         const dataToExport = processGroupsForExport(selectedIds);
         exportDataToFile(dataToExport, type, 'groups', ['id']);
+
+        if (onSuccess) {
+          onSuccess();
+        }
+
         notifications.show({
           title: 'Export successful',
           message: `${
@@ -871,7 +881,7 @@ export const useExportGroups = (groups: GroupData[]) => {
         closeExportModal();
       }
     },
-    [groups, closeExportModal]
+    [groups, closeExportModal, onSuccess]
   );
 
   return {

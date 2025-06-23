@@ -610,26 +610,6 @@ const AllSessions = () => {
   const handleOpenAddSession = () =>
     openDrawer({ type: 'session', isEditing: false });
 
-  if (isLoadingSessions) {
-    return (
-      <ErrorBoundary>
-        <div className='flex justify-center items-center h-screen'>
-          <Loader size='xl' color='#1D9B5E' />
-        </div>
-      </ErrorBoundary>
-    );
-  }
-
-  if (isLoadingCategories) {
-    return (
-      <ErrorBoundary>
-        <div className='flex justify-center items-center py-10'>
-          <Loader size='xl' color='#1D9B5E' />
-        </div>
-      </ErrorBoundary>
-    );
-  }
-
   return (
     <ErrorBoundary>
       <div className='flex flex-col h-screen bg-cardsBg w-full overflow-y-auto'>
@@ -772,7 +752,7 @@ const AllSessions = () => {
                   <div>
                     <div className='flex flex-col gap-2 mt-4 min-w-[160px]'>
                       {isLoadingCategories ? (
-                        <div className='flex items-center justify-center'>
+                        <div className='flex justify-center items-center h-[80%] w-full shadow-lg bg-white self-center border rounded-xl p-6 pt-12'>
                           <Loader size='xl' color='#1D9B5E' />
                         </div>
                       ) : categoriesData && categoriesData.length > 0 ? (
@@ -903,7 +883,7 @@ const AllSessions = () => {
         />
         <div className='flex-1 md:px-6 px-2 py-2'>
           {isLoadingSessions || isLoadingCategories ? (
-            <div className='flex justify-center items-center'>
+            <div className='flex justify-center items-center h-[80%] w-full shadow-lg bg-white self-center border rounded-xl p-6 pt-12'>
               <Loader size='xl' color='#1D9B5E' />
             </div>
           ) : (
