@@ -464,7 +464,7 @@ const get_class_sessions = async () => {
 
 const get_staff_sessions = async (id: string) => {
   const { data } = await api.get(END_POINTS.SESSION.STAFF_SESSIONS(id));
-  return data;
+  return data.sessions || [];
 };
 
 const get_session_detail = async (id: string) => {
