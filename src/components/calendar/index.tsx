@@ -349,7 +349,6 @@ const CalendarView = () => {
 
           {permisions?.can_create_sessions && (
             <Button
-              w={140}
               h={42}
               size='sm'
               radius='md'
@@ -364,7 +363,7 @@ const CalendarView = () => {
               }}
               onClick={handleAddEvent}
             >
-              New Event
+              New Session
             </Button>
           )}
         </div>

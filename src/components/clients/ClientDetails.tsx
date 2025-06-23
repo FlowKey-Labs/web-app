@@ -234,7 +234,9 @@ const ClientDetails = () => {
                   <div className='md:w-full w-[95%] pb-6'>
                     <div className='flex justify-between text-xs pb-2'>
                       <p className=''>Average Learning Progress</p>
-                      <p className=''>{averageProgress}%</p>
+                      <p className=''>
+                        {averageProgress ? averageProgress : 0}%
+                      </p>
                     </div>
 
                     <Progress
