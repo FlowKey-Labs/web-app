@@ -12,7 +12,6 @@ import {
 import { CreateLocationData } from '../types/location';
 import { Role } from '../store/auth';
 import { Client } from '../types/clientTypes';
-import moment from 'moment';
 
 // Define a type for the session filters
 interface SessionFilters {

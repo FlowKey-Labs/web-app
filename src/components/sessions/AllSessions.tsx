@@ -190,10 +190,13 @@ const AllSessions = () => {
   const getSelectedSessionIds = useCallback(() => {
     if (!filteredSessions) return [];
 
-    return Object.keys(rowSelection).map((index) => {
-      const sessionIndex = parseInt(index);
-      return filteredSessions[sessionIndex].id;
-    });
+    // Get the actual selected rows using the row selection state
+    return Object.keys(rowSelection)
+      .map((rowIndex) => {
+        const row = parseInt(rowIndex);
+        return filteredSessions[row]?.id;
+      })
+      .filter(Boolean); // Filter out any undefined values
   }, [rowSelection, filteredSessions]);
 
   const { data: categoriesData, isLoading: isLoadingCategories } =
@@ -201,21 +204,38 @@ const AllSessions = () => {
 
   const handleSearchChange = useCallback((value: string) => {
     setSearchQuery(value);
+    // Clear selection when search changes
     setRowSelection({});
+    // Reset to first page when searching
+    setPageIndex(1);
   }, []);
 
   const columns = useMemo(
     () => [
       columnHelper.display({
         id: 'select',
-        header: ({ table }) => (
-          <input
-            type='checkbox'
-            checked={table.getIsAllRowsSelected()}
-            onChange={table.getToggleAllRowsSelectedHandler()}
-            className='w-4 h-4 rounded cursor-pointer bg-[#F7F8FA] accent-[#DBDEDF]'
-          />
-        ),
+        header: ({ table }) => {
+          // Only select rows on the current page
+          const currentPageRows = table.getRowModel().rows;
+          const allCurrentPageSelected =
+            currentPageRows.length > 0 &&
+            currentPageRows.every((row) => row.getIsSelected());
+
+          return (
+            <div className='flex flex-col items-center'>
+              <input
+                type='checkbox'
+                checked={allCurrentPageSelected}
+                onChange={() => {
+                  currentPageRows.forEach((row) => {
+                    row.toggleSelected(!allCurrentPageSelected);
+                  });
+                }}
+                className='w-4 h-4 rounded cursor-pointer bg-[#F7F8FA] accent-[#DBDEDF]'
+              />
+            </div>
+          );
+        },
         cell: ({ row }) => (
           <input
             type='checkbox'
@@ -495,6 +515,8 @@ const AllSessions = () => {
     setClassTypeDropdownOpen(false);
     setCategoryTypeDropdownOpen(false);
     setRowSelection({});
+    // Reset to first page when filters are reset
+    setPageIndex(1);
   };
 
   const handleActivateSession = () => {
