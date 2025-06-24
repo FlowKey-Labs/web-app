@@ -1349,11 +1349,17 @@ const get_client_booking_info = async (bookingReference: string) => {
 // Client self-service: Cancel booking
 const cancel_client_booking = async (
   bookingReference: string,
-  reason?: string
+  reason?: string,
+  client_email?: string,
+  client_phone?: string
 ) => {
-  const { data } = await api.post(`/api/booking/client/${bookingReference}/cancel/`, {
-    reason,
-  });
+  const payload: any = {};
+  
+  if (reason) payload.reason = reason;
+  if (client_email) payload.client_email = client_email;
+  if (client_phone) payload.client_phone = client_phone;
+  
+  const { data } = await api.post(`/api/booking/client/${bookingReference}/cancel/`, payload);
   return data;
 };
 

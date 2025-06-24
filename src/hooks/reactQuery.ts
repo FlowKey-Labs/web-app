@@ -2069,11 +2069,15 @@ export const useCancelClientBooking = () => {
   return useMutation({
     mutationFn: ({ 
       bookingReference, 
-      reason 
+      reason,
+      client_email,
+      client_phone
     }: { 
       bookingReference: string;
       reason?: string;
-    }) => cancel_client_booking(bookingReference, reason),
+      client_email?: string;
+      client_phone?: string;
+    }) => cancel_client_booking(bookingReference, reason, client_email, client_phone),
     onSuccess: (_, variables) => {
       // Invalidate client booking info and availability
       queryClient.invalidateQueries({ queryKey: ['client-booking-info', variables.bookingReference] });
@@ -2096,7 +2100,7 @@ export const useGetClientRescheduleOptions = (
   return useQuery({
     queryKey: ['client-reschedule-options', bookingReference, dateFrom, dateTo, filterType],
     queryFn: () => get_client_reschedule_options(bookingReference, dateFrom, dateTo, filterType),
-    enabled: !!bookingReference,
+    enabled: !!bookingReference && !!dateFrom && !!dateTo && !!filterType, // All parameters must be present
     staleTime: 1000 * 60 * 5, // 5 minutes - longer cache time to prevent refetches
     refetchOnWindowFocus: false, // Don't refetch when window focuses
     refetchOnMount: false, // Don't refetch when component mounts if data is fresh
@@ -2138,10 +2142,13 @@ export const useRescheduleClientBooking = () => {
       reason?: string;
     }) => reschedule_client_booking(bookingReference, newSessionId, newDate, newStartTime, newEndTime, identityVerification, reason),
     onSuccess: (_, variables) => {
-      // Invalidate relevant queries
+      // 🔧 FIX: Remove reschedule options from cache instead of invalidating to prevent refetch
+      // Remove reschedule options from cache since they're no longer needed after successful reschedule
+      queryClient.removeQueries({ queryKey: ['client-reschedule-options', variables.bookingReference] });
+      
+      // Only invalidate booking info and availability which are needed for the success page
       queryClient.invalidateQueries({ queryKey: ['client-booking-info', variables.bookingReference] });
       queryClient.invalidateQueries({ queryKey: ['booking-status', variables.bookingReference] });
-      queryClient.invalidateQueries({ queryKey: ['client-reschedule-options', variables.bookingReference] });
       queryClient.invalidateQueries({ queryKey: ['public-availability'] });
     },
     onError: (error) => {

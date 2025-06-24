@@ -361,8 +361,8 @@ export interface RescheduleInfo {
   current_booking: {
     booking_reference: string;
     client_name: string;
-    client_email_masked: string;
-    client_phone_masked: string;
+    client_email_hint: string;
+    client_phone_hint: string;
     session: {
       id: number;
       title: string;
