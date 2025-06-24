@@ -13,7 +13,11 @@ import {
 import { motion } from "framer-motion";
 import { CheckIcon, ClockIcon, EmailIcon } from "./bookingIcons";
 import { FlowKeyIcon } from "../../assets/icons";
-import { BookingStep, PublicBusinessInfo, BookingConfirmation } from "../../types/clientTypes";
+import {
+  BookingStep,
+  PublicBusinessInfo,
+  BookingConfirmation,
+} from "../../types/clientTypes";
 import { useBookingFlow } from "./PublicBookingProvider";
 
 interface BookingProgressItem {
@@ -146,7 +150,9 @@ export function BookingSidebar({
         transition={{ delay: 0.2, duration: 0.5 }}
         className="relative mx-auto w-fit"
       >
-        <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center shadow-xl border-4 border-white/50 business-logo">
+        <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center shadow-xl border-4 border-white/50 business-logo relative overflow-hidden">
+          {/* Shimmer effect overlay */}
+
           <span className="text-2xl font-bold text-white relative z-10">
             {businessInfo?.business_name?.charAt(0)?.toUpperCase() || "T"}
           </span>
@@ -165,7 +171,7 @@ export function BookingSidebar({
           order={3}
           className="text-base font-bold text-slate-900 leading-tight"
         >
-          {businessInfo?.business_name || "Triumph Therapies"}
+          {businessInfo?.business_name}
         </Title>
 
         <Badge
@@ -175,7 +181,7 @@ export function BookingSidebar({
           className="bg-slate-100 text-slate-700 border border-slate-200"
           style={{ textTransform: "capitalize" }}
         >
-          {businessInfo?.business_type || "THERAPY"}
+          {businessInfo?.business_type}
         </Badge>
 
         {businessInfo?.about && (
@@ -449,9 +455,9 @@ export function BookingSidebar({
 
   const BookingSuccessSection = () => {
     if (!bookingConfirmation) return null;
-    
-    const isApprovalRequired = bookingConfirmation.status === 'pending';
-    
+
+    const isApprovalRequired = bookingConfirmation.status === "pending";
+
     return (
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -469,11 +475,11 @@ export function BookingSidebar({
           >
             <CheckIcon className="w-8 h-8 text-white" />
           </motion.div>
-          
+
           <Title order={4} className="text-lg font-bold text-slate-900 mb-2">
-            {isApprovalRequired ? 'Request Submitted!' : 'Booking Confirmed!'}
+            {isApprovalRequired ? "Request Submitted!" : "Booking Confirmed!"}
           </Title>
-          
+
           <Text size="sm" className="text-slate-600 mb-4">
             {bookingConfirmation.message}
           </Text>
@@ -481,40 +487,55 @@ export function BookingSidebar({
 
         {/* Booking Details */}
         <div className="bg-white/60 backdrop-blur-sm rounded-xl p-4 border border-white/30">
-          <Text size="xs" fw={600} className="text-slate-700 uppercase tracking-wide mb-3">
+          <Text
+            size="xs"
+            fw={600}
+            className="text-slate-700 uppercase tracking-wide mb-3"
+          >
             BOOKING DETAILS
           </Text>
-          
+
           <Stack gap="sm">
             <Group justify="space-between">
-              <Text size="xs" className="text-slate-600">Reference:</Text>
+              <Text size="xs" className="text-slate-600">
+                Reference:
+              </Text>
               <Text size="xs" fw={600} className="text-emerald-600">
                 {bookingConfirmation.booking_reference}
               </Text>
             </Group>
-            
+
             <Group justify="space-between">
-              <Text size="xs" className="text-slate-600">Session:</Text>
+              <Text size="xs" className="text-slate-600">
+                Session:
+              </Text>
               <Text size="xs" fw={600} className="text-slate-900">
                 {bookingConfirmation.session_details.title}
               </Text>
             </Group>
-            
+
             <Group justify="space-between">
-              <Text size="xs" className="text-slate-600">Date:</Text>
+              <Text size="xs" className="text-slate-600">
+                Date:
+              </Text>
               <Text size="xs" fw={600} className="text-slate-900">
-                {new Date(bookingConfirmation.session_details.date).toLocaleDateString('en-US', {
-                  weekday: 'short',
-                  month: 'short', 
-                  day: 'numeric'
+                {new Date(
+                  bookingConfirmation.session_details.date
+                ).toLocaleDateString("en-US", {
+                  weekday: "short",
+                  month: "short",
+                  day: "numeric",
                 })}
               </Text>
             </Group>
-            
+
             <Group justify="space-between">
-              <Text size="xs" className="text-slate-600">Time:</Text>
+              <Text size="xs" className="text-slate-600">
+                Time:
+              </Text>
               <Text size="xs" fw={600} className="text-slate-900">
-                {bookingConfirmation.session_details.start_time} - {bookingConfirmation.session_details.end_time}
+                {bookingConfirmation.session_details.start_time} -{" "}
+                {bookingConfirmation.session_details.end_time}
               </Text>
             </Group>
           </Stack>
@@ -522,23 +543,26 @@ export function BookingSidebar({
 
         {/* What's Next */}
         <div className="bg-blue-50/80 backdrop-blur-sm rounded-xl p-4 border border-blue-200/50">
-          <Text size="xs" fw={600} className="text-blue-700 uppercase tracking-wide mb-3">
+          <Text
+            size="xs"
+            fw={600}
+            className="text-blue-700 uppercase tracking-wide mb-3"
+          >
             WHAT'S NEXT?
           </Text>
-          
+
           <Stack gap="sm">
             <div className="flex items-start gap-3">
               <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
                 <span className="text-white text-xs font-bold">1</span>
               </div>
               <Text size="xs" className="text-blue-700">
-                {isApprovalRequired 
-                  ? 'You\'ll receive an email once your booking is approved'
-                  : 'Check your email for booking confirmation and details'
-                }
+                {isApprovalRequired
+                  ? "You'll receive an email once your booking is approved"
+                  : "Check your email for booking confirmation and details"}
               </Text>
             </div>
-            
+
             <div className="flex items-start gap-3">
               <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
                 <span className="text-white text-xs font-bold">2</span>
@@ -547,7 +571,7 @@ export function BookingSidebar({
                 Add the appointment to your calendar
               </Text>
             </div>
-            
+
             <div className="flex items-start gap-3">
               <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
                 <span className="text-white text-xs font-bold">3</span>
@@ -570,14 +594,16 @@ export function BookingSidebar({
           >
             Book Another Appointment
           </Button>
-          
+
           {businessInfo?.email && (
             <Button
               variant="outline"
               size="sm"
               fullWidth
               leftSection={<EmailIcon className="w-4 h-4" />}
-              onClick={() => window.open(`mailto:${businessInfo.email}`, '_blank')}
+              onClick={() =>
+                window.open(`mailto:${businessInfo.email}`, "_blank")
+              }
               className="border-slate-200 text-slate-700 hover:bg-slate-50"
             >
               Contact Us

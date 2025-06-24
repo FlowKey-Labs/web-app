@@ -322,6 +322,21 @@ export interface ClientBookingInfo {
     current_reschedules: number;
     reschedules_remaining: number;
   };
+  flexible_booking_info?: {
+    selected_staff?: {
+      id: number;
+      name: string;
+      email: string;
+      specialization?: string;
+    };
+    selected_location?: {
+      id: number;
+      name: string;
+      address: string;
+      full_address: string;
+    };
+    is_flexible: boolean;
+  };
   client_email_hint?: string;
   client_phone_hint?: string;
 }
@@ -356,6 +371,19 @@ export interface RescheduleInfo {
       duration_minutes: number;
       location: string;
       category_name: string;
+    };
+    flexible_booking_info?: {
+      selected_staff?: {
+        id: number;
+        name: string;
+        email: string;
+      };
+      selected_location?: {
+        id: number;
+        name: string;
+        address: string;
+      };
+      is_flexible: boolean;
     };
     quantity: number;
     status: string;
@@ -398,6 +426,29 @@ export interface RescheduleInfo {
     reschedules_remaining: number;
   };
   reschedule_fee_policy: string;
+}
+
+export interface RescheduleErrorReason {
+  id: string;
+  message: string;
+  severity: 'high' | 'medium' | 'low';
+  details?: {
+    current_reschedules?: number;
+    max_reschedules?: number;
+    hours_remaining?: number;
+    required_hours?: number;
+  };
+}
+
+export interface RescheduleErrorResponse {
+  error: string;
+  can_reschedule: boolean;
+  reasons: RescheduleErrorReason[];
+  policy?: {
+    max_reschedules: number;
+    current_reschedules: number;
+    deadline_hours: number;
+  };
 }
 
 // Booking step management

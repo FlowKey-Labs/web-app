@@ -33,25 +33,14 @@ import {
   useRescheduleClientBooking 
 } from '../../hooks/reactQuery';
 import { useTimezone } from '../../contexts/TimezoneContext';
-import { RescheduleInfo, RescheduleOption } from '../../types/clientTypes';
+import { RescheduleInfo, RescheduleOption, RescheduleErrorReason } from '../../types/clientTypes';
 import { TIMEZONE_OPTIONS } from '../../utils/timezone';
 import { DateTime } from 'luxon';
 import { FlowKeyIcon } from '../../assets/icons';
 import { useViewportSize, useScrollIntoView } from '@mantine/hooks';
 import { withBranding } from '../../hoc/withBranding';
 
-// Animation variants
-const shimmerVariants = {
-  initial: { x: '-100%' },
-  animate: {
-    x: '100%',
-    transition: {
-      repeat: Infinity,
-      duration: 1.5,
-      ease: 'linear'
-    }
-  }
-};
+// Animation variants - removed as not used directly in favor of inline animations
 
 // Error Screen Component
 interface RescheduleErrorScreenProps {
@@ -70,9 +59,24 @@ const RescheduleErrorScreen: React.FC<RescheduleErrorScreenProps> = ({
   // Load booking info independently for better error display
   const { data: bookingInfo, isLoading: bookingInfoLoading, error: bookingInfoError } = useGetClientBookingInfo(bookingReference);
 
-  // Check if it's a reschedule not allowed error
-  const isRescheduleNotAllowed = rescheduleError && 
-    rescheduleError.message?.includes('cannot be rescheduled by client');
+  // Extract API error details with proper typing
+  const apiErrorData = rescheduleError && 'response' in rescheduleError && rescheduleError.response
+    ? (rescheduleError.response as { 
+        data?: { 
+          error?: string;
+          can_reschedule?: boolean;
+          reasons?: RescheduleErrorReason[];
+          policy?: {
+            max_reschedules: number;
+            current_reschedules: number;
+            deadline_hours: number;
+          };
+        } 
+      }).data
+    : null;
+
+  const errorReasons: RescheduleErrorReason[] = apiErrorData?.reasons || [];
+  const errorPolicy = apiErrorData?.policy;
 
   // If we can't load booking info either, show minimal error
   if (bookingInfoLoading) {
@@ -95,45 +99,70 @@ const RescheduleErrorScreen: React.FC<RescheduleErrorScreenProps> = ({
             initial={{ opacity: 0, x: -50 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6, ease: "easeOut" }}
-            className="hidden lg:block w-96 flex-shrink-0 overflow-y-auto h-full p-6 business-section"
+            className="hidden lg:block w-96 flex-shrink-0 h-full business-section"
+            style={{
+              background: "linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)",
+              borderRight: "1px solid #e2e8f0",
+              display: "flex",
+              flexDirection: "column",
+            }}
           >
-            <div className="text-center space-y-6">
-              <div className="w-20 h-20 bg-gradient-to-br from-emerald-100 to-green-100 rounded-2xl flex items-center justify-center mx-auto relative overflow-hidden">
-                <motion.div
-                  variants={shimmerVariants}
-                  initial="initial"
-                  animate="animate"
-                  className="absolute inset-0 bg-gradient-to-r from-transparent via-emerald-300/40 to-transparent"
-                />
-                <div className="w-12 h-12 bg-emerald-600 rounded-lg flex items-center justify-center">
-                  <span className="text-white font-bold text-lg">?</span>
+            <ScrollArea style={{ flex: 1 }} scrollbars="y" offsetScrollbars>
+              <div className="p-6">
+                <div className="text-center space-y-6">
+                  <div className="relative mx-auto w-fit">
+                    <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center shadow-xl border-4 border-white/50 business-logo relative overflow-hidden">
+                      {/* Shimmer effect overlay */}
+                      <motion.div
+                        initial={{ x: "-100%" }}
+                        animate={{ x: "100%" }}
+                        transition={{
+                          repeat: Infinity,
+                          duration: 1.5,
+                          ease: "linear",
+                        }}
+                        className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent transform skew-x-12"
+                      />
+                      <span className="text-2xl font-bold text-white relative z-10">?</span>
+                    </div>
+                    <div className="absolute -inset-2 bg-gradient-to-r from-emerald-500/20 to-green-500/20 rounded-3xl blur-xl"></div>
+                  </div>
+                  <div>
+                    <Title order={3} className="text-base font-bold text-slate-900 leading-tight mb-2">
+                      Booking Management
+                    </Title>
+                    <Text size="xs" className="text-slate-600">
+                      Manage your booking details
+                    </Text>
+                  </div>
                 </div>
               </div>
-              <div>
-                <Title order={2} className="text-xl font-bold text-slate-900 mb-2">
-                  Booking Management
-                </Title>
-                <Text className="text-slate-600">
-                  Manage your booking details
-                </Text>
-              </div>
-            </div>
+            </ScrollArea>
 
-            {/* Powered by FlowKey */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.6, duration: 0.5 }}
-              className="text-center pt-6 mt-8"
+            {/* Powered by FlowKey Footer */}
+            <div
+              className="p-4"
+              style={{
+                borderTop: "1px solid #e2e8f0",
+                background: "rgba(248, 250, 252, 0.8)",
+                backdropFilter: "blur(8px)",
+              }}
             >
-              <div className="flex items-center justify-center gap-2">
-                <Text size="xs" className="text-slate-500">Powered by</Text>
-                <div className="flex items-center gap-1">
-                  <FlowKeyIcon className="w-8 h-auto opacity-60" />
-                  <Text size="xs" className="text-slate-600 font-medium">FlowKey</Text>
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.6, duration: 0.5 }}
+                className="text-center"
+              >
+                <div className="flex items-center justify-center gap-1">
+                  <Text size="xs" className="text-slate-500">Powered by</Text>
+                  <div className="flex items-center gap-1">
+                    <FlowKeyIcon className="w-4 h-auto opacity-60" />
+                    <Text size="xs" className="text-slate-600 font-medium">FlowKey</Text>
+                  </div>
                 </div>
-              </div>
-            </motion.div>
+              </motion.div>
+            </div>
           </motion.div>
 
           {/* RIGHT SECTION - Error Message */}
@@ -187,114 +216,162 @@ const RescheduleErrorScreen: React.FC<RescheduleErrorScreenProps> = ({
   return (
     <div className="min-h-screen w-full relative">
       <div className="flex flex-col lg:flex-row h-screen relative z-10">
-        {/* LEFT SECTION - Business Profile */}
-        <motion.div 
-          initial={{ opacity: 0, x: -50 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.6, ease: "easeOut" }}
-          className="hidden lg:block w-96 flex-shrink-0 overflow-y-auto h-full p-6 business-section"
-        >
-          {/* Business Header */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2, duration: 0.5 }}
-            className="text-center space-y-6"
+                  {/* LEFT SECTION - Business Profile */}
+          <motion.div 
+            initial={{ opacity: 0, x: -50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+            className="hidden lg:block w-96 flex-shrink-0 h-full business-section"
+            style={{
+              background: "linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)",
+              borderRight: "1px solid #e2e8f0",
+              display: "flex",
+              flexDirection: "column",
+            }}
           >
-            <div className="w-20 h-20 bg-gradient-to-br from-emerald-100 to-green-100 rounded-2xl flex items-center justify-center mx-auto relative overflow-hidden">
+            <ScrollArea style={{ flex: 1 }} scrollbars="y" offsetScrollbars>
+              <div className="p-6">
+                {/* Business Header */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2, duration: 0.5 }}
+                  className="text-center space-y-6"
+                >
+                  <div className="relative mx-auto w-fit">
+                    <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center shadow-xl border-4 border-white/50 business-logo relative overflow-hidden">
+                      {/* Shimmer effect overlay */}
+                      <motion.div
+                        initial={{ x: "-100%" }}
+                        animate={{ x: "100%" }}
+                        transition={{
+                          repeat: Infinity,
+                          duration: 1.5,
+                          ease: "linear",
+                        }}
+                        className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent transform skew-x-12"
+                      />
+                      <span className="text-2xl font-bold text-white relative z-10">
+                        {businessName.charAt(0).toUpperCase()}
+                      </span>
+                    </div>
+                    <div className="absolute -inset-2 bg-gradient-to-r from-emerald-500/20 to-green-500/20 rounded-3xl blur-xl"></div>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <Title order={3} className="text-base font-bold text-slate-900 leading-tight">
+                      {businessName}
+                    </Title>
+                    <Badge 
+                      variant="light" 
+                      color="gray" 
+                      size="md"
+                      className="bg-slate-100 text-slate-700 border border-slate-200"
+                      style={{ textTransform: "capitalize" }}
+                    >
+                      {bookingInfo.business?.business_type || 'Service Provider'}
+                    </Badge>
+
+                    {/* Business details */}
+                    {bookingInfo.business?.address && (
+                      <Text size="xs" className="text-slate-600 leading-relaxed text-center">
+                        📍 {bookingInfo.business.address}
+                      </Text>
+                    )}
+                  </div>
+                </motion.div>
+
+                {/* Current Booking Details */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.4, duration: 0.5 }}
+                  className="bg-white/60 backdrop-blur-sm rounded-xl p-5 border border-white/30 mt-8"
+                >
+                  <Text size="xs" fw={600} className="text-slate-700 uppercase tracking-wide mb-4">
+                    YOUR BOOKING
+                  </Text>
+                  
+                  <div className="space-y-4 my-4">
+                    <div className="flex items-center gap-3 pb-3 border-b border-slate-200/50">
+                      <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-emerald-100 to-green-100 flex items-center justify-center flex-shrink-0">
+                        <span className="text-lg">📅</span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <Text size="sm" fw={600} className="text-slate-900 leading-tight truncate">
+                          {bookingInfo.session?.title}
+                        </Text>
+                        <Text size="xs" className="text-slate-600 font-medium">
+                          Ref: {bookingInfo.booking_reference}
+                        </Text>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-3 text-xs">
+                      <div className="flex items-center justify-between py-1">
+                        <Text className="text-slate-600 font-medium">Date:</Text>
+                        <Text fw={600} className="text-slate-900">
+                          {bookingInfo.session?.date}
+                        </Text>
+                      </div>
+                      <div className="flex items-center justify-between py-1">
+                        <Text className="text-slate-600 font-medium">Time:</Text>
+                        <div className="text-right">
+                          <Text fw={600} className="text-slate-900 block">
+                            {bookingInfo.session?.start_time} - {bookingInfo.session?.end_time}
+                          </Text>
+                          {bookingInfo?.client_timezone && (
+                            <Text size="xs" className="text-emerald-600 font-semibold">
+                              {bookingInfo.client_timezone}
+                            </Text>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between py-1">
+                        <Text className="text-slate-600 font-medium">Location:</Text>
+                        <Text fw={600} className="text-slate-900 text-right">
+                          {bookingInfo.session?.location || 'Main Location'}
+                        </Text>
+                      </div>
+                      {bookingInfo.flexible_booking_info?.selected_staff && (
+                        <div className="flex items-center justify-between py-1">
+                          <Text className="text-slate-600 font-medium">Staff:</Text>
+                          <Text fw={600} className="text-slate-900 text-right">
+                            {bookingInfo.flexible_booking_info.selected_staff.name}
+                          </Text>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </motion.div>
+              </div>
+            </ScrollArea>
+
+            {/* Powered by FlowKey Footer */}
+            <div
+              className="p-4"
+              style={{
+                borderTop: "1px solid #e2e8f0",
+                background: "rgba(248, 250, 252, 0.8)",
+                backdropFilter: "blur(8px)",
+              }}
+            >
               <motion.div
-                variants={shimmerVariants}
-                initial="initial"
-                animate="animate"
-                className="absolute inset-0 bg-gradient-to-r from-transparent via-emerald-300/40 to-transparent"
-              />
-              <div className="w-12 h-12 bg-emerald-800 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-lg">
-                  {businessName.charAt(0).toUpperCase()}
-                </span>
-              </div>
-            </div>
-            
-            <div className="space-y-3">
-              <Title order={2} className="text-xl font-bold text-slate-900">
-                {businessName}
-              </Title>
-              <Badge 
-                variant="light" 
-                color="gray" 
-                size="md"
-                className="bg-slate-100 text-slate-700 border border-slate-200"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.6, duration: 0.5 }}
+                className="text-center"
               >
-                {bookingInfo.business?.business_type || 'Service Provider'}
-              </Badge>
+                <div className="flex items-center justify-center gap-1">
+                  <Text size="xs" className="text-slate-500">Powered by</Text>
+                  <div className="flex items-center gap-1">
+                    <FlowKeyIcon className="w-4 h-auto opacity-60" />
+                    <Text size="xs" className="text-slate-600 font-medium">FlowKey</Text>
+                  </div>
+                </div>
+              </motion.div>
             </div>
           </motion.div>
-
-          {/* Current Booking Details */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4, duration: 0.5 }}
-            className="bg-white/40 backdrop-blur-sm rounded-2xl p-6 border border-white/20 mt-8"
-          >
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-100 to-green-100 flex items-center justify-center">
-                <span className="text-2xl">📅</span>
-              </div>
-              <div className="flex-1">
-                <Title order={4} className="text-slate-800 mb-1 text-base">
-                  Your Booking
-                </Title>
-                <Text className="text-slate-600 text-sm font-medium">
-                  {bookingInfo.session?.title}
-                </Text>
-              </div>
-            </div>
-            
-            <div className="space-y-2 text-sm text-slate-600">
-              <div className="flex items-center justify-between">
-                <span>Date:</span>
-                <span className="font-medium">
-                  {bookingInfo.session?.date}
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span>Time:</span>
-                <span className="font-medium">
-                  {bookingInfo.session?.start_time} - {bookingInfo.session?.end_time}
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span>Location:</span>
-                <span className="font-medium">
-                  {bookingInfo.session?.location || 'Main Location'}
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span>Reference:</span>
-                <span className="font-medium text-emerald-600">
-                  {bookingInfo.booking_reference}
-                </span>
-              </div>
-            </div>
-          </motion.div>
-
-          {/* Powered by FlowKey */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.6, duration: 0.5 }}
-            className="text-center pt-6 mt-8"
-          >
-            <div className="flex items-center justify-center gap-2">
-              <Text size="xs" className="text-slate-500">Powered by</Text>
-              <div className="flex items-center gap-1">
-                <FlowKeyIcon className="w-8 h-auto opacity-60" />
-                <Text size="xs" className="text-slate-600 font-medium">FlowKey</Text>
-              </div>
-            </div>
-          </motion.div>
-        </motion.div>
 
         {/* RIGHT SECTION - Error Message */}
         <motion.div 
@@ -304,82 +381,147 @@ const RescheduleErrorScreen: React.FC<RescheduleErrorScreenProps> = ({
           className="flex-1 overflow-y-auto h-full p-4 lg:p-8 services-section flex items-center justify-center"
         >
           <div className="max-w-2xl mx-auto text-center space-y-6">
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ delay: 0.3, duration: 0.5, type: "spring" }}
-              className="w-24 h-24 bg-gradient-to-br from-orange-100 to-yellow-100 rounded-full flex items-center justify-center mx-auto"
-            >
-              <InfoIcon className="w-12 h-12 text-orange-600" />
-            </motion.div>
+        
 
-            <div className="space-y-3">
-              <Title order={1} className="text-2xl lg:text-3xl font-bold text-slate-900">
-                {isRescheduleNotAllowed ? 'Reschedule Not Available' : 'Unable to Load Reschedule Options'}
-              </Title>
-              <Text size="lg" className="text-slate-600">
-                {isRescheduleNotAllowed 
-                  ? "You've reached the maximum number of reschedules allowed for this booking"
-                  : "We're having trouble loading your reschedule options"
-                }
-              </Text>
-            </div>
+            {/* Clean, Centered Error Display */}
+            {errorReasons.length > 0 ? (
+              <div className="space-y-6 text-center">
+                {/* Single Icon and Clear Messaging */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3, duration: 0.5 }}
+                  className="space-y-4"
+                >
+                  <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto ${
+                    errorReasons[0].severity === 'high' ? 'bg-red-100' : 
+                    errorReasons[0].severity === 'medium' ? 'bg-orange-100' : 'bg-blue-100'
+                  }`}>
+                    <span className="text-2xl">
+                      {errorReasons[0].id === 'MAX_RESCHEDULES_REACHED' ? '🚫' :
+                       errorReasons[0].id === 'DEADLINE_PASSED' ? '⏰' :
+                       errorReasons[0].id === 'SESSION_FINISHED' ? '✅' :
+                       errorReasons[0].id === 'INVALID_STATUS' ? '⚠️' :
+                       errorReasons[0].id === 'BUSINESS_POLICY' ? '📋' : '❌'}
+                    </span>
+                  </div>
+                  
+                  <div className="space-y-2 text-center">
+                    <Title order={2} className="text-xl font-semibold text-slate-900">
+                      Reschedule Not Available
+                    </Title>
+                   <div className="text-center">
+                   <Text size="sm" className="text-slate-600 text-center max-w- mx-auto leading-relaxed">
+                      {errorReasons[0].message}
+                    </Text>
+                   </div>
+                  </div>
+                </motion.div>
 
-            {/* Detailed explanation */}
+                {/* Unified Information Card - No Duplication */}
+                {errorReasons[0].id === 'MAX_RESCHEDULES_REACHED' && errorPolicy && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.4, duration: 0.5 }}
+                    className="bg-red-50/80 backdrop-blur-sm rounded-xl border border-red-200/50 p-4 max-w-sm mx-auto"
+                  >
+                    <div className="text-center space-y-3">
+                      <Text size="sm" fw={600} className="text-red-800">
+                        Reschedule Limit Exceeded
+                      </Text>
+                      <div className="bg-white/60 rounded-lg p-3">
+                        <div className="grid grid-cols-3 gap-3 text-center text-xs">
+                          <div>
+                            <div className="text-slate-500 mb-1">Maximum</div>
+                            <div className="font-semibold text-slate-700">{errorPolicy.max_reschedules}</div>
+                          </div>
+                          <div>
+                            <div className="text-slate-500 mb-1">Used</div>
+                            <div className="font-semibold text-red-600">{errorPolicy.current_reschedules}</div>
+                          </div>
+                          <div>
+                            <div className="text-slate-500 mb-1">Deadline</div>
+                            <div className="font-semibold text-slate-700">{errorPolicy.deadline_hours}h</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+
+                {/* Other Error Types - Simple Display */}
+                {errorReasons[0].id !== 'MAX_RESCHEDULES_REACHED' && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.4, duration: 0.5 }}
+                    className={`${
+                      errorReasons[0].severity === 'high' ? 'bg-red-50/80 border-red-200/50' :
+                      errorReasons[0].severity === 'medium' ? 'bg-orange-50/80 border-orange-200/50' :
+                      'bg-blue-50/80 border-blue-200/50'
+                    } backdrop-blur-sm rounded-xl border p-4 max-w-sm mx-auto`}
+                  >
+                    <div className="text-center">
+                      <Text size="sm" className={`${
+                        errorReasons[0].severity === 'high' ? 'text-red-700' :
+                        errorReasons[0].severity === 'medium' ? 'text-orange-700' :
+                        'text-blue-700'
+                      } leading-relaxed`}>
+                        {errorReasons[0].id === 'INVALID_STATUS' ? 
+                          'This booking has been cancelled and cannot be rescheduled.' :
+                         errorReasons[0].id === 'BUSINESS_POLICY' ?
+                          'This booking type does not allow client reschedules.' :
+                         errorReasons[0].id === 'DEADLINE_PASSED' ?
+                          `Reschedule deadline passed. ${errorReasons[0].details?.required_hours || 24} hours notice required.` :
+                          'Please contact support for assistance.'
+                        }
+                      </Text>
+                    </div>
+                  </motion.div>
+                )}
+              </div>
+            ) : (
+              <div className="text-center space-y-4">
+                <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center mx-auto">
+                  <InfoIcon className="w-6 h-6 text-orange-600" />
+                </div>
+                <div>
+                  <Title order={2} className="text-lg font-semibold text-slate-900 mb-1">
+                    Unable to Load Options
+                  </Title>
+                  <Text size="sm" className="text-slate-600">
+                    We're having trouble loading your reschedule options
+                  </Text>
+                </div>
+              </div>
+            )}
+
+            {/* Simple Next Steps Guidance */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4, duration: 0.5 }}
-              className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 border border-white/30 text-left max-w-md mx-auto"
+              transition={{ delay: 0.5, duration: 0.5 }}
+              className="max-w-lg mx-auto"
             >
-              <div className="flex items-center gap-2 mb-3">
-                <span className="text-orange-600">ℹ️</span>
-                <Text className="font-semibold text-slate-800">Possible reasons:</Text>
+              <div className="bg-blue-50/80 rounded-lg border border-blue-200/50 p-4 text-center">
+                <Text size="sm" className="text-blue-800 leading-relaxed">
+                  <strong>Next steps:</strong>{' '}
+                  {errorReasons.length > 0 ? (
+                    errorReasons[0].id === 'MAX_RESCHEDULES_REACHED' ? 
+                      'Contact support for assistance or cancel to create a new booking.' :
+                    errorReasons[0].id === 'INVALID_STATUS' ?
+                      'This booking is cancelled. Create a new booking instead.' :
+                    errorReasons[0].id === 'BUSINESS_POLICY' ?
+                      'Contact us to discuss alternative arrangements.' :
+                    errorReasons[0].id === 'DEADLINE_PASSED' ?
+                      'Contact support - we may help with urgent changes.' :
+                      'Contact support for assistance.'
+                  ) : (
+                    'Try refreshing the page or contact support if the issue persists.'
+                  )}
+                </Text>
               </div>
-              
-              {isRescheduleNotAllowed ? (
-                <ul className="space-y-2 text-sm text-slate-600">
-                  {/* Always highlight max reschedules as the primary reason since this is why we're here */}
-                  <li className="flex items-start gap-2 bg-red-50 p-3 rounded-lg border border-red-200">
-                    <span className="text-red-600 mt-0.5 text-lg">🚫</span>
-                    <div>
-                      <span className="font-bold text-red-800 block">
-                        Maximum reschedules reached - This is why your booking cannot be rescheduled
-                      </span>
-                      <span className="text-red-700 text-sm">
-                        You've used {bookingInfo.reschedule_policy?.current_reschedules || 2} of {bookingInfo.reschedule_policy?.max_reschedules || 2} allowed reschedules
-                      </span>
-                    </div>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-orange-500 mt-0.5">•</span>
-                    <span>Reschedule deadline passed ({bookingInfo.reschedule_policy?.deadline_hours || 24} hours before session)</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-orange-500 mt-0.5">•</span>
-                    <span>Session has already started or finished</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-orange-500 mt-0.5">•</span>
-                    <span>Booking status doesn't allow changes</span>
-                  </li>
-                </ul>
-              ) : (
-                <ul className="space-y-2 text-sm text-slate-600">
-                  <li className="flex items-start gap-2">
-                    <span className="text-orange-500 mt-0.5">•</span>
-                    <span>Temporary system issue</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-orange-500 mt-0.5">•</span>
-                    <span>No available alternative sessions</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-orange-500 mt-0.5">•</span>
-                    <span>Session schedule not yet published</span>
-                  </li>
-                </ul>
-              )}
             </motion.div>
 
             {/* Action buttons */}
@@ -424,6 +566,10 @@ const RescheduleErrorScreen: React.FC<RescheduleErrorScreenProps> = ({
                 <div><strong>Service:</strong> {bookingInfo.session?.title}</div>
                 <div><strong>Date:</strong> {bookingInfo.session?.date}</div>
                 <div><strong>Time:</strong> {bookingInfo.session?.start_time} - {bookingInfo.session?.end_time}</div>
+                <div><strong>Location:</strong> {bookingInfo.session?.location || 'Main Location'}</div>
+                {bookingInfo.flexible_booking_info?.selected_staff && (
+                  <div><strong>Staff:</strong> {bookingInfo.flexible_booking_info.selected_staff.name}</div>
+                )}
                 <div><strong>Reference:</strong> {bookingInfo.booking_reference}</div>
               </div>
             </motion.div>
@@ -589,14 +735,25 @@ const EnhancedBusinessProfile = ({ businessInfo, bookingInfo }: EnhancedBusiness
   
   return (
     <div className="space-y-6">
-      {/* Business Logo */}
+      {/* Business Logo with Shimmer */}
       <motion.div 
         initial={{ scale: 0 }}
         animate={{ scale: 1 }}
         transition={{ delay: 0.2, duration: 0.5 }}
         className="relative mx-auto w-fit"
       >
-        <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center shadow-xl border-4 border-white/50 business-logo">
+        <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center shadow-xl border-4 border-white/50 business-logo relative overflow-hidden">
+          {/* Shimmer effect overlay */}
+          <motion.div
+            initial={{ x: "-100%" }}
+            animate={{ x: "100%" }}
+            transition={{
+              repeat: Infinity,
+              duration: 1.5,
+              ease: "linear",
+            }}
+            className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent transform skew-x-12"
+          />
           <span className="text-2xl font-bold text-white relative z-10">
             {businessLetter}
           </span>
@@ -610,7 +767,7 @@ const EnhancedBusinessProfile = ({ businessInfo, bookingInfo }: EnhancedBusiness
         transition={{ delay: 0.3, duration: 0.5 }}
         className="text-center space-y-3"
       >
-        <Title order={2} className="text-xl font-bold text-slate-900 leading-tight">
+        <Title order={3} className="text-base font-bold text-slate-900 leading-tight">
           {businessName}
         </Title>
         
@@ -619,21 +776,16 @@ const EnhancedBusinessProfile = ({ businessInfo, bookingInfo }: EnhancedBusiness
           color="gray" 
           size="md"
           className="bg-slate-100 text-slate-700 border border-slate-200"
+          style={{ textTransform: "capitalize" }}
         >
           {businessInfo.business_type || 'Service Provider'}
         </Badge>
         
-        {/* Business contact */}
-        {businessInfo.contact_email && (
-          <div className="text-sm text-slate-600">
-            📧 {businessInfo.contact_email}
-          </div>
-        )}
-        
-        {businessInfo.phone && (
-          <div className="text-sm text-slate-600">
-            📞 {businessInfo.phone}
-          </div>
+        {/* Business details */}
+        {businessInfo.address && (
+          <Text size="xs" className="text-slate-600 leading-relaxed text-center">
+            📍 {businessInfo.address}
+          </Text>
         )}
       </motion.div>
 
@@ -642,49 +794,55 @@ const EnhancedBusinessProfile = ({ businessInfo, bookingInfo }: EnhancedBusiness
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.4, duration: 0.5 }}
-        className="bg-white/40 backdrop-blur-sm rounded-2xl p-6 border border-white/20"
+        className="bg-white/60 backdrop-blur-sm rounded-xl p-4 border border-white/30"
       >
-        <div className="flex items-center gap-3 mb-3">
-          <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-100 to-green-100 flex items-center justify-center">
-            <span className="text-2xl">📅</span>
-          </div>
-          <div className="flex-1">
-            <Title order={4} className="text-slate-800 mb-1 text-base">
-              Current Booking
-            </Title>
-            <Text className="text-slate-600 text-sm font-medium">
-              {bookingInfo.session.title}
-            </Text>
-          </div>
-        </div>
+        <Text size="xs" fw={600} className="text-slate-700 uppercase tracking-wide mb-3">
+          YOUR BOOKING
+        </Text>
         
-        <div className="space-y-2 text-sm text-slate-600">
-          <div className="flex items-center justify-between">
-            <span>Date:</span>
-            <span className="font-medium">
-              {DateTime.fromISO(bookingInfo.session.start_time).toFormat('DDDD')}
-            </span>
-          </div>
-          <div className="flex items-center justify-between">
-            <span>Time:</span>
-            <span className="font-medium">
-              {DateTime.fromISO(bookingInfo.session.start_time).toFormat('h:mm a')} - {DateTime.fromISO(bookingInfo.session.end_time).toFormat('h:mm a')}
-            </span>
-          </div>
-          <div className="flex items-center justify-between">
-            <span>Duration:</span>
-            <span className="font-medium">
-              {bookingInfo.session.duration_minutes} min
-            </span>
-          </div>
-          {bookingInfo.session.location && (
-            <div className="flex items-center justify-between">
-              <span>Location:</span>
-              <span className="font-medium">
-                {bookingInfo.session.location}
-              </span>
+        <div className="space-y-2">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-emerald-100 to-green-100 flex items-center justify-center">
+              <span className="text-lg">📅</span>
             </div>
-          )}
+            <div className="flex-1 min-w-0">
+              <Text size="sm" fw={600} className="text-slate-900 leading-tight truncate">
+                {bookingInfo.session.title}
+              </Text>
+              <Text size="xs" className="text-slate-600">
+                {bookingInfo.booking_reference}
+              </Text>
+            </div>
+          </div>
+          
+          <div className="space-y-2 text-xs">
+            <div className="flex items-center justify-between">
+              <Text className="text-slate-600">Date:</Text>
+              <Text fw={600} className="text-slate-900">
+                {DateTime.fromISO(bookingInfo.session.start_time).toFormat('DDD')}
+              </Text>
+            </div>
+            <div className="flex items-center justify-between">
+              <Text className="text-slate-600">Time:</Text>
+              <Text fw={600} className="text-slate-900">
+                {DateTime.fromISO(bookingInfo.session.start_time).toFormat('h:mm a')} - {DateTime.fromISO(bookingInfo.session.end_time).toFormat('h:mm a')}
+              </Text>
+            </div>
+            <div className="flex items-center justify-between">
+              <Text className="text-slate-600">Duration:</Text>
+              <Text fw={600} className="text-slate-900">
+                {bookingInfo.session.duration_minutes} min
+              </Text>
+            </div>
+            {bookingInfo.session.location && (
+              <div className="flex items-center justify-between">
+                <Text className="text-slate-600">Location:</Text>
+                <Text fw={600} className="text-slate-900 truncate">
+                  {bookingInfo.session.location}
+                </Text>
+              </div>
+            )}
+          </div>
         </div>
       </motion.div>
     </div>
@@ -716,7 +874,22 @@ const ClockToggle = ({ variant = 'inline' }: ClockToggleProps) => {
     return () => clearInterval(interval);
   }, [timezoneState.selectedTimezone, timezoneState.use24Hour]);
 
-  const timeZoneAbbr = DateTime.now().setZone(timezoneState.selectedTimezone).toFormat('ZZZZ');
+  // Get timezone abbreviation
+  const getTimezoneAbbr = () => {
+    if (timezoneState.selectedTimezone.includes("Nairobi")) {
+      return "EAT";
+    } else if (timezoneState.selectedTimezone.includes("GMT")) {
+      return "GMT+3";
+    } else {
+      try {
+        return DateTime.now().setZone(timezoneState.selectedTimezone).toFormat('ZZZZ');
+      } catch {
+        return "UTC";
+      }
+    }
+  };
+
+  const timeZoneAbbr = getTimezoneAbbr();
 
   if (variant === 'minimal') {
     return (
@@ -728,6 +901,7 @@ const ClockToggle = ({ variant = 'inline' }: ClockToggleProps) => {
           <ClockIcon className="w-4 h-4" />
         </motion.div>
         <span>{currentTime}</span>
+        <span className="text-xs text-slate-500">{timeZoneAbbr}</span>
       </div>
     );
   }
@@ -789,13 +963,13 @@ const BookingManage: React.FC = () => {
     return tomorrow.toFormat('yyyy-MM-dd');
   }, []);
 
-  // API calls - use fixed date range, not selectedDate
+  // API calls - only fetch reschedule options if not on success page
   const { 
     data: rescheduleData, 
     isLoading: rescheduleLoading,
     error: rescheduleError 
   } = useGetClientRescheduleOptions(
-    bookingReference || '', 
+    !isSuccess ? (bookingReference || '') : '', // Don't fetch if on success page
     fixedDateFrom,
     DateTime.now().plus({ months: 3 }).toFormat('yyyy-MM-dd'),
     filterType
@@ -991,6 +1165,17 @@ const BookingManage: React.FC = () => {
   const handleConfirmReschedule = async () => {
     if (!selectedTimeSlot || !bookingReference) return;
 
+    // Validate both email and phone are provided
+    if (!clientEmail.trim() || !clientPhone.trim()) {
+      notifications.show({
+        title: 'Identity Verification Required',
+        message: 'Both email address and phone number are required for identity verification.',
+        color: 'red',
+        icon: <InfoIcon className="w-4 h-4" />
+      });
+      return;
+    }
+
     console.log('🔍 DEBUG: Reschedule payload:', {
       bookingReference,
       newSessionId: selectedTimeSlot.session_id,
@@ -1124,20 +1309,20 @@ const BookingManage: React.FC = () => {
               </Button>
                 </div>
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-100 to-green-100 flex items-center justify-center">
-                    <span className="text-xl">✅</span>
+                  <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-emerald-100 to-green-100 flex items-center justify-center">
+                    <span className="text-lg">✅</span>
                   </div>
-                  <Text className="text-slate-600 text-sm lg:text-base font-medium">
+                  <Text className="text-slate-600 text-xs lg:text-sm font-medium">
                     Confirm Reschedule
                   </Text>
                 </div>
                 <Title 
                   order={1} 
-                  className="text-2xl lg:text-4xl font-bold mb-2 lg:mb-4 text-slate-800"
+                  className="text-xl lg:text-3xl font-bold mb-2 lg:mb-4 text-slate-800"
                 >
                   Confirm Your Reschedule
                 </Title>
-                <Text className="text-slate-600 text-sm lg:text-base">
+                <Text className="text-slate-600 text-xs lg:text-sm">
                   Please verify your details and confirm the new booking time.
                 </Text>
               </motion.div>
@@ -1149,7 +1334,7 @@ const BookingManage: React.FC = () => {
                 transition={{ delay: 0.4, duration: 0.5 }}
                 className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 border border-white/30"
               >
-                <Title order={3} className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
+                <Title order={3} className="text-base font-semibold text-slate-800 mb-4 flex items-center gap-2">
                   <span className="text-emerald-600">🔄</span>
                   Session Change
                 </Title>
@@ -1161,7 +1346,7 @@ const BookingManage: React.FC = () => {
                       <span className="text-red-600">❌</span>
                       <Text className="font-semibold text-red-800">Current Session</Text>
                     </div>
-                    <div className="space-y-2 text-sm">
+                    <div className="space-y-2 text-xs">
                       <div><strong>Session:</strong> {typedRescheduleData.current_booking.session.title}</div>
                       <div><strong>Date:</strong> {DateTime.fromISO(typedRescheduleData.current_booking.session.start_time).toFormat('DDDD')}</div>
                       <div><strong>Time:</strong> {formatTime(DateTime.fromISO(typedRescheduleData.current_booking.session.start_time).toFormat('HH:mm'))} - {formatTime(DateTime.fromISO(typedRescheduleData.current_booking.session.end_time).toFormat('HH:mm'))}</div>
@@ -1176,7 +1361,7 @@ const BookingManage: React.FC = () => {
                       <span className="text-green-600">✅</span>
                       <Text className="font-semibold text-green-800">New Session</Text>
                     </div>
-                    <div className="space-y-2 text-sm">
+                    <div className="space-y-2 text-xs">
                       <div><strong>Session:</strong> {selectedTimeSlot?.title}</div>
                       <div><strong>Date:</strong> {selectedDate?.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</div>
                       <div><strong>Time:</strong> {formatTime(selectedTimeSlot?.start_time || '', selectedTimeSlot?.date)} - {formatTime(selectedTimeSlot?.end_time || '', selectedTimeSlot?.date)}</div>
@@ -1194,8 +1379,8 @@ const BookingManage: React.FC = () => {
                 transition={{ delay: 0.5, duration: 0.5 }}
                 className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 border border-white/30"
               >
-                <Title order={3} className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
-                  <UserIcon className="w-5 h-5 text-emerald-600" />
+                <Title order={3} className="text-base font-semibold text-slate-800 mb-4 flex items-center gap-2">
+                  <UserIcon className="w-4 h-4 text-emerald-600" />
                   Verify Your Identity
                 </Title>
 
@@ -1206,7 +1391,7 @@ const BookingManage: React.FC = () => {
                   className="mb-4"
             >
                   <Text size="sm">
-                    For security, please verify your identity by providing the email and phone number used for this booking.
+                    For security, please verify your identity by providing BOTH the email address AND phone number used for this booking. Both must match our records exactly.
                   </Text>
             </Alert>
 
@@ -1295,28 +1480,47 @@ const BookingManage: React.FC = () => {
           initial={{ opacity: 0, x: -50 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.6, ease: "easeOut" }}
-          className="hidden lg:block w-96 flex-shrink-0 overflow-y-auto h-full p-6 business-section"
+          className="hidden lg:block w-96 flex-shrink-0 h-full business-section"
+          style={{
+            background: "linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)",
+            borderRight: "1px solid #e2e8f0",
+            display: "flex",
+            flexDirection: "column",
+          }}
         >
-          <EnhancedBusinessProfile 
-            businessInfo={typedRescheduleData.business}
-            bookingInfo={typedRescheduleData.current_booking}
-          />
+          <ScrollArea style={{ flex: 1 }} scrollbars="y" offsetScrollbars>
+            <div className="p-6">
+              <EnhancedBusinessProfile 
+                businessInfo={typedRescheduleData.business}
+                bookingInfo={typedRescheduleData.current_booking}
+              />
+            </div>
+          </ScrollArea>
 
-          {/* Powered by FlowKey */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.6, duration: 0.5 }}
-            className="text-center pt-6"
+          {/* Powered by FlowKey Footer */}
+          <div
+            className="p-4"
+            style={{
+              borderTop: "1px solid #e2e8f0",
+              background: "rgba(248, 250, 252, 0.8)",
+              backdropFilter: "blur(8px)",
+            }}
           >
-            <div className="flex items-center justify-center gap-2">
-              <Text size="xs" className="text-slate-500">Powered by</Text>
-              <div className="flex items-center gap-1">
-                <FlowKeyIcon className="w-8 h-auto opacity-60" />
-                <Text size="xs" className="text-slate-600 font-medium">FlowKey</Text>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.6, duration: 0.5 }}
+              className="text-center"
+            >
+              <div className="flex items-center justify-center gap-1">
+                <Text size="xs" className="text-slate-500">Powered by</Text>
+                <div className="flex items-center gap-1">
+                  <FlowKeyIcon className="w-4 h-auto opacity-60" />
+                  <Text size="xs" className="text-slate-600 font-medium">FlowKey</Text>
                 </div>
-                    </div>
-          </motion.div>
+              </div>
+            </motion.div>
+          </div>
         </motion.div>
 
         {/* RIGHT SECTION - Date & Time Selection */}
@@ -1334,20 +1538,20 @@ const BookingManage: React.FC = () => {
               transition={{ delay: 0.3, duration: 0.6 }}
             >
               <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-100 to-green-100 flex items-center justify-center">
-                  <span className="text-xl">🔄</span>
+                <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-emerald-100 to-green-100 flex items-center justify-center">
+                  <span className="text-lg">🔄</span>
                 </div>
-                <Text className="text-slate-600 text-sm lg:text-base font-medium">
+                <Text className="text-slate-600 text-xs lg:text-sm font-medium">
                   Reschedule Your Booking
                 </Text>
               </div>
               <Title 
                 order={1} 
-                className="text-2xl lg:text-4xl font-bold mb-2 lg:mb-4 text-slate-900"
+                className="text-xl lg:text-3xl font-bold mb-2 lg:mb-4 text-slate-900"
               >
                 Choose a <span className="bg-gradient-to-r from-emerald-600 to-green-700 bg-clip-text text-transparent">new time slot</span>
               </Title>
-              <Text className="text-slate-600 text-sm lg:text-base">
+              <Text className="text-slate-600 text-xs lg:text-sm">
                 Select your preferred date and available time slot to reschedule your booking.
                 </Text>
             </motion.div>
@@ -1413,7 +1617,7 @@ const BookingManage: React.FC = () => {
                   radius="lg"
                   p="lg"
                 >
-                  <Title order={3} className="text-lg font-semibold text-slate-800 mb-4">
+                  <Title order={3} className="text-base font-semibold text-slate-800 mb-4">
                     Choose Date
                   </Title>
                   
@@ -1463,7 +1667,7 @@ const BookingManage: React.FC = () => {
                   radius="lg"
                   p="lg"
                 >
-                  <Title order={3} className="text-lg font-semibold text-slate-800 mb-4">
+                  <Title order={3} className="text-base font-semibold text-slate-800 mb-4">
                     Available Times
                   </Title>
                   
@@ -1504,13 +1708,13 @@ const BookingManage: React.FC = () => {
                                 >
                                   <div className="flex items-center justify-between">
                                     <div className="flex-1">
-                                      <Text className="font-bold text-lg text-slate-900 mb-1">
+                                      <Text className="font-bold text-base text-slate-900 mb-1">
                                         {formatTime(slot.start_time, slot.date)} - {formatTime(slot.end_time, slot.date)}
                                       </Text>
-                                      <Text className="font-semibold text-slate-700 mb-2">
+                                      <Text className="font-semibold text-sm text-slate-700 mb-2">
                                         {slot.title}
                                       </Text>
-                                      <div className="flex items-center gap-3 text-sm text-slate-600">
+                                      <div className="flex items-center gap-3 text-xs text-slate-600">
                                         {slot.location && (
                                           <span className="flex items-center gap-1">
                                             <LocationIcon className="w-4 h-4" />
