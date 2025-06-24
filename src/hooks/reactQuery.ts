@@ -635,9 +635,12 @@ export const useGetSessions = (
   return useQuery<PaginatedResponse<Session>, Error>({
     queryKey: ['sessions', pageIndex, pageSize, filters],
     queryFn: () => get_sessions(filters, pageIndex, pageSize),
-    staleTime: 1000 * 60 * 5,
-    refetchOnWindowFocus: false,
+    gcTime: 5 * 60 * 1000, // Keep unused data in cache for 5 minutes
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
+    refetchOnReconnect: true,
     retry: 2,
+    staleTime: 0, // Data is considered stale immediately
   });
 };
 
@@ -907,9 +910,29 @@ export const useCreateSession = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (sessionData: any) => create_session(sessionData),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['sessions'] });
-      queryClient.invalidateQueries({ queryKey: ['upcoming_sessions'] });
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: ['sessions'],
+          refetchType: 'active',
+          exact: false,
+        }),
+        queryClient.invalidateQueries({
+          queryKey: ['upcoming_sessions'],
+          refetchType: 'active',
+          exact: true,
+        }),
+        queryClient.invalidateQueries({
+          queryKey: ['calendar_sessions'],
+          refetchType: 'active',
+          exact: true,
+        }),
+        queryClient.refetchQueries({
+          queryKey: ['sessions'],
+          type: 'active',
+          exact: false,
+        }),
+      ]);
     },
   });
 };

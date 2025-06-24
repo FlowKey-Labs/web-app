@@ -78,7 +78,10 @@ const AllSessions = () => {
     data,
     isLoading: isLoadingSessions,
     refetch: refetchSessions,
-  } = useGetSessions(pageIndex, 10);
+  } = useGetSessions(pageIndex, 10, {
+    categories: selectedCategories,
+    sessionTypes: selectedTypes,
+  });
 
   const allSessionsData = useMemo(() => data?.items || [], [data]);
 
@@ -153,11 +156,11 @@ const AllSessions = () => {
       if (selectedCategories.length > 0) {
         filtered = filtered.filter((session) => {
           try {
-            const sessionCategory = session?.category?.name || '';
-            return selectedCategories.includes(sessionCategory);
+            const sessionCategoryId = session?.category?.id?.toString() || '';
+            return selectedCategories.includes(sessionCategoryId);
           } catch (error) {
             console.warn(
-              'Error filtering session by category:',
+              'Error filtering session by category ID:',
               session?.id,
               error
             );
@@ -494,11 +497,12 @@ const AllSessions = () => {
     );
   };
 
-  const toggleCategory = (category: string) => {
+  // Modify the toggleCategory function to work with IDs
+  const toggleCategory = (categoryId: string) => {
     setTempSelectedCategories((prev) =>
-      prev.includes(category)
-        ? prev.filter((c) => c !== category)
-        : [...prev, category]
+      prev.includes(categoryId)
+        ? prev.filter((c) => c !== categoryId)
+        : [...prev, categoryId]
     );
   };
 
@@ -737,7 +741,16 @@ const AllSessions = () => {
                   >
                     <p className='text-primary text-sm font-normal'>
                       {selectedCategories.length > 0
-                        ? selectedCategories.join(', ')
+                        ? selectedCategories
+                            .map((id) => {
+                              const category = categoriesData?.find(
+                                (c: { id: number; name: string }) =>
+                                  c.id.toString() === id
+                              );
+                              return category ? category.name : '';
+                            })
+                            .filter((name) => name) // Remove empty names
+                            .join(', ')
                         : 'Categories'}
                     </p>
                     <img src={dropdownIcon} alt='dropdown icon' />
@@ -752,7 +765,7 @@ const AllSessions = () => {
                   <div>
                     <div className='flex flex-col gap-2 mt-4 min-w-[160px]'>
                       {isLoadingCategories ? (
-                        <div className='flex justify-center items-center h-[80%] w-full shadow-lg bg-white self-center border rounded-xl p-6 pt-12'>
+                        <div className='flex justify-center items-center h-[80%] w-full shadow-sm bg-white self-center border rounded-xl p-6 pt-12'>
                           <Loader size='xl' color='#1D9B5E' />
                         </div>
                       ) : categoriesData && categoriesData.length > 0 ? (
@@ -766,15 +779,19 @@ const AllSessions = () => {
                                 type='checkbox'
                                 id={`category-${category.id}`}
                                 checked={tempSelectedCategories.includes(
-                                  category.name
+                                  category.id.toString()
                                 )}
-                                onChange={() => toggleCategory(category.name)}
+                                onChange={() =>
+                                  toggleCategory(category.id.toString())
+                                }
                                 className='mr-2 h-4 w-4 rounded border-gray-300 focus:ring-0 focus:ring-offset-0 accent-[#1D9B5E]'
                               />
                               <label
                                 htmlFor={`category-${category.id}`}
                                 className={`text-sm cursor-pointer ${
-                                  tempSelectedCategories.includes(category.name)
+                                  tempSelectedCategories.includes(
+                                    category.id.toString()
+                                  )
                                     ? 'text-secondary font-medium'
                                     : 'text-primary'
                                 }`}
@@ -883,7 +900,7 @@ const AllSessions = () => {
         />
         <div className='flex-1 md:px-6 px-2 py-2'>
           {isLoadingSessions || isLoadingCategories ? (
-            <div className='flex justify-center items-center h-[80%] w-full shadow-lg bg-white self-center border rounded-xl p-6 pt-12'>
+            <div className='flex justify-center items-center h-full w-full shadow-sm bg-white self-center border rounded-xl p-6 pt-12'>
               <Loader size='xl' color='#1D9B5E' />
             </div>
           ) : (

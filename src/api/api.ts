@@ -378,10 +378,10 @@ const get_sessions = async (
   pageSize?: number
 ): Promise<PaginatedResponse<Session>> => {
   let url = END_POINTS.SESSION.SESSIONS_DATA;
+  const params = new URLSearchParams();
 
+  // Handle filters if they exist
   if (filters) {
-    const params = new URLSearchParams();
-
     if (filters.sessionTypes && filters.sessionTypes.length > 0) {
       filters.sessionTypes.forEach((type: string) => {
         params.append('session_type', type);
@@ -389,26 +389,22 @@ const get_sessions = async (
     }
 
     if (filters.categories && filters.categories.length > 0) {
-      filters.categories.forEach((category: string) => {
-        params.append('category', category);
-      });
-    }
-
-    if (filters.dateRange && filters.dateRange[0] && filters.dateRange[1]) {
-      const startDate = new Date(filters.dateRange[0]);
-      const endDate = new Date(filters.dateRange[1]);
-      params.append('start_date', startDate.toISOString().split('T')[0]);
-      params.append('end_date', endDate.toISOString().split('T')[0]);
-    }
-
-    if (params.toString()) {
-      url += `?${params.toString()}`;
+      // Join category IDs with commas for the backend to parse
+      params.append('category', filters.categories.join(','));
     }
   }
 
-  console.log(`Page Index: ${pageIndex}, Page Size: ${pageSize}`);
+  // Handle pagination
   if (pageIndex !== undefined) {
-    url += `?pageIndex=` + `${pageIndex}` + `&pageSize=` + `${pageSize}`;
+    params.append('pageIndex', pageIndex.toString());
+  }
+  if (pageSize !== undefined) {
+    params.append('pageSize', pageSize.toString());
+  }
+
+  // Construct final URL
+  if (params.toString()) {
+    url += `?${params.toString()}`;
   }
 
   const { data } = await api.get<PaginatedResponse<Session>>(url);

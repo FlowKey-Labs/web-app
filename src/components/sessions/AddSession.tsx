@@ -74,11 +74,17 @@ type FormData = Omit<
   repeat_end_type: 'never' | 'on' | 'after';
   repeat_end_date?: string;
   repeat_occurrences?: number;
-  
+
   _pendingClientFromDrawer?: boolean;
 };
 
-const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientData }: SessionModalProps) => {
+const AddSession = ({
+  isOpen,
+  onClose,
+  zIndex,
+  fromClientDrawer,
+  pendingClientData,
+}: SessionModalProps) => {
   const methods = useForm<FormData>({
     mode: 'onSubmit',
     defaultValues: {
@@ -144,7 +150,7 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
       methods.reset({
         ...currentValues,
         spots: 0,
-        class_type: undefined, 
+        class_type: undefined,
       });
     }
   }, [methods.watch('session_type')]);
@@ -161,9 +167,11 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
 
   useEffect(() => {
     if (fromClientDrawer && pendingClientData) {
-      
-      console.log('Session drawer opened from client drawer with data:', pendingClientData);
-      
+      console.log(
+        'Session drawer opened from client drawer with data:',
+        pendingClientData
+      );
+
       methods.setValue('_pendingClientFromDrawer', true);
     }
   }, [fromClientDrawer, pendingClientData, methods]);
@@ -195,19 +203,22 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
         }
       }
 
-      
       const dateOnly = moment(dateObj).format('YYYY-MM-DD');
-      
-      
-      const formattedStartTime = data.start_time && dateOnly ? `${dateOnly}T${data.start_time}:00.000Z` : null;
-      const formattedEndTime = data.end_time && dateOnly ? `${dateOnly}T${data.end_time}:00.000Z` : null;
 
-      
-      console.log("Date value:", dateOnly);
-      console.log("Start time input:", data.start_time);
-      console.log("End time input:", data.end_time);
-      console.log("Formatted start time:", formattedStartTime);
-      console.log("Formatted end time:", formattedEndTime);
+      const formattedStartTime =
+        data.start_time && dateOnly
+          ? `${dateOnly}T${data.start_time}:00.000Z`
+          : null;
+      const formattedEndTime =
+        data.end_time && dateOnly
+          ? `${dateOnly}T${data.end_time}:00.000Z`
+          : null;
+
+      console.log('Date value:', dateOnly);
+      console.log('Start time input:', data.start_time);
+      console.log('End time input:', data.end_time);
+      console.log('Formatted start time:', formattedStartTime);
+      console.log('Formatted end time:', formattedEndTime);
 
       let repeatEndDateObj = null;
       if (data.repeat_end_date) {
@@ -228,7 +239,6 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
         return field;
       };
 
-      
       const formattedData: any = {
         title: data.title,
         session_type: data.session_type,
@@ -253,10 +263,6 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
         policy_ids: data.policy_ids || [],
         _pendingClientFromDrawer: fromClientDrawer ? true : undefined,
       };
-
-
-      console.log('Session creation payload:', formattedData);
-
 
       if (
         data.session_type === 'class' ||
@@ -325,18 +331,20 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
         console.error('API Error Status:', error.response.status);
         console.error('API Error Headers:', error.response.headers);
         console.error('API Error Response:', error.response.data);
-        
 
-        console.error('Request payload that caused error:', error.config?.data ? JSON.parse(error.config.data) : 'No payload data');
-        
+        console.error(
+          'Request payload that caused error:',
+          error.config?.data ? JSON.parse(error.config.data) : 'No payload data'
+        );
+
         if (error.response.data?.start_time) {
           console.error('Start time error:', error.response.data.start_time);
         }
-        
+
         if (error.response.data?.end_time) {
           console.error('End time error:', error.response.data.end_time);
         }
-        
+
         if (error.response.data?.date) {
           console.error('Date error:', error.response.data.date);
         }
@@ -434,17 +442,31 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
   };
 
   const pendingClientNotice = fromClientDrawer ? (
-    <div className="bg-blue-50 p-3 mb-4 rounded-md border border-blue-200">
-      <div className="flex items-start">
-        <div className="flex-shrink-0 pt-0.5">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-500" viewBox="0 0 20 20" fill="currentColor">
-            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+    <div className='bg-blue-50 p-3 mb-4 rounded-md border border-blue-200'>
+      <div className='flex items-start'>
+        <div className='flex-shrink-0 pt-0.5'>
+          <svg
+            xmlns='http://www.w3.org/2000/svg'
+            className='h-5 w-5 text-blue-500'
+            viewBox='0 0 20 20'
+            fill='currentColor'
+          >
+            <path
+              fillRule='evenodd'
+              d='M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z'
+              clipRule='evenodd'
+            />
           </svg>
         </div>
-        <div className="ml-3">
-          <h3 className="text-sm font-medium text-blue-800">Creating Session for New Client</h3>
-          <div className="mt-1 text-sm text-blue-700">
-            <p>This session will be automatically assigned to the client you're creating.</p>
+        <div className='ml-3'>
+          <h3 className='text-sm font-medium text-blue-800'>
+            Creating Session for New Client
+          </h3>
+          <div className='mt-1 text-sm text-blue-700'>
+            <p>
+              This session will be automatically assigned to the client you're
+              creating.
+            </p>
           </div>
         </div>
       </div>
@@ -556,8 +578,8 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
                                   onSelectItem={(selectedItem) =>
                                     field.onChange(selectedItem)
                                   }
-                                  createLabel="Create new class type"
-                                  createDrawerType="session"
+                                  createLabel='Create new class type'
+                                  createDrawerType='session'
                                 />
                               );
                             }}
@@ -617,8 +639,8 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
                                   onSelectItem={(selectedItem) => {
                                     field.onChange(selectedItem);
                                   }}
-                                  createLabel="Create new category"
-                                  createDrawerType="category"
+                                  createLabel='Create new category'
+                                  createDrawerType='category'
                                 />
                               )}
                             />
@@ -633,21 +655,24 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
                               name='date'
                               control={methods.control}
                               render={({ field }) => (
-                                <div className="w-full mt-4 mb-6">
-                                  <div className="relative w-full">
+                                <div className='w-full mt-4 mb-6'>
+                                  <div className='relative w-full'>
                                     <input
-                                      type="date"
-                                      id="date"
+                                      type='date'
+                                      id='date'
                                       value={field.value || ''}
                                       onChange={(e) => {
                                         field.onChange(e.target.value);
-                                        console.log("Date changed:", e.target.value);
+                                        console.log(
+                                          'Date changed:',
+                                          e.target.value
+                                        );
                                       }}
-                                      className="w-full h-[58px] border border-gray-300 rounded-lg px-4 pt-6 pb-2 text-xs focus:outline-none focus:ring-[1px] focus:border-none focus:ring-secondary focus:border-secondary"
+                                      className='w-full h-[58px] border border-gray-300 rounded-lg px-4 pt-6 pb-2 text-xs focus:outline-none focus:ring-[1px] focus:border-none focus:ring-secondary focus:border-secondary'
                                     />
                                     <label
-                                      htmlFor="date"
-                                      className="absolute top-2 text-xs left-4 transition-all duration-200 text-primary"
+                                      htmlFor='date'
+                                      className='absolute top-2 text-xs left-4 transition-all duration-200 text-primary'
                                     >
                                       Date
                                     </label>
@@ -767,29 +792,38 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
                                               }
 
                                               const userData = staff.user || {};
-                                              const email = userData.email || staff.email || '';
-                                              const isActive = staff.isActive ?? false;
-                                              const status = isActive ? 'active' : 'inactive';
-                                              
-                                              if (userData.first_name && userData.last_name) {
+                                              const email =
+                                                userData.email ||
+                                                staff.email ||
+                                                '';
+                                              const isActive =
+                                                staff.isActive ?? false;
+                                              const status = isActive
+                                                ? 'active'
+                                                : 'inactive';
+
+                                              if (
+                                                userData.first_name &&
+                                                userData.last_name
+                                              ) {
                                                 return {
                                                   label: `${userData.first_name} ${userData.last_name}`,
                                                   value: staff.id.toString(),
                                                   subLabel: email,
-                                                  status
+                                                  status,
                                                 };
                                               } else if (email) {
                                                 return {
                                                   label: email,
                                                   value: staff.id.toString(),
                                                   subLabel: `Staff ${staff.id}`,
-                                                  status
+                                                  status,
                                                 };
                                               } else {
                                                 return {
                                                   label: `Staff ${staff.id}`,
                                                   value: staff.id.toString(),
-                                                  status
+                                                  status,
                                                 };
                                               }
                                             })
@@ -808,32 +842,54 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
                                         value ? parseInt(value) : undefined
                                       );
                                     }}
-                                    createLabel="Create new staff"
-                                    createDrawerType="staff"
+                                    createLabel='Create new staff'
+                                    createDrawerType='staff'
                                   />
                                 )}
                               />
                               {(() => {
                                 const staffId = methods.watch('staff');
                                 if (!staffId) return null;
-                                
-                                const selectedStaff = staffData?.find((staff: any) => {
-                                  const staffIdStr = typeof staffId === 'object' && staffId !== null ? 
-                                    String((staffId as any).value || staffId) : String(staffId);
-                                  return staff.id.toString() === staffIdStr;
-                                });
-                                
-                                if (selectedStaff && !(selectedStaff.isActive ?? true)) {
+
+                                const selectedStaff = staffData?.find(
+                                  (staff: any) => {
+                                    const staffIdStr =
+                                      typeof staffId === 'object' &&
+                                      staffId !== null
+                                        ? String(
+                                            (staffId as any).value || staffId
+                                          )
+                                        : String(staffId);
+                                    return staff.id.toString() === staffIdStr;
+                                  }
+                                );
+
+                                if (
+                                  selectedStaff &&
+                                  !(selectedStaff.isActive ?? true)
+                                ) {
                                   return (
-                                    <div className="mt-1 text-amber-600 text-xs flex items-center">
-                                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                    <div className='mt-1 text-amber-600 text-xs flex items-center'>
+                                      <svg
+                                        xmlns='http://www.w3.org/2000/svg'
+                                        className='h-4 w-4 mr-1'
+                                        fill='none'
+                                        viewBox='0 0 24 24'
+                                        stroke='currentColor'
+                                      >
+                                        <path
+                                          strokeLinecap='round'
+                                          strokeLinejoin='round'
+                                          strokeWidth={2}
+                                          d='M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z'
+                                        />
                                       </svg>
-                                      Note: This staff member has not completed their account setup yet.
+                                      Note: This staff member has not completed
+                                      their account setup yet.
                                     </div>
                                   );
                                 }
-                                
+
                                 return null;
                               })()}
                             </div>
@@ -845,13 +901,29 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
                           render={({ field }) => (
                             <>
                               {fromClientDrawer ? (
-                                <div className="mb-4">
-                                  <label className="block text-sm mb-1 text-gray-700">Clients</label>
-                                  <div className="flex items-center p-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-700">
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                                <div className='mb-4'>
+                                  <label className='block text-sm mb-1 text-gray-700'>
+                                    Clients
+                                  </label>
+                                  <div className='flex items-center p-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-700'>
+                                    <svg
+                                      xmlns='http://www.w3.org/2000/svg'
+                                      className='h-5 w-5 text-blue-500 mr-2'
+                                      fill='none'
+                                      viewBox='0 0 24 24'
+                                      stroke='currentColor'
+                                    >
+                                      <path
+                                        strokeLinecap='round'
+                                        strokeLinejoin='round'
+                                        strokeWidth='2'
+                                        d='M5 13l4 4L19 7'
+                                      />
                                     </svg>
-                                    <span>Will be assigned to the client you're creating</span>
+                                    <span>
+                                      Will be assigned to the client you're
+                                      creating
+                                    </span>
                                   </div>
                                 </div>
                               ) : (
@@ -867,7 +939,9 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
                                           value: client.id.toString(),
                                         })) || []
                                   }
-                                  value={field.value ? field.value.map(String) : []}
+                                  value={
+                                    field.value ? field.value.map(String) : []
+                                  }
                                   onSelectItem={(selectedItems) => {
                                     const values = Array.isArray(selectedItems)
                                       ? selectedItems.map((item) => item.value)
@@ -876,8 +950,8 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
                                       : [];
                                     field.onChange(values);
                                   }}
-                                  createLabel="Add new client"
-                                  createDrawerType="client"
+                                  createLabel='Add new client'
+                                  createDrawerType='client'
                                 />
                               )}
                             </>
@@ -922,8 +996,8 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
                               onSelectItem={(selectedItem) => {
                                 field.onChange(selectedItem);
                               }}
-                              createLabel="Create new location"
-                              createDrawerType="location"
+                              createLabel='Create new location'
+                              createDrawerType='location'
                             />
                           )}
                         />
@@ -960,8 +1034,8 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
                                   );
                                 field.onChange(values);
                               }}
-                              createLabel="Create new policy"
-                              createDrawerType="policy"
+                              createLabel='Create new policy'
+                              createDrawerType='policy'
                             />
                           )}
                         />
@@ -975,13 +1049,29 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
                             render={({ field }) => (
                               <>
                                 {fromClientDrawer ? (
-                                  <div className="mb-4">
-                                    <label className="block text-sm mb-1 text-gray-700">Client Name</label>
-                                    <div className="flex items-center p-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-700">
-                                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                                  <div className='mb-4'>
+                                    <label className='block text-sm mb-1 text-gray-700'>
+                                      Client Name
+                                    </label>
+                                    <div className='flex items-center p-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-700'>
+                                      <svg
+                                        xmlns='http://www.w3.org/2000/svg'
+                                        className='h-5 w-5 text-blue-500 mr-2'
+                                        fill='none'
+                                        viewBox='0 0 24 24'
+                                        stroke='currentColor'
+                                      >
+                                        <path
+                                          strokeLinecap='round'
+                                          strokeLinejoin='round'
+                                          strokeWidth='2'
+                                          d='M5 13l4 4L19 7'
+                                        />
                                       </svg>
-                                      <span>Will be assigned to the client you're creating</span>
+                                      <span>
+                                        Will be assigned to the client you're
+                                        creating
+                                      </span>
                                     </div>
                                   </div>
                                 ) : (
@@ -997,18 +1087,23 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
                                           })) || []
                                     }
                                     onSelectItem={(selectedItems) => {
-                                      const values = Array.isArray(selectedItems)
-                                        ? selectedItems.map((item) => item.value)
+                                      const values = Array.isArray(
+                                        selectedItems
+                                      )
+                                        ? selectedItems.map(
+                                            (item) => item.value
+                                          )
                                         : selectedItems
                                         ? [selectedItems.value]
                                         : [];
                                       field.onChange(values);
                                       if (values.length > 0) {
                                         const clientId = values[0];
-                                        const selectedClient = clientsData?.find(
-                                          (client: Client) =>
-                                            client.id.toString() === clientId
-                                        );
+                                        const selectedClient =
+                                          clientsData?.find(
+                                            (client: Client) =>
+                                              client.id.toString() === clientId
+                                          );
                                         if (selectedClient) {
                                           methods.setValue(
                                             'email',
@@ -1021,8 +1116,8 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
                                         }
                                       }
                                     }}
-                                    createLabel="Add new client"
-                                    createDrawerType="client"
+                                    createLabel='Add new client'
+                                    createDrawerType='client'
                                   />
                                 )}
                               </>
@@ -1105,8 +1200,8 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
                                     onSelectItem={(selectedItem) =>
                                       field.onChange(selectedItem)
                                     }
-                                    createLabel="Create new session type"
-                                    createDrawerType="session"
+                                    createLabel='Create new session type'
+                                    createDrawerType='session'
                                   />
                                 );
                               }}
@@ -1130,21 +1225,24 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
                               name='date'
                               control={methods.control}
                               render={({ field }) => (
-                                <div className="w-full mt-4 mb-6">
-                                  <div className="relative w-full">
+                                <div className='w-full mt-4 mb-6'>
+                                  <div className='relative w-full'>
                                     <input
-                                      type="date"
-                                      id="appointment-date"
+                                      type='date'
+                                      id='appointment-date'
                                       value={field.value || ''}
                                       onChange={(e) => {
                                         field.onChange(e.target.value);
-                                        console.log("Date changed:", e.target.value);
+                                        console.log(
+                                          'Date changed:',
+                                          e.target.value
+                                        );
                                       }}
-                                      className="w-full h-[58px] border border-gray-300 rounded-lg px-4 pt-6 pb-2 text-xs focus:outline-none focus:ring-[1px] focus:border-none focus:ring-secondary focus:border-secondary"
+                                      className='w-full h-[58px] border border-gray-300 rounded-lg px-4 pt-6 pb-2 text-xs focus:outline-none focus:ring-[1px] focus:border-none focus:ring-secondary focus:border-secondary'
                                     />
                                     <label
-                                      htmlFor="appointment-date"
-                                      className="absolute top-2 text-xs left-4 transition-all duration-200 text-primary"
+                                      htmlFor='appointment-date'
+                                      className='absolute top-2 text-xs left-4 transition-all duration-200 text-primary'
                                     >
                                       Date
                                     </label>
@@ -1198,31 +1296,38 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
                                             );
                                             return null;
                                           }
-                                          
-                                          const userData = staff.user || {};
-                                          const email = userData.email || staff.email || '';
-                                          const isActive = staff.isActive ?? false;
-                                          const status = isActive ? 'active' : 'inactive';
 
-                                          if (userData.first_name && userData.last_name) {
+                                          const userData = staff.user || {};
+                                          const email =
+                                            userData.email || staff.email || '';
+                                          const isActive =
+                                            staff.isActive ?? false;
+                                          const status = isActive
+                                            ? 'active'
+                                            : 'inactive';
+
+                                          if (
+                                            userData.first_name &&
+                                            userData.last_name
+                                          ) {
                                             return {
                                               label: `${userData.first_name} ${userData.last_name}`,
                                               value: staff.id.toString(),
                                               subLabel: email,
-                                              status
+                                              status,
                                             };
                                           } else if (email) {
                                             return {
                                               label: email,
                                               value: staff.id.toString(),
                                               subLabel: `Staff ${staff.id}`,
-                                              status
+                                              status,
                                             };
                                           } else {
                                             return {
                                               label: `Staff ${staff.id}`,
                                               value: staff.id.toString(),
-                                              status
+                                              status,
                                             };
                                           }
                                         })
@@ -1238,32 +1343,52 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
                                 onSelectItem={(selectedItem) => {
                                   field.onChange(selectedItem);
                                 }}
-                                createLabel="Create new staff"
-                                createDrawerType="staff"
+                                createLabel='Create new staff'
+                                createDrawerType='staff'
                               />
                             )}
                           />
                           {(() => {
                             const staffId = methods.watch('staff');
                             if (!staffId) return null;
-                            
-                            const selectedStaff = staffData?.find((staff: any) => {
-                              const staffIdStr = typeof staffId === 'object' && staffId !== null ? 
-                                String((staffId as any).value || staffId) : String(staffId);
-                              return staff.id.toString() === staffIdStr;
-                            });
-                            
-                            if (selectedStaff && !(selectedStaff.isActive ?? true)) {
+
+                            const selectedStaff = staffData?.find(
+                              (staff: any) => {
+                                const staffIdStr =
+                                  typeof staffId === 'object' &&
+                                  staffId !== null
+                                    ? String((staffId as any).value || staffId)
+                                    : String(staffId);
+                                return staff.id.toString() === staffIdStr;
+                              }
+                            );
+
+                            if (
+                              selectedStaff &&
+                              !(selectedStaff.isActive ?? true)
+                            ) {
                               return (
-                                <div className="mt-1 text-amber-600 text-xs flex items-center">
-                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                <div className='mt-1 text-amber-600 text-xs flex items-center'>
+                                  <svg
+                                    xmlns='http://www.w3.org/2000/svg'
+                                    className='h-4 w-4 mr-1'
+                                    fill='none'
+                                    viewBox='0 0 24 24'
+                                    stroke='currentColor'
+                                  >
+                                    <path
+                                      strokeLinecap='round'
+                                      strokeLinejoin='round'
+                                      strokeWidth={2}
+                                      d='M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z'
+                                    />
                                   </svg>
-                                  Note: This staff member has not completed their account setup yet.
+                                  Note: This staff member has not completed
+                                  their account setup yet.
                                 </div>
                               );
                             }
-                            
+
                             return null;
                           })()}
                         </div>
@@ -1322,8 +1447,8 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
                                 onSelectItem={(selectedItem) => {
                                   field.onChange(selectedItem);
                                 }}
-                                createLabel="Create new location"
-                                createDrawerType="location"
+                                createLabel='Create new location'
+                                createDrawerType='location'
                               />
                             )}
                           />
@@ -1370,8 +1495,8 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
                                   onSelectItem={(selectedItem) => {
                                     field.onChange(selectedItem);
                                   }}
-                                  createLabel="Create new category"
-                                  createDrawerType="category"
+                                  createLabel='Create new category'
+                                  createDrawerType='category'
                                 />
                               )}
                             />
@@ -1386,21 +1511,24 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
                               name='date'
                               control={methods.control}
                               render={({ field }) => (
-                                <div className="w-full mt-4 mb-6">
-                                  <div className="relative w-full">
+                                <div className='w-full mt-4 mb-6'>
+                                  <div className='relative w-full'>
                                     <input
-                                      type="date"
-                                      id="event-date"
+                                      type='date'
+                                      id='event-date'
                                       value={field.value || ''}
                                       onChange={(e) => {
                                         field.onChange(e.target.value);
-                                        console.log("Date changed:", e.target.value);
+                                        console.log(
+                                          'Date changed:',
+                                          e.target.value
+                                        );
                                       }}
-                                      className="w-full h-[58px] border border-gray-300 rounded-lg px-4 pt-6 pb-2 text-xs focus:outline-none focus:ring-[1px] focus:border-none focus:ring-secondary focus:border-secondary"
+                                      className='w-full h-[58px] border border-gray-300 rounded-lg px-4 pt-6 pb-2 text-xs focus:outline-none focus:ring-[1px] focus:border-none focus:ring-secondary focus:border-secondary'
                                     />
                                     <label
-                                      htmlFor="event-date"
-                                      className="absolute top-2 text-xs left-4 transition-all duration-200 text-primary"
+                                      htmlFor='event-date'
+                                      className='absolute top-2 text-xs left-4 transition-all duration-200 text-primary'
                                     >
                                       Date
                                     </label>
@@ -1471,31 +1599,40 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
                                                 );
                                                 return null;
                                               }
-                                              
+
                                               const userData = staff.user || {};
-                                              const email = userData.email || staff.email || '';
-                                              const isActive = staff.isActive ?? false;
-                                              const status = isActive ? 'active' : 'inactive';
-                                              
-                                              if (userData.first_name && userData.last_name) {
+                                              const email =
+                                                userData.email ||
+                                                staff.email ||
+                                                '';
+                                              const isActive =
+                                                staff.isActive ?? false;
+                                              const status = isActive
+                                                ? 'active'
+                                                : 'inactive';
+
+                                              if (
+                                                userData.first_name &&
+                                                userData.last_name
+                                              ) {
                                                 return {
                                                   label: `${userData.first_name} ${userData.last_name}`,
                                                   value: staff.id.toString(),
                                                   subLabel: email,
-                                                  status
+                                                  status,
                                                 };
                                               } else if (email) {
                                                 return {
                                                   label: email,
                                                   value: staff.id.toString(),
                                                   subLabel: `Staff ${staff.id}`,
-                                                  status
+                                                  status,
                                                 };
                                               } else {
                                                 return {
                                                   label: `Staff ${staff.id}`,
                                                   value: staff.id.toString(),
-                                                  status
+                                                  status,
                                                 };
                                               }
                                             })
@@ -1511,32 +1648,54 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
                                     onSelectItem={(selectedItem) => {
                                       field.onChange(selectedItem);
                                     }}
-                                    createLabel="Create new staff"
-                                    createDrawerType="staff"
+                                    createLabel='Create new staff'
+                                    createDrawerType='staff'
                                   />
                                 )}
                               />
                               {(() => {
                                 const staffId = methods.watch('staff');
                                 if (!staffId) return null;
-                                
-                                const selectedStaff = staffData?.find((staff: any) => {
-                                  const staffIdStr = typeof staffId === 'object' && staffId !== null ? 
-                                    String((staffId as any).value || staffId) : String(staffId);
-                                  return staff.id.toString() === staffIdStr;
-                                });
-                                
-                                if (selectedStaff && !(selectedStaff.isActive ?? true)) {
+
+                                const selectedStaff = staffData?.find(
+                                  (staff: any) => {
+                                    const staffIdStr =
+                                      typeof staffId === 'object' &&
+                                      staffId !== null
+                                        ? String(
+                                            (staffId as any).value || staffId
+                                          )
+                                        : String(staffId);
+                                    return staff.id.toString() === staffIdStr;
+                                  }
+                                );
+
+                                if (
+                                  selectedStaff &&
+                                  !(selectedStaff.isActive ?? true)
+                                ) {
                                   return (
-                                    <div className="mt-1 text-amber-600 text-xs flex items-center">
-                                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                    <div className='mt-1 text-amber-600 text-xs flex items-center'>
+                                      <svg
+                                        xmlns='http://www.w3.org/2000/svg'
+                                        className='h-4 w-4 mr-1'
+                                        fill='none'
+                                        viewBox='0 0 24 24'
+                                        stroke='currentColor'
+                                      >
+                                        <path
+                                          strokeLinecap='round'
+                                          strokeLinejoin='round'
+                                          strokeWidth={2}
+                                          d='M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z'
+                                        />
                                       </svg>
-                                      Note: This staff member has not completed their account setup yet.
+                                      Note: This staff member has not completed
+                                      their account setup yet.
                                     </div>
                                   );
                                 }
-                                
+
                                 return null;
                               })()}
                             </div>
@@ -1548,13 +1707,29 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
                           render={({ field }) => (
                             <>
                               {fromClientDrawer ? (
-                                <div className="mb-4">
-                                  <label className="block text-sm mb-1 text-gray-700">Clients</label>
-                                  <div className="flex items-center p-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-700">
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                                <div className='mb-4'>
+                                  <label className='block text-sm mb-1 text-gray-700'>
+                                    Clients
+                                  </label>
+                                  <div className='flex items-center p-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-700'>
+                                    <svg
+                                      xmlns='http://www.w3.org/2000/svg'
+                                      className='h-5 w-5 text-blue-500 mr-2'
+                                      fill='none'
+                                      viewBox='0 0 24 24'
+                                      stroke='currentColor'
+                                    >
+                                      <path
+                                        strokeLinecap='round'
+                                        strokeLinejoin='round'
+                                        strokeWidth='2'
+                                        d='M5 13l4 4L19 7'
+                                      />
                                     </svg>
-                                    <span>Will be assigned to the client you're creating</span>
+                                    <span>
+                                      Will be assigned to the client you're
+                                      creating
+                                    </span>
                                   </div>
                                 </div>
                               ) : (
@@ -1570,7 +1745,9 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
                                           value: client.id.toString(),
                                         })) || []
                                   }
-                                  value={field.value ? field.value.map(String) : []}
+                                  value={
+                                    field.value ? field.value.map(String) : []
+                                  }
                                   onSelectItem={(selectedItems) => {
                                     const values = Array.isArray(selectedItems)
                                       ? selectedItems.map((item) => item.value)
@@ -1579,8 +1756,8 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
                                       : [];
                                     field.onChange(values);
                                   }}
-                                  createLabel="Add new client"
-                                  createDrawerType="client"
+                                  createLabel='Add new client'
+                                  createDrawerType='client'
                                 />
                               )}
                             </>
@@ -1619,8 +1796,8 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
                                   );
                                 field.onChange(values);
                               }}
-                              createLabel="Create new policy"
-                              createDrawerType="policy"
+                              createLabel='Create new policy'
+                              createDrawerType='policy'
                             />
                           )}
                         />
@@ -1759,8 +1936,8 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
                   popoverProps={{
                     withinPortal: true,
                     zIndex: 2000,
-                    shadow: "md",
-                    withOverlay: true
+                    shadow: 'md',
+                    withOverlay: true,
                   }}
                 />
               </div>

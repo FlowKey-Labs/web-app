@@ -50,7 +50,7 @@ export function CustomPagination({
                 onClick={() => onPageChange(page)}
                 className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium transition-colors ${
                   isCurrent
-                    ? 'bg-gradient-to-r from-[#43D3FF] to-[#38B6FF] text-white shadow-md'
+                    ? 'bg-gradient-to-r from-secondary to-active text-white shadow-md'
                     : 'text-gray-600 hover:bg-gray-50'
                 }`}
                 aria-current={isCurrent ? 'page' : undefined}
