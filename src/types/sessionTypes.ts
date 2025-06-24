@@ -1,5 +1,5 @@
-import { Location } from "./location";
-import { Policy } from "./policy";
+import { Location } from './location';
+import { Policy } from './policy';
 
 export interface Category {
   id: number;
@@ -15,11 +15,11 @@ export interface Staff {
 }
 
 export type AttendanceStatus =
-  | "not_yet"
-  | "attended"
-  | "missed"
-  | "make_up"
-  | "cancelled";
+  | 'not_yet'
+  | 'attended'
+  | 'missed'
+  | 'make_up'
+  | 'cancelled';
 
 export interface Attendance {
   id: number;
@@ -52,10 +52,10 @@ export interface AssignedStaff {
   isActive: boolean;
 }
 
-export type SessionType = "class" | "appointment" | "event";
-export type ClassType = "private" | "regular" | "workshop";
-export type RepeatUnit = "days" | "weeks" | "months";
-export type EndType = "never" | "on" | "after";
+export type SessionType = 'class' | 'appointment' | 'event';
+export type ClassType = 'private' | 'regular' | 'workshop';
+export type RepeatUnit = 'days' | 'weeks' | 'months';
+export type EndType = 'never' | 'on' | 'after';
 
 export interface CreateSessionData {
   title: string;
@@ -75,7 +75,7 @@ export interface CreateSessionData {
   email?: string;
   phone_number?: string;
   selected_class?: number;
-  repetition?: "none" | "daily" | "weekly" | "monthly" | "custom";
+  repetition?: 'none' | 'daily' | 'weekly' | 'monthly' | 'custom';
   repeat_every?: number;
   repeat_unit?: RepeatUnit;
   repeat_on?: string[];
@@ -85,7 +85,7 @@ export interface CreateSessionData {
 }
 
 export interface Session
-  extends Omit<CreateSessionData, "category" | "client_ids" | "location_id"> {
+  extends Omit<CreateSessionData, 'category' | 'client_ids' | 'location_id'> {
   id: number;
   assigned_staff: AssignedStaff | null;
   category: Category;
@@ -112,7 +112,7 @@ export interface SessionTableData {
 
 export interface ClassFields {
   title: string;
-  class_type: "private" | "regular" | "workshop";
+  class_type: 'private' | 'regular' | 'workshop';
   spots: number;
   client_ids?: number[];
 }
@@ -138,7 +138,7 @@ export interface MakeUpSession {
   id?: number | string;
   session_title?: string;
   client_name?: string;
-  original_date: CreateSessionData["date"];
+  original_date: CreateSessionData['date'];
   new_date: string;
   new_start_time: string;
   new_end_time: string;
@@ -180,7 +180,7 @@ export interface ProgressFeedback {
  * Extended Session type used specifically for calendar event generation
  * This type includes all fields needed for proper recurrence handling
  */
-export interface CalendarSessionType extends Omit<Session, "repeat_end_date"> {
+export interface CalendarSessionType extends Omit<Session, 'repeat_end_date'> {
   // Make sure these fields are properly typed for calendar use
   repeat_on?: string[];
   repeat_end_date?: string | null;
@@ -191,4 +191,9 @@ export interface CalendarSessionType extends Omit<Session, "repeat_end_date"> {
 
   // Allow for any additional properties coming from the backend
   [key: string]: unknown;
+}
+
+export interface SessionFilters {
+  sessionTypes: string[];
+  pageIndex: number;
 }

@@ -753,7 +753,7 @@ const AllClients = () => {
           <div className='min-w-[900px] md:min-w-0'>
             {isLoadingCurrent && (
               <ErrorBoundary>
-                <div className='flex justify-center items-center h-[70vh] w-full shadow-lg bg-white self-center border rounded-xl p-6 pt-12'>
+                <div className='flex justify-center items-center h-[80vh] w-full shadow-lg bg-white self-center border rounded-xl p-6 pt-12'>
                   <Loader size='lg' color='#1D9B5E' />
                 </div>
               </ErrorBoundary>
