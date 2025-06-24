@@ -4,7 +4,6 @@ import {
   CreateSessionData,
   RepeatUnit,
 } from '../../types/sessionTypes';
-import { Location } from '../../types/location';
 import { notifications } from '@mantine/notifications';
 import successIcon from '../../assets/icons/success.svg';
 import errorIcon from '../../assets/icons/error.svg';
@@ -30,6 +29,7 @@ import moment from 'moment';
 import { Drawer, Modal } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { Policy } from '../../types/policy';
+import { useTimezone } from '../../contexts/TimezoneContext';
 
 interface SessionModalProps {
   isOpen: boolean;
@@ -50,6 +50,7 @@ const UpdateSession = ({
   fromClientDrawer,
   pendingClientData,
 }: SessionModalProps) => {
+  const { state: timezoneState } = useTimezone();
   const { data: sessionData } = useGetSessionDetail(sessionId || '');
   const updateSessionMutation = useUpdateSession();
   type CustomSessionData = Omit<CreateSessionData, 'repetition'> & {
@@ -498,6 +499,22 @@ const UpdateSession = ({
         ? { location_id: extractValue(data.location_id) }
         : {};
 
+      const businessTimezone = timezoneState.businessTimezone || 'Africa/Nairobi';
+      
+      const formattedStartTime = data.start_time && data.start_time.trim() && dateOnly ? `${dateOnly}T${data.start_time}:00` : null;
+      const formattedEndTime = data.end_time && data.end_time.trim() && dateOnly ? `${dateOnly}T${data.end_time}:00` : null;
+
+      console.log("Business timezone:", businessTimezone);
+      console.log("Date value:", dateOnly);
+      console.log("Start time input:", data.start_time);
+      console.log("End time input:", data.end_time);
+      console.log("Start time type:", typeof data.start_time);
+      console.log("End time type:", typeof data.end_time);
+      console.log("Start time length:", data.start_time?.length);
+      console.log("End time length:", data.end_time?.length);
+      console.log("Formatted start time (business local):", formattedStartTime);
+      console.log("Formatted end time (business local):", formattedEndTime);
+
       const formattedData: any = {
         title: data.title,
         description: data.description,
@@ -515,8 +532,8 @@ const UpdateSession = ({
         repeat_end_date: repeatEndDate,
         repeat_occurrences: repeatOccurrences,
         is_active: true,
-        start_time: data.start_time && dateOnly ? `${dateOnly}T${data.start_time}:00.000Z` : undefined,
-        end_time: data.end_time && dateOnly ? `${dateOnly}T${data.end_time}:00.000Z` : undefined,
+        start_time: formattedStartTime,
+        end_time: formattedEndTime,
         email: data.email,
         phone_number: data.phone_number,
         selected_class: data.selected_class,
