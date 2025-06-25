@@ -977,30 +977,30 @@ const SessionDetails = () => {
               </div>
               <div className='flex space-x-16 mt-6'>
                 {analyticsLoading ? (
-                  <Loader color='#1D9B5E' size='md' />
-                ) : (
-                  <>
-                    <div className='flex flex-col items-center text-center border bg-white rounded-xl p-6 space-y-4'>
-                      <p className='text-4xl'>
+                      <Loader color='#1D9B5E' size='md' />
+                  ) : (
+                    <>
+                      <div className='flex flex-col items-center text-center border bg-white rounded-xl p-6 space-y-4'>
+                        <p className='text-4xl'>
                         {sessionAnalytics?.total_clients || 0}
-                        <span className='text-lg text-gray-500'>
+                          <span className='text-lg text-gray-500'>
                           /{session.spots || '∞'}
-                        </span>
-                      </p>
-                      <p className='text-sm'>Total Clients</p>
-                    </div>
-
-                    <div className='flex items-center border bg-white py-6 px-10 rounded-xl'>
-                      <div className='flex flex-col text-center items-center rounded-xl space-y-4'>
-                        <p className='text-2xl font-semibold text-primary'>
-                          {sessionAnalytics?.average_attendance || 0}%
+                          </span>
                         </p>
-                        <p className='text-sm'>Average Attendance</p>
+                        <p className='text-sm'>Total Clients</p>
                       </div>
-                    </div>
-                  </>
-                )}
-              </div>
+
+                      <div className='flex items-center border bg-white py-6 px-10 rounded-xl'>
+                        <div className='flex flex-col text-center items-center rounded-xl space-y-4'>
+                          <p className='text-2xl font-semibold text-primary'>
+                          {sessionAnalytics?.average_attendance || 0}%
+                          </p>
+                          <p className='text-sm'>Average Attendance</p>
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
               <div className='flex-1 mt-6'>
                 <div className=''>
                   <div className='flex space-x-4 mb-3'>
