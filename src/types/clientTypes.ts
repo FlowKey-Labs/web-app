@@ -90,8 +90,9 @@ export interface Group {
 export interface GroupData {
   id?: number;
   name: string;
-  description?: string ;
-  location?: string;
+  description?: string;
+  location?: string | number;
+  location_name?: string;
   active?: boolean;
   contact_person?: {
     id: number;
@@ -99,10 +100,14 @@ export interface GroupData {
     last_name: string;
     email?: string;
   };
+  first_name?: string;
+  last_name?: string;
+  email?: string;
   member_count?: number;
   created_at?: string;
   client_ids?: number[];
   session_ids?: number[];
+  members?: number[];
 }
 
 export interface ClientData {
