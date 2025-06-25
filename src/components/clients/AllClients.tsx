@@ -67,7 +67,9 @@ const AllClients = () => {
 
   const { data: locations = [] } = useGetLocations();
   const locationsMap = useMemo(() => {
-    return (locations as unknown as AppLocation[]).reduce<Record<number, string>>((acc, location) => {
+    return (locations as unknown as AppLocation[]).reduce<
+      Record<number, string>
+    >((acc, location) => {
       acc[location.id] = location.name;
       return acc;
     }, {});
@@ -351,10 +353,16 @@ const AllClients = () => {
         header: 'Description',
         cell: (info) => info.getValue(),
       }),
-      groupColumnHelper.accessor('location', {
+      groupColumnHelper.accessor((row) => row.location, {
         id: 'location',
         header: 'Location',
-        cell: (info) => locationsMap[info.getValue()] || 'N/A',
+        cell: (info) => {
+          const location = info.getValue();
+          if (typeof location === 'object' && location !== null) {
+            return location.name || 'N/A';
+          }
+          return locationsMap[location] || 'N/A';
+        },
       }),
       groupColumnHelper.accessor((row) => row.contact_person, {
         id: 'contact_person',

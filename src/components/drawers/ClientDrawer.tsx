@@ -246,7 +246,6 @@ export default function ClientDrawer({
 
       if (isFromSessionDrawer && parentDrawer?.entityId) {
         const sessionId = parentDrawer.entityId;
-        console.log(`Adding client to session ID: ${sessionId}`);
         clientData.session_ids = [parseInt(sessionId.toString())];
       } else if (data.sessions && data.sessions.length > 0) {
         const sessionIds = data.sessions
@@ -462,7 +461,6 @@ export default function ClientDrawer({
 
       if (isFromSessionDrawer && parentDrawer?.entityId) {
         const sessionId = parentDrawer.entityId;
-        console.log(`Adding group to session ID: ${sessionId}`);
         groupData.session_ids = [parseInt(sessionId.toString())];
       }
 
