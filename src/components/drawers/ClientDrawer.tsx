@@ -441,6 +441,15 @@ export default function ClientDrawer({
         return;
       }
 
+      const contactPersonId =
+        typeof data.contact_person === 'number'
+          ? data.contact_person
+          : data.contact_person_id || data.contact_person?.id;
+
+      if (!contactPersonId) {
+        console.error('No contact person ID found in form data');
+      }
+
       const groupData = {
         name: data.name,
         description: data.description || '',
@@ -448,7 +457,7 @@ export default function ClientDrawer({
         active: data.active !== undefined ? data.active : true,
         client_ids: data.client_ids,
         session_ids: data.session_ids || [],
-        contact_person: data.contact_person?.id || data.contact_person,
+        contact_person_id: contactPersonId,
       };
 
       if (isFromSessionDrawer && parentDrawer?.entityId) {
