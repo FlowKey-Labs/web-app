@@ -39,7 +39,6 @@ import { useUIStore } from '../../store/ui';
 import ErrorBoundary from '../common/ErrorBoundary';
 import { PaginatedResponse } from '../../api/api';
 
-
 const clientColumnHelper = createColumnHelper<Client>();
 const groupColumnHelper = createColumnHelper<GroupData>();
 
@@ -86,15 +85,21 @@ const AllClients = () => {
   }, [debouncedSearchQuery]);
 
   const {
-    data: allGroups = [],
+    data: groupsData = {
+      items: [],
+      total: 0,
+      totalPages: 0,
+      page: 1,
+      pageSize: 10,
+    } as PaginatedResponse<GroupData>,
     isLoading: groupsLoading,
     isError: groupsError,
     error: getGroupsError,
     refetch: refetchGroups,
-  } = useGetGroups();
+  } = useGetGroups(pageIndex, 10, debouncedSearchQuery);
 
   const clients = activeView === 'clients' ? data.items || [] : [];
-  const groups = activeView === 'groups' ? allGroups || [] : [];
+  const groups = activeView === 'groups' ? groupsData.items || [] : [];
 
   const handleSearchChange = useCallback((value: string) => {
     setSearchQuery(value);
@@ -147,7 +152,7 @@ const AllClients = () => {
     closeExportModal: closeGroupExportModal,
     handleExport: handleGroupExport,
     isExporting: groupIsExporting,
-  } = useExportGroups(groups || [], clearGroupSelection);
+  } = useExportGroups(groupsData.items || [], clearGroupSelection);
 
   const columns: ColumnDef<Client, any>[] = useMemo(
     () => [
@@ -654,7 +659,7 @@ const AllClients = () => {
             showEmptyState &&
             (activeView === 'clients'
               ? data.items?.length === 0
-              : groups.length === 0) &&
+              : groupsData.items?.length === 0) &&
             !isLoadingCurrent
           }
           showButton={
@@ -714,7 +719,7 @@ const AllClients = () => {
                 />
               </>
             )}
-            {activeView === 'groups' && groups.length > 0 && (
+            {activeView === 'groups' && groupsData.items.length > 0 && (
               <>
                 <div className='mb-2 py-2 text-sm text-gray-500'>
                   {Object.keys(rowSelection).length > 0 && (
@@ -724,17 +729,21 @@ const AllClients = () => {
                   )}
                 </div>
                 <Table<GroupData>
-                  data={groups}
+                  data={groupsData.items}
                   columns={groupColumns}
                   rowSelection={rowSelection}
                   onRowSelectionChange={setRowSelection}
                   className='mt-4'
-                  pageSize={12}
+                  pageSize={10}
                   onRowClick={(row: GroupData) => {
                     if (row.id) {
                       navigateToGroupDetails(navigate, row.id.toString());
                     }
                   }}
+                  paginateServerSide={true}
+                  pageIndex={pageIndex}
+                  pageCount={groupsData.totalPages}
+                  onPageChange={setPageIndex}
                 />
               </>
             )}

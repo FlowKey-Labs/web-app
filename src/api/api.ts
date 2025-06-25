@@ -11,7 +11,7 @@ import {
 } from '../types/sessionTypes';
 import { CreateLocationData } from '../types/location';
 import { Role } from '../store/auth';
-import { Client } from '../types/clientTypes';
+import { Client, GroupData } from '../types/clientTypes';
 
 // Define a type for the session filters
 interface SessionFilters {
@@ -52,8 +52,8 @@ const END_POINTS = {
   CLIENTS: {
     CLIENTS_DATA: `${BASE_URL}/api/client/`,
     ATTENDANCE: `${BASE_URL}/api/client/attendance/manage/`,
-    GROUPS: `${BASE_URL}/api/client/groups/`,
-    GROUP_DETAIL: (id: string) => `${BASE_URL}/api/client/groups/${id}/`,
+    GROUPS: `${BASE_URL}/api/client/list-groups/`,
+    GROUP_DETAIL: (id: string) => `${BASE_URL}/api/client/list-groups/${id}/`,
     GROUP_MEMBERS: (id: string) =>
       `${BASE_URL}/api/client/groups/${id}/members/`,
     ADD_MEMBER: (id: string) =>
@@ -719,14 +719,26 @@ const set_primary_location = async (id: number): Promise<Location> => {
 };
 
 // Group API functions
-const get_groups = async () => {
-  try {
-    const { data } = await api.get(`${BASE_URL}/api/client/list-groups/`);
-    return data;
-  } catch (error) {
-    console.error('Error fetching groups:', error);
-    return [];
+const get_groups = async (pageIndex?: number, pageSize?: number, search?: string): Promise<PaginatedResponse<GroupData>> => {
+  const params: Record<string, any> = {};
+  
+  if (search && search.trim()) {
+    params.search = search.trim();
   }
+  
+  if (pageIndex !== undefined) {
+    params.pageIndex = pageIndex;
+  }
+  
+  if (pageSize !== undefined) {
+    params.pageSize = pageSize;
+  }
+
+  const { data } = await api.get<PaginatedResponse<GroupData>>(
+    END_POINTS.CLIENTS.GROUPS,
+    { params }
+  );
+  return data;
 };
 
 const get_group = async (id: string) => {

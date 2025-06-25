@@ -1271,11 +1271,15 @@ export const useDeactivateStaff = () => {
 };
 
 // Group related hooks
-export const useGetGroups = () => {
-  return useQuery<Group[]>({
-    queryKey: ['groups'],
-    queryFn: get_groups,
-    staleTime: 1000 * 60 * 5, // 5 minutes
+export const useGetGroups = (
+  pageIndex?: number,
+  pageSize?: number,
+  search?: string
+): UseQueryResult<PaginatedResponse<GroupData>, Error> => {
+  return useQuery({
+    queryKey: ['groups', pageIndex, pageSize, search],
+    queryFn: () => get_groups(pageIndex, pageSize, search),
+    staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
   });
 };
@@ -1310,7 +1314,14 @@ export const useUpdateGroup = () => {
     }: {
       id: string;
       updateData: Partial<GroupData>;
-    }) => update_group(id, updateData),
+    }) => {
+      // Convert location to string if it's a number
+      const dataToUpdate = { ...updateData };
+      if (dataToUpdate.location !== undefined) {
+        dataToUpdate.location = String(dataToUpdate.location);
+      }
+      return update_group(id, dataToUpdate as any);
+    },
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: ['groups'] });
       queryClient.invalidateQueries({ queryKey: ['group', id] });
