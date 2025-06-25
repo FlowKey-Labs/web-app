@@ -112,7 +112,7 @@ import {
   get_calendar_sessions,
 } from '../api/api';
 import { Role, useAuthStore } from '../store/auth';
-import { AddClient, Client, ClientData } from '../types/clientTypes';
+import { AddClient, Client } from '../types/clientTypes';
 import { CreateStaffRequest, StaffResponse } from '../types/staffTypes';
 import {
   AnalyticsData,
@@ -129,6 +129,8 @@ import {
 import { CreateLocationData } from '../types/location';
 import { Group, GroupData } from '../types/clientTypes';
 import { SeriesLevel, SeriesProgress } from '../store/progressStore';
+
+import type { Location } from '../types/location';
 
 export const useRegisterUser = () => {
   const queryClient = useQueryClient();
@@ -379,9 +381,12 @@ export const useGetBusinessServices = () => {
 };
 
 export const useGetLocations = () => {
-  return useQuery({
+  return useQuery<Location[]>({
     queryKey: ['locations'],
-    queryFn: get_locations,
+    queryFn: async () => {
+      const data = await get_locations();
+      return data as unknown as Location[];
+    },
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
     retry: 2,

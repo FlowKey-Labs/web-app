@@ -100,7 +100,11 @@ export default function ClientDrawer({
     useUpdateClient();
   const { data: locationsData, isLoading: isLocationsLoading } =
     useGetLocations();
-  const { data: clientsData, isLoading: isClientsLoading } = useGetClients();
+  const { data: clientsData, isLoading: isClientsLoading } = useGetClients(
+    1,
+    100,
+    ''
+  );
   const { data: sessionsData, isLoading: isSessionsLoading } = useGetSessions();
   const { mutate: addGroup, isPending: isAddingGroup } = useAddGroup();
 
@@ -444,7 +448,7 @@ export default function ClientDrawer({
         active: data.active !== undefined ? data.active : true,
         client_ids: data.client_ids,
         session_ids: data.session_ids || [],
-        contact_person_id: data.contact_person.id,
+        contact_person: data.contact_person?.id || data.contact_person,
       };
 
       if (isFromSessionDrawer && parentDrawer?.entityId) {

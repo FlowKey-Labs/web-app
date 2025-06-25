@@ -7,6 +7,7 @@ import {
   useDeactivateClient,
   useActivateClient,
   useGetGroups,
+  useGetLocations,
 } from '../../hooks/reactQuery';
 import { createColumnHelper, ColumnDef } from '@tanstack/react-table';
 import {
@@ -38,6 +39,7 @@ import { useAuthStore } from '../../store/auth';
 import { useUIStore } from '../../store/ui';
 import ErrorBoundary from '../common/ErrorBoundary';
 import { PaginatedResponse } from '../../api/api';
+import type { Location as AppLocation } from '../../types/location';
 
 const clientColumnHelper = createColumnHelper<Client>();
 const groupColumnHelper = createColumnHelper<GroupData>();
@@ -62,6 +64,14 @@ const AllClients = () => {
   const activateClientMutation = useActivateClient();
 
   const permisions = useAuthStore((state) => state.role);
+
+  const { data: locations = [] } = useGetLocations();
+  const locationsMap = useMemo(() => {
+    return (locations as unknown as AppLocation[]).reduce<Record<number, string>>((acc, location) => {
+      acc[location.id] = location.name;
+      return acc;
+    }, {});
+  }, [locations]);
 
   const {
     data = {
@@ -344,7 +354,7 @@ const AllClients = () => {
       groupColumnHelper.accessor('location', {
         id: 'location',
         header: 'Location',
-        cell: (info) => info.getValue(),
+        cell: (info) => locationsMap[info.getValue()] || 'N/A',
       }),
       groupColumnHelper.accessor((row) => row.contact_person, {
         id: 'contact_person',
