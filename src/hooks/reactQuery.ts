@@ -636,11 +636,12 @@ export interface SessionFilters {
 export const useGetSessions = (
   pageIndex?: number,
   pageSize?: number,
-  filters?: SessionFilters
+  filters?: SessionFilters,
+  searchQuery?: string
 ): UseQueryResult<PaginatedResponse<Session>, Error> => {
   return useQuery<PaginatedResponse<Session>, Error>({
-    queryKey: ['sessions', pageIndex, pageSize, filters],
-    queryFn: () => get_sessions(filters, pageIndex, pageSize),
+    queryKey: ['sessions', pageIndex, pageSize, filters, searchQuery],
+    queryFn: () => get_sessions(filters, pageIndex, pageSize, searchQuery),
     gcTime: 5 * 60 * 1000, // Keep unused data in cache for 5 minutes
     refetchOnWindowFocus: true,
     refetchOnMount: true,

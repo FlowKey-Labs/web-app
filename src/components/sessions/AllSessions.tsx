@@ -14,7 +14,6 @@ import {
 } from '../../hooks/reactQuery';
 import { Session } from '../../types/sessionTypes';
 import { navigateToSessionDetails } from '../../utils/navigationHelpers';
-import { safeToString } from '../../utils/stringUtils';
 
 import DropDownMenu from '../common/DropdownMenu';
 import { useExportSessions } from '../../hooks/useExport';
@@ -78,54 +77,59 @@ const AllSessions = () => {
     data,
     isLoading: isLoadingSessions,
     refetch: refetchSessions,
-  } = useGetSessions(pageIndex, 10, {
-    categories: selectedCategories,
-    sessionTypes: selectedTypes,
-  });
+  } = useGetSessions(
+    pageIndex,
+    10,
+    {
+      categories: selectedCategories,
+      sessionTypes: selectedTypes,
+    },
+    debouncedSearchQuery
+  );
 
   const allSessionsData = useMemo(() => data?.items || [], [data]);
 
-  const searchSessions = useCallback((sessions: Session[], query: string) => {
-    if (!query.trim()) return sessions;
+  // const searchSessions = useCallback((sessions: Session[], query: string) => {
+  //   if (!query.trim()) return sessions;
 
-    try {
-      const searchTerms = query.toLowerCase().trim().split(/\s+/);
+  //   try {
+  //     const searchTerms = query.toLowerCase().trim().split(/\s+/);
 
-      return sessions.filter((session) => {
-        try {
-          const searchableFields = [
-            safeToString(session.title),
-            safeToString(session.category?.name),
-            safeToString(session.class_type),
-            session.assigned_staff
-              ? `${safeToString(
-                  session.assigned_staff.user?.first_name
-                )} ${safeToString(
-                  session.assigned_staff.user?.last_name
-                )}`.trim()
-              : '',
-            safeToString(session.description),
-            safeToString(session.location),
-            safeToString(session.id),
-          ].filter((field) => field.length > 0);
+  //     return sessions.filter((session) => {
+  //       try {
+  //         const searchableFields = [
+  //           safeToString(session.title),
+  //           safeToString(session.category?.name),
+  //           safeToString(session.class_type),
+  //           session.assigned_staff
+  //             ? `${safeToString(
+  //                 session.assigned_staff.user?.first_name
+  //               )} ${safeToString(
+  //                 session.assigned_staff.user?.last_name
+  //               )}`.trim()
+  //             : '',
+  //           safeToString(session.description),
+  //           safeToString(session.location),
+  //           safeToString(session.id),
+  //         ].filter((field) => field.length > 0);
 
-          const combinedText = searchableFields.join(' ');
+  //         const combinedText = searchableFields.join(' ');
 
-          return searchTerms.every((term) => combinedText.includes(term));
-        } catch (error) {
-          console.warn(
-            'Error processing session in search:',
-            session.id,
-            error
-          );
-          return false;
-        }
-      });
-    } catch (error) {
-      console.error('Error in searchSessions:', error);
-      return sessions;
-    }
-  }, []);
+  //         return searchTerms.every((term) => combinedText.includes(term));
+  //       } catch (error) {
+  //         console.warn(
+  //           'Error processing session in search:',
+  //           session.id,
+  //           error
+  //         );
+  //         return false;
+  //       }
+  //     });
+  //   } catch (error) {
+  //     console.error('Error in searchSessions:', error);
+  //     return sessions;
+  //   }
+  // }, []);
 
   const filteredSessions = useMemo(() => {
     try {
@@ -134,7 +138,32 @@ const AllSessions = () => {
       let filtered = [...allSessionsData];
 
       if (debouncedSearchQuery.trim()) {
-        filtered = searchSessions(filtered, debouncedSearchQuery);
+        filtered = allSessionsData.filter((session) => {
+          try {
+            const searchableFields = [
+              session.title,
+              session.category?.name,
+              session.class_type,
+              session.assigned_staff
+                ? `${session.assigned_staff.user?.first_name} ${session.assigned_staff.user?.last_name}`.trim()
+                : '',
+              session.description,
+              session.location,
+              session.id?.toString(),
+            ].filter((field) => field && field.toString().length > 0);
+
+            const combinedText = searchableFields.join(' ').toLowerCase();
+
+            return combinedText.includes(debouncedSearchQuery.toLowerCase());
+          } catch (error) {
+            console.warn(
+              'Error filtering session by search:',
+              session.id,
+              error
+            );
+            return false;
+          }
+        });
       }
 
       if (selectedTypes.length > 0) {
@@ -179,7 +208,6 @@ const AllSessions = () => {
     selectedTypes,
     selectedCategories,
     debouncedSearchQuery,
-    searchSessions,
   ]);
 
   const clearRowSelection = useCallback(() => {
@@ -620,7 +648,7 @@ const AllSessions = () => {
         <MembersHeader
           title='All Sessions'
           buttonText='New Session'
-          searchPlaceholder='Search by Session, Staff Name or Session Type'
+          searchPlaceholder='Search by Session, date or Staff Name'
           searchValue={searchQuery}
           onSearchChange={handleSearchChange}
           leftIcon={plusIcon}

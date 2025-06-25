@@ -387,7 +387,8 @@ const get_calendar_sessions = async () => {
 const get_sessions = async (
   filters?: SessionFilters,
   pageIndex?: number,
-  pageSize?: number
+  pageSize?: number,
+  searchQuery?: string
 ): Promise<PaginatedResponse<Session>> => {
   let url = END_POINTS.SESSION.SESSIONS_DATA;
   const params = new URLSearchParams();
@@ -404,6 +405,10 @@ const get_sessions = async (
       // Join category IDs with commas for the backend to parse
       params.append('category', filters.categories.join(','));
     }
+  }
+
+  if (searchQuery) {
+    params.append('search', searchQuery);
   }
 
   // Handle pagination
@@ -719,17 +724,21 @@ const set_primary_location = async (id: number): Promise<Location> => {
 };
 
 // Group API functions
-const get_groups = async (pageIndex?: number, pageSize?: number, search?: string): Promise<PaginatedResponse<GroupData>> => {
+const get_groups = async (
+  pageIndex?: number,
+  pageSize?: number,
+  search?: string
+): Promise<PaginatedResponse<GroupData>> => {
   const params: Record<string, any> = {};
-  
+
   if (search && search.trim()) {
     params.search = search.trim();
   }
-  
+
   if (pageIndex !== undefined) {
     params.pageIndex = pageIndex;
   }
-  
+
   if (pageSize !== undefined) {
     params.pageSize = pageSize;
   }
@@ -775,9 +784,10 @@ const update_group = async (
   // Convert location to number if it's a string
   const dataToUpdate = { ...updateData };
   if (dataToUpdate.location !== undefined) {
-    dataToUpdate.location = typeof dataToUpdate.location === 'string' 
-      ? parseInt(dataToUpdate.location, 10)
-      : dataToUpdate.location;
+    dataToUpdate.location =
+      typeof dataToUpdate.location === 'string'
+        ? parseInt(dataToUpdate.location, 10)
+        : dataToUpdate.location;
   }
 
   const { data } = await api.patch(
