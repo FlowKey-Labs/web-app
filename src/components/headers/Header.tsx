@@ -18,17 +18,30 @@ interface ApiNotification {
   message: string;
   is_read: boolean;
   created_at: string;
+  is_expired?: boolean;
+  expiry_status?: {
+    type: string;
+    status: string;
+    message: string;
+  };
+  can_take_action?: boolean;
+  expires_at?: string;
   booking_request?: {
     id: number;
     booking_reference: string;
     client_name: string;
     session_title: string;
+    status: string;
+    staff_confirmation_status?: string;
+    is_expired?: boolean;
+    can_be_approved?: boolean;
   };
   time_since: string;
 }
 
 const NOTIFICATION_CATEGORIES = {
   'booking_request': 'requests',
+  'staff_booking_request': 'requests',
   'booking_approved': 'actions',
   'booking_rejected': 'actions',
   'booking_cancelled': 'changes',
@@ -44,7 +57,7 @@ const NOTIFICATION_TABS = [
     key: 'requests',
     label: 'Requests',
     color: '#1D9B5E',
-    description: 'New booking requests requiring action',
+    description: 'Active booking requests requiring action',
     icon: '📝',
     emptyTitle: 'No booking requests',
     emptyDescription: 'New booking requests from clients will appear here'
@@ -66,6 +79,15 @@ const NOTIFICATION_TABS = [
     icon: '🔄',
     emptyTitle: 'No booking changes',
     emptyDescription: 'Cancelled and rescheduled booking notifications will appear here'
+  },
+  {
+    key: 'expired',
+    label: 'Expired',
+    color: '#868e96',
+    description: 'Expired booking requests and confirmations',
+    icon: '⏰',
+    emptyTitle: 'No expired notifications',
+    emptyDescription: 'Expired booking requests will appear here'
   },
   {
     key: 'system',
@@ -95,7 +117,21 @@ const Header = ({ showSearch = true }: HeaderProps) => {
   const unreadCount = notificationData?.unread_count || notifications.filter((n: ApiNotification) => !n.is_read).length;
   
   const categorizedNotifications = notifications.reduce((acc: Record<string, ApiNotification[]>, notification: ApiNotification) => {
-    const category = NOTIFICATION_CATEGORIES[notification.type as keyof typeof NOTIFICATION_CATEGORIES] || 'system';
+    let category: string;
+    
+    // Check if notification is expired and should go to expired tab
+    if (notification.is_expired || notification.expiry_status?.status === 'expired') {
+      // Only move booking request notifications to expired tab
+      if (['booking_request', 'staff_booking_request'].includes(notification.type)) {
+        category = 'expired';
+      } else {
+        // Other expired notifications stay in their original category
+        category = NOTIFICATION_CATEGORIES[notification.type as keyof typeof NOTIFICATION_CATEGORIES] || 'system';
+      }
+    } else {
+      category = NOTIFICATION_CATEGORIES[notification.type as keyof typeof NOTIFICATION_CATEGORIES] || 'system';
+    }
+    
     if (!acc[category]) {
       acc[category] = [];
     }
@@ -118,7 +154,7 @@ const Header = ({ showSearch = true }: HeaderProps) => {
     if (['requests', 'actions', 'changes'].includes(tab.key)) {
       return true;
     }
-    if (tab.key === 'system') {
+    if (['expired', 'system'].includes(tab.key)) {
       return categorizedNotifications[tab.key]?.length > 0;
     }
     return true;
@@ -205,6 +241,7 @@ const Header = ({ showSearch = true }: HeaderProps) => {
   const getNotificationTypeDisplay = (type: string) => {
     const typeMap: Record<string, string> = {
       'booking_request': 'New Booking Request',
+      'staff_booking_request': 'New Booking Request', // Add display name for staff booking requests
       'booking_approved': 'Booking Approved',
       'booking_rejected': 'Booking Rejected',
       'booking_cancelled': 'Booking Cancelled',
@@ -279,7 +316,8 @@ const Header = ({ showSearch = true }: HeaderProps) => {
         handleMarkAsRead(notification.id);
       }
       
-      navigate(`/clients?tab=bookings&ref=${notification.booking_request.booking_reference}`);
+      // Navigate to the correct booking request details page
+      navigate(`/booking-requests/${notification.booking_request.id}`);
       setNotificationDropdownOpen(false);
     }
   };
@@ -437,15 +475,24 @@ const Header = ({ showSearch = true }: HeaderProps) => {
                                       <p className="text-xs text-gray-500 font-medium">
                                         {formatTimeAgo(notification.created_at)}
                                       </p>
-                                      {notification.booking_request && (
-                                        <span className="text-xs bg-secondary/10 text-secondary px-2 py-1 rounded-full font-semibold">
-                                          #{notification.booking_request.booking_reference}
-                                        </span>
-                                      )}
+                                      <div className="flex items-center gap-2">
+                                        {/* Expiry status badge */}
+                                        {notification.is_expired && (
+                                          <span className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded-full font-semibold">
+                                            {notification.expiry_status?.type === 'staff_confirmation_expired' ? 'Confirmation Expired' : 'Expired'}
+                                          </span>
+                                        )}
+                                        {/* Booking reference */}
+                                        {notification.booking_request && (
+                                          <span className="text-xs bg-secondary/10 text-secondary px-2 py-1 rounded-full font-semibold">
+                                            #{notification.booking_request.booking_reference}
+                                          </span>
+                                        )}
+                                      </div>
                                     </div>
 
                                     {/* Quick Actions for Booking Requests */}
-                                    {notification.type === 'booking_request' && notification.booking_request && (
+                                    {(notification.type === 'booking_request' || notification.type === 'staff_booking_request') && notification.booking_request && (
                                       <Group gap="xs" className="mt-3">
                                         <Button
                                           size="xs"
@@ -459,37 +506,50 @@ const Header = ({ showSearch = true }: HeaderProps) => {
                                         >
                                           View Details
                                         </Button>
-                                        <Button
-                                          size="xs"
-                                          variant="light"
-                                          color="green"
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleApproveRequest(notification);
-                                          }}
-                                          loading={approveRequest.isPending}
-                                          className="flex-1"
-                                        >
-                                          Approve
-                                        </Button>
-                                        <Button
-                                          size="xs"
-                                          variant="light"
-                                          color="red"
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleRejectRequest(notification);
-                                          }}
-                                          loading={rejectRequest.isPending}
-                                          className="flex-1"
-                                        >
-                                          Reject
-                                        </Button>
+                                        {/* Only show action buttons if notification can still be acted upon */}
+                                        {notification.can_take_action !== false && !notification.is_expired && (
+                                          <>
+                                            <Button
+                                              size="xs"
+                                              variant="light"
+                                              color="green"
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleApproveRequest(notification);
+                                              }}
+                                              loading={approveRequest.isPending}
+                                              className="flex-1"
+                                            >
+                                              Approve
+                                            </Button>
+                                            <Button
+                                              size="xs"
+                                              variant="light"
+                                              color="red"
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleRejectRequest(notification);
+                                              }}
+                                              loading={rejectRequest.isPending}
+                                              className="flex-1"
+                                            >
+                                              Reject
+                                            </Button>
+                                          </>
+                                        )}
+                                        {/* Show disabled message for expired notifications */}
+                                        {(notification.can_take_action === false || notification.is_expired) && (
+                                          <div className="flex-1 text-center">
+                                            <span className="text-xs text-gray-500 italic">
+                                              {notification.expiry_status?.message || 'No actions available'}
+                                            </span>
+                                          </div>
+                                        )}
                                       </Group>
                                     )}
                                     
                                     {/* Quick Actions for Other Notifications */}
-                                    {notification.type !== 'booking_request' && notification.booking_request && (
+                                    {notification.type !== 'booking_request' && notification.type !== 'staff_booking_request' && notification.booking_request && (
                                       <Group gap="xs" className="mt-3">
                                         <Button
                                           size="xs"
