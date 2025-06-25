@@ -115,7 +115,6 @@ import {
   reject_booking_request,
   convert_client_to_regular,
   convert_client_to_booking,
-  get_progress_feedback,
   cancel_booking_request,
   // Booking Settings API functions
   get_booking_settings,
@@ -145,7 +144,7 @@ import {
   get_public_available_locations,
 } from "../api/api";
 import { Role, useAuthStore } from "../store/auth";
-import { AddClient, Client, ClientData } from "../types/clientTypes";
+import { AddClient, Client, BookingRequest } from "../types/clientTypes";
 import { CreateStaffRequest, StaffResponse } from "../types/staffTypes";
 import {
   AnalyticsData,
@@ -1701,7 +1700,7 @@ export const useApproveBookingRequest = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (requestId: number) => approve_booking_request(requestId),
-    onSuccess: (data) => {
+    onSuccess: () => {
       // Invalidate queries to refresh the table
       queryClient.invalidateQueries({ queryKey: ["booking_requests"] });
       queryClient.invalidateQueries({ queryKey: ["clients"] });
@@ -1809,7 +1808,7 @@ export const useCancelBookingRequest = () => {
   return useMutation({
     mutationFn: ({ requestId, reason }: { requestId: number; reason?: string }) => 
       cancel_booking_request(requestId, reason),
-    onSuccess: (data) => {
+    onSuccess: () => {
       // Invalidate queries to refresh the table
       queryClient.invalidateQueries({ queryKey: ["booking_requests"] });
       queryClient.invalidateQueries({ queryKey: ["clients"] });
@@ -1955,12 +1954,6 @@ export const useGetPublicAvailability = (
     staleTime: 1000 * 60 * 2, // 2 minutes
     refetchOnWindowFocus: false, // Don't refetch when window focuses
     retry: 2, // Retry failed requests twice
-    onSuccess: (data) => {
-      console.log('🎉 DEBUG: Query success callback, data received:', data);
-    },
-    onError: (error) => {
-      console.error('💥 DEBUG: Query error callback:', error);
-    },
   });
 };
 
@@ -2036,8 +2029,52 @@ export const useCreatePublicBooking = () => {
       // Invalidate availability queries as they might have changed
       queryClient.invalidateQueries({ queryKey: ['public-availability'] });
     },
-    onError: (error) => {
+    onError: (error: unknown) => {
       console.error("Failed to create booking:", error);
+      
+      // Enhanced error logging for production debugging
+      const apiError = error as { response?: { data?: { code?: string } } };
+      if (apiError?.response?.data) {
+        console.error("Backend error details:", apiError.response.data);
+      }
+      
+      // Track common error patterns for monitoring
+      const errorCode = apiError?.response?.data?.code || 'UNKNOWN_ERROR';
+      console.info(`Booking error code: ${errorCode}`);
+    },
+    // Enhanced retry logic for race condition scenarios
+    retry: (failureCount, error: unknown) => {
+      const apiError = error as { response?: { data?: { code?: string } } };
+      const errorCode = apiError?.response?.data?.code;
+      
+      // Retry race condition and capacity-related errors once
+      if (errorCode === 'CAPACITY_CHANGED' || errorCode === 'BOOKING_CREATION_ERROR') {
+        return failureCount < 1;
+      }
+      
+      // Don't retry validation or duplicate booking errors
+      if (errorCode === 'DUPLICATE_BOOKING' || 
+          errorCode === 'INSUFFICIENT_CAPACITY' || 
+          errorCode === 'SESSION_NOT_BOOKABLE' ||
+          errorCode === 'GROUP_BOOKINGS_DISABLED') {
+        return false;
+      }
+      
+      // Default retry once for other errors
+      return failureCount < 1;
+    },
+    // Add retry delay for capacity-related issues
+    retryDelay: (attemptIndex, error: unknown) => {
+      const apiError = error as { response?: { data?: { code?: string } } };
+      const errorCode = apiError?.response?.data?.code;
+      
+      // Short delay for capacity conflicts to allow other bookings to complete
+      if (errorCode === 'CAPACITY_CHANGED' || errorCode === 'BOOKING_CREATION_ERROR') {
+        return 1000; // 1 second
+      }
+      
+      // Standard exponential backoff for other errors
+      return Math.min(1000 * 2 ** attemptIndex, 3000);
     },
   });
 };

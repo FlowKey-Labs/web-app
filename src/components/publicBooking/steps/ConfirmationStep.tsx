@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { Title, Text, Group, Divider, Alert } from '@mantine/core';
+import { Title, Text, Group, Divider, Alert, Stack, Badge } from '@mantine/core';
 import { useViewportSize } from '@mantine/hooks';
 import {
   ArrowLeftIcon,
@@ -10,6 +10,8 @@ import {
   EmailIcon,
   LocationIcon,
   InfoIcon,
+  ExclamationIcon,
+  ArrowPathIcon
 } from '../bookingIcons';
 import { useCreatePublicBooking } from '../../../hooks/reactQuery';
 import { useBookingFlow } from '../PublicBookingProvider';
@@ -20,6 +22,33 @@ import Button from '../../common/Button';
 import { MobileBusinessHeader } from '../components/MobileBusinessHeader';
 import { formatBookingTimeRange } from '../../../utils/timezone';
 import { DateTime } from 'luxon';
+import { notifications } from '@mantine/notifications';
+
+// Type definitions for better type safety
+interface ErrorDetails {
+  available_spots?: number;
+  requested_quantity?: number;
+  maximum_allowed?: number;
+  [key: string]: unknown;
+}
+
+interface BookingErrorInfo {
+  code: string;
+  message: string;
+  details?: ErrorDetails;
+  canRetry: boolean;
+}
+
+interface ApiError {
+  response?: {
+    data?: {
+      code?: string;
+      error?: string;
+      details?: ErrorDetails;
+    };
+  };
+  message?: string;
+}
 
 interface ConfirmationStepProps {
   businessSlug: string;
@@ -34,6 +63,7 @@ export function ConfirmationStep({ businessSlug, businessInfo }: ConfirmationSte
   const [bookingConfirmation, setBookingConfirmation] = useState<BookingConfirmation | null>(null);
   const [isBusinessProfileExpanded, setIsBusinessProfileExpanded] = useState(false);
   const [scrollY, setScrollY] = useState(0);
+  const [bookingError, setBookingError] = useState<BookingErrorInfo | null>(null);
   
   const isMobile = width < 768;
   const createBookingMutation = useCreatePublicBooking();
@@ -58,14 +88,107 @@ export function ConfirmationStep({ businessSlug, businessInfo }: ConfirmationSte
     resetFlow();
   }, [resetFlow]);
 
+  const getErrorMessage = useCallback((error: ApiError): BookingErrorInfo => {
+    const errorCode = error?.response?.data?.code || 'UNKNOWN_ERROR';
+    const errorDetails = error?.response?.data?.details;
+    const defaultMessage = error?.response?.data?.error || error?.message || 'An unexpected error occurred';
+
+    switch (errorCode) {
+      case 'CAPACITY_CHANGED':
+        return {
+          code: errorCode,
+          message: 'Session availability changed while processing your booking. Please select a new time slot.',
+          details: errorDetails,
+          canRetry: false
+        };
+      
+      case 'INSUFFICIENT_CAPACITY': {
+        const available = errorDetails?.available_spots || 0;
+        const requested = errorDetails?.requested_quantity || 1;
+        return {
+          code: errorCode,
+          message: `Only ${available} spot${available !== 1 ? 's' : ''} available, but ${requested} requested. Please adjust your quantity or select a different time.`,
+          details: errorDetails,
+          canRetry: false
+        };
+      }
+      
+      case 'DUPLICATE_BOOKING':
+        return {
+          code: errorCode,
+          message: 'You already have a booking for this session. Please check your email for your existing booking reference.',
+          details: errorDetails,
+          canRetry: false
+        };
+      
+      case 'SESSION_NOT_BOOKABLE':
+        return {
+          code: errorCode,
+          message: 'This session is no longer available for booking. Please select a different time slot.',
+          details: errorDetails,
+          canRetry: false
+        };
+      
+      case 'GROUP_BOOKINGS_DISABLED':
+        return {
+          code: errorCode,
+          message: 'Group bookings are not allowed for this business. Please book individual spots.',
+          details: errorDetails,
+          canRetry: false
+        };
+      
+      case 'GROUP_SIZE_EXCEEDED': {
+        const maxSize = errorDetails?.maximum_allowed || 1;
+        return {
+          code: errorCode,
+          message: `Maximum group size is ${maxSize} spot${maxSize !== 1 ? 's' : ''}. Please reduce your quantity.`,
+          details: errorDetails,
+          canRetry: false
+        };
+      }
+      
+      case 'BOOKING_CREATION_ERROR':
+        return {
+          code: errorCode,
+          message: 'Your booking could not be completed due to high demand. Please try again in a moment.',
+          details: errorDetails,
+          canRetry: true
+        };
+      
+      case 'PRIVATE_SESSION_NOT_BOOKABLE':
+        return {
+          code: errorCode,
+          message: 'Private sessions are not available for public booking. Please contact the business directly.',
+          details: errorDetails,
+          canRetry: false
+        };
+      
+      default:
+        return {
+          code: errorCode,
+          message: defaultMessage,
+          details: errorDetails,
+          canRetry: true
+        };
+    }
+  }, []);
+
   const handleConfirmBooking = useCallback(async () => {
     if (!state.formData.session_id || !state.formData.client_name || !state.formData.client_email || !state.formData.client_phone) {
+      notifications.show({
+        title: 'Missing Information',
+        message: 'Please complete all required fields before confirming your booking.',
+        color: 'red',
+        icon: <ExclamationIcon className="w-4 h-4" />
+      });
       return;
     }
 
     if (!state.selectedDate || !state.selectedTimeSlot) {
       return;
     }
+
+    setBookingError(null);
 
     try {
       let selectedDate: string;
@@ -128,8 +251,19 @@ export function ConfirmationStep({ businessSlug, businessInfo }: ConfirmationSte
 
       setBookingConfirmation(confirmation);
       dispatch({ type: 'SET_BOOKING_CONFIRMATION', payload: confirmation });
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error creating booking:', error);
+      const errorInfo = getErrorMessage(error as ApiError);
+      setBookingError(errorInfo);
+      
+      // Show notification for immediate feedback
+      notifications.show({
+        title: 'Booking Failed',
+        message: errorInfo.message,
+        color: 'red',
+        icon: <ExclamationIcon className="w-4 h-4" />,
+        autoClose: false
+      });
     }
   }, [
     state.formData,
@@ -138,9 +272,23 @@ export function ConfirmationStep({ businessSlug, businessInfo }: ConfirmationSte
     timezoneState.businessTimezone,
     timezoneState.selectedTimezone,
     businessSlug,
+    businessInfo.business_name,
+    businessInfo.email,
+    sessionTitle,
     createBookingMutation,
-    dispatch
+    dispatch,
+    getErrorMessage
   ]);
+
+  const handleRetryBooking = useCallback(() => {
+    setBookingError(null);
+    handleConfirmBooking();
+  }, [handleConfirmBooking]);
+
+  const handleGoBack = useCallback(() => {
+    dispatch({ type: 'SET_CURRENT_STEP', payload: 'booking-details' });
+    setBookingError(null);
+  }, [dispatch]);
 
   useEffect(() => {
     if (!isMobile) return;
@@ -167,6 +315,120 @@ export function ConfirmationStep({ businessSlug, businessInfo }: ConfirmationSte
         >
           Required booking information is missing. Please go back and try again.
         </Alert>
+      </div>
+    );
+  }
+
+  if (bookingError) {
+    return (
+      <div className="h-full w-full bg-none relative overflow-hidden">
+        <MobileBusinessHeader 
+          businessInfo={businessInfo}
+          scrollY={scrollY}
+          isExpanded={isBusinessProfileExpanded}
+          onToggleExpanded={() => setIsBusinessProfileExpanded(!isBusinessProfileExpanded)}
+          onServiceChange={handleServiceChange}
+        />
+        
+        <div className="flex flex-col h-full relative z-10">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+            className="flex-1 p-4 lg:p-8 overflow-auto services-section lg:flex lg:items-center lg:justify-center"
+          >
+            <div className="max-w-2xl mx-auto booking-mobile-content">
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.3, duration: 0.5 }}
+                className="text-center space-y-6 lg:space-y-8"
+              >
+                <div className="w-20 h-20 lg:w-32 lg:h-32 bg-red-500 rounded-full flex items-center justify-center mx-auto shadow-lg">
+                  <ExclamationIcon className="w-10 h-10 lg:w-16 lg:h-16 text-white" />
+                </div>
+                
+                <div className="space-y-3">
+                  <Title order={2} className="text-xl lg:text-4xl font-bold text-slate-900">
+                    Booking Failed
+                  </Title>
+                  
+                  <Text size="md" className="text-slate-700 lg:text-lg max-w-lg mx-auto">
+                    {bookingError.message}
+                  </Text>
+                  
+                  {bookingError.code && (
+                    <Badge 
+                      variant="light" 
+                      color="red" 
+                      size="sm"
+                      className="font-mono"
+                    >
+                      Error: {bookingError.code}
+                    </Badge>
+                  )}
+                </div>
+
+                <motion.div 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.4, duration: 0.5 }}
+                  className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 lg:p-8 border border-white/20 shadow-lg text-left max-w-md mx-auto"
+                >
+                  <Text className="font-semibold text-slate-900 mb-4 text-center text-base">What you can do:</Text>
+                  <Stack gap="md">
+                    {bookingError.canRetry && (
+                      <Button
+                        onClick={handleRetryBooking}
+                        loading={createBookingMutation.isPending}
+                        leftSection={<ArrowPathIcon className="w-4 h-4" />}
+                        variant="filled"
+                        color="emerald"
+                        size="sm"
+                        className="w-full"
+                      >
+                        Try Again
+                      </Button>
+                    )}
+                    
+                    <Button
+                      onClick={handleGoBack}
+                      variant="outline"
+                      color="gray"
+                      size="sm"
+                      className="w-full"
+                    >
+                      Go Back & Edit Details
+                    </Button>
+                    
+                    <Button
+                      onClick={handleServiceChange}
+                      variant="light"
+                      color="emerald"
+                      size="sm"
+                      className="w-full"
+                    >
+                      Choose Different Time
+                    </Button>
+                  </Stack>
+                </motion.div>
+
+                <motion.div 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.6, duration: 0.5 }}
+                  className="lg:hidden text-center pt-6"
+                >
+                  <Text size="xs" className="text-slate-400 mb-1">Powered by</Text>
+                  <Group gap="xs" justify="center">
+                    <FlowKeyIcon className="w-4 h-4 text-emerald-500" />
+                    <Text size="sm" className="text-slate-500 font-medium">FlowKey</Text>
+                  </Group>
+                </motion.div>
+              </motion.div>
+            </div>
+          </motion.div>
+        </div>
       </div>
     );
   }
@@ -496,82 +758,6 @@ export function ConfirmationStep({ businessSlug, businessInfo }: ConfirmationSte
                 </div>
               </div>
             </motion.div>
-
-            {createBookingMutation.error && (
-              <Alert 
-                icon={<InfoIcon className="w-5 h-5" />} 
-                color="red" 
-                title="Booking Failed"
-                className="mb-6"
-              >
-                {createBookingMutation.error instanceof Error 
-                  ? (() => {
-                      const errorMessage = createBookingMutation.error.message;
-                      
-                      try {
-                        const errorData = JSON.parse(errorMessage);
-                        
-                        if (errorData.code === 'DUPLICATE_BOOKING') {
-                          return (
-                            <div>
-                              <Text className="font-medium mb-2">You already have a booking for this session</Text>
-                              <Text size="sm" className="text-red-700">
-                                Existing booking reference: <strong>{errorData.details?.existing_booking_reference}</strong>
-                                <br />
-                                Status: <strong className="capitalize">{errorData.details?.existing_status}</strong>
-                                <br />
-                                Quantity: <strong>{errorData.details?.existing_quantity} person(s)</strong>
-                              </Text>
-                              <Text size="sm" className="text-red-600 mt-2">
-                                Please contact support if you need to modify your existing booking.
-                              </Text>
-                            </div>
-                          );
-                        }
-                        
-                        if (errorData.code === 'SESSION_FULL') {
-                          return 'This session is now full. Please select a different time slot.';
-                        }
-                        
-                        if (errorData.code === 'SESSION_NOT_FOUND') {
-                          return 'The selected session is no longer available. Please choose a different time.';
-                        }
-                        
-                        if (errorData.code === 'VALIDATION_ERROR') {
-                          return 'Please check your booking details and try again. Some required information may be missing or invalid.';
-                        }
-                        
-                        if (errorData.code === 'INSUFFICIENT_SPOTS') {
-                          return `Only ${errorData.details?.available_spots || 0} spots are available for this session. Please reduce the quantity or choose a different time.`;
-                        }
-                        
-                        if (errorData.error && typeof errorData.error === 'string') {
-                          return errorData.error;
-                        }
-                        
-                        return errorData.message || 'We encountered an issue processing your booking. Please try again or contact support.';
-                      } catch {
-                        if (errorMessage.includes('duplicate') || errorMessage.includes('already have a booking')) {
-                          return 'You already have a booking for this session. Please contact support if you need to modify your existing booking.';
-                        }
-                        if (errorMessage.includes('Validation failed')) {
-                          return 'Please check your booking details and try again. Some required information may be missing.';
-                        }
-                        if (errorMessage.includes('session is full') || errorMessage.includes('no available spots')) {
-                          return 'Sorry, this time slot is now full. Please select a different time or date.';
-                        }
-                        if (errorMessage.includes('session not found')) {
-                          return 'The selected time slot is no longer available. Please choose a different time.';
-                        }
-                        if (errorMessage.includes('network') || errorMessage.includes('connection')) {
-                          return 'Connection error. Please check your internet connection and try again.';
-                        }
-                        return 'We encountered an issue processing your booking. Please try again or contact support if the problem persists.';
-                      }
-                    })()
-                  : 'We encountered an issue processing your booking. Please try again or contact support if the problem persists.'}
-              </Alert>
-            )}
 
             <motion.div
               initial={{ opacity: 0, y: 20 }}
