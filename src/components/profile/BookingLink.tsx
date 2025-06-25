@@ -18,6 +18,7 @@ import {
 import successIcon from "../../assets/icons/success.svg";
 import { FlowKeyIcon } from "../../assets/icons";
 import config from "../../utils/config";
+import { QRCodePosterSystem } from "./qr-code-poster";
 
 const BookingLink: React.FC = () => {
   const { data: userProfile, isLoading: userLoading } = useGetUserProfile();
@@ -235,9 +236,6 @@ const BookingLink: React.FC = () => {
                 >
                   Preview & Test Page
                 </Button>
-                <Text size="xs" color="dimmed" mt={4}>
-                  Opens your public booking page in a new tab for testing
-                </Text>
               </div>
             </div>
 
@@ -381,49 +379,40 @@ const BookingLink: React.FC = () => {
       </Card>
 
       <Card className="p-6" radius="md" withBorder>
-        <div className="space-y-4">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-              <svg
-                className="w-6 h-6 text-blue-600"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M3 4a1 1 0 011-1h3a1 1 0 011 1v3a1 1 0 01-1 1H4a1 1 0 01-1-1V4zm2 2V5h1v1H5zM3 13a1 1 0 011-1h3a1 1 0 011 1v3a1 1 0 01-1 1H4a1 1 0 01-1-1v-3zm2 2v-1h1v1H5zM13 3a1 1 0 00-1 1v3a1 1 0 001 1h3a1 1 0 001-1V4a1 1 0 00-1-1h-3zm1 2v1h1V5h-1z"
-                  clipRule="evenodd"
-                />
-                <path d="M11 4a1 1 0 10-2 0v1a1 1 0 002 0V4zM10 7a1 1 0 011 1v1h2a1 1 0 110 2h-3a1 1 0 01-1-1V8a1 1 0 011-1zM16 12a1 1 0 100-2 1 1 0 000 2zM12 13a1 1 0 011-1h2a1 1 0 110 2h-2a1 1 0 01-1-1zM16 16a1 1 0 100-2 1 1 0 000 2zM16 20a1 1 0 100-2 1 1 0 000 2zM10 16a1 1 0 111-1h2a1 1 0 110 2h-2a1 1 0 01-1-1z" />
-              </svg>
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900">QR Code</h3>
-              <p className="text-sm text-gray-500">
-                Let clients scan to book instantly
-              </p>
-            </div>
-          </div>
+        <div>
+          <h3 className="text-lg font-semibold mb-1" style={{ color: '#162F3B' }}>
+            Professional QR Code Posters
+          </h3>
+          <p className="text-sm text-gray-500 mb-6">
+            Create branded QR code posters for your business
+          </p>
 
-          <div className="flex flex-col lg:flex-row items-center gap-6">
-            <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
-              <img
-                src={generateQRCode()}
-                alt="Booking QR Code"
-                className="w-40 h-40"
-              />
-            </div>
-            <div className="flex-1 text-center lg:text-left">
-              <h4 className="text-base font-semibold text-gray-900 mb-2">
-                Quick Booking Access
-              </h4>
-              <p className="text-sm text-gray-600 mb-4">
-                Print and display at your location or share digitally. Clients
-                can scan this QR code with their phone camera to instantly
-                access your booking page.
-              </p>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div className="p-4 border border-gray-200 rounded-lg bg-white">
+              <div className="mb-4">
+                <h4 className="text-sm font-medium text-gray-900 mb-1">
+                  Quick QR Code
+                </h4>
+                <p className="text-xs text-gray-500">
+                  Basic QR code for immediate use
+                </p>
+              </div>
+              
+              <div className="text-center mb-4">
+                <div className="inline-block p-3 bg-gray-50 rounded-lg border">
+                  <img
+                    src={generateQRCode()}
+                    alt="QR Code"
+                    className="rounded"
+                    style={{ width: '120px', height: '120px' }}
+                  />
+                </div>
+              </div>
+              
               <Button
+                fullWidth
                 variant="outline"
+                size="sm"
                 onClick={() => {
                   const link = document.createElement("a");
                   link.href = generateQRCode();
@@ -431,9 +420,52 @@ const BookingLink: React.FC = () => {
                   link.click();
                 }}
               >
-                Download QR Code
+                Download Basic QR
               </Button>
             </div>
+
+            <div 
+              className="p-4 rounded-lg border-2 flex flex-col h-full"
+              style={{ 
+                backgroundColor: '#f8fffe',
+                borderColor: '#1D9B5E'
+              }}
+            >
+              <div className="mb-4">
+                <h4 className="text-sm font-medium text-gray-900 mb-1">
+                  Professional Posters
+                </h4>
+                <p className="text-xs text-gray-500">
+                  Branded, print-ready posters
+                </p>
+              </div>
+              
+              <div className="space-y-1 mb-6 flex-grow">
+                <div className="text-xs text-gray-600">
+                  • Multiple paper formats (A4, A3, Letter)
+                </div>
+                <div className="text-xs text-gray-600">
+                  • High-resolution print quality
+                </div>
+                <div className="text-xs text-gray-600">
+                  • Professional Flowkey branding
+                </div>
+              </div>
+              
+              <div className="mt-auto">
+                <QRCodePosterSystem
+                  bookingLink={bookingLink}
+                  businessName={business?.business_name || "Your Business"}
+                  businessType={business?.business_type}
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+            <p className="text-xs text-amber-800">
+                <span className="font-medium">💡 Pro Tip:</span> Test scan your QR codes before printing to ensure they work properly.
+            </p>
           </div>
         </div>
       </Card>

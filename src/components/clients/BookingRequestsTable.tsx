@@ -8,7 +8,7 @@ import { BookingRequest } from '../../types/clientTypes';
 import Table from '../common/Table';
 import { formatDistanceToNow } from 'date-fns';
 import { useCancelBookingRequest } from '../../hooks/reactQuery';
-import { formatToEATTime } from '../../utils/formatTo12Hour';
+import { formatSessionTimes } from '../../utils/timezone';
 
 interface BookingRequestsTableProps {
   data: BookingRequest[];
@@ -135,11 +135,13 @@ const BookingRequestsTable: React.FC<BookingRequestsTableProps> = ({
       header: 'Session Details',
       cell: (info) => {
         const booking = info.row.original;
+        const businessTimezone = booking.business_timezone || 'Africa/Nairobi';
+        const sessionTimes = formatSessionTimes(booking.session_date, booking.session_end_time, businessTimezone);
         return (
           <div className="flex flex-col">
             <Text size="sm" fw={500}>{booking.session_title}</Text>
             <Text size="xs" c="dimmed">
-              {new Date(booking.session_date).toLocaleDateString()} - {formatToEATTime(booking.session_date)} - {formatToEATTime(booking.session_end_time)}
+              {new Date(booking.session_date).toLocaleDateString()} - {sessionTimes.timeRange}
             </Text>
             <Text size="xs" c="dimmed">{booking.category_name}</Text>
           </div>

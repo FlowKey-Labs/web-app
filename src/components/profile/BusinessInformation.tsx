@@ -40,7 +40,6 @@ const BusinessInformation = ({
   openedAccordion,
   setOpenedAccordion,
 }: BusinessInformationProps) => {
-  // ALWAYS call hooks first before any conditional logic
   const { data: businessProfile, isLoading } = useGetBusinessProfile();
   const { state: timezoneState, actions: timezoneActions } = useTimezone();
   const methods = useForm<ProfileFormData>({
@@ -58,10 +57,8 @@ const BusinessInformation = ({
   });
   const updateProfile = useUpdateBusinessProfile();
 
-  // Live clock state for dynamic time display
   const [currentTime, setCurrentTime] = useState(new Date());
 
-  // Update clock every second
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentTime(new Date());
@@ -70,10 +67,8 @@ const BusinessInformation = ({
     return () => clearInterval(timer);
   }, []);
 
-  // Dynamic current time calculator based on selected timezone and format
   const getCurrentTimeForTimezone = (timezone: string, use24Hour: boolean) => {
     try {
-      // Use currentTime to ensure re-renders when clock updates
       const now = DateTime.fromJSDate(currentTime).setZone(timezone);
       return use24Hour ? now.toFormat('HH:mm:ss') : now.toFormat('h:mm:ss a');
     } catch (error) {
@@ -82,7 +77,6 @@ const BusinessInformation = ({
     }
   };
 
-  // Memoize the form data to prevent unnecessary resets
   const formData = useMemo(() => ({
     business_name: businessProfile?.[0]?.business_name || '',
     contact_person: businessProfile?.[0]?.contact_person || '',
@@ -99,9 +93,8 @@ const BusinessInformation = ({
     if (businessProfile?.[0]) {
       methods.reset(formData);
     }
-  }, [formData]);
+  }, [businessProfile, formData, methods]);
 
-  // Early loading check after all hooks are called
   if (isLoading) {
     return (
       <ErrorBoundary>
@@ -153,7 +146,6 @@ const BusinessInformation = ({
       },
       {
         onSuccess: () => {
-          // Update timezone state after successful profile update
           timezoneActions.setSelectedTimezone(data.user_timezone);
           timezoneActions.setBusinessTimezone(data.timezone);
           timezoneActions.setUse24Hour(data.use_24_hour);
@@ -235,13 +227,23 @@ const BusinessInformation = ({
             <Accordion.Panel>
               <div className='p-4 lg:p-6'>
                 <form onSubmit={methods.handleSubmit(onSubmit)} className='w-full space-y-6 lg:space-y-8'>
-                  {/* Business Logo and Name Section */}
-                  <div className='flex flex-col lg:flex-row lg:items-center gap-6 lg:gap-8'>
-                    {/* Logo Section with Shimmer Effect */}
-                    <div className='flex flex-col items-center lg:items-start space-y-3 lg:flex-shrink-0'>
+
+                  <div className='flex flex-col lg:flex-row lg:items-start gap-4 lg:gap-6'>
+                    <div className='flex flex-col items-center lg:items-start space-y-3 lg:flex-shrink-0 w-full business-preview-section'>
+                      <style>{`
+                        @media (min-width: 1024px) {
+                          .business-preview-section { 
+                            flex: 0 0 30% !important;
+                            width: 30% !important;
+                          }
+                          .business-form-section {
+                            flex: 1 1 70% !important;
+                          }
+                        }
+                      `}</style>
                       <div className='relative'>
-                        <div className='w-20 h-20 lg:w-24 lg:h-24 rounded-2xl bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center shadow-xl border-4 border-white/50 business-logo'>
-                          <span className='text-2xl lg:text-3xl font-bold text-white relative z-10'>
+                        <div className='w-16 h-16 lg:w-20 lg:h-20 rounded-xl bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center shadow-xl border-4 border-white/50 business-logo'>
+                          <span className='text-lg lg:text-xl font-bold text-white relative z-10'>
                             {(() => {
                               const name = methods.getValues('business_name')?.trim() || '';
                               if (!name) return 'BN';
@@ -252,27 +254,33 @@ const BusinessInformation = ({
                             })()}
                           </span>
                         </div>
-                        {/* Decorative glow effect */}
-                        <div className="absolute -inset-2 bg-gradient-to-r from-emerald-500/20 to-green-500/20 rounded-3xl blur-xl"></div>
+                        <div className="absolute -inset-2 bg-gradient-to-r from-emerald-500/20 to-green-500/20 rounded-3xl blur-xl animate-pulse"></div>
                       </div>
                       
-                      {/* Business Name and About - Mobile Center, Desktop Left */}
-                      <div className='text-center lg:text-left max-w-xs lg:max-w-none'>
-                        <h3 className='text-base lg:text-lg font-semibold text-gray-900 truncate'>
+                      <div className='text-center lg:text-left w-full'>
+                        <h3 className='text-sm lg:text-base font-semibold text-gray-900 truncate'>
                           {methods.getValues('business_name') || 'Add Business Name'}
                         </h3>
-                        <p className='text-sm text-gray-500 line-clamp-2 mt-1'>
+                        <p className='text-xs text-gray-500 mt-1 lg:block hidden' style={{ 
+                          display: '-webkit-box',
+                          WebkitLineClamp: 4,
+                          WebkitBoxOrient: 'vertical',
+                          overflow: 'hidden',
+                          lineHeight: '1.4',
+                          maxHeight: '5.6em'
+                        }}>
+                          {methods.getValues('about') || 'Add business description to help clients understand what you offer and why they should choose your services.'}
+                        </p>
+                        <p className='text-xs text-gray-500 mt-1 lg:hidden block line-clamp-2'>
                           {methods.getValues('about') || 'Add business description'}
                         </p>
                       </div>
                     </div>
 
-                    {/* Separator - Hidden on mobile */}
-                    <div className='hidden lg:block w-px h-20 bg-gray-200'></div>
+                    <div className='hidden lg:block w-px h-20 bg-gray-200 mt-2'></div>
 
-                    {/* Form Fields */}
-                    <div className='flex-1 space-y-6'>
-                      <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+                    <div className='flex-1 min-w-0 w-full lg:w-auto business-form-section'>
+                      <div className='grid grid-cols-1 lg:grid-cols-2 gap-4'>
                         <Controller
                           name='business_name'
                           control={methods.control}
@@ -305,9 +313,8 @@ const BusinessInformation = ({
                     </div>
                   </div>
 
-                  {/* Contact Information Section */}
                   <div className='space-y-4'>
-                    <h3 className='text-base lg:text-lg font-medium text-gray-900 border-b border-gray-200 pb-2'>
+                    <h3 className='text-sm lg:text-base font-medium text-gray-900 border-b border-gray-200 pb-2'>
                       Contact Information
                     </h3>
                     <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
@@ -348,9 +355,8 @@ const BusinessInformation = ({
                     </div>
                   </div>
 
-                  {/* Business Settings Section */}
                   <div className='space-y-4'>
-                    <h3 className='text-base lg:text-lg font-medium text-gray-900 border-b border-gray-200 pb-2'>
+                    <h3 className='text-sm lg:text-base font-medium text-gray-900 border-b border-gray-200 pb-2'>
                       Business Settings
                     </h3>
                     <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
@@ -358,9 +364,7 @@ const BusinessInformation = ({
                         name='timezone'
                         control={methods.control}
                         render={({ field }) => {
-                          // Use the same pattern as DateSelectionStep for consistency
                           const getTimezoneOptionsForBusinessSelect = () => {
-                            // Group by region using the centralized TIMEZONE_OPTIONS
                             const grouped = (TIMEZONE_OPTIONS || []).reduce((acc, tz) => {
                               const region = tz.region || 'Other';
                               if (!acc[region]) {
@@ -385,7 +389,6 @@ const BusinessInformation = ({
                                 description="This timezone will be used for all your sessions and bookings"
                                 onChange={(value) => {
                                   field.onChange(value || 'Africa/Nairobi');
-                                  // Update the business timezone in context when changed
                                   if (value) {
                                     timezoneActions.setBusinessTimezone(value);
                                   }
@@ -436,9 +439,8 @@ const BusinessInformation = ({
                     </div>
                   </div>
 
-                  {/* About Company Section */}
                   <div className='space-y-4'>
-                    <h3 className='text-base lg:text-lg font-medium text-gray-900 border-b border-gray-200 pb-2'>
+                    <h3 className='text-sm lg:text-base font-medium text-gray-900 border-b border-gray-200 pb-2'>
                       About Company
                     </h3>
                     <Controller
@@ -458,7 +460,6 @@ const BusinessInformation = ({
                     />
                   </div>
 
-                  {/* Action Buttons */}
                   <div className='flex flex-col sm:flex-row justify-end gap-3 pt-4 border-t border-gray-200'>
                     <Button
                       size='sm'
@@ -467,7 +468,6 @@ const BusinessInformation = ({
                       variant='outline'
                       color='red'
                       onClick={() => {
-                        // Reset form to original values
                         if (businessProfile?.[0]) {
                           const resetData = {
                             business_name: businessProfile[0].business_name || '',
