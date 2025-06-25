@@ -453,11 +453,12 @@ export const useSetPrimaryLocation = () => {
 
 export const useGetClients = (
   pageIndex?: number,
-  pageSize?: number
+  pageSize?: number,
+  search?: string
 ): UseQueryResult<PaginatedResponse<Client>, Error> => {
   return useQuery({
-    queryKey: ['clients', pageIndex, pageSize],
-    queryFn: () => get_clients(pageIndex, pageSize),
+    queryKey: ['clients', pageIndex, pageSize, search],
+    queryFn: () => get_clients(pageIndex, pageSize, search),
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
     retry: 2,

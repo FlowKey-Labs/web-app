@@ -33,7 +33,6 @@ import {
   navigateToClientDetails,
   navigateToGroupDetails,
 } from '../../utils/navigationHelpers';
-import { safeToString } from '../../utils/stringUtils';
 import EmptyDataPage from '../common/EmptyDataPage';
 import { useAuthStore } from '../../store/auth';
 import { useUIStore } from '../../store/ui';
@@ -65,14 +64,25 @@ const AllClients = () => {
   const permisions = useAuthStore((state) => state.role);
 
   const {
-    data = {} as PaginatedResponse<Client>,
+    data = {
+      items: [],
+      total: 0,
+      totalPages: 0,
+      page: 1,
+      pageSize: 10,
+    } as PaginatedResponse<Client>,
     isLoading,
     isError,
     error,
     refetch,
-  } = useGetClients(pageIndex, 10);
+  } = useGetClients(pageIndex, 10, debouncedSearchQuery);
 
-  const allClients = useMemo(() => data.items, [data]);
+  const AllClientsData = useMemo(() => data?.items || [], [data]);
+
+  useEffect(() => {
+    // Reset to first page when search query changes
+    setPageIndex(1);
+  }, [debouncedSearchQuery]);
 
   const {
     data: allGroups = [],
@@ -82,106 +92,104 @@ const AllClients = () => {
     refetch: refetchGroups,
   } = useGetGroups();
 
-  const searchClients = useCallback((clients: Client[], query: string) => {
-    if (!query.trim()) return clients;
+  // const searchClients = useCallback((clients: Client[], query: string) => {
+  //   if (!query.trim()) return clients;
 
-    try {
-      const searchTerms = query.toLowerCase().trim().split(/\s+/);
+  //   try {
+  //     const searchTerms = query.toLowerCase().trim().split(/\s+/);
 
-      return clients.filter((client) => {
-        try {
-          const searchableFields = [
-            `${safeToString(client.first_name)} ${safeToString(
-              client.last_name
-            )}`.trim(),
-            safeToString(client.first_name),
-            safeToString(client.last_name),
-            safeToString(client.email),
-            safeToString(client.phone_number),
-            safeToString(client.location),
-            safeToString(client.id),
-          ].filter((field) => field.length > 0);
+  //     return clients.filter((client) => {
+  //       try {
+  //         const searchableFields = [
+  //           `${safeToString(client.first_name)} ${safeToString(
+  //             client.last_name
+  //           )}`.trim(),
+  //           safeToString(client.first_name),
+  //           safeToString(client.last_name),
+  //           safeToString(client.email),
+  //           safeToString(client.phone_number),
+  //           safeToString(client.location),
+  //           safeToString(client.id),
+  //         ].filter((field) => field.length > 0);
 
-          const combinedText = searchableFields.join(' ');
+  //         const combinedText = searchableFields.join(' ');
 
-          return searchTerms.every((term) => combinedText.includes(term));
-        } catch (error) {
-          console.warn('Error processing client in search:', client.id, error);
-          return false;
-        }
-      });
-    } catch (error) {
-      console.error('Error in searchClients:', error);
-      return clients;
-    }
-  }, []);
+  //         return searchTerms.every((term) => combinedText.includes(term));
+  //       } catch (error) {
+  //         console.warn('Error processing client in search:', client.id, error);
+  //         return false;
+  //       }
+  //     });
+  //   } catch (error) {
+  //     console.error('Error in searchClients:', error);
+  //     return clients;
+  //   }
+  // }, []);
 
-  const searchGroups = useCallback((groups: GroupData[], query: string) => {
-    if (!query.trim()) return groups;
+  // const searchGroups = useCallback((groups: GroupData[], query: string) => {
+  //   if (!query.trim()) return groups;
 
-    try {
-      const searchTerms = query.toLowerCase().trim().split(/\s+/);
+  //   try {
+  //     const searchTerms = query.toLowerCase().trim().split(/\s+/);
 
-      return groups.filter((group) => {
-        try {
-          const searchableFields = [
-            safeToString(group.name),
-            safeToString(group.description),
-            safeToString(group.location),
-            safeToString(group.contact_person?.first_name),
-            safeToString(group.contact_person?.last_name),
-            group.contact_person
-              ? `${safeToString(
-                  group.contact_person.first_name
-                )} ${safeToString(group.contact_person.last_name)}`.trim()
-              : '',
-            safeToString(group.id),
-          ].filter((field) => field.length > 0);
+  //     return groups.filter((group) => {
+  //       try {
+  //         const searchableFields = [
+  //           safeToString(group.name),
+  //           safeToString(group.description),
+  //           safeToString(group.location),
+  //           safeToString(group.contact_person?.first_name),
+  //           safeToString(group.contact_person?.last_name),
+  //           group.contact_person
+  //             ? `${safeToString(
+  //                 group.contact_person.first_name
+  //               )} ${safeToString(group.contact_person.last_name)}`.trim()
+  //             : '',
+  //           safeToString(group.id),
+  //         ].filter((field) => field.length > 0);
 
-          const combinedText = searchableFields.join(' ');
+  //         const combinedText = searchableFields.join(' ');
 
-          return searchTerms.every((term) => combinedText.includes(term));
-        } catch (error) {
-          console.warn('Error processing group in search:', group.id, error);
-          return false;
-        }
-      });
-    } catch (error) {
-      console.error('Error in searchGroups:', error);
-      return groups;
-    }
-  }, []);
+  //         return searchTerms.every((term) => combinedText.includes(term));
+  //       } catch (error) {
+  //         console.warn('Error processing group in search:', group.id, error);
+  //         return false;
+  //       }
+  //     });
+  //   } catch (error) {
+  //     console.error('Error in searchGroups:', error);
+  //     return groups;
+  //   }
+  // }, []);
 
-  const filteredData = useMemo(() => {
-    try {
-      if (activeView === 'clients') {
-        const clientsData = Array.isArray(allClients) ? allClients : [];
-        return debouncedSearchQuery.trim()
-          ? searchClients(clientsData, debouncedSearchQuery)
-          : clientsData;
-      } else {
-        const groupsData = Array.isArray(allGroups) ? allGroups : [];
-        return debouncedSearchQuery.trim()
-          ? searchGroups(groupsData, debouncedSearchQuery)
-          : groupsData;
-      }
-    } catch (error) {
-      console.error('Error in filteredData:', error);
-      return activeView === 'clients' ? allClients || [] : allGroups || [];
-    }
-  }, [
-    activeView,
-    allClients,
-    allGroups,
-    debouncedSearchQuery,
-    searchClients,
-    searchGroups,
-  ]);
+  // const filteredData = useMemo(() => {
+  //   try {
+  //     if (activeView === 'clients') {
+  //       const clientsData = Array.isArray(allClients) ? allClients : [];
+  //       return debouncedSearchQuery.trim()
+  //         ? searchClients(clientsData, debouncedSearchQuery)
+  //         : clientsData;
+  //     } else {
+  //       const groupsData = Array.isArray(allGroups) ? allGroups : [];
+  //       return debouncedSearchQuery.trim()
+  //         ? searchGroups(groupsData, debouncedSearchQuery)
+  //         : groupsData;
+  //     }
+  //   } catch (error) {
+  //     console.error('Error in filteredData:', error);
+  //     return activeView === 'clients' ? allClients || [] : allGroups || [];
+  //   }
+  // }, [
+  //   activeView,
+  //   allClients,
+  //   allGroups,
+  //   debouncedSearchQuery,
+  //   searchClients,
+  //   searchGroups,
+  // ]);
 
-  const clients =
-    activeView === 'clients' ? (filteredData as Client[]) : allClients;
-  const groups =
-    activeView === 'groups' ? (filteredData as GroupData[]) : allGroups;
+  const clients = activeView === 'clients' ? data.items || [] : [];
+  const groups = activeView === 'groups' ? allGroups || [] : [];
 
   const handleSearchChange = useCallback((value: string) => {
     setSearchQuery(value);
@@ -195,7 +203,7 @@ const AllClients = () => {
   }, []);
 
   const getSelectedIds = useCallback((): number[] => {
-    const currentData = filteredData;
+    const currentData = clients;
     if (!currentData) return [];
 
     return Object.keys(rowSelection)
@@ -205,7 +213,7 @@ const AllClients = () => {
         return item?.id;
       })
       .filter((id): id is number => id !== undefined);
-  }, [rowSelection, filteredData]);
+  }, [rowSelection, clients]);
 
   const clearRowSelection = useCallback(() => {
     setRowSelection({});
@@ -740,7 +748,7 @@ const AllClients = () => {
           opened={
             showEmptyState &&
             (activeView === 'clients'
-              ? clients.length === 0
+              ? data.items?.length === 0
               : groups.length === 0) &&
             !isLoadingCurrent
           }
@@ -775,7 +783,7 @@ const AllClients = () => {
                 </div>
               </ErrorBoundary>
             )}
-            {activeView === 'clients' && clients.length > 0 && (
+            {activeView === 'clients' && data.items.length > 0 && (
               <>
                 <div className='mb-2 py-2 text-sm text-gray-500'>
                   {Object.keys(rowSelection).length > 0 && (
@@ -785,18 +793,18 @@ const AllClients = () => {
                   )}
                 </div>
                 <Table<Client>
-                  data={clients}
+                  data={AllClientsData}
                   columns={columns}
                   rowSelection={rowSelection}
                   onRowSelectionChange={setRowSelection}
                   className='mt-4'
-                  pageSize={12}
+                  pageSize={10}
                   onRowClick={(row: Client) => {
                     navigateToClientDetails(navigate, row.id.toString());
                   }}
                   paginateServerSide={true}
                   pageIndex={pageIndex}
-                  pageCount={data.totalPages}
+                  pageCount={data?.totalPages}
                   onPageChange={setPageIndex}
                 />
               </>

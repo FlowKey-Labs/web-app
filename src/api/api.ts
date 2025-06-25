@@ -50,10 +50,6 @@ const END_POINTS = {
     LOCATIONS: `${BASE_URL}/api/business/locations/`,
   },
   CLIENTS: {
-    CLIENTS_DATA_LIST: (pageIndex?: number, pageSize?: number) =>
-      pageIndex
-        ? `${BASE_URL}/api/client/?pageIndex=${pageIndex}&pageSize=${pageSize}`
-        : `${BASE_URL}/api/client/`,
     CLIENTS_DATA: `${BASE_URL}/api/client/`,
     ATTENDANCE: `${BASE_URL}/api/client/attendance/manage/`,
     GROUPS: `${BASE_URL}/api/client/groups/`,
@@ -238,10 +234,26 @@ const get_business_services = async () => {
 
 const get_clients = async (
   pageIndex?: number,
-  pageSize?: number
+  pageSize?: number,
+  search?: string
 ): Promise<PaginatedResponse<Client>> => {
+  const params: Record<string, any> = {};
+
+  if (search && search.trim()) {
+    params.search = search.trim();
+  }
+
+  if (pageIndex !== undefined) {
+    params.pageIndex = pageIndex;
+  }
+
+  if (pageSize !== undefined) {
+    params.pageSize = pageSize;
+  }
+
   const { data } = await api.get<PaginatedResponse<Client>>(
-    END_POINTS.CLIENTS.CLIENTS_DATA_LIST(pageIndex, pageSize)
+    END_POINTS.CLIENTS.CLIENTS_DATA,
+    { params }
   );
   return data;
 };
