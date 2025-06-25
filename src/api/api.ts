@@ -53,7 +53,7 @@ const END_POINTS = {
     CLIENTS_DATA: `${BASE_URL}/api/client/`,
     ATTENDANCE: `${BASE_URL}/api/client/attendance/manage/`,
     GROUPS: `${BASE_URL}/api/client/list-groups/`,
-    GROUP_DETAIL: (id: string) => `${BASE_URL}/api/client/list-groups/${id}/`,
+    GROUP_DETAIL: (id: string) => `${BASE_URL}/api/client/groups/${id}/`,
     GROUP_MEMBERS: (id: string) =>
       `${BASE_URL}/api/client/groups/${id}/members/`,
     ADD_MEMBER: (id: string) =>
@@ -768,13 +768,21 @@ const update_group = async (
     name?: string;
     description?: string;
     size?: number;
-    location?: string;
+    location?: string | number;
     active?: boolean;
   }
 ) => {
+  // Convert location to number if it's a string
+  const dataToUpdate = { ...updateData };
+  if (dataToUpdate.location !== undefined) {
+    dataToUpdate.location = typeof dataToUpdate.location === 'string' 
+      ? parseInt(dataToUpdate.location, 10)
+      : dataToUpdate.location;
+  }
+
   const { data } = await api.patch(
     END_POINTS.CLIENTS.GROUP_DETAIL(id),
-    updateData
+    dataToUpdate
   );
   return data;
 };
