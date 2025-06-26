@@ -10,6 +10,7 @@ import errorIcon from '../../assets/icons/error.svg';
 
 import { useDeleteSession } from '../../hooks/reactQuery';
 import { notifications } from '@mantine/notifications';
+import { useNavigate } from 'react-router-dom';
 
 const formatSessionInfo = (
   session: CalendarSessionType | null
@@ -63,6 +64,14 @@ const EventCard = ({
     data?.session || {}
   );
   const deleteSession = useDeleteSession();
+  const navigate = useNavigate();
+
+  const handleTitleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (data?.session?.id) {
+      navigate(`/sessions/${data.session.id}`);
+    }
+  };
 
   const handleDeleteClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -131,8 +140,12 @@ const EventCard = ({
 
         <div className='flex items-start space-x-3'>
           <span className='w-3 h-3 bg-blue-500 rounded-full mt-1.5 flex-shrink-0' />
-          <h2 className='text-xl font-semibold text-gray-900 leading-tight'>
+          <h2
+            className='text-xl font-semibold text-gray-900 leading-tight hover:text-blue-600 cursor-pointer transition-colors'
+            onClick={handleTitleClick}
+          >
             {data?.session?.title}
+            <span className='ml-2 text-blue-500 text-base'>View Details →</span>
           </h2>
         </div>
 
