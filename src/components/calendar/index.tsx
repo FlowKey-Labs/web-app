@@ -19,7 +19,8 @@ import { useAuthStore } from '../../store/auth';
 import { useUIStore } from '../../store/ui';
 import { mapSessionToFullCalendarEvents as convertSessionToEvents } from './calendarUtils';
 import { CalendarSessionType } from '../../types/sessionTypes';
-import { Loader } from '@mantine/core';
+import { Loader, Tooltip } from '@mantine/core';
+import EventTooltip from './EventTooltip';
 
 const popupWidth = 400;
 const popupHeight = 500;
@@ -211,8 +212,19 @@ const CalendarView = () => {
   const renderEventContent = useCallback(
     (eventInfo: {
       timeText: string;
-      event: {
-        extendedProps: { session: { date: string } };
+      event: EventImpl & {
+        extendedProps: {
+          session: {
+            date: string;
+            spots?: number;
+            attendances?: Array<{
+              client: {
+                first_name: string;
+                last_name: string;
+              };
+            }>;
+          };
+        };
         title: string;
         start: Date;
       };
@@ -236,7 +248,7 @@ const CalendarView = () => {
           ? format(displayTime, 'HH:mm a')
           : eventInfo.timeText || '';
 
-        return (
+        const eventContent = (
           <div className='flex justify-between w-full h-full py-1 cursor-pointer'>
             <div
               className={cn('flex items-center gap-1 w-[70%]', {
@@ -257,6 +269,41 @@ const CalendarView = () => {
             )}
           </div>
         );
+
+        if (eventInfo.event.extendedProps?.session) {
+          return (
+            <Tooltip
+              label={<EventTooltip event={eventInfo.event} />}
+              withArrow
+              transitionProps={{ transition: 'pop', duration: 200 }}
+              className='w-full'
+              multiline
+              w={300}
+              withinPortal
+              styles={{
+                tooltip: {
+                  padding: 0,
+                  backgroundColor: 'transparent',
+                  border: 'none',
+                  boxShadow: 'none',
+                  maxHeight: 'none',
+                  lineHeight: '1.25',
+                  fontSize: '0.875rem',
+                  whiteSpace: 'normal',
+                  overflow: 'visible',
+                  color: 'black',
+                },
+                arrow: {
+                  display: 'none',
+                },
+              }}
+            >
+              <div className='w-full h-full'>{eventContent}</div>
+            </Tooltip>
+          );
+        }
+
+        return eventContent;
       } catch (error) {
         console.error('Error rendering event content:', error);
         return (
