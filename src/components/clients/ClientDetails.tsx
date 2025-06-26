@@ -145,7 +145,7 @@ const ClientDetails = () => {
         <MembersHeader
           title='Client Details'
           buttonText='Update Client'
-          searchPlaceholder='Search by ID, Name or Subject'
+          showSearch={false}
           onButtonClick={handleOpenUpdateDrawer}
           showFilterIcons={false}
         />
