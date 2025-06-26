@@ -41,7 +41,6 @@ import {
   AttendedSession,
   CancelledSession,
 } from '../../types/sessionTypes';
-import { processSessionParticipants } from '../../utils/sessionUtils';
 
 // Extended participant interface for session details display
 interface SessionParticipant {
@@ -114,12 +113,12 @@ const SessionDetails = () => {
       name: attendance.participant_name || 'Unknown',
       phone: attendance.participant_phone,
       email: attendance.participant_email,
-      type: attendance.participant_type,
-      status: attendance.display_status,
+      type: (attendance.participant_type as 'client' | 'booking') || 'client',
+      status: attendance.display_status || 'registered',
       active: attendance.participant_type === 'client' ? true : undefined,
       booking_reference: attendance.booking_reference,
       isAttended: attendance.attended,
-      clientId: attendance.client,
+      clientId: typeof attendance.client === 'object' && attendance.client ? attendance.client.id : (attendance.client as number) || undefined,
     }));
   }, [session]);
 

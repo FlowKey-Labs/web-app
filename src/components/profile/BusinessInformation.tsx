@@ -261,18 +261,8 @@ const BusinessInformation = ({
                         <h3 className='text-sm lg:text-base font-semibold text-gray-900 truncate'>
                           {methods.getValues('business_name') || 'Add Business Name'}
                         </h3>
-                        <p className='text-xs text-gray-500 mt-1 lg:block hidden' style={{ 
-                          display: '-webkit-box',
-                          WebkitLineClamp: 4,
-                          WebkitBoxOrient: 'vertical',
-                          overflow: 'hidden',
-                          lineHeight: '1.4',
-                          maxHeight: '5.6em'
-                        }}>
+                        <p className='text-xs text-gray-500 mt-1 line-clamp-2 lg:line-clamp-4'>
                           {methods.getValues('about') || 'Add business description to help clients understand what you offer and why they should choose your services.'}
-                        </p>
-                        <p className='text-xs text-gray-500 mt-1 lg:hidden block line-clamp-2'>
-                          {methods.getValues('about') || 'Add business description'}
                         </p>
                       </div>
                     </div>
