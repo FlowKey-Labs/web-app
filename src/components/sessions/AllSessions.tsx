@@ -378,14 +378,14 @@ const AllSessions = () => {
           cell: (info) => {
             const { repeat_on, repeat_unit, repeat_every } = info.getValue();
 
-            const dayMap: Record<number, string> = {
-              1: 'Mon',
-              2: 'Tue',
-              3: 'Wed',
-              4: 'Thu',
-              5: 'Fri',
-              6: 'Sat',
-              0: 'Sun',
+            const dayMap: Record<string, string> = {
+              'monday': 'Mon',
+              'tuesday': 'Tue',
+              'wednesday': 'Wed',
+              'thursday': 'Thu',
+              'friday': 'Fri',
+              'saturday': 'Sat',
+              'sunday': 'Sun',
             };
 
             if (repeat_unit === 'days' && repeat_every) {
@@ -393,16 +393,16 @@ const AllSessions = () => {
             }
 
             if (repeat_unit === 'weeks') {
-              return `Weekly`;
+              if (repeat_on && Array.isArray(repeat_on) && repeat_on.length > 0) {
+                return repeat_on
+                  .map((day: string) => dayMap[day.toLowerCase()] || day)
+                  .join(', ');
+              }
+              return 'Weekly';
             }
+            
             if (repeat_unit === 'months' && repeat_every) {
               return `Monthly`;
-            }
-
-            if (repeat_on && repeat_on.length > 0) {
-              return repeat_on
-                .map((day: string) => dayMap[Number(day)] || '')
-                .join(', ');
             }
 
             return 'No Repeats';
