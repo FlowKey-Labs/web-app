@@ -32,16 +32,15 @@ const ClientDetails = () => {
     error,
   } = useGetClient(clientId || '');
 
-  const {
-    levelProgress,
-  } = useProgressStore();
+  const { levelProgress } = useProgressStore();
 
   const averageProgress = useMemo(() => {
     const values = Object.values(levelProgress);
-    const average = Math.round(values.reduce((sum, value) => sum + value, 0) / values.length);
-    return average
-  }, [levelProgress])
-  
+    const average = Math.round(
+      values.reduce((sum, value) => sum + value, 0) / values.length
+    );
+    return average;
+  }, [levelProgress]);
 
   const { data: clientAnalytics, isLoading: analyticsLoading } =
     useGetClientAnalytics(clientId || '');
@@ -107,14 +106,14 @@ const ClientDetails = () => {
       openDrawer({
         type: 'client',
         entityId: clientId,
-        isEditing: true
+        isEditing: true,
       });
     }
   };
 
   if (isLoading) {
     return (
-      <div className='flex justify-center items-center h-screen'>
+      <div className='flex flex-col md:flex-row justify-center items-center h-screen'>
         <Loader color='#1D9B5E' size='xl' />
       </div>
     );
@@ -122,7 +121,7 @@ const ClientDetails = () => {
 
   if (isError) {
     return (
-      <div className='flex justify-center items-center h-screen'>
+      <div className='flex flex-col md:flex-row justify-center items-center h-screen'>
         <div className='space-y-4'>
           <p className='text-red-500'>
             Error loading client details: {error?.message}
@@ -134,7 +133,7 @@ const ClientDetails = () => {
 
   if (!clientDetails) {
     return (
-      <div className='flex justify-center items-center h-screen'>
+      <div className='flex flex-col md:flex-row justify-center items-center h-screen'>
         <p className='text-primary'>Client not found</p>
       </div>
     );
@@ -142,7 +141,7 @@ const ClientDetails = () => {
 
   return (
     <>
-      <div className='flex flex-col h-screen bg-cardsBg w-full overflow-y-auto '>
+      <div className='flex flex-col h-screen bg-cardsBg w-full overflow-y-auto overflow-x-hidden'>
         <MembersHeader
           title='Client Details'
           buttonText='Update Client'
@@ -150,12 +149,12 @@ const ClientDetails = () => {
           onButtonClick={handleOpenUpdateDrawer}
           showFilterIcons={false}
         />
-        <div className='items-center gap-4 p-6'>
-          <div className='flex w-full'>
-            <div className='flex flex-col w-[30%] items-center mt-6'>
+        <div className='items-center gap-4 md:p-6 p-2 mt-10 md:mt-0 w-full'>
+          <div className='flex flex-col md:flex-row w-full items-center md:items-start'>
+            <div className='flex flex-col md:w-[30%] w-full items-center mt-6'>
               {/* Conditional Rendering for Left Panel */}
               {viewMode === 'details' ? (
-                <div className='flex flex-col px-4 py-8 items-center justify-center border bg-white rounded-xl w-[290px]'>
+                <div className='flex flex-col px-4 py-8 items-center justify-center border bg-white rounded-xl md:w-[290px] w-[95%]'>
                   <img
                     src={clientDetails.profileImage || avatar}
                     alt='Profile'
@@ -210,7 +209,7 @@ const ClientDetails = () => {
                       </span>
                     </div>
                   </div>
-                  <div className='h-[1px] bg-gray-300 w-[80%] mx-auto my-6'></div>
+                  <div className='h-[1px] bg-gray-300 md:w-full w-[95%] mx-auto my-6'></div>
                   <div className='w-full px-4 space-y-4'>
                     <div className='flex justify-between items-center w-full text-sm'>
                       <span className='text-gray-400 font-bold text-xs'>
@@ -231,15 +230,15 @@ const ClientDetails = () => {
                       </span>
                     </div>
                   </div>
-                  <div className='h-[1px] bg-gray-300 w-full my-6'></div>
-                  <div className='w-full pb-6'>
+                  <div className='h-[1px] bg-gray-300 md:w-full w-[95%] mx-auto my-6'></div>
+                  <div className='md:w-full w-[95%] pb-6'>
                     <div className='flex justify-between text-xs pb-2'>
                       <p className=''>Average Learning Progress</p>
                       <p className=''>{averageProgress}%</p>
                     </div>
 
                     <Progress
-                      color={averageProgress === 100 ? "#1D9B5E" : '#FF9500'}
+                      color={averageProgress === 100 ? '#1D9B5E' : '#FF9500'}
                       size='md'
                       radius='xl'
                       value={averageProgress}
@@ -251,14 +250,17 @@ const ClientDetails = () => {
               )}
               {/* End Conditional Rendering */}
             </div>
-            <div className=' w-[70%] p-4'>
+            <div className=' md:w-[70%] w-[95%] md:p-4 mt-10 md:mt-0'>
               <div className='space-y-4'>
-                <div className='flex space-x-12 ml-8 relative' role='tablist'>
+                <div
+                  className='flex md:space-x-12 space-x-4 ml-8 relative w-full'
+                  role='tablist'
+                >
                   <button
                     role='tab'
                     aria-selected={activeTab === 'overview'}
                     aria-controls='overview-panel'
-                    className={`font-bold text-xl relative cursor-pointer transition-all duration-200  ${
+                    className={`font-bold md:text-xl text-lg relative cursor-pointer transition-all duration-200  ${
                       activeTab === 'overview' ? 'text-secondary' : ''
                     }`}
                     onClick={() => {
@@ -272,7 +274,7 @@ const ClientDetails = () => {
                     role='tab'
                     aria-selected={activeTab === 'Progress Tracker'}
                     aria-controls='progress-tracker-panel'
-                    className={`font-bold text-xl relative cursor-pointer transition-all duration-200 ${
+                    className={`font-bold md:text-xl text-lg relative cursor-pointer transition-all duration-200 ${
                       activeTab === 'Progress Tracker' ? 'text-secondary' : ''
                     }`}
                     onClick={() => setActiveTab('Progress Tracker')}
@@ -284,7 +286,7 @@ const ClientDetails = () => {
               </div>
               {activeTab === 'overview' ? (
                 <>
-                  <div className='flex space-x-16 mt-6'>
+                  <div className='flex space-x-16 mt-6 w-full'>
                     <div className='flex items-center border py-6 px-10 bg-white rounded-xl'>
                       <div className='flex flex-col items-center rounded-xl  space-y-4'>
                         <p className='text-4xl'>
@@ -299,7 +301,7 @@ const ClientDetails = () => {
                             </>
                           )}
                         </p>
-                        <p className='text-sm'>Sessions</p>
+                        <p className='text-sm text-center'>Sessions</p>
                       </div>
                     </div>
                     <div className='flex items-center border py-6 px-10 bg-white rounded-xl'>
@@ -311,13 +313,15 @@ const ClientDetails = () => {
                             `${clientAnalytics?.average_attendance || 0}%`
                           )}
                         </p>
-                        <p className='text-sm'>Average Attendance</p>
+                        <p className='text-sm text-center'>
+                          Average Attendance
+                        </p>
                       </div>
                     </div>
                   </div>
                   <div className='flex-1 mt-6'>
                     <div className=''>
-                      <div className='flex gap-4 mb-3'>
+                      <div className='flex flex-col md:flex-row md:gap-4 gap-2 w-[60%] md:w-full mx-auto mb-3'>
                         <Button
                           color='#1D9B5E'
                           radius='md'
@@ -361,47 +365,45 @@ const ClientDetails = () => {
                           Cancelled Sessions
                         </Button>
                       </div>
-                      <div className='flex-1 py-2'>
-                        {isActive === 'Client Sessions' ? (
-                          clientSessions && clientSessions.length > 0 ? (
-                            <Table
-                              data={clientSessions}
-                              columns={columns}
-                              rowSelection={rowSelection}
-                              onRowSelectionChange={setRowSelection}
-                              onRowClick={(row: ClientSession) =>
-                                navigateToSessionDetails(
-                                  navigate,
-                                  row.session_id.toString()
-                                )
-                              }
-                              className='mt-4'
-                              pageSize={5}
-                            />
-                          ) : (
-                            <div className='flex justify-center items-center p-8'>
-                              <h2 className='text-xl font-bold text-primary'>
-                                No sessions found for this client
-                              </h2>
-                            </div>
-                          )
-                        ) : (
-                          isActive === 'attended' ? (
-                            <AttendSession clientId={clientId || ''} />
-                          ) : (
-                            isActive === 'cancelled' ? (
-                              <CancelSession clientId={clientId || ''} />
+                      <div className='flex-1 px-2 md:px-6 md:py-3 pb-6 md:pb-0 w-full overflow-x-auto'>
+                        <div className='min-w-[800px] md:min-w-0'>
+                          {isActive === 'Client Sessions' ? (
+                            clientSessions && clientSessions.length > 0 ? (
+                              <Table
+                                data={clientSessions}
+                                columns={columns}
+                                rowSelection={rowSelection}
+                                onRowSelectionChange={setRowSelection}
+                                onRowClick={(row: ClientSession) =>
+                                  navigateToSessionDetails(
+                                    navigate,
+                                    row.session_id.toString()
+                                  )
+                                }
+                                className='mt-4'
+                                pageSize={5}
+                              />
                             ) : (
-                              <MakeUp clientId={clientId || ''} />
+                              <div className='flex justify-center items-center p-8'>
+                                <h2 className='text-xl font-bold text-primary'>
+                                  No sessions found for this client
+                                </h2>
+                              </div>
                             )
-                          )
-                        )}
+                          ) : isActive === 'attended' ? (
+                            <AttendSession clientId={clientId || ''} />
+                          ) : isActive === 'cancelled' ? (
+                            <CancelSession clientId={clientId || ''} />
+                          ) : (
+                            <MakeUp clientId={clientId || ''} />
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
                 </>
               ) : activeTab === 'Progress Tracker' ? (
-                <div className='flex justify-center items-center p-8'>
+                <div className='flex justify-center items-center md:p-8 p-2'>
                   <ProgressTracker clientId={clientId || ''} />
                 </div>
               ) : null}

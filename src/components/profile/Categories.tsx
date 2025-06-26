@@ -17,11 +17,6 @@ type Category = {
   description?: string;
 };
 
-type CategoryFormData = {
-  name: string;
-  description: string;
-};
-
 const Categories = () => {
   const [categoryToDelete, setCategoryToDelete] = useState<Category | null>(
     null
@@ -104,7 +99,7 @@ const Categories = () => {
   };
 
   return (
-    <div className='w-full bg-white rounded-lg p-6 shadow-sm'>
+    <div className='w-full bg-white rounded-lg md:p-6 p-2 shadow-sm'>
       <div className='flex justify-between items-center mb-6'>
         <h2 className='text-xl font-semibold'>
           {selectedCategoryId ? '' : 'Session Categories'}
@@ -132,10 +127,10 @@ const Categories = () => {
         />
       ) : isLoading ? (
         <div className='flex justify-center items-center h-screen p-6 pt-12'>
-          <Loader size='xl' color='#1D9B5E' />
+          <Loader size='md' color='#1D9B5E' />
         </div>
       ) : (
-        <div className='bg-white rounded-lg p-4'>
+        <div className='bg-white rounded-lg md:p-4'>
           <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
             {categoriesData?.map((category: Category) => (
               <div

@@ -221,8 +221,8 @@ const Schedule = () => {
 
   return (
     <div className='w-full bg-white rounded-lg p-6'>
-      <div className='flex justify-between'>
-        <div className='flex-1 px-8 '>
+      <div className='flex md:flex-row flex-col justify-between'>
+        <div className='flex-1 md:px-8 '>
           <div className='space-y-2'>
             <h3 className='text-primary font-semibold text-[32px]'>
               Working Hours
@@ -323,7 +323,7 @@ const Schedule = () => {
           </div>
         </div>
 
-        <div className='flex-1 px-8 '>
+        <div className='flex-1 md:px-8 mt-8 md:mt-0'>
           <div className='space-y-2'>
             <h3 className='text-primary font-semibold text-[32px]'>
               Exceptions
@@ -334,7 +334,7 @@ const Schedule = () => {
           </div>
 
           <div className=' flex-1 justify-center space-y-6 items-center w-full mt-6'>
-            <div className=' flex object-cover max-w-[340px] items-center justify-center rounded-lg bg-cardsBg p-2'>
+            <div className=' flex object-cover md:max-w-[340px] w-full items-center justify-center rounded-lg bg-cardsBg p-2'>
               <Calendar
                 highlightToday
                 getDayProps={(date) => ({
@@ -388,7 +388,7 @@ const Schedule = () => {
               </div>
             )}
 
-            <div className='space-y-4 max-w-[340px]'>
+            <div className='space-y-4 md:max-w-[340px] w-full'>
               {exceptions.map((exception) => (
                 <div
                   key={exception.id}

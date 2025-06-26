@@ -5,6 +5,7 @@ export default {
     fontFamily: {
       sans: ['Urbanist', 'sans-serif'],
       spaceGrotesk: ['Space Grotesk', 'sans-serif'],
+      inter: ['Inter', 'sans-serif'],
     },
     extend: {
       colors: {

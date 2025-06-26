@@ -44,9 +44,7 @@ const columns = [
     cell: (info) => (
       <div className='flex flex-col'>
         <span className='text-sm text-primary'>{info.getValue()}</span>
-        <span className='text-xs text-[#8A8D8E]'>
-          {info.row.original.id}
-        </span>
+        <span className='text-xs text-[#8A8D8E]'>{info.row.original.id}</span>
       </div>
     ),
   }),
@@ -74,9 +72,7 @@ const columns = [
   columnHelper.display({
     id: 'progress',
     header: 'Progress',
-    cell: () => (
-      <Progress color='#A6EECB' size='sm' radius='xl' value={50} />
-    ),
+    cell: () => <Progress color='#A6EECB' size='sm' radius='xl' value={50} />,
   }),
 ];
 
@@ -87,15 +83,23 @@ const GettingStarted = () => {
   const [selectedTimeRange, setSelectedTimeRange] = useState('to_date');
 
   const navigate = useNavigate();
-  const { data: userProfile, isLoading: isLoadingProfile } = useGetUserProfile();
+  const { data: userProfile, isLoading: isLoadingProfile } =
+    useGetUserProfile();
   const { data: analytics, isLoading: isLoadingAnalytics } = useGetAnalytics(
     selectedTimeRange as DateFilterOption
   );
-  const { data: upcomingSessions, isLoading: isLoadingSessions } = useGetUpcomingSessions();
+  const { data: upcomingSessions, isLoading: isLoadingSessions } =
+    useGetUpcomingSessions();
   const {
-    data: clients = [],
+    data: clients = {
+      items: [],
+      total: 0,
+      page: 1,
+      pageSize: 8,
+      totalPages: 1,
+    },
     isLoading: isLoadingClients,
-  } = useGetClients();
+  } = useGetClients(1, 8);
 
   const handleTimeRangeSelect = (range: string) => {
     setSelectedTimeRange(range);
@@ -118,15 +122,20 @@ const GettingStarted = () => {
         <div className='bg-white border-b border-gray-100 shadow-sm'>
           <Header />
         </div>
-        
+
         <div className='flex-1'>
           <div className='bg-gradient-to-r from-white via-gray-50/50 to-white border-b border-gray-100'>
             <div className='px-6 sm:px-8 lg:px-12 py-6 sm:py-8'>
               <div className='flex flex-col sm:flex-row sm:justify-between sm:items-start gap-6'>
                 <div className='flex-1 space-y-2 sm:space-y-3'>
                   <h1 className='text-xl sm:text-2xl lg:text-3xl font-bold text-[#050F0D] leading-tight'>
-                    Welcome back, {isLoadingProfile ? (
-                      <Skeleton height={24} width={100} className='inline-block sm:h-8 sm:w-32' />
+                    Welcome back,{' '}
+                    {isLoadingProfile ? (
+                      <Skeleton
+                        height={24}
+                        width={100}
+                        className='inline-block sm:h-8 sm:w-32'
+                      />
                     ) : (
                       <span className='text-primary bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent'>
                         {userProfile?.first_name || 'User'}
@@ -137,7 +146,7 @@ const GettingStarted = () => {
                     Here's what we have for you today
                   </p>
                 </div>
-                
+
                 <div className='flex-shrink-0'>
                   <DropDownMenu
                     show={dropdownOpen}
@@ -166,9 +175,13 @@ const GettingStarted = () => {
                             ? 'Last 3 Months'
                             : selectedTimeRange === 'last_year'
                             ? 'Last Year'
-                            : selectedTimeRange} 
+                            : selectedTimeRange}
                         </p>
-                        <img src={dropdownIcon} alt='Dropdown arrow' className='w-4 h-4 flex-shrink-0' />
+                        <img
+                          src={dropdownIcon}
+                          alt='Dropdown arrow'
+                          className='w-4 h-4 flex-shrink-0'
+                        />
                       </div>
                     }
                   >
@@ -218,21 +231,35 @@ const GettingStarted = () => {
             <div className='mb-8 sm:mb-10 lg:mb-12'>
               <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-2'>
                 <div>
-                  <h2 className='text-lg sm:text-xl font-semibold text-gray-900 mb-1'>Analytics Overview</h2>
-                  <p className='text-sm text-gray-600'>Key metrics for your class management</p>
+                  <h2 className='text-lg sm:text-xl font-semibold text-gray-900 mb-1'>
+                    Analytics Overview
+                  </h2>
+                  <p className='text-sm text-gray-600'>
+                    Key metrics for your class management
+                  </p>
                 </div>
               </div>
-              
+
               <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6'>
                 <div className='flex h-[100px] sm:h-[110px] bg-[#EEEAF2] rounded-xl px-5 py-4 gap-4 border border-[#E1D5ED] hover:shadow-md hover:border-[#D1C5DD] transition-all duration-200 cursor-pointer group'>
                   <div className='flex items-center justify-center w-12 h-12 bg-white/25 rounded-lg group-hover:bg-white/35 transition-colors duration-200 flex-shrink-0'>
-                    <img src={sessionsIcon} alt='Sessions icon' className='w-6 h-6 group-hover:scale-105 transition-transform duration-200' />
+                    <img
+                      src={sessionsIcon}
+                      alt='Sessions icon'
+                      className='w-6 h-6 group-hover:scale-105 transition-transform duration-200'
+                    />
                   </div>
                   <div className='flex-1 flex flex-col justify-center space-y-1.5 min-w-0'>
-                    <h4 className='text-xs sm:text-sm text-[#53237C] font-medium uppercase tracking-wide'>Total Sessions</h4>
+                    <h4 className='text-xs sm:text-sm text-[#53237C] font-medium uppercase tracking-wide'>
+                      Total Sessions
+                    </h4>
                     <div className='flex items-end gap-3 flex-wrap'>
                       {isLoadingAnalytics ? (
-                        <Skeleton height={24} width={40} className='sm:h-7 sm:w-12' />
+                        <Skeleton
+                          height={24}
+                          width={40}
+                          className='sm:h-7 sm:w-12'
+                        />
                       ) : (
                         <p className='text-xl sm:text-2xl font-bold text-[#53237C] leading-none'>
                           {formatNumber(analytics?.total_sessions)}
@@ -240,21 +267,33 @@ const GettingStarted = () => {
                       )}
                       <div className='flex items-center gap-1 mb-0.5'>
                         <span className='text-xs text-secondary'>↗</span>
-                        <p className='text-xs text-secondary font-medium'>+4.5%</p>
+                        <p className='text-xs text-secondary font-medium'>
+                          +4.5%
+                        </p>
                       </div>
                     </div>
                   </div>
                 </div>
-                
+
                 <div className='flex h-[100px] sm:h-[110px] bg-[#FEF5E2] rounded-xl px-5 py-4 gap-4 border border-[#F5E6C8] hover:shadow-md hover:border-[#E8D6B8] transition-all duration-200 cursor-pointer group'>
                   <div className='flex items-center justify-center w-12 h-12 bg-white/25 rounded-lg group-hover:bg-white/35 transition-colors duration-200 flex-shrink-0'>
-                    <img src={totalClientsIcon} alt='Clients icon' className='w-6 h-6 group-hover:scale-105 transition-transform duration-200' />
+                    <img
+                      src={totalClientsIcon}
+                      alt='Clients icon'
+                      className='w-6 h-6 group-hover:scale-105 transition-transform duration-200'
+                    />
                   </div>
                   <div className='flex-1 flex flex-col justify-center space-y-1.5 min-w-0'>
-                    <h4 className='text-xs sm:text-sm text-[#E19E09] font-medium uppercase tracking-wide'>Total Clients</h4>
+                    <h4 className='text-xs sm:text-sm text-[#E19E09] font-medium uppercase tracking-wide'>
+                      Total Clients
+                    </h4>
                     <div className='flex items-end gap-3 flex-wrap'>
                       {isLoadingAnalytics ? (
-                        <Skeleton height={24} width={40} className='sm:h-7 sm:w-12' />
+                        <Skeleton
+                          height={24}
+                          width={40}
+                          className='sm:h-7 sm:w-12'
+                        />
                       ) : (
                         <p className='text-xl sm:text-2xl font-bold text-[#E19E09] leading-none'>
                           {formatNumber(analytics?.total_clients)}
@@ -262,21 +301,33 @@ const GettingStarted = () => {
                       )}
                       <div className='flex items-center gap-1 mb-0.5'>
                         <span className='text-xs text-[#FF3B30]'>↘</span>
-                        <p className='text-xs text-[#FF3B30] font-medium'>-2.3%</p>
+                        <p className='text-xs text-[#FF3B30] font-medium'>
+                          -2.3%
+                        </p>
                       </div>
                     </div>
                   </div>
                 </div>
-                
+
                 <div className='flex h-[100px] sm:h-[110px] bg-[#E0EFFF] rounded-xl px-5 py-4 gap-4 border border-[#C7E2FF] hover:shadow-md hover:border-[#B5D6FF] transition-all duration-200 cursor-pointer group sm:col-span-2 lg:col-span-1'>
                   <div className='flex items-center justify-center w-12 h-12 bg-white/25 rounded-lg group-hover:bg-white/35 transition-colors duration-200 flex-shrink-0'>
-                    <img src={totalStaffIcon} alt='Staff icon' className='w-6 h-6 group-hover:scale-105 transition-transform duration-200' />
+                    <img
+                      src={totalStaffIcon}
+                      alt='Staff icon'
+                      className='w-6 h-6 group-hover:scale-105 transition-transform duration-200'
+                    />
                   </div>
                   <div className='flex-1 flex flex-col justify-center space-y-1.5 min-w-0'>
-                    <h4 className='text-xs sm:text-sm text-[#007AFF] font-medium uppercase tracking-wide'>Total Staff</h4>
+                    <h4 className='text-xs sm:text-sm text-[#007AFF] font-medium uppercase tracking-wide'>
+                      Total Staff
+                    </h4>
                     <div className='flex items-end gap-3 flex-wrap'>
                       {isLoadingAnalytics ? (
-                        <Skeleton height={24} width={40} className='sm:h-7 sm:w-12' />
+                        <Skeleton
+                          height={24}
+                          width={40}
+                          className='sm:h-7 sm:w-12'
+                        />
                       ) : (
                         <p className='text-xl sm:text-2xl font-bold text-[#007AFF] leading-none'>
                           {formatNumber(analytics?.total_staff)}
@@ -284,7 +335,9 @@ const GettingStarted = () => {
                       )}
                       <div className='flex items-center gap-1 mb-0.5'>
                         <span className='text-xs text-secondary'>↗</span>
-                        <p className='text-xs text-secondary font-medium'>+1.6%</p>
+                        <p className='text-xs text-secondary font-medium'>
+                          +1.6%
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -327,7 +380,9 @@ const GettingStarted = () => {
                             return (
                               <div className='bg-white p-2 border border-gray-200 rounded-md shadow-sm'>
                                 <div className='font-medium'>{data.name}</div>
-                                <div className='text-primary font-semibold'>{data.value}%</div>
+                                <div className='text-primary font-semibold'>
+                                  {data.value}%
+                                </div>
                               </div>
                             );
                           },
@@ -341,12 +396,16 @@ const GettingStarted = () => {
                       </DonutChart>
                     </div>
                     <div className='flex justify-around w-full items-center mt-4'>
-                      <p className='text-[#08040C] text-xs font-semibold'>Male</p>
-                      <p className='text-[#08040C] text-xs font-semibold'>Female</p>
+                      <p className='text-[#08040C] text-xs font-semibold'>
+                        Male
+                      </p>
+                      <p className='text-[#08040C] text-xs font-semibold'>
+                        Female
+                      </p>
                     </div>
                   </div>
                 </div>
-                
+
                 <div className='bg-white rounded-lg p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-200'>
                   <h4 className='text-[#08040C] text-lg font-semibold mb-6'>
                     Total Daily Clients
@@ -366,20 +425,31 @@ const GettingStarted = () => {
                     <button
                       className='flex gap-2 items-center cursor-pointer hover:bg-gray-50 px-3 py-2 rounded-md transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-secondary focus:ring-opacity-50 self-start sm:self-auto'
                       onClick={() => navigateToCalendar(navigate)}
-                      aria-label="View all upcoming sessions"
+                      aria-label='View all upcoming sessions'
                     >
                       <p className='text-secondary text-sm font-medium'>
                         View All
                       </p>
-                      <img src={rightIcon} alt='Arrow right' className='w-4 h-4' />
+                      <img
+                        src={rightIcon}
+                        alt='Arrow right'
+                        className='w-4 h-4'
+                      />
                     </button>
                   </div>
-                  
+
                   <div className='space-y-3'>
                     {isLoadingSessions ? (
                       Array.from({ length: 3 }).map((_, index) => (
-                        <div key={index} className='flex flex-col sm:flex-row sm:items-center p-4 border border-gray-100 rounded-lg gap-3 sm:gap-4'>
-                          <Skeleton height={32} width={80} className='sm:mr-0' />
+                        <div
+                          key={index}
+                          className='flex flex-col sm:flex-row sm:items-center p-4 border border-gray-100 rounded-lg gap-3 sm:gap-4'
+                        >
+                          <Skeleton
+                            height={32}
+                            width={80}
+                            className='sm:mr-0'
+                          />
                           <div className='hidden sm:block h-8 w-[1px] bg-gray-200'></div>
                           <div className='flex-1 space-y-2'>
                             <Skeleton height={12} width={120} />
@@ -400,19 +470,25 @@ const GettingStarted = () => {
                               {formatToEATTime(session?.end_time)}
                             </p>
                             <p className='text-sm text-gray-600 sm:hidden'>
-                              {session?.date ? format(new Date(session.date), 'MMM dd, yyyy') : 'Date TBD'}
+                              {session?.date
+                                ? format(new Date(session.date), 'MMM dd, yyyy')
+                                : 'Date TBD'}
                             </p>
                           </div>
                           <div className='hidden sm:block h-8 w-[1px] bg-gray-200'></div>
                           <div className='flex-1 space-y-1'>
-                            <p className='text-xs text-gray-600'>{session?.staff?.name || 'Unassigned'}</p>
+                            <p className='text-xs text-gray-600'>
+                              {session?.staff?.name || 'Unassigned'}
+                            </p>
                             <p className='text-sm font-semibold text-gray-900'>
                               {session?.title}
                             </p>
                           </div>
                           <div className='hidden sm:block text-right'>
                             <p className='text-sm text-gray-600'>
-                              {session?.date ? format(new Date(session.date), 'MMM dd, yyyy') : 'Date TBD'}
+                              {session?.date
+                                ? format(new Date(session.date), 'MMM dd, yyyy')
+                                : 'Date TBD'}
                             </p>
                           </div>
                         </div>
@@ -420,8 +496,12 @@ const GettingStarted = () => {
                     ) : (
                       <div className='flex items-center justify-center py-12 border border-gray-100 rounded-lg'>
                         <div className='text-center'>
-                          <p className='text-gray-500 text-sm mb-2'>No upcoming sessions</p>
-                          <p className='text-gray-400 text-xs'>Sessions will appear here when scheduled</p>
+                          <p className='text-gray-500 text-sm mb-2'>
+                            No upcoming sessions
+                          </p>
+                          <p className='text-gray-400 text-xs'>
+                            Sessions will appear here when scheduled
+                          </p>
                         </div>
                       </div>
                     )}
@@ -430,24 +510,33 @@ const GettingStarted = () => {
 
                 <div className='bg-white rounded-lg shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-200'>
                   <div className='flex flex-col sm:flex-row sm:justify-between sm:items-center p-6 border-b border-gray-100 gap-3'>
-                    <h3 className='text-lg font-semibold text-primary'>Clients</h3>
+                    <h3 className='text-lg font-semibold text-primary'>
+                      Clients
+                    </h3>
                     <button
                       className='flex gap-2 items-center cursor-pointer hover:bg-gray-50 px-3 py-2 rounded-md transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-secondary focus:ring-opacity-50 self-start sm:self-auto'
                       onClick={() => navigateToClients(navigate)}
-                      aria-label="View all clients"
+                      aria-label='View all clients'
                     >
                       <p className='text-secondary text-sm font-medium'>
                         View All
                       </p>
-                      <img src={rightIcon} alt='Arrow right' className='w-4 h-4' />
+                      <img
+                        src={rightIcon}
+                        alt='Arrow right'
+                        className='w-4 h-4'
+                      />
                     </button>
                   </div>
-                  
+
                   <div className='overflow-x-auto'>
                     {isLoadingClients ? (
                       <div className='p-6 space-y-3'>
                         {Array.from({ length: 5 }).map((_, index) => (
-                          <div key={index} className='flex items-center space-x-4'>
+                          <div
+                            key={index}
+                            className='flex items-center space-x-4'
+                          >
                             <Skeleton height={16} width={150} />
                             <Skeleton height={16} width={120} />
                             <Skeleton height={16} width={180} />
@@ -456,26 +545,30 @@ const GettingStarted = () => {
                           </div>
                         ))}
                       </div>
-                    ) : clients.length > 0 ? (
+                    ) : clients?.items?.length > 0 ? (
                       <div className='[&>div]:shadow-none [&>div]:rounded-none [&>div]:border-none'>
                         <Table
-                          data={clients.slice(0, 8)}
+                          data={clients.items}
                           columns={columns}
                           rowSelection={rowSelection}
                           onRowSelectionChange={setRowSelection}
-                          pageSize={12}
+                          pageSize={8}
                           onRowClick={(row: Client) =>
                             navigateToClientDetails(navigate, row.id.toString())
                           }
                           className='shadow-none rounded-none border-none'
-                          showPagination={true}
+                          showPagination={false}
                         />
                       </div>
                     ) : (
                       <div className='flex items-center justify-center py-12 mx-6'>
                         <div className='text-center'>
-                          <p className='text-gray-500 text-sm mb-2'>No clients found</p>
-                          <p className='text-gray-400 text-xs'>Clients will appear here when added to your system</p>
+                          <p className='text-gray-500 text-sm mb-2'>
+                            No clients found
+                          </p>
+                          <p className='text-gray-400 text-xs'>
+                            Clients will appear here when added to your system
+                          </p>
                         </div>
                       </div>
                     )}

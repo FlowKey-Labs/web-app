@@ -1014,7 +1014,7 @@ export const useGetSessionClients = (sessionId: string) => {
   return useQuery({
     queryKey: ["session_clients", sessionId],
     queryFn: () => get_session_clients(sessionId),
-    staleTime: 1000 * 60 * 5,
+    staleTime: 0,
     refetchOnWindowFocus: false,
     retry: 2,
     enabled: !!sessionId,
