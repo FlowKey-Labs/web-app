@@ -339,6 +339,8 @@ export interface ClientBookingInfo {
   };
   client_email_hint?: string;
   client_phone_hint?: string;
+  client_email_masked?: string;
+  client_phone_masked?: string;
 }
 
 export interface RescheduleOption {
@@ -363,6 +365,8 @@ export interface RescheduleInfo {
     client_name: string;
     client_email_hint: string;
     client_phone_hint: string;
+    client_email_masked: string;
+    client_phone_masked: string;
     session: {
       id: number;
       title: string;

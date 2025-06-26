@@ -1455,6 +1455,8 @@ const BookingManage: React.FC = () => {
   // Type the data properly
   const typedRescheduleData = rescheduleData as RescheduleInfo | undefined;
 
+  console.log("typedRescheduleData>>>>>>>", typedRescheduleData);
+
   // Update business timezone when data loads
   useEffect(() => {
     if (
@@ -1808,8 +1810,14 @@ const BookingManage: React.FC = () => {
       const transformedBookingInfo = {
         booking_reference: bookingInfo.booking_reference,
         client_name: bookingInfo.client_name,
-        client_email_hint: bookingInfo.client_email_hint || 'Email not available',
-        client_phone_hint: bookingInfo.client_phone_hint || 'Phone not available',
+        client_email_hint:
+          bookingInfo.client_email_hint || "Email not available",
+        client_phone_hint:
+          bookingInfo.client_phone_hint || "Phone not available",
+        client_email_masked:
+          bookingInfo.client_email_masked || "Email not available",
+        client_phone_masked:
+          bookingInfo.client_phone_masked || "Phone not available",
         session: {
           id: bookingInfo.session.id,
           title: bookingInfo.session.title,
@@ -1989,7 +1997,7 @@ const BookingManage: React.FC = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4, duration: 0.5 }}
-                className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 border border-white/30"
+                className="bg-white/60 backdrop-blur-sm rounded-2xl px-6 border border-white/30"
               >
                 <Title
                   order={3}
@@ -1999,7 +2007,7 @@ const BookingManage: React.FC = () => {
                   Session Change
                 </Title>
 
-                <div className="grid gap-4 md:grid-cols-2">
+                <div className="grid gap-4 md:grid-cols-2 mt-4">
                   {/* Current Session */}
                   <div className="bg-red-50 rounded-xl p-4 border border-red-200">
                     <div className="flex items-center gap-2 mb-3">
@@ -2100,13 +2108,15 @@ const BookingManage: React.FC = () => {
                 transition={{ delay: 0.5, duration: 0.5 }}
                 className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 border border-white/30"
               >
-                <Title
-                  order={3}
-                  className="text-base font-semibold text-slate-800 mb-4 flex items-center gap-2"
-                >
-                  <UserIcon className="w-4 h-4 text-emerald-600" />
-                  Verify Your Identity
-                </Title>
+                <div className="mb-2">
+                  <Title
+                    order={3}
+                    className="text-base font-semibold text-slate-800 mb-4 flex items-center gap-2"
+                  >
+                    <UserIcon className="w-4 h-4 text-emerald-600" />
+                    Verify Your Identity
+                  </Title>
+                </div>
 
                 <Alert
                   icon={<InfoIcon className="w-4 h-4" />}
@@ -2155,7 +2165,10 @@ const BookingManage: React.FC = () => {
                     description={
                       validationErrors.email
                         ? undefined
-                        : `Hint: ${typedRescheduleData.current_booking.client_email_hint || 'Email not available'}`
+                        : `Hint: ${
+                            typedRescheduleData.current_booking
+                              .client_email_masked || "Email not available"
+                          }`
                     }
                   />
                   <TextInput
@@ -2191,7 +2204,10 @@ const BookingManage: React.FC = () => {
                     description={
                       validationErrors.phone
                         ? undefined
-                        : `Hint: ${typedRescheduleData.current_booking.client_phone_hint || 'Phone not available'}`
+                        : `Hint: ${
+                            typedRescheduleData.current_booking
+                              .client_phone_masked || "Phone not available"
+                          }`
                     }
                   />
                 </div>

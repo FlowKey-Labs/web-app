@@ -145,7 +145,7 @@ const EnhancedBusinessProfile = ({ businessInfo, bookingInfo }: EnhancedBusiness
             YOUR BOOKING
           </Text>
           
-          <div className="flex items-center gap-3 mb-3">
+          <div className="flex items-center gap-3 my-3">
             <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-red-100 to-orange-100 flex items-center justify-center">
               <CalendarIcon className="w-5 h-5 text-red-600" />
             </div>
@@ -819,12 +819,14 @@ const BookingCancel: React.FC = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4, duration: 0.5 }}
-                className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 border border-white/30"
+                className="bg-white/60 backdrop-blur-sm rounded-2xl px-6 border border-white/30"
               >
-                <Title order={3} className="text-base font-semibold text-slate-800 mb-4 flex items-center gap-2">
+               <div className="mb-3">
+               <Title order={3} className="text-base font-semibold text-slate-800 flex items-center gap-2">
                   <span className="text-red-600">🚫</span>
                   Booking to Cancel
                   </Title>
+               </div>
                 
                 <div className="bg-red-50 rounded-xl p-4 border border-red-200">
                   <div className="flex items-center gap-2 mb-3">
@@ -985,7 +987,7 @@ const BookingCancel: React.FC = () => {
                 Verify Your Identity
               </Title>
               
-              <div className="mb-6">
+              <div className="my-3">
                 <Alert 
                   color="emerald" 
                   variant="light" 
@@ -994,9 +996,6 @@ const BookingCancel: React.FC = () => {
                 >
                   <Text size="sm" className="text-emerald-800">
                     For security, please verify your identity by providing your email address and phone number used for this booking.
-                  </Text>
-                  <Text size="xs" className="text-emerald-700 mt-2">
-                    💡 Tip: Use the exact email and phone number from when you originally made the booking. Both fields are required and must match our records.
                   </Text>
                 </Alert>
               </div>
