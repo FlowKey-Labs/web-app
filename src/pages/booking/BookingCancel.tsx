@@ -70,7 +70,6 @@ const shimmerVariants = {
   }
 };
 
-// Enhanced Business Profile Component (reused from BookingManage)
 interface EnhancedBusinessProfileProps {
   businessInfo: RescheduleInfo['business'];
   bookingInfo: RescheduleInfo['current_booking'];
@@ -731,6 +730,8 @@ const BookingCancel: React.FC = () => {
     client_name: bookingInfo.client_name,
     client_email_hint: bookingInfo.client_email_hint || 'Email not available',
     client_phone_hint: bookingInfo.client_phone_hint || 'Phone not available',
+    client_email_masked: bookingInfo.client_email_masked || 'Email not available',
+    client_phone_masked: bookingInfo.client_phone_masked || 'Phone not available',
     session: {
       id: bookingInfo.session.id,
       title: bookingInfo.session.title,

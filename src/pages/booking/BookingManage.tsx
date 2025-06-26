@@ -601,17 +601,19 @@ const RescheduleErrorScreen: React.FC<RescheduleErrorScreenProps> = ({
                 >
                   Contact {businessName}
                 </Button>
-                <Button
-                  onClick={() =>
-                    navigate(`/booking/cancel/${bookingReference}`)
-                  }
-                  variant="light"
-                  size="md"
-                  color="red"
-                  leftSection={<InfoIcon className="w-4 h-4" />}
-                >
-                  Cancel Booking Instead
-                </Button>
+                {bookingInfo?.status !== 'cancelled' && (
+                  <Button
+                    onClick={() =>
+                      navigate(`/booking/cancel/${bookingReference}`)
+                    }
+                    variant="light"
+                    size="md"
+                    color="red"
+                    leftSection={<InfoIcon className="w-4 h-4" />}
+                  >
+                    Cancel Booking Instead
+                  </Button>
+                )}
               </motion.div>
             </motion.div>
           </div>

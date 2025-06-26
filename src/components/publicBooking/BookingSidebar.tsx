@@ -200,9 +200,11 @@ export function BookingSidebar({
       transition={{ delay: 0.4, duration: 0.5 }}
       className="bg-white/40 backdrop-blur-sm rounded-2xl p-5 border border-white/20"
     >
-      <Title order={5} className="text-slate-800 mb-4 text-sm">
+     <div className="mb-3">
+     <Title order={5} className="text-slate-800 text-sm">
         How it works
       </Title>
+     </div>
 
       <Stack gap="sm">
         {howItWorksSteps.map((step, index) => (
