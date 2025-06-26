@@ -275,6 +275,8 @@ const CalendarView = () => {
             <Tooltip
               label={<EventTooltip event={eventInfo.event} />}
               withArrow
+              arrowOffset={50}
+              arrowSize={8}
               transitionProps={{ transition: 'pop', duration: 200 }}
               className='w-full'
               multiline
@@ -285,16 +287,12 @@ const CalendarView = () => {
                   padding: 0,
                   backgroundColor: 'transparent',
                   border: 'none',
-                  boxShadow: 'none',
                   maxHeight: 'none',
                   lineHeight: '1.25',
                   fontSize: '0.875rem',
                   whiteSpace: 'normal',
                   overflow: 'visible',
                   color: 'black',
-                },
-                arrow: {
-                  display: 'none',
                 },
               }}
             >
