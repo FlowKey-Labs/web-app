@@ -27,6 +27,7 @@ import {
   useCreateCancelledSession,
   useCreateAttendedSession,
 } from '../../hooks/reactQuery';
+import { mark_client_attended } from '../../api/api';
 
 import actionOptionIcon from '../../assets/icons/actionOption.svg';
 import { Client } from '../../types/clientTypes';
@@ -284,12 +285,16 @@ const SessionDetails = () => {
   const handleCreateMakeupSession = () => {
     if (!sessionId) return;
 
+    // Determine if this is a traditional client or booking client
+    const isTraditionalClient = selectedClient?.type === 'client' && selectedClient?.clientId;
+    const clientId = isTraditionalClient ? selectedClient.clientId : null;
+
     createMakeupSessionMutation.mutate(
       {
         session_title: methods.getValues('session_title'),
         client_name: methods.getValues('client_name'),
         session: sessionId,
-        client: selectedClient?.id || '',
+        client: clientId,
         original_date: moment(session?.date).format('YYYY-MM-DD'),
         new_date: moment(methods.getValues('new_date')).format('YYYY-MM-DD'),
         new_start_time: formattedStartTime,
@@ -341,67 +346,79 @@ const SessionDetails = () => {
   };
 
   const handleCreateAttendanceRecord = () => {
-    if (!sessionId) return;
+    if (!sessionId || !selectedClient) return;
 
-    createAttendedSessionMutation.mutate(
-      {
-        session_title: methods.getValues('session_title'),
-        client_name: methods.getValues('client_name'),
-        session: sessionId,
-        client: selectedClient?.id || '',
-        date: moment(session?.date).format('YYYY-MM-DD'),
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      },
-      {
-        onSuccess: () => {
-          notifications.show({
-            title: 'Success',
-            message: 'Attendance record created successfully!',
-            color: 'green',
-            radius: 'md',
-            icon: (
-              <span className='flex items-center justify-center w-6 h-6 rounded-full bg-green-200'>
-                <img src={successIcon} alt='Success' className='w-4 h-4' />
-              </span>
-            ),
-            withBorder: true,
-            autoClose: 3000,
-            position: 'top-right',
-          });
-          close();
-          refetchSession();
-        },
-        onError: () => {
-          notifications.show({
-            title: 'Error',
-            message: 'Failed to create attendance record. Please try again.',
-            color: 'red',
-            radius: 'md',
-            icon: (
-              <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
-                <img src={errorIcon} alt='Error' className='w-4 h-4' />
-              </span>
-            ),
-            withBorder: true,
-            autoClose: 3000,
-            position: 'top-right',
-          });
-          close();
-        },
-      }
+    // Use the proper attendance marking API instead of creating new records
+    // For booking clients, we need to extract the numeric ID from the attendance record
+    const attendanceRecord = session?.attendances?.find(
+      att => att.participant_name === selectedClient.name
     );
+    
+    if (!attendanceRecord?.client) {
+      notifications.show({
+        title: 'Error',
+        message: 'Cannot mark booking client as attended through this method.',
+        color: 'red',
+        radius: 'md',
+        withBorder: true,
+        autoClose: 3000,
+        position: 'top-right',
+      });
+      close();
+      return;
+    }
+    
+    const clientId = attendanceRecord.client.toString();
+    
+    mark_client_attended(clientId, sessionId).then(() => {
+      notifications.show({
+        title: 'Success',
+        message: 'Client marked as attended successfully!',
+        color: 'green',
+        radius: 'md',
+        icon: (
+          <span className='flex items-center justify-center w-6 h-6 rounded-full bg-green-200'>
+            <img src={successIcon} alt='Success' className='w-4 h-4' />
+          </span>
+        ),
+        withBorder: true,
+        autoClose: 3000,
+        position: 'top-right',
+      });
+      close();
+      refetchSession();
+    }).catch(() => {
+      notifications.show({
+        title: 'Error',
+        message: 'Failed to mark client as attended. Please try again.',
+        color: 'red',
+        radius: 'md',
+        icon: (
+          <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+            <img src={errorIcon} alt='Error' className='w-4 h-4' />
+          </span>
+        ),
+        withBorder: true,
+        autoClose: 3000,
+        position: 'top-right',
+      });
+      close();
+    });
   };
 
   const handleCreateCancelledSession = () => {
     if (!sessionId) return;
+
+    // Determine if this is a traditional client or booking client
+    const isTraditionalClient = selectedClient?.type === 'client' && selectedClient?.clientId;
+    const clientId = isTraditionalClient ? selectedClient.clientId : null;
 
     createCancelledSessionMutation.mutate(
       {
         session_title: methods.getValues('session_title'),
         client_name: methods.getValues('client_name'),
         session: sessionId,
-        client: selectedClient?.id || '',
+        client: clientId,
         date: moment(session?.date).format('YYYY-MM-DD'),
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
