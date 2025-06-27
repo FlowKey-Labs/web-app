@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createColumnHelper } from '@tanstack/react-table';
 import { useDebounce } from '../../hooks/useDebounce';
@@ -48,6 +48,11 @@ const AllSessions = () => {
   const navigate = useNavigate();
   const [rowSelection, setRowSelection] = useState({});
   const [pageIndex, setPageIndex] = useState(1);
+  const [pageSize, setPageSize] = useState(() => {
+    // Get stored page size or default to 10
+    const savedPageSize = sessionStorage.getItem('sessionsPageSize');
+    return savedPageSize ? parseInt(savedPageSize, 10) : 10;
+  });
   const [classTypeDropdownOpen, setClassTypeDropdownOpen] = useState(false);
   const [categoryTypeDropdownOpen, setCategoryTypeDropdownOpen] =
     useState(false);
@@ -58,6 +63,11 @@ const AllSessions = () => {
   const [opened, { open, close }] = useDisclosure(false);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
+
+  // Reset to first page when filters or search changes
+  useEffect(() => {
+    setPageIndex(1);
+  }, [selectedTypes, selectedCategories, debouncedSearchQuery, pageSize]);
 
   const [tempSelectedTypes, setTempSelectedTypes] = useState<string[]>([]);
   const [tempSelectedCategories, setTempSelectedCategories] = useState<
@@ -79,7 +89,7 @@ const AllSessions = () => {
     refetch: refetchSessions,
   } = useGetSessions(
     pageIndex,
-    10,
+    pageSize,
     {
       categories: selectedCategories,
       sessionTypes: selectedTypes,
@@ -87,49 +97,13 @@ const AllSessions = () => {
     debouncedSearchQuery
   );
 
+  const handlePageSizeChange = useCallback((newSize: number) => {
+    setPageSize(newSize);
+    setPageIndex(1);
+    sessionStorage.setItem('sessionsPageSize', newSize.toString());
+  }, []);
+
   const allSessionsData = useMemo(() => data?.items || [], [data]);
-
-  // const searchSessions = useCallback((sessions: Session[], query: string) => {
-  //   if (!query.trim()) return sessions;
-
-  //   try {
-  //     const searchTerms = query.toLowerCase().trim().split(/\s+/);
-
-  //     return sessions.filter((session) => {
-  //       try {
-  //         const searchableFields = [
-  //           safeToString(session.title),
-  //           safeToString(session.category?.name),
-  //           safeToString(session.class_type),
-  //           session.assigned_staff
-  //             ? `${safeToString(
-  //                 session.assigned_staff.user?.first_name
-  //               )} ${safeToString(
-  //                 session.assigned_staff.user?.last_name
-  //               )}`.trim()
-  //             : '',
-  //           safeToString(session.description),
-  //           safeToString(session.location),
-  //           safeToString(session.id),
-  //         ].filter((field) => field.length > 0);
-
-  //         const combinedText = searchableFields.join(' ');
-
-  //         return searchTerms.every((term) => combinedText.includes(term));
-  //       } catch (error) {
-  //         console.warn(
-  //           'Error processing session in search:',
-  //           session.id,
-  //           error
-  //         );
-  //         return false;
-  //       }
-  //     });
-  //   } catch (error) {
-  //     console.error('Error in searchSessions:', error);
-  //     return sessions;
-  //   }
-  // }, []);
 
   const filteredSessions = useMemo(() => {
     try {
@@ -379,13 +353,13 @@ const AllSessions = () => {
             const { repeat_on, repeat_unit, repeat_every } = info.getValue();
 
             const dayMap: Record<string, string> = {
-              'monday': 'Mon',
-              'tuesday': 'Tue',
-              'wednesday': 'Wed',
-              'thursday': 'Thu',
-              'friday': 'Fri',
-              'saturday': 'Sat',
-              'sunday': 'Sun',
+              monday: 'Mon',
+              tuesday: 'Tue',
+              wednesday: 'Wed',
+              thursday: 'Thu',
+              friday: 'Fri',
+              saturday: 'Sat',
+              sunday: 'Sun',
             };
 
             if (repeat_unit === 'days' && repeat_every) {
@@ -393,14 +367,18 @@ const AllSessions = () => {
             }
 
             if (repeat_unit === 'weeks') {
-              if (repeat_on && Array.isArray(repeat_on) && repeat_on.length > 0) {
+              if (
+                repeat_on &&
+                Array.isArray(repeat_on) &&
+                repeat_on.length > 0
+              ) {
                 return repeat_on
                   .map((day: string) => dayMap[day.toLowerCase()] || day)
                   .join(', ');
               }
               return 'Weekly';
             }
-            
+
             if (repeat_unit === 'months' && repeat_every) {
               return `Monthly`;
             }
@@ -941,21 +919,25 @@ const AllSessions = () => {
                     </span>
                   )}
                 </div>
-                <Table
-                  data={filteredSessions || []}
-                  columns={columns}
-                  rowSelection={rowSelection}
-                  onRowSelectionChange={setRowSelection}
-                  className='mt-4'
-                  pageSize={7}
-                  onRowClick={(row: Session) =>
-                    navigateToSessionDetails(navigate, row.id.toString())
-                  }
-                  paginateServerSide={true}
-                  pageIndex={pageIndex}
-                  pageCount={data?.totalPages}
-                  onPageChange={setPageIndex}
-                />
+                <div className='flex flex-col gap-4'>
+                  <Table
+                    data={filteredSessions || []}
+                    columns={columns}
+                    rowSelection={rowSelection}
+                    onRowSelectionChange={setRowSelection}
+                    className='mt-4'
+                    pageSize={pageSize}
+                    onRowClick={(row: Session) =>
+                      navigateToSessionDetails(navigate, row.id.toString())
+                    }
+                    paginateServerSide={true}
+                    pageIndex={pageIndex}
+                    pageCount={data?.totalPages || 1}
+                    onPageChange={setPageIndex}
+                    onPageSizeChange={handlePageSizeChange}
+                    pageSizeOptions={[10, 25, 50, 100]}
+                  />
+                </div>
               </div>
             </div>
           )}

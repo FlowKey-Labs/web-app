@@ -27,6 +27,8 @@ export interface TableProps<T> {
   pageIndex?: number; // 1-based index from backend
   pageCount?: number;
   onPageChange?: (pageIndex: number) => void; // Expects 1-based index
+  onPageSizeChange?: (size: number) => void;
+  pageSizeOptions?: number[];
 }
 
 const Table = <T extends object>({
@@ -47,6 +49,8 @@ const Table = <T extends object>({
   pageIndex = 1, // Default to 1 (first page)
   pageCount = 1,
   onPageChange,
+  onPageSizeChange,
+  pageSizeOptions = [10, 25, 50, 100],
 }: TableProps<T>) => {
   // Convert 1-based backend index to 0-based for react-table
   const reactTablePageIndex = paginateServerSide ? pageIndex - 1 : undefined;
@@ -140,23 +144,37 @@ const Table = <T extends object>({
           ))}
         </tbody>
 
-        {showPagination && totalPages > 1 && (
-          <tfoot>
-            <tr>
-              <td colSpan={columns.length} className='py-4'>
-                <div className='w-full mx-auto border-t border-gray-200 mb-4' />
-                <div className='px-6'>
-                  <CustomPagination
-                    totalPages={totalPages}
-                    currentPage={currentPageNumber}
-                    onPageChange={handlePageChange}
-                    className='justify-center'
-                  />
-                </div>
-              </td>
-            </tr>
-          </tfoot>
-        )}
+        <tfoot>
+          <tr>
+            <td colSpan={columns.length} className='py-4'>
+              <div className='w-full mx-auto border-t border-gray-200 mb-4' />
+              <div className='px-6 flex flex-col md:flex-row items-center justify-between gap-4'>
+                {onPageSizeChange && (
+                  <div className='flex items-center gap-2 text-sm'>
+                    <span>Show:</span>
+                    <select
+                      value={pageSize}
+                      onChange={(e) => onPageSizeChange(Number(e.target.value))}
+                      className='border focus:outline-none focus:border-secondary rounded-md p-1 text-sm'
+                    >
+                      {pageSizeOptions.map((size) => (
+                        <option key={size} value={size}>
+                          {size}
+                        </option>
+                      ))}
+                    </select>
+                    <span>per page</span>
+                  </div>
+                )}
+                <CustomPagination
+                  totalPages={totalPages}
+                  currentPage={currentPageNumber}
+                  onPageChange={handlePageChange}
+                />
+              </div>
+            </td>
+          </tr>
+        </tfoot>
       </table>
     </div>
   );
