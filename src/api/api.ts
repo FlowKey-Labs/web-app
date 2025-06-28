@@ -75,6 +75,7 @@ const END_POINTS = {
     SUBCATEGORIES: `${BASE_URL}/api/session/subcategories/`,
     SUBSKILLS: `${BASE_URL}/api/session/subskills/`,
     MAKEUP_SESSIONS: `${BASE_URL}/api/attendance/makeup-sessions/`,
+    BULK_MAKEUP_SESSIONS: `${BASE_URL}/api/attendance/makeup-sessions/bulk_create_makeup/`,
     ATTENDED_SESSIONS: `${BASE_URL}/api/attendance/`,
     BULK_ATTENDANCE: `${BASE_URL}/api/attendance/bulk_mark_attendance/`,
     CANCELLED_SESSIONS: `${BASE_URL}/api/attendance/cancelled/`,
@@ -934,6 +935,21 @@ const createMakeupSession = async (makeupSessionData: MakeUpSession) => {
   return data;
 };
 
+const bulkCreateMakeupSessions = async (makeupData: {
+  session: number;
+  client_ids: number[];
+  original_date: string;
+  new_date: string;
+  new_start_time: string;
+  new_end_time: string;
+}) => {
+  const { data } = await api.post(
+    END_POINTS.SESSION.BULK_MAKEUP_SESSIONS,
+    makeupData
+  );
+  return data;
+};
+
 const updateMakeupSession = async (
   id: string,
   makeupSessionData: MakeUpSession
@@ -1157,6 +1173,7 @@ export {
   createMakeupSession,
   updateMakeupSession,
   deleteMakeupSession,
+  bulkCreateMakeupSessions,
   // Attended sessions exports
   getAttendedSessions,
   createAttendedSession,

@@ -93,6 +93,7 @@ import {
   createMakeupSession,
   updateMakeupSession,
   deleteMakeupSession,
+  bulkCreateMakeupSessions,
   // Attended Session API functions
   getAttendedSessions,
   createAttendedSession,
@@ -1527,6 +1528,52 @@ export const useBulkMarkAttendance = () => {
       // Force a full refetch of the data
       queryClient.refetchQueries({
         queryKey: ['session_clients', sessionId],
+      });
+
+      return data;
+    },
+  });
+};
+
+// Bulk Make-up Session hook
+export const useBulkCreateMakeupSessions = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: {
+      session: number;
+      client_ids: number[];
+      original_date: string;
+      new_date: string;
+      new_start_time: string;
+      new_end_time: string;
+    }) => bulkCreateMakeupSessions(data),
+    onSuccess: (data, { session }) => {
+      // Invalidate session-related queries
+      queryClient.invalidateQueries({
+        queryKey: ['session_clients', session],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['session_analytics', session],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['session', session],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['makeup_sessions'],
+      });
+
+      // Invalidate global analytics and sessions queries
+      queryClient.invalidateQueries({
+        queryKey: ['class_sessions'],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['sessions'],
+      });
+
+      // Force a full refetch of the data
+      queryClient.refetchQueries({
+        queryKey: ['session_clients', session],
       });
 
       return data;
