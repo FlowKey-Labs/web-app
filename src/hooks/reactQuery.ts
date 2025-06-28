@@ -88,6 +88,7 @@ import {
   get_staff_sessions,
   // Bulk Attendance API function
   bulk_mark_attendance,
+  bulkCancelSessions,
   // Makeup Session API functions
   getMakeupSessions,
   createMakeupSession,
@@ -1503,8 +1504,11 @@ export const useBulkMarkAttendance = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: { sessionId: number; clientIds: number[]; date: string }) =>
-      bulk_mark_attendance(data),
+    mutationFn: (data: {
+      sessionId: number;
+      clientIds: number[];
+      date: string;
+    }) => bulk_mark_attendance(data),
     onSuccess: (data, { sessionId }) => {
       // Invalidate session-related queries
       queryClient.invalidateQueries({
@@ -1561,6 +1565,49 @@ export const useBulkCreateMakeupSessions = () => {
       });
       queryClient.invalidateQueries({
         queryKey: ['makeup_sessions'],
+      });
+
+      // Invalidate global analytics and sessions queries
+      queryClient.invalidateQueries({
+        queryKey: ['class_sessions'],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['sessions'],
+      });
+
+      // Force a full refetch of the data
+      queryClient.refetchQueries({
+        queryKey: ['session_clients', session],
+      });
+
+      return data;
+    },
+  });
+};
+
+// Bulk Cancel Session hook
+export const useBulkCancelSessions = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: {
+      session: number;
+      client_ids: number[];
+      date: string;
+    }) => bulkCancelSessions(data),
+    onSuccess: (data, { session }) => {
+      // Invalidate session-related queries
+      queryClient.invalidateQueries({
+        queryKey: ['session_clients', session],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['session_analytics', session],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['session', session],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['cancelled_sessions'],
       });
 
       // Invalidate global analytics and sessions queries

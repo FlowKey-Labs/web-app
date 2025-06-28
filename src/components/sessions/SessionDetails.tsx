@@ -29,6 +29,7 @@ import {
   useCreateCancelledSession,
   useCreateAttendedSession,
   useBulkCreateMakeupSessions,
+  useBulkCancelSessions,
 } from '../../hooks/reactQuery';
 
 import actionOptionIcon from '../../assets/icons/actionOption.svg';
@@ -83,13 +84,13 @@ const SessionDetails = () => {
   };
 
   const [bulkActionType, setBulkActionType] = useState<
-    'attendance' | 'makeup' | null
+    'attendance' | 'makeup' | 'cancellation' | null
   >(null);
 
   // Initialize form with default values
   const bulkMethods = useForm<BulkActionFormValues>({
     defaultValues: {
-      sessionName: '', 
+      sessionName: '',
       date: new Date().toISOString().split('T')[0],
       newDate: new Date().toISOString().split('T')[0],
       newStartTime: '09:00',
@@ -162,6 +163,7 @@ const SessionDetails = () => {
 
   const bulkMarkAttendanceMutation = useBulkMarkAttendance();
   const bulkCreateMakeupMutation = useBulkCreateMakeupSessions();
+  const bulkCancelMutation = useBulkCancelSessions();
 
   const handleBulkAttendance = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -208,6 +210,30 @@ const SessionDetails = () => {
       return;
     }
     setBulkActionType('makeup');
+    openBulkAttendance();
+  };
+
+  const handleBulkCancel = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const clientIds = getSelectedClientIds();
+    if (clientIds.length === 0) {
+      notifications.show({
+        title: 'No clients selected',
+        message: 'Please select at least one client to cancel attendance for',
+        color: 'yellow',
+        autoClose: 5000,
+        withBorder: true,
+        position: 'top-right',
+        radius: 'md',
+        icon: (
+          <span className='flex items-center justify-center w-6 h-6 rounded-full bg-yellow-200'>
+            <img src={errorIcon} alt='Warning' className='w-4 h-4' />
+          </span>
+        ),
+      });
+      return;
+    }
+    setBulkActionType('cancellation');
     openBulkAttendance();
   };
 
@@ -268,6 +294,31 @@ const SessionDetails = () => {
           message: `Successfully scheduled make-up for ${
             clientIds.length
           } client${clientIds.length > 1 ? 's' : ''}`,
+          color: 'green',
+          autoClose: 3000,
+          icon: (
+            <span className='flex items-center justify-center w-6 h-6 rounded-full bg-green-200'>
+              <img src={successIcon} alt='Success' className='w-4 h-4' />
+            </span>
+          ),
+          withBorder: true,
+          position: 'top-right',
+          radius: 'md',
+        });
+      } else if (bulkActionType === 'cancellation') {
+        const formattedDate = new Date(data.date).toISOString().split('T')[0];
+
+        await bulkCancelMutation.mutateAsync({
+          session: currentSessionId,
+          client_ids: clientIds.map((id) => parseInt(id, 10)),
+          date: formattedDate,
+        });
+
+        notifications.show({
+          title: 'Success',
+          message: `Successfully cancelled attendance for ${clientIds.length} client${
+            clientIds.length > 1 ? 's' : ''
+          }`,
           color: 'green',
           autoClose: 3000,
           icon: (
@@ -876,18 +927,26 @@ const SessionDetails = () => {
                     style={{ textAlign: 'center' }}
                     onClick={handleBulkAttendance}
                   >
-                    Bulk Mark Attendance
+                    Bulk Attendance
                   </Menu.Item>
                   <Menu.Item
-                    color='#1D9B5E'
+                    color='blue'
                     className='text-sm'
                     style={{ textAlign: 'center' }}
                     onClick={handleBulkMakeup}
                   >
-                    Bulk Mark Make-up
+                    Bulk Make-up
                   </Menu.Item>
                   <Menu.Item
-                    color='#162F3B'
+                    color='gray'
+                    className='text-sm'
+                    style={{ textAlign: 'center' }}
+                    onClick={handleBulkCancel}
+                  >
+                    Bulk Cancel
+                  </Menu.Item>
+                  <Menu.Item
+                    color='gray'
                     className='text-sm'
                     style={{ textAlign: 'center' }}
                     onClick={openExportModal}
@@ -1509,6 +1568,8 @@ const SessionDetails = () => {
           <Text fw={600} size='lg' color='#1D9B5E'>
             {bulkActionType === 'makeup'
               ? 'Bulk Schedule Make-up'
+              : bulkActionType === 'cancellation'
+              ? 'Bulk Cancel Attendance'
               : 'Bulk Mark as Attended'}
           </Text>
         }
@@ -1542,7 +1603,9 @@ const SessionDetails = () => {
                   Selected Clients ({getSelectedClientIds().length}):
                 </Text>
                 {getSelectedClientIds().map((clientId, index) => {
-                  const client = clients.find((c: Client) => c.id.toString() === clientId);
+                  const client = clients.find(
+                    (c: Client) => c.id.toString() === clientId
+                  );
                   return client ? (
                     <div
                       key={clientId}
@@ -1632,13 +1695,17 @@ const SessionDetails = () => {
                 </>
               )}
 
-              {bulkActionType === 'attendance' && (
+              {(bulkActionType === 'attendance' || bulkActionType === 'cancellation') && (
                 <Controller
                   name='date'
                   control={bulkControl}
                   rules={{ required: 'Date is required' }}
                   render={({ field }) => (
-                    <Input {...field} label='Date' type='date' />
+                    <Input 
+                      {...field} 
+                      label={bulkActionType === 'cancellation' ? 'Cancellation Date' : 'Date'} 
+                      type='date' 
+                    />
                   )}
                 />
               )}
@@ -1659,12 +1726,16 @@ const SessionDetails = () => {
                   loading={
                     bulkActionType === 'makeup'
                       ? bulkCreateMakeupMutation.isPending
+                      : bulkActionType === 'cancellation'
+                      ? bulkCancelMutation.isPending
                       : bulkMarkAttendanceMutation.isPending
                   }
                   color='#1D9B5E'
                 >
                   {bulkActionType === 'makeup'
                     ? 'Schedule Make-up'
+                    : bulkActionType === 'cancellation'
+                    ? 'Cancel Attendance'
                     : 'Mark as Attended'}
                 </Button>
               </div>
@@ -1702,7 +1773,12 @@ const SessionDetails = () => {
               variant='outline'
               color='#1D9B5E'
               radius='md'
-              onClick={() => handleExport('excel', getSelectedClientIds().map(id => parseInt(id, 10)))}
+              onClick={() =>
+                handleExport(
+                  'excel',
+                  getSelectedClientIds().map((id) => parseInt(id, 10))
+                )
+              }
               className='px-6'
               loading={isExporting}
             >
@@ -1713,7 +1789,12 @@ const SessionDetails = () => {
               variant='outline'
               color='#1D9B5E'
               radius='md'
-              onClick={() => handleExport('csv', getSelectedClientIds().map(id => parseInt(id, 10)))}
+              onClick={() =>
+                handleExport(
+                  'csv',
+                  getSelectedClientIds().map((id) => parseInt(id, 10))
+                )
+              }
               className='px-6'
               loading={isExporting}
             >

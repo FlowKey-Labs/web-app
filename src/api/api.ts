@@ -79,6 +79,7 @@ const END_POINTS = {
     ATTENDED_SESSIONS: `${BASE_URL}/api/attendance/`,
     BULK_ATTENDANCE: `${BASE_URL}/api/attendance/bulk_mark_attendance/`,
     CANCELLED_SESSIONS: `${BASE_URL}/api/attendance/cancelled/`,
+    BULK_CANCELLED_SESSIONS: `${BASE_URL}/api/attendance/cancelled/bulk_cancel/`,
     DELETE_SESSION: (id: string) => `${BASE_URL}/api/session/${id}/`,
   },
   ANALYTICS: {
@@ -950,6 +951,18 @@ const bulkCreateMakeupSessions = async (makeupData: {
   return data;
 };
 
+const bulkCancelSessions = async (bulkCancelData: {
+  session: number;
+  client_ids: number[];
+  date: string;
+}) => {
+  const { data } = await api.post(
+    END_POINTS.SESSION.BULK_CANCELLED_SESSIONS,
+    bulkCancelData
+  );
+  return data;
+};
+
 const updateMakeupSession = async (
   id: string,
   makeupSessionData: MakeUpSession
@@ -1184,6 +1197,7 @@ export {
   createCancelledSession,
   updateCancelledSession,
   deleteCancelledSession,
+  bulkCancelSessions,
   getSeries,
   markOutcomeComplete,
   markOutcomeIncomplete,
