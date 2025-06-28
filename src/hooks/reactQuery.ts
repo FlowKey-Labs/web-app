@@ -86,6 +86,8 @@ import {
   updateRole,
   deleteRole,
   get_staff_sessions,
+  // Bulk Attendance API function
+  bulk_mark_attendance,
   // Makeup Session API functions
   getMakeupSessions,
   createMakeupSession,
@@ -1491,6 +1493,43 @@ export const useDeleteAttendedSession = () => {
     },
     onError: (error) => {
       console.error('Failed to delete attended session:', error);
+    },
+  });
+};
+
+// Bulk Attendance hook
+export const useBulkMarkAttendance = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: { sessionId: number; clientIds: number[]; date: string }) =>
+      bulk_mark_attendance(data),
+    onSuccess: (data, { sessionId }) => {
+      // Invalidate session-related queries
+      queryClient.invalidateQueries({
+        queryKey: ['session_clients', sessionId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['session_analytics', sessionId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['session', sessionId],
+      });
+
+      // Invalidate global analytics and sessions queries
+      queryClient.invalidateQueries({
+        queryKey: ['class_sessions'],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['sessions'],
+      });
+
+      // Force a full refetch of the data
+      queryClient.refetchQueries({
+        queryKey: ['session_clients', sessionId],
+      });
+
+      return data;
     },
   });
 };

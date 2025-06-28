@@ -1,4 +1,5 @@
 import { useParams } from 'react-router-dom';
+import { useEffect } from 'react';
 import MembersHeader from '../headers/MembersHeader';
 import {
   Progress,
@@ -12,9 +13,10 @@ import {
 } from '@mantine/core';
 import { useCallback, useMemo, useState } from 'react';
 import { useDisclosure } from '@mantine/hooks';
+import { useBulkMarkAttendance } from '../../hooks/reactQuery';
 import { notifications } from '@mantine/notifications';
 import Table from '../common/Table';
-import { createColumnHelper } from '@tanstack/react-table';
+import { createColumnHelper, RowSelectionState } from '@tanstack/react-table';
 import { useExportSessionClients } from '../../hooks/useExport';
 import moment from 'moment';
 
@@ -53,9 +55,26 @@ const SessionDetails = () => {
   const [isRemovingClient, setIsRemovingClient] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
   const [opened, { open, close }] = useDisclosure(false);
+  const [
+    bulkAttendanceOpened,
+    { open: openBulkAttendance, close: closeBulkAttendance },
+  ] = useDisclosure(false);
+  const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
+
+  // Form for bulk attendance
+  type BulkAttendanceFormValues = {
+    sessionName: string;
+    attendanceDate: string;
+  };
+
+  const bulkAttendanceMethods = useForm<BulkAttendanceFormValues>();
+  const {
+    control: bulkControl,
+    handleSubmit: handleBulkSubmit,
+    reset,
+  } = bulkAttendanceMethods;
 
   const removeClientMutation = useRemoveClientFromSession();
-
   const createMakeupSessionMutation = useCreateMakeupSession();
   const createAttendedSessionMutation = useCreateAttendedSession();
   const createCancelledSessionMutation = useCreateCancelledSession();
@@ -63,7 +82,6 @@ const SessionDetails = () => {
   const [activeTab, setActiveTab] = useState<'overview' | 'clients'>(
     'overview'
   );
-  const [rowSelection, setRowSelection] = useState({});
 
   const {
     data: session,
@@ -72,6 +90,16 @@ const SessionDetails = () => {
     error: sessionErrorDetails,
     refetch: refetchSession,
   } = useGetSessionDetail(sessionId || '');
+
+  // Reset form when session data is loaded
+  useEffect(() => {
+    if (session) {
+      reset({
+        sessionName: (session as any).title || '',
+        attendanceDate: new Date().toISOString().split('T')[0],
+      });
+    }
+  }, [session, reset]);
 
   const { data: sessionAnalytics, isLoading: analyticsLoading } =
     useGetSessionAnalytics(sessionId || '');
@@ -85,13 +113,165 @@ const SessionDetails = () => {
   } = useGetSessionClients(sessionId || '');
 
   const getSelectedClientIds = useCallback(() => {
-    if (!clients) return [];
+    if (!clients || !rowSelection) return [];
 
-    return Object.keys(rowSelection).map((index) => {
-      const clientIndex = parseInt(index);
-      return clients[clientIndex].id;
-    });
+    return Object.entries(rowSelection)
+      .filter(([_, isSelected]) => isSelected === true)
+      .map(([rowId]) => {
+        const rowIndex = parseInt(rowId);
+        if (isNaN(rowIndex) || rowIndex < 0 || rowIndex >= clients.length) {
+          return null;
+        }
+        return clients[rowIndex]?.id ?? null;
+      })
+      .filter((id): id is number => id !== null);
   }, [rowSelection, clients]);
+
+  const bulkMarkAttendanceMutation = useBulkMarkAttendance();
+
+  const handleBulkAttendance = async () => {
+    const clientIds = getSelectedClientIds();
+    console.log('Selected client IDs:', clientIds);
+    console.log('Row selection state:', rowSelection);
+
+    if (!clientIds || clientIds.length === 0) {
+      notifications.show({
+        title: 'Error',
+        message: 'Please select at least one client from the table',
+        color: 'red',
+        autoClose: 3000,
+        icon: (
+          <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+            <img src={errorIcon} alt='Error' className='w-4 h-4' />
+          </span>
+        ),
+        withBorder: true,
+        position: 'top-right',
+        radius: 'md',
+      });
+      return;
+    }
+    openBulkAttendance();
+  };
+
+  // Helper function to get client names by IDs
+  const getClientNamesByIds = (ids: string[]): string => {
+    if (!clients || !ids.length) return '';
+
+    const clientNames = ids.map((id) => {
+      const client = clients.find((c: Client) => c.id.toString() === id);
+      return client
+        ? `${client.first_name} ${client.last_name}`
+        : `Client ${id}`;
+    });
+
+    return clientNames.join(', ');
+  };
+
+  const confirmBulkAttendance = async (data: { attendanceDate: string }) => {
+    const clientIds = getSelectedClientIds();
+
+    if (!clientIds || clientIds.length === 0) {
+      notifications.show({
+        title: 'Error',
+        message: 'No clients selected. Please select at least one client.',
+        color: 'red',
+        autoClose: 3000,
+        icon: (
+          <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+            <img src={errorIcon} alt='Error' className='w-4 h-4' />
+          </span>
+        ),
+        withBorder: true,
+        position: 'top-right',
+        radius: 'md',
+      });
+      return;
+    }
+
+    try {
+      const formattedDate = new Date(data.attendanceDate)
+        .toISOString()
+        .split('T')[0];
+
+      await bulkMarkAttendanceMutation.mutateAsync({
+        sessionId: currentSessionId,
+        clientIds,
+        date: formattedDate,
+      });
+
+      notifications.show({
+        title: 'Success',
+        message: `Successfully marked ${clientIds.length} client${
+          clientIds.length > 1 ? 's' : ''
+        } as attended`,
+        color: 'green',
+        autoClose: 3000,
+        icon: (
+          <span className='flex items-center justify-center w-6 h-6 rounded-full bg-green-200'>
+            <img src={successIcon} alt='Success' className='w-4 h-4' />
+          </span>
+        ),
+        withBorder: true,
+        position: 'top-right',
+        radius: 'md',
+      });
+
+      closeBulkAttendance();
+      setRowSelection({});
+      refetchClients();
+      refetchSession();
+    } catch (error: any) {
+      console.error('Error marking attendance:', error);
+
+      // Check if the error is about clients already marked as attended
+      if (
+        error.response?.data?.client_ids?.[0]?.includes(
+          'already marked as attended'
+        )
+      ) {
+        // Extract the list of client IDs from the error message
+        const match = error.response.data.client_ids[0].match(/\[(.*?)\]/);
+        const clientIdString = match ? match[1] : '';
+        const clientIds = clientIdString
+          .split(',')
+          .map((id: string) => id.trim());
+        const clientNames = getClientNamesByIds(clientIds);
+
+        notifications.show({
+          title: 'Already Attended',
+          message: `The following clients are already marked as attended: ${clientNames}`,
+          color: 'yellow',
+          autoClose: 5000,
+          icon: (
+            <span className='flex items-center justify-center w-6 h-6 rounded-full bg-yellow-200'>
+              <img src={errorIcon} alt='Warning' className='w-4 h-4' />
+            </span>
+          ),
+          withBorder: true,
+          position: 'top-right',
+          radius: 'md',
+        });
+      } else {
+        // Show generic error for other cases
+        notifications.show({
+          title: 'Error',
+          message:
+            error.message || 'Failed to mark attendance. Please try again.',
+          color: 'red',
+          autoClose: 5000,
+          icon: (
+            <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+              <img src={errorIcon} alt='Error' className='w-4 h-4' />
+            </span>
+          ),
+          withBorder: true,
+          position: 'top-right',
+          radius: 'md',
+        });
+      }
+    }
+  };
 
   const methods = useForm<MakeUpSession | AttendedSession | CancelledSession>();
 
@@ -610,6 +790,17 @@ const SessionDetails = () => {
                 </Menu.Target>
                 <Menu.Dropdown>
                   <Menu.Item
+                    color='#1D9B5E'
+                    className='text-sm'
+                    style={{ textAlign: 'center' }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleBulkAttendance();
+                    }}
+                  >
+                    Bulk Mark Attendance
+                  </Menu.Item>
+                  <Menu.Item
                     color='#162F3B'
                     className='text-sm'
                     style={{ textAlign: 'center' }}
@@ -647,7 +838,7 @@ const SessionDetails = () => {
                 </Menu.Target>
                 <Menu.Dropdown>
                   <Menu.Item
-                    color='green'
+                    color='#1D9B5E'
                     onClick={() => {
                       setSelectedClient(client);
                       setSelectedStatus('attended');
@@ -977,30 +1168,30 @@ const SessionDetails = () => {
               </div>
               <div className='flex space-x-16 mt-6'>
                 {analyticsLoading ? (
-                      <Loader color='#1D9B5E' size='md' />
-                  ) : (
-                    <>
-                      <div className='flex flex-col items-center text-center border bg-white rounded-xl p-6 space-y-4'>
-                        <p className='text-4xl'>
+                  <Loader color='#1D9B5E' size='md' />
+                ) : (
+                  <>
+                    <div className='flex flex-col items-center text-center border bg-white rounded-xl p-6 space-y-4'>
+                      <p className='text-4xl'>
                         {sessionAnalytics?.total_clients || 0}
-                          <span className='text-lg text-gray-500'>
+                        <span className='text-lg text-gray-500'>
                           /{session.spots || '∞'}
-                          </span>
-                        </p>
-                        <p className='text-sm'>Total Clients</p>
-                      </div>
+                        </span>
+                      </p>
+                      <p className='text-sm'>Total Clients</p>
+                    </div>
 
-                      <div className='flex items-center border bg-white py-6 px-10 rounded-xl'>
-                        <div className='flex flex-col text-center items-center rounded-xl space-y-4'>
-                          <p className='text-2xl font-semibold text-primary'>
+                    <div className='flex items-center border bg-white py-6 px-10 rounded-xl'>
+                      <div className='flex flex-col text-center items-center rounded-xl space-y-4'>
+                        <p className='text-2xl font-semibold text-primary'>
                           {sessionAnalytics?.average_attendance || 0}%
-                          </p>
-                          <p className='text-sm'>Average Attendance</p>
-                        </div>
+                        </p>
+                        <p className='text-sm'>Average Attendance</p>
                       </div>
-                    </>
-                  )}
-                </div>
+                    </div>
+                  </>
+                )}
+              </div>
               <div className='flex-1 mt-6'>
                 <div className=''>
                   <div className='flex space-x-4 mb-3'>
@@ -1220,6 +1411,105 @@ const SessionDetails = () => {
           </div>
         </div>
       </Modal>
+
+      {/* Bulk Attendance Confirmation Modal */}
+      <Modal
+        opened={bulkAttendanceOpened}
+        onClose={closeBulkAttendance}
+        title={
+          <Text fw={600} size='lg' color='#1D9B5E'>
+            Bulk Mark as Attended
+          </Text>
+        }
+        centered
+        radius='md'
+      >
+        <div className='space-y-4'>
+          <div className=''>
+            <div className='flex flex-col gap-4'>
+              <div className='flex flex-col w-full justify-start'>
+                <FormProvider {...bulkAttendanceMethods}>
+                  <form onSubmit={handleBulkSubmit(confirmBulkAttendance)}>
+                    <div className='space-y-4'>
+                      <Controller
+                        name='sessionName'
+                        control={bulkControl}
+                        render={({ field }) => (
+                          <Input
+                            {...field}
+                            label='Session Name'
+                            placeholder='Session Name'
+                            readOnly
+                            style={{
+                              backgroundColor: '#80808052',
+                              cursor: 'not-allowed',
+                            }}
+                            onFocus={(e) => e.target.blur()}
+                          />
+                        )}
+                      />
+
+                      <div className='max-h-40 overflow-y-auto border rounded p-2'>
+                        <Text size='sm' fw={500} className='mb-2'>
+                          Selected Clients ({getSelectedClientIds().length}):
+                        </Text>
+                        {getSelectedClientIds().map((clientId, index) => {
+                          const client = clients.find(
+                            (c: Client) => c.id === clientId
+                          );
+                          return client ? (
+                            <div
+                              key={clientId}
+                              className='flex items-center gap-2 py-1 px-2 hover:bg-gray-50 rounded'
+                            >
+                              <Text size='sm'>
+                                {index + 1}. {client.first_name}{' '}
+                                {client.last_name}
+                              </Text>
+                            </div>
+                          ) : null;
+                        })}
+                      </div>
+
+                      <Controller
+                        name='attendanceDate'
+                        control={bulkControl}
+                        rules={{ required: 'Attendance date is required' }}
+                        render={({ field }) => (
+                          <Input
+                            {...field}
+                            label='Date'
+                            placeholder='YYYY/MM/DD'
+                            type='date'
+                          />
+                        )}
+                      />
+
+                      <div className='flex justify-end space-x-3 pt-2'>
+                        <Button
+                          variant='subtle'
+                          onClick={closeBulkAttendance}
+                          color='gray'
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          type='submit'
+                          loading={bulkMarkAttendanceMutation.isPending}
+                          color='#1D9B5E'
+                        >
+                          Confirm
+                        </Button>
+                      </div>
+                    </div>
+                  </form>
+                </FormProvider>
+              </div>
+            </div>
+          </div>
+        </div>
+      </Modal>
+
       <Modal
         opened={exportModalOpened}
         onClose={closeExportModal}

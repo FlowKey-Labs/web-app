@@ -76,6 +76,7 @@ const END_POINTS = {
     SUBSKILLS: `${BASE_URL}/api/session/subskills/`,
     MAKEUP_SESSIONS: `${BASE_URL}/api/attendance/makeup-sessions/`,
     ATTENDED_SESSIONS: `${BASE_URL}/api/attendance/`,
+    BULK_ATTENDANCE: `${BASE_URL}/api/attendance/bulk_mark_attendance/`,
     CANCELLED_SESSIONS: `${BASE_URL}/api/attendance/cancelled/`,
     DELETE_SESSION: (id: string) => `${BASE_URL}/api/session/${id}/`,
   },
@@ -905,6 +906,19 @@ const deleteRole = async (id: string) => {
   return data;
 };
 
+// Bulk attendance API function
+const bulk_mark_attendance = (data: {
+  sessionId: number;
+  clientIds: number[];
+  date: string;
+}) => {
+  return api.post(END_POINTS.SESSION.BULK_ATTENDANCE, {
+    session: data.sessionId,
+    client_ids: data.clientIds,
+    date: data.date,
+  });
+};
+
 // Make up session API functions
 
 const getMakeupSessions = async () => {
@@ -1161,4 +1175,6 @@ export {
   getOutcomes,
   getLevelFeedback,
   get_calendar_sessions,
+  // bulk attendance
+  bulk_mark_attendance,
 };
