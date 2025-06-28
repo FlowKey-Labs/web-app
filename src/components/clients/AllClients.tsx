@@ -690,8 +690,8 @@ const AllClients = () => {
           opened={
             showEmptyState &&
             (activeView === 'clients'
-              ? data.items?.length === 0
-              : groupsData.items?.length === 0) &&
+              ? (data.items?.length === 0 || !data?.items)
+              : (groupsData.items?.length === 0 || !groupsData?.items)) &&
             !isLoadingCurrent
           }
           showButton={
