@@ -9,7 +9,7 @@ import {
   navigateToCalendar,
   navigateToProfile,
   navigateToSettings,
-  navigateToHome,
+  navigateToHome, navigateToAuditLogs,
 } from '../../utils/navigationHelpers';
 import { Role, useAuthStore } from '../../store/auth';
 import { useMemo, useState, useEffect } from 'react';
@@ -25,6 +25,7 @@ const navigationMap: NavigationMap = {
   staff: navigateToStaff,
   clients: navigateToClients,
   calendar: navigateToCalendar,
+  "audit logs": navigateToAuditLogs,
   profile: navigateToProfile,
   settings: navigateToSettings,
 };
@@ -36,12 +37,13 @@ interface SidebarProps {
 }
 
 const permissionMap: Record<string, keyof Role> = {
-  Staff: 'can_view_staff',
-  Clients: 'can_view_clients',
-  Sessions: 'can_view_sessions',
-  Calendar: 'can_view_calendar',
-  Profile: 'can_manage_profile',
-  Settings: 'can_manage_settings',
+  Staff: "can_view_staff",
+  Clients: "can_view_clients",
+  Sessions: "can_view_sessions",
+  Calendar: "can_view_calendar",
+  Profile: "can_manage_profile",
+  Settings: "can_manage_settings",
+  "Audit Logs": "can_view_audit_logs",
 };
 
 function filterMenuItemsByRole<T extends { name: string }>(
@@ -49,6 +51,11 @@ function filterMenuItemsByRole<T extends { name: string }>(
   role: Role
 ): T[] {
   return items.filter((item) => {
+    // Always show logout button
+    if (item.name === "Logout") {
+      return true;
+    }
+    
     const permissionKey = permissionMap[item.name];
     return permissionKey ? role[permissionKey] : true;
   });

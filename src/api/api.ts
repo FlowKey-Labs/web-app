@@ -12,6 +12,8 @@ import {
 import { CreateLocationData } from "../types/location";
 import { Role } from "../store/auth";
 import { Client } from "../types/clientTypes";
+import { BookingRequest } from '../types/clientTypes';
+import { BookingSettings } from '../types/bookingTypes';
 
 // Define a type for the session filters
 interface SessionFilters {
@@ -43,11 +45,13 @@ const END_POINTS = {
   },
   USER: {
     PROFILE: `${BASE_URL}/api/auth/profile/`,
+    PROFILE_UPDATE: `${BASE_URL}/api/auth/profile/update/`,
   },
   PROFILE: {
     BUSINESS_PROFILE: `${BASE_URL}/api/business/profile/`,
     SERVICES: `${BASE_URL}/api/business/services/`,
     LOCATIONS: `${BASE_URL}/api/business/locations/`,
+    AVAILABILITY: `${BASE_URL}/api/business/availability/`,
   },
   CLIENTS: {
     CLIENTS_DATA_LIST: (pageIndex?: number, pageSize?: number) =>
@@ -64,6 +68,26 @@ const END_POINTS = {
       `${BASE_URL}/api/client/groups/${id}/add_member/`,
     REMOVE_MEMBER: (id: string) =>
       `${BASE_URL}/api/client/groups/${id}/remove_member/`,
+  },
+  BOOKING: {
+    SETTINGS: `${BASE_URL}/api/booking/settings/`,
+    BOOKING_REQUESTS: (pageIndex?: number, pageSize?: number) =>
+      pageIndex
+        ? `${BASE_URL}/api/booking/manage/?page=${pageIndex}&page_size=${pageSize}`
+        : `${BASE_URL}/api/booking/manage/`,
+    APPROVE_REQUEST: (requestId: number) =>
+      `${BASE_URL}/api/booking/manage/${requestId}/`,
+    REJECT_REQUEST: (requestId: number) =>
+      `${BASE_URL}/api/booking/manage/${requestId}/`,
+    CONVERT_TO_REGULAR: (clientId: number) =>
+      `${BASE_URL}/api/booking/clients/${clientId}/convert-to-regular/`,
+    CONVERT_TO_BOOKING: (clientId: number) =>
+      `${BASE_URL}/api/booking/clients/${clientId}/convert-to-booking/`,
+    PROGRESS_FEEDBACK: (clientId: string, subcategoryId: string) =>
+      `${BASE_URL}/api/booking/progress-feedback/?client_id=${clientId}&subcategory_id=${subcategoryId}`,
+    NOTIFICATIONS: `${BASE_URL}/api/booking/notifications/`,
+    MARK_ALL_READ: `${BASE_URL}/api/booking/notifications/mark_all_read/`,
+    AUDIT_LOGS: `${BASE_URL}/api/booking/audit-logs/`,
   },
   STAFF: {
     STAFF_DATA: `${BASE_URL}/api/staff/`,
@@ -180,6 +204,17 @@ const get_user_profile = async () => {
   return data;
 };
 
+const update_user_profile = async (updateData: {
+  timezone?: string;
+  first_name?: string;
+  last_name?: string;
+  mobile_number?: string;
+  email?: string;
+}) => {
+  const { data } = await api.patch(END_POINTS.USER.PROFILE, updateData);
+  return data;
+};
+
 const business_profile = async (profileData: {
   business_type: string;
   team_size: number;
@@ -207,6 +242,7 @@ const update_business_profile = async (
     contact_phone?: string;
     address?: string;
     about?: string;
+    timezone?: string;
   }
 ) => {
   const { data } = await api.patch(
@@ -224,7 +260,7 @@ const searchCities = async (query: string) => {
       key: GOOGLE_API_KEY,
     },
   });
-  return data.predictions.map((prediction: any) => ({
+  return data.predictions.map((prediction: { description: string; place_id: string }) => ({
     label: prediction.description,
     value: prediction.place_id,
   }));
@@ -237,11 +273,18 @@ const get_business_services = async () => {
 
 const get_clients = async (
   pageIndex?: number,
-  pageSize?: number
+  pageSize?: number,
+  searchQuery?: string
 ): Promise<PaginatedResponse<Client>> => {
-  const { data } = await api.get<PaginatedResponse<Client>>(
-    END_POINTS.CLIENTS.CLIENTS_DATA_LIST(pageIndex, pageSize)
-  );
+  let url = END_POINTS.CLIENTS.CLIENTS_DATA_LIST(pageIndex, pageSize);
+  
+  // Add search query if provided
+  if (searchQuery && searchQuery.trim()) {
+    const separator = url.includes('?') ? '&' : '?';
+    url += `${separator}search=${encodeURIComponent(searchQuery.trim())}`;
+  }
+  
+  const { data } = await api.get<PaginatedResponse<Client>>(url);
   return data;
 };
 
@@ -421,7 +464,7 @@ const get_class_sessions = async () => {
 
 const get_staff_sessions = async (id: string) => {
   const { data } = await api.get(END_POINTS.SESSION.STAFF_SESSIONS(id));
-  return data;
+  return data.sessions || [];
 };
 
 const get_session_detail = async (id: string) => {
@@ -904,6 +947,7 @@ const createAttendedSession = async (attendedSessionData: AttendedSession) => {
   );
   return data;
 };
+
 // Progress tracker API functions
 
 const getSeries = async () => {
@@ -1013,6 +1057,397 @@ const getLevelFeedback = async (clientId: string, subcategory_id: string) => {
   return data;
 };
 
+// Booking Requests API Functions
+const get_booking_requests = async (
+  pageIndex?: number,
+  pageSize?: number,
+  searchQuery?: string
+): Promise<PaginatedResponse<BookingRequest>> => {
+  let url = END_POINTS.BOOKING.BOOKING_REQUESTS(pageIndex, pageSize);
+  
+  // Add search query if provided
+  if (searchQuery && searchQuery.trim()) {
+    const separator = url.includes('?') ? '&' : '?';
+    url += `${separator}search=${encodeURIComponent(searchQuery.trim())}`;
+  }
+  
+  const { data } = await api.get(url);
+  // The backend returns { bookings: [...], total_count: N }
+  return {
+    items: data.bookings || [],
+    total: data.total_count || 0,
+    page: pageIndex,
+    pageSize: pageSize,
+    totalPages: pageSize ? Math.ceil((data.total_count || 0) / pageSize) : undefined,
+  };
+};
+
+const approve_booking_request = async (requestId: number) => {
+  const { data } = await api.patch(END_POINTS.BOOKING.APPROVE_REQUEST(requestId), {
+    action: 'approve'
+  });
+  return data;
+};
+
+const reject_booking_request = async (requestId: number, reason?: string) => {
+  const { data } = await api.patch(END_POINTS.BOOKING.REJECT_REQUEST(requestId), {
+    action: 'reject',
+    reason: reason || ''
+  });
+  return data;
+};
+
+const convert_client_to_regular = async (clientId: number) => {
+  const { data } = await api.post(END_POINTS.BOOKING.CONVERT_TO_REGULAR(clientId));
+  return data;
+};
+
+const convert_client_to_booking = async (clientId: number) => {
+  const { data } = await api.post(END_POINTS.BOOKING.CONVERT_TO_BOOKING(clientId));
+  return data;
+};
+
+const get_progress_feedback = async (clientId: string, subcategoryId: string) => {
+  const { data } = await api.get(END_POINTS.BOOKING.PROGRESS_FEEDBACK(clientId, subcategoryId));
+  return data;
+};
+
+const cancel_booking_request = async (requestId: number, reason?: string) => {
+  const { data } = await api.patch(END_POINTS.BOOKING.APPROVE_REQUEST(requestId), {
+    action: 'cancel',
+    reason: reason || ''
+  });
+  return data;
+};
+
+// Updated interfaces for exceptions
+interface Exception {
+  date: string;
+  reason?: string;
+  isAllDay: boolean;
+  timeSlots?: Array<{ start: string; end: string }>;
+}
+
+// Availability API Functions
+const get_availability = async () => {
+  try {
+    const { data } = await api.get(END_POINTS.PROFILE.AVAILABILITY);
+    return data;
+  } catch (error) {
+    // Handle 404 gracefully - user might not have availability setup yet
+    if ((error as { response?: { status?: number } })?.response?.status === 404) {
+      console.log('No availability found for user, returning null');
+      return null;
+    }
+    throw error;
+  }
+};
+
+const create_availability = async (availabilityData: {
+  schedule?: Record<string, {
+    isOpen: boolean;
+    shifts: Array<{ start: string; end: string }>;
+  }>;
+  working_hours?: Record<string, Array<{ start: string; end: string }>>;
+  open_days?: string[];
+  exceptions?: Exception[];
+  appointment_duration?: number;
+}) => {
+  const { data } = await api.post(END_POINTS.PROFILE.AVAILABILITY, availabilityData);
+  return data;
+};
+
+const update_availability = async (availabilityData: {
+  schedule?: Record<string, {
+    isOpen: boolean;
+    shifts: Array<{ start: string; end: string }>;
+  }>;
+  working_hours?: Record<string, Array<{ start: string; end: string }>>;
+  open_days?: string[];
+  exceptions?: Exception[];
+  appointment_duration?: number;
+}) => {
+  const { data } = await api.put(END_POINTS.PROFILE.AVAILABILITY, availabilityData);
+  return data;
+};
+
+const partial_update_availability = async (availabilityData: {
+  schedule?: Record<string, {
+    isOpen: boolean;
+    shifts: Array<{ start: string; end: string }>;
+  }>;
+  working_hours?: Record<string, Array<{ start: string; end: string }>>;
+  open_days?: string[];
+  exceptions?: Exception[];
+  appointment_duration?: number;
+}) => {
+  console.log('🌐 partial_update_availability called with data:', availabilityData);
+  console.log('🌐 Exceptions in API request:', availabilityData.exceptions);
+  
+  try {
+    const { data } = await api.patch(END_POINTS.PROFILE.AVAILABILITY, availabilityData);
+    console.log('🌐 partial_update_availability response:', data);
+    console.log('🌐 Exceptions in API response:', data.exceptions);
+    return data;
+  } catch (error) {
+    console.error('🌐 partial_update_availability error:', error);
+    console.error('🌐 Error response:', (error as { response?: { data?: unknown } })?.response?.data);
+    throw error;
+  }
+};
+
+// Mark all notifications as read
+const mark_all_notifications_as_read = async () => {
+  const { data } = await api.post(END_POINTS.BOOKING.MARK_ALL_READ);
+  return data;
+};
+
+// Booking Settings API Functions
+const get_booking_settings = async () => {
+  const { data } = await api.get(END_POINTS.BOOKING.SETTINGS);
+  return data;
+};
+
+const update_booking_settings = async (settingsData: Partial<BookingSettings>) => {
+  const { data } = await api.patch(END_POINTS.BOOKING.SETTINGS, settingsData);
+  return data;
+};
+
+// Booking Notifications API Functions
+const get_booking_notifications = async () => {
+  const { data } = await api.get(END_POINTS.BOOKING.NOTIFICATIONS);
+  return data;
+};
+
+const mark_notification_as_read = async (notificationId: number) => {
+  const { data } = await api.patch(`${END_POINTS.BOOKING.NOTIFICATIONS}${notificationId}/`, {
+    is_read: true
+  });
+  return data;
+};
+
+// Booking Audit Logs API Functions
+const get_booking_audit_logs = async () => {
+  const { data } = await api.get(END_POINTS.BOOKING.AUDIT_LOGS);
+  return data;
+};
+
+// ========================================
+// PUBLIC BOOKING API ENDPOINTS
+// ========================================
+
+// Public business information for booking page
+const get_public_business_info = async (businessSlug: string) => {
+  const { data } = await api.get(`/api/booking/${businessSlug}/info/`);
+  return data;
+};
+
+// Public business services/categories
+const get_public_business_services = async (businessSlug: string) => {
+  const { data } = await api.get(`/api/booking/${businessSlug}/services/`);
+  return data;
+};
+
+// Get availability slots for a service on a specific date
+const getAvailableSlots = async (
+  businessSlug: string,
+  serviceId: string,
+  date: string
+) => {
+  const { data } = await api.get(`/api/booking/${businessSlug}/availability/`, {
+    params: {
+      category_id: serviceId,
+      start_date: date,
+      end_date: date,
+    },
+  });
+  return data;
+};
+
+// Get availability slots for a service
+const get_public_availability = async (
+  businessSlug: string,
+  categoryId: number | null,
+  startDate: string,
+  endDate: string
+) => {
+  console.log('🌐 DEBUG: get_public_availability API function called with:', {
+    businessSlug,
+    categoryId,
+    startDate,
+    endDate
+  });
+
+  const params: { start_date: string; end_date: string; category_id?: number } = {
+    start_date: startDate,
+    end_date: endDate,
+  };
+  
+  // Only add category_id if it's not null
+  if (categoryId !== null && categoryId > 0) {
+    params.category_id = categoryId;
+  }
+
+  console.log('🔧 DEBUG: API request params being sent:', params);
+  console.log('🔗 DEBUG: API endpoint:', `/api/booking/${businessSlug}/availability/`);
+
+  try {
+    const { data } = await api.get(`/api/booking/${businessSlug}/availability/`, {
+      params,
+    });
+    
+    console.log('📦 DEBUG: Raw API response received:', data);
+    console.log('📊 DEBUG: Response slots array:', data?.slots);
+    console.log('📈 DEBUG: Response slots count:', data?.slots?.length || 0);
+    
+    return data;
+  } catch (error: unknown) {
+    console.error('🚨 DEBUG: API request failed:', error);
+    if (error && typeof error === 'object' && 'response' in error) {
+      const axiosError = error as { response: { status: number; data: unknown } };
+      console.error('🚨 DEBUG: Error response status:', axiosError.response.status);
+      console.error('🚨 DEBUG: Error response data:', axiosError.response.data);
+    }
+    throw error;
+  }
+};
+
+// Create public booking
+const create_public_booking = async (
+  businessSlug: string,
+  bookingData: {
+    session_id: number;
+    client_name: string;
+    client_email: string;
+    client_phone: string;
+    notes?: string;
+    quantity?: number;
+    is_group_booking?: boolean;
+    group_booking_notes?: string;
+    client_timezone?: string;
+    business_timezone?: string;
+    selected_staff_id?: number;
+    selected_location_id?: number;
+  }
+) => {
+  const { data } = await api.post(`/api/booking/${businessSlug}/book/`, bookingData);
+  return data;
+};
+
+// Get booking status by reference
+const get_booking_status = async (bookingReference: string) => {
+  const { data } = await api.get(`/api/booking/status/${bookingReference}/`);
+  return data;
+};
+
+// Client self-service: Get booking info
+const get_client_booking_info = async (bookingReference: string) => {
+  const { data } = await api.get(`/api/booking/client/${bookingReference}/`);
+  return data;
+};
+
+// Client self-service: Cancel booking
+const cancel_client_booking = async (
+  bookingReference: string,
+  reason?: string,
+  client_email?: string,
+  client_phone?: string
+) => {
+  const payload: any = {};
+  
+  if (reason) payload.reason = reason;
+  if (client_email) payload.client_email = client_email;
+  if (client_phone) payload.client_phone = client_phone;
+  
+  const { data } = await api.post(`/api/booking/client/${bookingReference}/cancel/`, payload);
+  return data;
+};
+
+// Client self-service: Get reschedule options
+const get_client_reschedule_options = async (
+  bookingReference: string,
+  dateFrom?: string,
+  dateTo?: string,
+  filterType?: string
+) => {
+  const params: Record<string, string> = {};
+  if (dateFrom) params.date_from = dateFrom;
+  if (dateTo) params.date_to = dateTo;
+  if (filterType) params.filter_type = filterType;
+  
+  const { data } = await api.get(
+    `/api/booking/client/${bookingReference}/reschedule-options/`,
+    { params }
+  );
+  return data;
+};
+
+// Client self-service: Reschedule booking
+const reschedule_client_booking = async (
+  bookingReference: string,
+  newSessionId: number,
+  newDate?: string,
+  newStartTime?: string,
+  newEndTime?: string,
+  identityVerification?: {
+    email?: string;
+    phone?: string;
+  },
+  reason?: string
+) => {
+  const payload: any = {
+    new_session_id: newSessionId,
+  };
+  
+  if (newDate) payload.new_date = newDate;
+  if (newStartTime) payload.new_start_time = newStartTime;
+  if (newEndTime) payload.new_end_time = newEndTime;
+  
+  if (identityVerification) {
+    payload.identity_verification = identityVerification;
+  }
+  
+  if (reason) {
+    payload.reason = reason;
+  }
+  
+  const { data } = await api.post(`/api/booking/client/${bookingReference}/reschedule/`, payload);
+  return data;
+};
+
+// Get available staff for flexible booking
+const get_public_available_staff = async (businessSlug: string, params: {
+  session_id: number;
+  date?: string;
+}) => {
+  const searchParams = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null) {
+      searchParams.append(key, value.toString());
+    }
+  });
+  
+  const { data } = await api.get(`/api/booking/${businessSlug}/available-staff/?${searchParams.toString()}`);
+  return data;
+};
+
+// Get available locations for flexible booking
+const get_public_available_locations = async (businessSlug: string, params: {
+  session_id: number;
+  staff_id?: number;
+  date?: string;
+}) => {
+  const searchParams = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null) {
+      searchParams.append(key, value.toString());
+    }
+  });
+  
+  const { data } = await api.get(`/api/booking/${businessSlug}/available-locations/?${searchParams.toString()}`);
+  return data;
+};
+
 export {
   END_POINTS,
   registerUser,
@@ -1039,6 +1474,7 @@ export {
   create_staff,
   create_session,
   get_user_profile,
+  update_user_profile,
   get_analytics,
   get_upcoming_sessions,
   cancel_session,
@@ -1114,4 +1550,39 @@ export {
   getOutcomes,
   getLevelFeedback,
   get_calendar_sessions,
+  // Booking exports
+  get_booking_requests,
+  approve_booking_request,
+  reject_booking_request,
+  cancel_booking_request,
+  convert_client_to_regular,
+  convert_client_to_booking,
+  get_progress_feedback,
+  // Booking Settings exports
+  get_booking_settings,
+  update_booking_settings,
+  // Booking Notifications exports
+  get_booking_notifications,
+  mark_notification_as_read,
+  // Booking Audit Logs exports
+  get_booking_audit_logs,
+  // Availability exports
+  get_availability,
+  create_availability,
+  update_availability,
+  partial_update_availability,
+  mark_all_notifications_as_read,
+  // Public Booking exports
+  get_public_business_info,
+  get_public_business_services,
+  getAvailableSlots,
+  get_public_availability,
+  create_public_booking,
+  get_booking_status,
+  get_client_booking_info,
+  cancel_client_booking,
+  get_client_reschedule_options,
+  reschedule_client_booking,
+  get_public_available_staff,
+  get_public_available_locations,
 };

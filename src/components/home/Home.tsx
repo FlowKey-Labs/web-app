@@ -6,7 +6,12 @@ import { GlobalDrawerManager } from '../drawers';
 const Home = () => {
   const location = useLocation();
   const path = location.pathname.split('/')[1];
-  const activeSection = path === '' ? 'dashboard' : path;
+  let activeSection = path === '' ? 'dashboard' : path;
+  
+  if (activeSection === 'audit-logs') {
+    activeSection = 'audit logs';
+  }
+  
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
@@ -40,7 +45,7 @@ const Home = () => {
   };
 
   return (
-    <div className='flex min-h-screen bg-[#F8F9FA]'>
+    <div className='flex min-h-screen bg-[#F8F9FA] overflow-hidden'>
       <div className='flex w-full relative'>
         {isMobile && (
           <button
@@ -85,9 +90,8 @@ const Home = () => {
           onClose={closeSidebar}
         />
 
-        <div
-          className={`
-          flex-grow overflow-auto transition-all duration-300 ease-in-out min-h-screen
+        <div className={`
+          flex-grow transition-all duration-300 ease-in-out h-screen overflow-auto
           ${isMobile ? 'w-full' : 'ml-0'}
         `}
         >

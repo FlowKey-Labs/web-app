@@ -24,7 +24,7 @@ interface ButtonProps extends Omit<MantineButtonProps, 'children'> {
 const Button = ({
   children,
   variant = 'filled',
-  color = 'blue',
+  color = '#1D9B5E',
   size = 'md',
   radius = 'sm',
   loading = false,

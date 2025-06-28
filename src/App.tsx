@@ -39,8 +39,16 @@ import SetPassword from './components/authentication/SetPassword';
 import { useAuthStore } from './store/auth';
 import GroupDetails from './components/clients/GroupDetails';
 import AuthWrapper from './components/common/AuthWrapper';
+import BookingRequestDetails from './components/clients/BookingRequestDetails';
+import AuditLogs from './components/auditLogs/AuditLogs';
 import './App.css';
 import FlowkeyLandingPage from './pages/FlowkeyLandingPage';
+import PublicBookingPage from './pages/PublicBookingPage';
+
+import BookingCancel from './pages/booking/BookingCancel';
+import BookingManage from './pages/booking/BookingManage';
+import { BookingCancelled, BookingRescheduled } from './pages/booking/BookingSuccess';
+import { TimezoneProvider } from './contexts/TimezoneContext';
 
 function App() {
   const permisions = useAuthStore((state) => state.role);
@@ -54,10 +62,61 @@ function App() {
       <Notifications position='top-right' />
       <QueryClientProvider client={queryClient}>
         <ReactQueryDevtools initialIsOpen={false} />
-        <Router>
+        <TimezoneProvider>
+          <Router>
           <Routes>
             {/* Authentication Routes - No authentication required */}
             <Route path='/' element={<FlowkeyLandingPage />} />
+            
+            {/* Public Booking Route - No authentication required */}
+            <Route
+              path='/book/:businessSlug'
+              element={
+                <AuthWrapper requireAuth={false} allowPublicAccess={true}>
+                  <PublicBookingPage />
+                </AuthWrapper>
+              }
+            />
+            
+            {/* Public Booking Management Routes - No authentication required */}
+            <Route
+              path='/booking/cancel/:bookingReference'
+              element={
+                <AuthWrapper requireAuth={false} allowPublicAccess={true}>
+                  <BookingCancel />
+                </AuthWrapper>
+              }
+            />
+            
+            <Route
+              path='/booking/manage/:bookingReference'
+              element={
+                <AuthWrapper requireAuth={false} allowPublicAccess={true}>
+                  <BookingManage />
+                </AuthWrapper>
+              }
+            />
+            
+            <Route
+              path='/booking/cancelled'
+              element={
+                <AuthWrapper requireAuth={false} allowPublicAccess={true}>
+                  <BookingCancelled />
+                </AuthWrapper>
+              }
+            />
+            
+            <Route
+              path='/booking/rescheduled'
+              element={
+                <AuthWrapper requireAuth={false} allowPublicAccess={true}>
+                  <BookingRescheduled />
+                </AuthWrapper>
+              }
+            />
+            
+
+            
             <Route
               path='/login'
               element={
@@ -157,6 +216,7 @@ function App() {
                   <Route path='clients' element={<AllClients />} />
                   <Route path='groups/:id' element={<GroupDetails />} />
                   <Route path='clients/:id' element={<ClientDetails />} />
+                  <Route path='booking-requests/:id' element={<BookingRequestDetails />} />
                 </>
               )}
               {permisions?.can_manage_profile && (
@@ -164,6 +224,11 @@ function App() {
               )}
               {permisions?.can_manage_settings && (
                 <Route path='settings' element={<Settings />} />
+              )}
+
+              {/* Audit Logs route - Permission-based access */}
+              {permisions?.can_view_audit_logs && (
+                <Route path='audit-logs' element={<AuditLogs />} />
               )}
 
               {/* Catch-all route for authenticated users */}
@@ -174,6 +239,7 @@ function App() {
             <Route path='*' element={<Navigate to='/login' replace />} />
           </Routes>
         </Router>
+        </TimezoneProvider>
       </QueryClientProvider>
     </MantineProvider>
   );
