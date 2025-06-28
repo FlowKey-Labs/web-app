@@ -28,12 +28,20 @@ export interface Attendance {
     first_name: string;
     last_name: string;
     email: string;
-  };
+  } | null;
   session: number;
   attended: boolean;
   status: AttendanceStatus;
   status_display: string;
   timestamp: string;
+  session_title?: string;
+  client_name?: string;
+  booking_reference?: string;
+  participant_name?: string;
+  participant_type?: 'client' | 'booking';
+  participant_email?: string;
+  participant_phone?: string;
+  display_status?: string;
 }
 
 export interface SessionUser {
@@ -61,13 +69,15 @@ export interface CreateSessionData {
   title: string;
   session_type: SessionType;
   class_type: ClassType;
-  staff: number;
+  staff?: number;
+  staff_ids?: number[];
   date: string;
   start_time: string;
   end_time: string;
   spots: number;
   category: number;
   location_id?: number;
+  location_ids?: number[];
   is_active?: boolean;
   client_ids?: number[];
   policy_ids?: number[];
@@ -82,20 +92,39 @@ export interface CreateSessionData {
   repeat_end_type?: EndType;
   repeat_end_date?: string;
   repeat_occurrences?: number | null;
+  
+  // Flexible booking fields
+  allow_staff_selection?: boolean;
+  allow_location_selection?: boolean;
+  require_staff_confirmation?: boolean;
+  staff_confirmation_timeout_hours?: number;
+  auto_assign_when_single_option?: boolean;
 }
 
 export interface Session
-  extends Omit<CreateSessionData, "category" | "client_ids" | "location_id"> {
+  extends Omit<CreateSessionData, "category" | "client_ids" | "location_id" | "location_ids"> {
   id: number;
   assigned_staff: AssignedStaff | null;
   category: Category;
   location?: Location;
+  locations?: Location[]; // For multiple locations
+  available_staff?: AssignedStaff[]; // Staff available for flexible booking
+  available_locations?: Location[]; // Locations available for flexible booking
   attendances?: Attendance[];
+  booking_requests?: BookingRequest[];
+  total_participants?: TotalParticipants;
   policies?: Policy[];
   policy_ids?: number[];
   _frontend_start_time?: string;
   _frontend_end_time?: string;
   client_ids?: number[];
+  
+  // Flexible booking fields 
+  allow_staff_selection?: boolean;
+  allow_location_selection?: boolean;
+  require_staff_confirmation?: boolean;
+  staff_confirmation_timeout_hours?: number;
+  auto_assign_when_single_option?: boolean;
 }
 
 export interface SessionTableData {
@@ -176,6 +205,28 @@ export interface ProgressFeedback {
   attachment: File;
 }
 
+export interface BookingRequest {
+  id: number;
+  booking_reference: string;
+  client_name: string;
+  client_email: string;
+  client_phone: string;
+  status: 'pending' | 'approved' | 'rejected' | 'expired' | 'cancelled';
+  quantity: number;
+  is_group_booking: boolean;
+  created_at: string;
+  approved_at: string | null;
+  approved_by: string | null;
+}
+
+export interface TotalParticipants {
+  attendance_count: number;
+  booking_count: number;
+  total: number;
+  capacity: number;
+  available: number;
+}
+
 /**
  * Extended Session type used specifically for calendar event generation
  * This type includes all fields needed for proper recurrence handling
@@ -188,6 +239,10 @@ export interface CalendarSessionType extends Omit<Session, "repeat_end_date"> {
   repeat_every?: number;
   repeat_unit?: RepeatUnit;
   repeat_occurrences?: number | null;
+  
+  // Booking-related fields for calendar display
+  booking_requests?: BookingRequest[];
+  total_participants?: TotalParticipants;
 
   // Allow for any additional properties coming from the backend
   [key: string]: unknown;
