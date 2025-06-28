@@ -63,6 +63,30 @@ const AllClients = () => {
 
   const permisions = useAuthStore((state) => state.role);
 
+  const [clientsPageSize, setClientsPageSize] = useState(() => {
+    const savedPageSize = sessionStorage.getItem('clientsPageSize');
+    const size = savedPageSize ? parseInt(savedPageSize, 10) : 10;
+    return [10, 25, 50, 100].includes(size) ? size : 10;
+  });
+
+  const [groupsPageSize, setGroupsPageSize] = useState(() => {
+    const savedPageSize = sessionStorage.getItem('groupsPageSize');
+    const size = savedPageSize ? parseInt(savedPageSize, 10) : 10;
+    return [10, 25, 50, 100].includes(size) ? size : 10;
+  });
+
+  const handleClientsPageSizeChange = useCallback((newSize: number) => {
+    setClientsPageSize(newSize);
+    setPageIndex(1);
+    sessionStorage.setItem('clientsPageSize', newSize.toString());
+  }, []);
+
+  const handleGroupsPageSizeChange = useCallback((newSize: number) => {
+    setGroupsPageSize(newSize);
+    setPageIndex(1);
+    sessionStorage.setItem('groupsPageSize', newSize.toString());
+  }, []);
+
   const {
     data = {
       items: [],
@@ -75,12 +99,15 @@ const AllClients = () => {
     isError,
     error,
     refetch,
-  } = useGetClients(pageIndex, 10, debouncedSearchQuery);
+  } = useGetClients(
+    pageIndex,
+    activeView === 'clients' ? clientsPageSize : groupsPageSize,
+    debouncedSearchQuery
+  );
 
   const AllClientsData = useMemo(() => data?.items || [], [data]);
 
   useEffect(() => {
-    // Reset to first page when search query changes
     setPageIndex(1);
   }, [debouncedSearchQuery]);
 
@@ -96,7 +123,11 @@ const AllClients = () => {
     isError: groupsError,
     error: getGroupsError,
     refetch: refetchGroups,
-  } = useGetGroups(pageIndex, 10, debouncedSearchQuery);
+  } = useGetGroups(
+    pageIndex,
+    activeView === 'groups' ? groupsPageSize : clientsPageSize,
+    debouncedSearchQuery
+  );
 
   const clients = activeView === 'clients' ? data.items || [] : [];
   const groups = activeView === 'groups' ? groupsData.items || [] : [];
@@ -110,6 +141,7 @@ const AllClients = () => {
     setActiveView(view);
     setSearchQuery('');
     setRowSelection({});
+    setPageIndex(1);
   }, []);
 
   const getSelectedIds = useCallback((): number[] => {
@@ -708,7 +740,8 @@ const AllClients = () => {
                   rowSelection={rowSelection}
                   onRowSelectionChange={setRowSelection}
                   className='mt-4'
-                  pageSize={10}
+                  pageSize={clientsPageSize}
+                  onPageSizeChange={handleClientsPageSizeChange}
                   onRowClick={(row: Client) => {
                     navigateToClientDetails(navigate, row.id.toString());
                   }}
@@ -734,7 +767,8 @@ const AllClients = () => {
                   rowSelection={rowSelection}
                   onRowSelectionChange={setRowSelection}
                   className='mt-4'
-                  pageSize={10}
+                  pageSize={groupsPageSize}
+                  onPageSizeChange={handleGroupsPageSizeChange}
                   onRowClick={(row: GroupData) => {
                     if (row.id) {
                       navigateToGroupDetails(navigate, row.id.toString());

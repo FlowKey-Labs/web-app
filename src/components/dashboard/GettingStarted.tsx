@@ -150,7 +150,7 @@ const GettingStarted = () => {
     <ErrorBoundary>
       <div className='flex flex-col h-screen bg-cardsBg w-full overflow-y-auto'>
         <div className='bg-white border-b border-gray-100 shadow-sm'>
-          <Header />
+          <Header showSearch={false} />
         </div>
 
         <div className='flex-1'>
