@@ -1528,6 +1528,11 @@ export const useBulkMarkAttendance = () => {
       queryClient.invalidateQueries({
         queryKey: ['sessions'],
       });
+      
+      // Invalidate attended sessions to refresh the client's attendance data
+      queryClient.invalidateQueries({
+        queryKey: ['attended_sessions'],
+      });
 
       // Force a full refetch of the data
       queryClient.refetchQueries({
