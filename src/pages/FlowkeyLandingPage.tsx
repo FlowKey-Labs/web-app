@@ -21,15 +21,9 @@ import whiteCurve from '../assets/landingpageAssets/Icons/whiteCurve.svg';
 import storyLocal from '../assets/landingpageAssets/Icons/storyLocal.svg';
 import storyDesign from '../assets/landingpageAssets/Icons/storyDesign.svg';
 import storySupport from '../assets/landingpageAssets/Icons/storySupport.svg';
-import email from '../assets/landingpageAssets/Icons/email.svg';
-import facebook from '../assets/landingpageAssets/Icons/facebook.svg';
-import twitter from '../assets/landingpageAssets/Icons/twitter.svg';
-import linkedin from '../assets/landingpageAssets/Icons/linkedin.svg';
-import instagram from '../assets/landingpageAssets/Icons/instagram.svg';
 import arrowRight from '../assets/landingpageAssets/Icons/arrowRight.svg';
 
 import headerImage from '../assets/landingpageAssets/images/Hero Section.png';
-import footerImage from '../assets/landingpageAssets/images/Footer.png';
 import DemoBookingForm, {
   BookingFormData,
 } from '../components/freeDemo/demoBookingform';

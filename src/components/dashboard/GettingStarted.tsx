@@ -33,6 +33,7 @@ import { DonutChart } from '@mantine/charts';
 import { format } from 'date-fns';
 import { Client } from '../../types/clientTypes';
 import { Progress, Skeleton } from '@mantine/core';
+import { formatToEATTime } from '../../utils/formatTo12Hour';
 
 const columnHelper = createColumnHelper<Client>();
 
@@ -103,37 +104,6 @@ const GettingStarted = () => {
   const handleTimeRangeSelect = (range: string) => {
     setSelectedTimeRange(range);
     setDropdownOpen(false);
-  };
-
-  const formatTo12Hour = (isoDateTimeStr: string | null) => {
-    if (!isoDateTimeStr || typeof isoDateTimeStr !== 'string')
-      return isoDateTimeStr === null ? '-' : isoDateTimeStr;
-
-    try {
-      let formattedTimeStr = isoDateTimeStr;
-      if (!isoDateTimeStr.includes('T')) {
-        formattedTimeStr = `2025-01-01T${isoDateTimeStr}`;
-      }
-
-      const timePart = formattedTimeStr.split('T')[1];
-      if (!timePart) {
-        return isoDateTimeStr;
-      }
-
-      const timeComponents = timePart.split(':');
-      let hours = parseInt(timeComponents[0], 10);
-      const minutes = timeComponents[1].padStart(2, '0');
-
-      const ampm = hours >= 12 ? 'PM' : 'AM';
-
-      hours = hours % 12;
-      hours = hours ? hours : 12;
-
-      return `${hours}:${minutes} ${ampm}`;
-    } catch (e) {
-      console.error('Error formatting time:', isoDateTimeStr, e);
-      return isoDateTimeStr;
-    }
   };
 
   const formatNumber = (num: number | undefined): string => {
@@ -496,8 +466,8 @@ const GettingStarted = () => {
                         >
                           <div className='flex justify-between sm:block sm:w-20 sm:text-center'>
                             <p className='text-xs font-semibold text-gray-900'>
-                              {formatTo12Hour(session?.start_time)} -{' '}
-                              {formatTo12Hour(session?.end_time)}
+                              {formatToEATTime(session?.start_time)} -{' '}
+                              {formatToEATTime(session?.end_time)}
                             </p>
                             <p className='text-sm text-gray-600 sm:hidden'>
                               {session?.date

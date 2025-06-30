@@ -1,17 +1,12 @@
 import React from 'react';
 import { EventImpl } from '@fullcalendar/core/internal';
+import { Attendance as AttendanceType } from '../../types/sessionTypes';
 
 interface ClientData {
+  id?: number;
   first_name?: string;
   last_name?: string;
-  [key: string]: any;
-}
-
-interface Attendance {
-  id?: number;
-  client?: ClientData;
-  attendee?: ClientData;
-  status?: string;
+  email?: string;
   [key: string]: any;
 }
 
@@ -19,7 +14,7 @@ interface SessionData {
   id?: number;
   date?: string;
   spots?: number;
-  attendances?: Attendance[];
+  attendances?: AttendanceType[];
   clients?: ClientData[];
   client_ids?: number[];
   [key: string]: any;
@@ -44,7 +39,6 @@ export const EventTooltip: React.FC<EventTooltipProps> = ({ event }) => {
 
   const totalSpots = session.spots || 0;
 
-
   let allClients: Array<{ first_name: string; last_name: string }> = [];
 
   if (Array.isArray(session.attendances)) {
@@ -54,21 +48,14 @@ export const EventTooltip: React.FC<EventTooltipProps> = ({ event }) => {
       .filter((att) => {
         if (!att) return false;
 
-        // Check if we have a client_name
-        const hasClientName = !!att.client_name;
+        // Check if we have a client object with name
+        const hasClient = !!att.client?.first_name || !!att.client?.last_name;
 
-        if (!hasClientName) {
-          console.log('No client_name found in attendance:', att);
-        }
-
-        return hasClientName;
+        return hasClient;
       })
       .map((att) => {
-        const fullName = att.client_name || 'Unknown Client';
-        const [firstName, ...lastNameParts] = fullName.trim().split(' ');
-        const lastName = lastNameParts.join(' ') || 'Client';
-
-        console.log('Processing client:', { fullName, firstName, lastName });
+        const firstName = att.client?.first_name || 'Unknown';
+        const lastName = att.client?.last_name || 'Client';
 
         return {
           first_name: firstName,

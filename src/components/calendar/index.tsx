@@ -213,18 +213,7 @@ const CalendarView = () => {
     (eventInfo: {
       timeText: string;
       event: EventImpl & {
-        extendedProps: {
-          session: {
-            date: string;
-            spots?: number;
-            attendances?: Array<{
-              client: {
-                first_name: string;
-                last_name: string;
-              };
-            }>;
-          };
-        };
+        extendedProps: { session: CalendarSessionType };
         title: string;
         start: Date;
       };
@@ -262,11 +251,11 @@ const CalendarView = () => {
               />
               <i className='text-xs truncate'>{eventInfo.event.title}</i>
             </div>
-            {currentView.type !== 'Week' && (
-              <b className='text-xs items-center hidden md:block'>
-                {timeString}
-              </b>
-            )}
+            <div className='flex items-center gap-1 text-xs'>
+              {currentView.type !== 'Week' && (
+                <b className='flex items-center'>{timeString}</b>
+              )}
+            </div>
           </div>
         );
 

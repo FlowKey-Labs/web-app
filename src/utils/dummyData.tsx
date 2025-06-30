@@ -26,6 +26,74 @@ import {
   ProfileIconWhite,
 } from "../assets/icons";
 
+const AuditLogsIcon = (props: any) => (
+  <svg
+    width='24'
+    height='24'
+    viewBox='0 0 24 24'
+    fill='none'
+    xmlns='http://www.w3.org/2000/svg'
+    className='size-6'
+    {...props}
+  >
+    <path
+      d='M9 12L11 14L15 10'
+      stroke='#6D7172'
+      strokeWidth='1.5'
+      strokeLinecap='round'
+      strokeLinejoin='round'
+    />
+    <path
+      d='M8 2V5M16 2V5M3.5 9H20.5'
+      stroke='#6D7172'
+      strokeWidth='1.5'
+      strokeLinecap='round'
+      strokeLinejoin='round'
+    />
+    <path
+      d='M21 8.5V17C21 20 19.5 22 16 22H8C4.5 22 3 20 3 17V8.5C3 5.5 4.5 3.5 8 3.5H16C19.5 3.5 21 5.5 21 8.5Z'
+      stroke='#6D7172'
+      strokeWidth='1.5'
+      strokeLinecap='round'
+      strokeLinejoin='round'
+    />
+  </svg>
+);
+
+const AuditLogsIconWhite = (props: any) => (
+  <svg
+    width='24'
+    height='24'
+    viewBox='0 0 24 24'
+    fill='none'
+    xmlns='http://www.w3.org/2000/svg'
+    className='size-6'
+    {...props}
+  >
+    <path
+      d='M9 12L11 14L15 10'
+      stroke='#ffffff'
+      strokeWidth='1.5'
+      strokeLinecap='round'
+      strokeLinejoin='round'
+    />
+    <path
+      d='M8 2V5M16 2V5M3.5 9H20.5'
+      stroke='#ffffff'
+      strokeWidth='1.5'
+      strokeLinecap='round'
+      strokeLinejoin='round'
+    />
+    <path
+      d='M21 8.5V17C21 20 19.5 22 16 22H8C4.5 22 3 20 3 17V8.5C3 5.5 4.5 3.5 8 3.5H16C19.5 3.5 21 5.5 21 8.5Z'
+      stroke='#ffffff'
+      strokeWidth='1.5'
+      strokeLinecap='round'
+      strokeLinejoin='round'
+    />
+  </svg>
+);
+
 interface BusinessOption {
   id: string;
   icon: string;
@@ -260,7 +328,6 @@ export const paymentHistories: PaymentHistory[] = [
     date: "2024-03-20",
   },
 
-  // New records for Client ID 5
   {
     id: 20,
     clientId: 5,
@@ -664,11 +731,11 @@ export const classesData: ClassData[] = [
 export const sectionsData = [
   {
     title: "Profile",
-    description: "Manage this team member’s basic information",
+    description: "Manage this team member's basic information",
   },
   {
     title: "Roles",
-    description: "Manage this team member’s roles and compensation",
+    description: "Manage this team member's roles and compensation",
   },
   {
     title: "Permissions",
@@ -892,6 +959,11 @@ export const menuItems = [
     name: "Calendar",
     icon: CalendarIcon,
     iconWhite: CalendarIconWhite,
+  },
+  {
+    name: "Audit Logs",
+    icon: AuditLogsIcon,
+    iconWhite: AuditLogsIconWhite,
   },
 ];
 

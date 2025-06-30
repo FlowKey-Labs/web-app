@@ -256,21 +256,24 @@ export const useSessionAttendanceActions = ({
     }
 
     const formattedOriginalDate = moment(originalDate).format('YYYY-MM-DD');
-    const formattedNewDate = moment(newDate).format('YYYY-MM-DD');
 
-    const formattedStartTime = newStartTime
-      ? `${formattedNewDate}T${newStartTime}:00.000Z`
+    const dateOnly = moment(methods.getValues('new_date')).format('YYYY-MM-DD');
+
+
+    const formattedStartTime = newStartTime && dateOnly
+      ? `${dateOnly}T${newStartTime}:00.000Z`
       : '';
-    const formattedEndTime = newEndTime
-      ? `${formattedNewDate}T${newEndTime}:00.000Z`
+    const formattedEndTime = newEndTime && dateOnly
+      ? `${dateOnly}T${newEndTime}:00.000Z`
       : '';
+
 
     createMakeupSessionMutation.mutate(
       {
         session: sessionId,
         client: selectedClient.id,
         original_date: formattedOriginalDate,
-        new_date: formattedNewDate,
+        new_date: dateOnly,
         new_start_time: formattedStartTime,
         new_end_time: formattedEndTime,
       },

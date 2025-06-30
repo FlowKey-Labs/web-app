@@ -36,6 +36,9 @@ const defaultValues = {
   can_manage_profile: false,
   can_manage_settings: false,
   can_view_calendar: false,
+  can_view_audit_logs: false,
+  can_view_bookings: false,
+  can_manage_bookings: false,
 };
 
 function generatePermissionSettings(role: Partial<Role> | null) {
@@ -101,6 +104,9 @@ export default function RoleDrawer({ entityId, zIndex }: RoleDrawerProps) {
           can_manage_profile: roleToEdit.can_manage_profile || false,
           can_manage_settings: roleToEdit.can_manage_settings || false,
           can_view_calendar: roleToEdit.can_view_calendar || false,
+          can_view_audit_logs: roleToEdit.can_view_audit_logs || false,
+          can_view_bookings: roleToEdit.can_view_bookings || false,
+          can_manage_bookings: roleToEdit.can_manage_bookings || false,
         };
         
         reset(formValues);
@@ -188,6 +194,9 @@ export default function RoleDrawer({ entityId, zIndex }: RoleDrawerProps) {
           can_manage_profile: formData.can_manage_profile ?? false,
           can_manage_settings: formData.can_manage_settings ?? false,
           can_view_calendar: formData.can_view_calendar ?? false,
+          can_view_audit_logs: formData.can_view_audit_logs ?? false,
+          can_view_bookings: formData.can_view_bookings ?? false,
+          can_manage_bookings: formData.can_manage_bookings ?? false,
         },
         {
           onSuccess: () => {

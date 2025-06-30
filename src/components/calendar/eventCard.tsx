@@ -11,6 +11,10 @@ import errorIcon from '../../assets/icons/error.svg';
 import { useDeleteSession } from '../../hooks/reactQuery';
 import { notifications } from '@mantine/notifications';
 import { useNavigate } from 'react-router-dom';
+import {
+  getParticipantSummary,
+  processSessionParticipants,
+} from '../../utils/sessionUtils';
 
 const formatSessionInfo = (
   session: CalendarSessionType | null
@@ -53,13 +57,9 @@ const EventCard = ({
   handleRemoveEvent: () => void;
   handleEditEvent: (id: string) => void;
 }) => {
-  const attendances = data?.session?.attendances || [];
-  const invitedCount = attendances.filter(
-    (a: { attended: boolean }) => !a.attended
-  ).length;
-  const attendedCount = attendances.filter(
-    (a: { attended: boolean }) => a.attended
-  ).length;
+  const session = data?.session as CalendarSessionType;
+  const participants = processSessionParticipants(session);
+  const summary = getParticipantSummary(session);
   const { dateStr, timeStr, repeatStr } = formatSessionInfo(
     data?.session || {}
   );
@@ -115,41 +115,48 @@ const EventCard = ({
   };
 
   return (
-    <>
-      <div className='w-full h-full bg-white space-y-6'>
-        <div className='flex w-full items-center justify-end gap-3'>
-          <img
-            src={editIcon}
-            className='cursor-pointer hover:opacity-70 transition-opacity'
-            onClick={() => handleEditEvent(data?.session?.id)}
-            alt='Edit event'
-          />
-          <img
-            src={deleteIcon}
-            className='cursor-pointer hover:opacity-70 transition-opacity'
-            onClick={handleDeleteClick}
-            alt='Delete event'
-          />
-          <img
-            src={closeIcon}
-            className='cursor-pointer hover:opacity-70 transition-opacity'
-            onClick={() => onClose?.()}
-            alt='Close popup'
-          />
-        </div>
-
+    <div className='w-full h-full bg-white space-y-6'>
+      <div className='flex w-full items-center justify-end gap-3'>
+        <img
+          src={editIcon}
+          className='cursor-pointer hover:opacity-70 transition-opacity'
+          onClick={() => handleEditEvent(data?.session?.id)}
+          alt='Edit event'
+        />
+        <img
+          src={deleteIcon}
+          className='cursor-pointer hover:opacity-70 transition-opacity'
+          onClick={handleDeleteClick}
+          alt='Delete event'
+        />
+        <img
+          src={closeIcon}
+          className='cursor-pointer hover:opacity-70 transition-opacity'
+          onClick={() => onClose?.()}
+          alt='Close popup'
+        />
         <div className='flex items-start space-x-3'>
           <span className='w-3 h-3 bg-blue-500 rounded-full mt-1.5 flex-shrink-0' />
-          <h2
-            className='text-xl font-semibold text-gray-900 leading-tight hover:text-blue-600 cursor-pointer transition-colors'
-            onClick={handleTitleClick}
-          >
-            {data?.session?.title}
-            <span className='ml-2 text-blue-500 text-base'>View Details →</span>
+          <h2 className='text-xl font-semibold text-gray-900 leading-tight'>
+            {session?.title}
           </h2>
         </div>
 
         <div className='space-y-3 pl-6'>
+           <div className='flex items-start space-x-3'>
+            <span className='w-3 h-3 bg-blue-500 rounded-full mt-1.5 flex-shrink-0' />
+            <h2
+              className='text-xl font-semibold text-gray-900 leading-tight hover:text-blue-600 cursor-pointer transition-colors'
+              onClick={handleTitleClick}
+            >
+              {session?.title}
+              <span className='ml-2 text-blue-500 text-base'>
+                View Details →
+              </span>
+            </h2>
+          </div>
+
+          {/* <div className='space-y-3 pl-6'> */}
           <div className='flex items-center space-x-3'>
             <div className='w-5 h-5 flex items-center justify-center'>
               <span className='text-gray-500 text-lg'>📅</span>
@@ -180,45 +187,78 @@ const EventCard = ({
             </div>
             <div className='flex-1'>
               <p className='text-gray-900 font-semibold mb-1'>
-                {data?.session?.spots} Slots
+                {summary.capacity} Slots
               </p>
               <p className='text-gray-500 text-sm mb-3'>
-                {invitedCount} Invited · {attendedCount} Attended
+                {summary.total} Registered · {summary.attended} Attended ·{' '}
+                {summary.available} Available
+                {participants.filter((p) => p.type === 'booking').length >
+                  0 && (
+                  <span className='ml-2 text-green-600'>
+                    ({participants.filter((p) => p.type === 'booking').length}{' '}
+                    from bookings)
+                  </span>
+                )}
               </p>
 
-              {data?.session?.attendances?.length > 0 && (
+              {participants.length > 0 && (
                 <div className='max-h-32 overflow-y-auto space-y-2'>
-                  {data?.session?.attendances.map(
-                    (
-                      user: { client_name: string; attended?: boolean },
-                      index: number
-                    ) => (
-                      <div key={index} className='flex items-center space-x-3'>
-                        <span className='w-2.5 h-2.5 bg-blue-500 rounded-full flex-shrink-0'></span>
+                  {participants.map((participant) => (
+                    <div
+                      key={participant.id}
+                      className='flex items-center space-x-3'
+                    >
+                      <span
+                        className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${
+                          participant.type === 'booking'
+                            ? 'bg-green-500'
+                            : 'bg-blue-500'
+                        }`}
+                      ></span>
+                      <div className='flex-1'>
                         <p className='text-gray-700 text-sm'>
-                          {user?.client_name}
+                          {participant.name}
                         </p>
-                        {user?.attended && (
-                          <span className='text-green-600 text-xs'>✓</span>
-                        )}
+                        <div className='flex items-center gap-2'>
+                          {participant.booking_reference && (
+                            <span className='text-xs text-gray-500'>
+                              Ref: {participant.booking_reference}
+                            </span>
+                          )}
+                          {participant.is_group_booking && (
+                            <span className='text-xs bg-blue-100 text-blue-700 px-1 rounded'>
+                              Group ({participant.quantity})
+                            </span>
+                          )}
+                          {participant.isAttended && (
+                            <span className='text-green-600 text-xs'>✓</span>
+                          )}
+                        </div>
                       </div>
-                    )
-                  )}
+                    </div>
+                  ))}
                 </div>
+              )}
+
+              {participants.length === 0 && (
+                <p className='text-gray-400 text-sm italic'>
+                  No participants yet
+                </p>
               )}
             </div>
           </div>
         </div>
+
         <div className='border-t pt-4 space-y-3'>
-          {data?.session?.assigned_staff && (
+          {session?.assigned_staff && (
             <div className='flex items-center space-x-3'>
               <div className='w-5 h-5 flex items-center justify-center'>
                 <span className='text-gray-500 text-lg'>👤</span>
               </div>
               <p className='text-gray-700'>
                 <span className='font-medium'>Staff:</span>{' '}
-                {data?.session?.assigned_staff?.user?.first_name}{' '}
-                {data?.session?.assigned_staff?.user?.last_name}
+                {session.assigned_staff.user?.first_name}{' '}
+                {session.assigned_staff.user?.last_name}
               </p>
             </div>
           )}
@@ -232,15 +272,15 @@ const EventCard = ({
             </p>
           </div>
         </div>
-
-        <button
-          onClick={() => handleEditEvent(data?.session?.id)}
-          className='w-full bg-green-600 text-white py-3 rounded-lg text-lg font-semibold hover:bg-green-700 transition-colors'
-        >
-          + Add Clients
-        </button>
       </div>
-    </>
+
+      <button
+        onClick={() => handleEditEvent(session?.id?.toString() || '')}
+        className='w-full bg-green-600 text-white py-3 rounded-lg text-lg font-semibold hover:bg-green-700 transition-colors'
+      >
+        + Add Clients
+      </button>
+    </div>
   );
 };
 
