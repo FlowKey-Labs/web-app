@@ -259,14 +259,10 @@ export const useSessionAttendanceActions = ({
 
     const dateOnly = moment(methods.getValues('new_date')).format('YYYY-MM-DD');
 
-
-    const formattedStartTime = newStartTime && dateOnly
-      ? `${dateOnly}T${newStartTime}:00.000Z`
-      : '';
-    const formattedEndTime = newEndTime && dateOnly
-      ? `${dateOnly}T${newEndTime}:00.000Z`
-      : '';
-
+    const formattedStartTime =
+      newStartTime && dateOnly ? `${dateOnly}T${newStartTime}:00.000Z` : '';
+    const formattedEndTime =
+      newEndTime && dateOnly ? `${dateOnly}T${newEndTime}:00.000Z` : '';
 
     createMakeupSessionMutation.mutate(
       {
@@ -300,47 +296,77 @@ export const useSessionAttendanceActions = ({
     );
   };
 
-  const handleCreateAttendanceRecord = () => {
-    if (!sessionId || !selectedClient?.id) {
-      showNotification('Error', 'Please select a client', 'red');
+  const handleCreateAttendanceRecord = useCallback(async () => {
+    if (!selectedClient) {
+      notifications.show({
+        title: 'Error',
+        message: 'No client selected',
+        color: 'red',
+      });
+      return;
+    }
+
+    // Ensure we're using the correct client ID
+    const clientId = selectedClient.clientId || selectedClient.id;
+    if (!clientId) {
+      notifications.show({
+        title: 'Error',
+        message: 'Invalid client ID',
+        color: 'red',
+      });
       return;
     }
 
     const selectedDate = methods.getValues('date');
     if (!selectedDate) {
-      showNotification('Error', 'Please select a date', 'red');
+      notifications.show({
+        title: 'Error',
+        message: 'Please select a date',
+        color: 'red',
+      });
       return;
     }
 
     const formattedDate = moment(selectedDate).format('YYYY-MM-DD');
 
-    createAttendedSessionMutation.mutate(
-      {
+    try {
+      const payload = {
         session: sessionId,
-        client: selectedClient.id,
+        client: clientId,
         date: formattedDate,
-      },
-      {
-        onSuccess: () => {
-          showNotification(
-            'Success',
-            'Attendance record created successfully!',
-            'green'
-          );
-          close();
-          refetchSession();
-        },
-        onError: () => {
-          showNotification(
-            'Error',
-            'Failed to create attendance record. Please try again.',
-            'red'
-          );
-          close();
-        },
-      }
-    );
-  };
+        attended: true,
+        attended_at: new Date().toISOString(),
+      };
+
+      await createAttendedSessionMutation.mutateAsync(payload);
+
+      notifications.show({
+        title: 'Success',
+        message: 'Attendance recorded successfully',
+        color: 'green',
+      });
+
+      close();
+      refetchSession();
+      refetchClients();
+    } catch (error) {
+      console.error('Error creating attendance record:', error);
+      notifications.show({
+        title: 'Error',
+        message: 'Failed to record attendance. Please try again.',
+        color: 'red',
+      });
+    }
+  }, [
+    selectedClient,
+    sessionId,
+    methods,
+    createAttendedSessionMutation,
+    refetchSession,
+    refetchClients,
+    close,
+    notifications,
+  ]);
 
   const handleCreateCancelledSession = () => {
     if (!sessionId || !selectedClient?.id) {
@@ -478,26 +504,61 @@ export const useSessionAttendanceActions = ({
     }
   };
 
-  const onSubmit = async (data: any) => {
+  const onSubmit = async () => {
+    if (!selectedStatus) {
+      notifications.show({
+        title: 'Error',
+        message: 'No action selected',
+        color: 'red',
+      });
+      return;
+    }
+
     try {
       if (selectedStatus === 'make_up') {
-        handleCreateMakeupSession();
+        await handleCreateMakeupSession();
       } else if (selectedStatus === 'attended') {
-        handleCreateAttendanceRecord();
+        await handleCreateAttendanceRecord();
       } else if (selectedStatus === 'cancelled') {
-        handleCreateCancelledSession();
+        await handleCreateCancelledSession();
       }
     } catch (error) {
-      console.error(error);
+      console.error('Error in form submission:', error);
+      notifications.show({
+        title: 'Error',
+        message: 'An error occurred while processing your request',
+        color: 'red',
+      });
     }
   };
 
   const openActionModal = (client: any, status: string) => {
-    setSelectedClient(client);
+    if (!client) return;
+
+    const clientObj = {
+      ...client,
+      id: client.clientId || client.id,
+      displayName:
+        client.name ||
+        `${client.first_name || ''} ${client.last_name || ''}`.trim() ||
+        'Client',
+    };
+
+    setSelectedClient(clientObj);
+
+    // Set the status and update form values
     setSelectedStatus(status);
     setIsRemovingClient(false);
-    handleAttendanceStatusChange();
-    methods.setValue('client_name', `${client.first_name} ${client.last_name}`);
+
+    methods.reset({
+      ...methods.getValues(),
+      session_title: session?.title || 'Session',
+      client_name: clientObj.displayName,
+      date: new Date().toISOString().split('T')[0],
+      original_date: new Date().toISOString().split('T')[0],
+      new_date: new Date().toISOString().split('T')[0],
+    });
+
     open();
   };
 

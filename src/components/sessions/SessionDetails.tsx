@@ -397,15 +397,14 @@ const SessionDetails = () => {
                     // Traditional client actions
                     <>
                       <Menu.Item
+                        component='div'
                         color='green'
-                        onClick={() => {
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
                           setSelectedClient(client);
-                          setSelectedStatus('attended');
-                          setIsRemovingClient(false);
-                          handleAttendanceStatusChange();
+                          openActionModal(client, 'attended');
 
-                          methods.setValue('client_name', client.name);
-                          open();
                         }}
                         className='text-sm'
                         style={{ textAlign: 'center' }}
@@ -414,15 +413,13 @@ const SessionDetails = () => {
                       </Menu.Item>
 
                       <Menu.Item
+                        component='div'
                         color='blue'
-                        onClick={() => {
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
                           setSelectedClient(client);
-                          setSelectedStatus('make_up');
-                          setIsRemovingClient(false);
-                          handleAttendanceStatusChange();
-
-                          methods.setValue('client_name', client.name);
-                          open();
+                          openActionModal(client, 'make_up');
                         }}
                         className='text-sm'
                         style={{ textAlign: 'center' }}
@@ -431,15 +428,13 @@ const SessionDetails = () => {
                       </Menu.Item>
 
                       <Menu.Item
+                        component='div'
                         color='gray'
-                        onClick={() => {
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
                           setSelectedClient(client);
-                          setSelectedStatus('cancelled');
-                          setIsRemovingClient(false);
-                          handleAttendanceStatusChange();
-
-                          methods.setValue('client_name', client.name);
-                          open();
+                          openActionModal(client, 'cancelled');
                         }}
                         className='text-sm'
                         style={{ textAlign: 'center' }}
