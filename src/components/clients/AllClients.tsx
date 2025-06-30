@@ -484,9 +484,12 @@ const AllClients = () => {
         header: 'Phone Number',
         cell: (info) => safeToString(info.getValue()) || 'N/A',
       }),
-      clientColumnHelper.accessor('location', {
+      clientColumnHelper.accessor('location_name', {
         header: 'Location',
-        cell: (info) => safeToString(info.getValue()) || 'N/A',
+        cell: (info) => {
+          const locationName = info.getValue();
+          return locationName || 'N/A';
+        },
       }),
       clientColumnHelper.accessor('assigned_classes', {
         header: 'Sessions',
@@ -1066,114 +1069,6 @@ const AllClients = () => {
                 />
               </>
             )}
-          </div>
-        </div>
-      </div>
-
-      <div className='flex-1 px-6 py-3'>
-        {isLoadingCurrent ? (
-          <div className='flex justify-center items-center py-16'>
-            <Loader color='#1D9B5E' size='xl' />
-          </div>
-        ) : (
-          <>
-            {/* Clients View */}
-            {activeView === 'clients' && (
-              <>
-                {clients.length > 0 ? (
-                  <Table<Client>
-                    data={clients}
-                    columns={columns}
-                    rowSelection={rowSelection}
-                    onRowSelectionChange={setRowSelection}
-                    className='mt-4'
-                    pageSize={12}
-                    onRowClick={(row: Client) => {
-                      navigateToClientDetails(navigate, row.id.toString());
-                    }}
-                    paginateServerSide={true}
-                    pageIndex={pageIndex}
-                    pageCount={data.totalPages}
-                    onPageChange={setPageIndex}
-                  />
-                ) : (
-                  <EmptyStateCard
-                    title={
-                      searchQuery.trim() ? 'No Clients Found' : 'No Clients Yet'
-                    }
-                    description={
-                      searchQuery.trim()
-                        ? `No clients match your search "${searchQuery}". Try different search terms or add a new client.`
-                        : "You haven't added any clients yet. Clients will appear here once you start adding them to your system."
-                    }
-                    icon={usersIcon}
-                    buttonText={
-                      searchQuery.trim()
-                        ? 'Clear Search'
-                        : 'Add Your First Client'
-                    }
-                    onButtonClick={
-                      searchQuery.trim()
-                        ? () => setSearchQuery('')
-                        : handleOpenClientDrawer
-                    }
-                    showButton={
-                      Boolean(searchQuery.trim()) ||
-                      Boolean(permisions?.can_create_clients)
-                    }
-                  />
-                )}
-              </>
-            )}
-
-            {/* Groups View */}
-            {activeView === 'groups' && (
-              <>
-                {groups.length > 0 ? (
-                  <Table<GroupData>
-                    data={groups}
-                    columns={groupColumns}
-                    rowSelection={rowSelection}
-                    onRowSelectionChange={setRowSelection}
-                    className='mt-4'
-                    pageSize={12}
-                    onRowClick={(row: GroupData) => {
-                      if (row.id) {
-                        navigateToGroupDetails(navigate, row.id.toString());
-                      }
-                    }}
-                  />
-                ) : (
-                  <EmptyStateCard
-                    title={
-                      searchQuery.trim() ? 'No Groups Found' : 'No Groups Yet'
-                    }
-                    description={
-                      searchQuery.trim()
-                        ? `No groups match your search "${searchQuery}". Try different search terms or create a new group.`
-                        : "You haven't created any client groups yet. Groups help you organize and manage multiple clients together."
-                    }
-                    icon={totalClientsIcon}
-                    buttonText={
-                      searchQuery.trim()
-                        ? 'Clear Search'
-                        : 'Create Your First Group'
-                    }
-                    onButtonClick={
-                      searchQuery.trim()
-                        ? () => setSearchQuery('')
-                        : handleOpenClientDrawer
-                    }
-                    showButton={
-                      Boolean(searchQuery.trim()) ||
-                      Boolean(permisions?.can_create_clients)
-                    }
-                  />
-                )}
-              </>
-            )}
-
-            {/* Bookings View */}
             {activeView === 'bookings' && (
               <>
                 {bookingRequests.length > 0 ? (
@@ -1206,8 +1101,8 @@ const AllClients = () => {
                 )}
               </>
             )}
-          </>
-        )}
+          </div>
+        </div>
       </div>
 
       {/* Confirmation Modal */}

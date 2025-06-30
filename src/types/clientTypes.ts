@@ -56,6 +56,7 @@ export interface BookingRequest {
   is_deleted: boolean;
   deletion_info: any;
   cancellation_info: any;
+  business_timezone: string;
 }
 
 export type ClientSource = 'manual' | 'booking_link';
@@ -77,7 +78,8 @@ export interface Client {
   clientLevel?: string;
   assignedTo?: string;
   attendances?: any[];
-  location?: string;
+  location?: string | number;
+  location_name?: string;
   dob?: string;
   gender: string;
   sessions?: ClientSession[];
