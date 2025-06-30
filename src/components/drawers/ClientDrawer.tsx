@@ -724,7 +724,6 @@ export default function ClientDrawer({
                   name='phone_number'
                   control={individualControl}
                   rules={{
-                    required: 'Phone number is required',
                     pattern: {
                       value: /^[0-9+\s-]+$/,
                       message: 'Invalid phone number',
@@ -752,7 +751,6 @@ export default function ClientDrawer({
                   name='email'
                   control={individualControl}
                   rules={{
-                    required: 'Email is required',
                     pattern: {
                       value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
                       message: 'Invalid email address',
