@@ -551,7 +551,7 @@ const FlowkeyLandingPage = () => {
           </div>
         </div>
 
-        <div className='bg-cardsBg mx-auto w-full pt-12 mt-12 items-center justify-center'>
+        <div className='bg-cardsBg mx-auto w-full pt-12 mt-12  items-center justify-center'>
           <div className='flex flex-col md:flex-row mx-auto md:w-[80%] w-[90%] justify-around'>
             <div className='flex flex-col gap-4 md:w-[50%] w-full justify-center'>
               <h3 className='text-secondary font-[600] text-base '>
@@ -629,7 +629,7 @@ const FlowkeyLandingPage = () => {
           <img
             src={whiteCurve}
             alt='whiteCurve'
-            className='flex justify-end bottom-0 w-[100%] mt-12 self-end'
+            className='flex justify-end w-[100%] md:h-[140px] mt-12 self-end object-cover'
           />
         </div>
 

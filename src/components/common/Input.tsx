@@ -169,6 +169,7 @@ const Input: React.FC<InputProps> = ({
                 setValue(name, value); 
               }}
               withSeconds={false}
+              
               styles={{
                 input: {
                   height: rem(58),

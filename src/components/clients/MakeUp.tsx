@@ -62,120 +62,134 @@ const MakeUp = ({ clientId }: { clientId: string | number }) => {
     return selectedIds;
   }, [rowSelection, makeupSessions]);
 
-  const columns = useMemo(() => [
-    columnHelper.display({
-      id: 'select',
-      header: ({ table }) => (
-        <input
-          type='checkbox'
-          checked={table.getIsAllRowsSelected()}
-          onChange={table.getToggleAllRowsSelectedHandler()}
-          className='w-4 h-4 rounded cursor-pointer bg-[#F7F8FA] accent-[#DBDEDF]'
-        />
-      ),
-      cell: ({ row }) => (
-        <input
-          type='checkbox'
-          checked={row.getIsSelected()}
-          onChange={row.getToggleSelectedHandler()}
-          className='w-4 h-4 rounded cursor-pointer bg-[#F7F8FA] accent-[#DBDEDF]'
-        />
-      ),
-    }),
-    columnHelper.accessor('session_title', {
-      header: 'Session',
-      cell: (info) => info.getValue(),
-    }),
-    columnHelper.accessor('original_date', {
-      header: 'Original Date',
-      cell: (info) => moment(info.getValue()).format('YYYY-MM-DD'),
-    }),
-    columnHelper.accessor('new_date', {
-      header: 'New Date',
-      cell: (info) => moment(info.getValue()).format('YYYY-MM-DD'),
-    }),
-    columnHelper.accessor('new_start_time', {
-      header: 'New Start Time',
-      cell: (info) => moment(info.getValue()).format('HH:mm'),
-    }),
-    columnHelper.accessor('new_end_time', {
-      header: 'New End Time',
-      cell: (info) => moment(info.getValue()).format('HH:mm'),
-    }),
-    columnHelper.display({
-      id: 'actions',
-      header: () => (
-        <div className='flex space-x-2' onClick={(e) => e.stopPropagation()}>
-          <Group justify='center'>
-            <Menu
-              width={150}
-              shadow='md'
-              position='bottom'
-              radius='md'
-              withArrow
-              offset={4}
-            >
-              <Menu.Target>
-                <img
-                  src={actionOptionIcon}
-                  alt='Options'
-                  className='w-4 h-4 cursor-pointer'
-                />
-              </Menu.Target>
-              <Menu.Dropdown>
-                <Menu.Item
-                  color='#162F3B'
-                  className='text-sm'
-                  style={{ textAlign: 'center' }}
-                  onClick={openExportModal}
-                >
-                  Export Makeup Session
-                </Menu.Item>
-              </Menu.Dropdown>
-            </Menu>
-          </Group>
-        </div>
-      ),
-      cell: ({ row }) => {
-        const client = row.original;
-
-        return (
+  const columns = useMemo(
+    () => [
+      columnHelper.display({
+        id: 'select',
+        header: ({ table }) => (
+          <input
+            type='checkbox'
+            checked={table.getIsAllRowsSelected()}
+            onChange={table.getToggleAllRowsSelectedHandler()}
+            className='w-4 h-4 rounded cursor-pointer bg-[#F7F8FA] accent-[#DBDEDF]'
+          />
+        ),
+        cell: ({ row }) => (
+          <input
+            type='checkbox'
+            checked={row.getIsSelected()}
+            onChange={row.getToggleSelectedHandler()}
+            className='w-4 h-4 rounded cursor-pointer bg-[#F7F8FA] accent-[#DBDEDF]'
+          />
+        ),
+      }),
+      columnHelper.accessor('session_title', {
+        header: 'Session',
+        cell: (info) => info.getValue(),
+      }),
+      columnHelper.accessor('original_date', {
+        header: 'Original Date',
+        cell: (info) => moment(info.getValue()).format('YYYY-MM-DD'),
+      }),
+      columnHelper.accessor('new_date', {
+        header: 'New Date',
+        cell: (info) => moment(info.getValue()).format('YYYY-MM-DD'),
+      }),
+      columnHelper.accessor('new_start_time', {
+        header: 'New Start Time',
+        cell: (info) => {
+          const value = info.getValue();
+          const timePart = value.split('T')[1]?.substring(0, 5) || '';
+          return timePart;
+        },
+      }),
+      columnHelper.accessor('new_end_time', {
+        header: 'New End Time',
+        cell: (info) => {
+          const value = info.getValue();
+          const timePart = value.split('T')[1]?.substring(0, 5) || '';
+          return timePart;
+        },
+      }),
+      columnHelper.display({
+        id: 'actions',
+        header: () => (
           <div className='flex space-x-2' onClick={(e) => e.stopPropagation()}>
-            <Menu
-              width={150}
-              shadow='md'
-              position='bottom'
-              radius='md'
-              withArrow
-              offset={4}
-            >
-              <Menu.Target>
-                <img
-                  src={actionOptionIcon}
-                  alt='Options'
-                  className='w-4 h-4 cursor-pointer'
-                />
-              </Menu.Target>
-              <Menu.Dropdown>
-                <Menu.Item
-                  color='red'
-                  onClick={() => {
-                    setSelectedMakeupSession(client);
-                    setIsRemovingMakeupSession(true);
-                    open();
-                  }}
-                  className='text-sm'
-                  style={{ textAlign: 'center' }}
-                >
-                  Remove
-                </Menu.Item>
-              </Menu.Dropdown>
-            </Menu>
+            <Group justify='center'>
+              <Menu
+                width={150}
+                shadow='md'
+                position='bottom'
+                radius='md'
+                withArrow
+                offset={4}
+              >
+                <Menu.Target>
+                  <img
+                    src={actionOptionIcon}
+                    alt='Options'
+                    className='w-4 h-4 cursor-pointer'
+                  />
+                </Menu.Target>
+                <Menu.Dropdown>
+                  <Menu.Item
+                    color='#162F3B'
+                    className='text-sm'
+                    style={{ textAlign: 'center' }}
+                    onClick={openExportModal}
+                  >
+                    Export Makeup Session
+                  </Menu.Item>
+                </Menu.Dropdown>
+              </Menu>
+            </Group>
           </div>
-        );
-      },
-    }),
-  ], [open]);
+        ),
+        cell: ({ row }) => {
+          const client = row.original;
+
+          return (
+            <div
+              className='flex space-x-2'
+              onClick={(e) => e.stopPropagation()}
+            >
+              <Menu
+                width={150}
+                shadow='md'
+                position='bottom'
+                radius='md'
+                withArrow
+                offset={4}
+              >
+                <Menu.Target>
+                  <img
+                    src={actionOptionIcon}
+                    alt='Options'
+                    className='w-4 h-4 cursor-pointer'
+                  />
+                </Menu.Target>
+                <Menu.Dropdown>
+                  <Menu.Item
+                    color='red'
+                    onClick={() => {
+                      setSelectedMakeupSession(client);
+                      setIsRemovingMakeupSession(true);
+                      open();
+                    }}
+                    className='text-sm'
+                    style={{ textAlign: 'center' }}
+                  >
+                    Remove
+                  </Menu.Item>
+                </Menu.Dropdown>
+              </Menu>
+            </div>
+          );
+        },
+      }),
+    ],
+    [open]
+  );
 
   if (makeupSessionsLoading) {
     return (

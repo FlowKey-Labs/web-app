@@ -78,18 +78,24 @@ type FormData = Omit<
   repeat_end_type: 'never' | 'on' | 'after';
   repeat_end_date?: string;
   repeat_occurrences?: number;
-  
+
   // Flexible booking fields
   allow_staff_selection?: boolean;
   allow_location_selection?: boolean;
   require_staff_confirmation?: boolean;
   staff_confirmation_timeout_hours?: number;
   auto_assign_when_single_option?: boolean;
-  
+
   _pendingClientFromDrawer?: boolean;
 };
 
-const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientData }: SessionModalProps) => {
+const AddSession = ({
+  isOpen,
+  onClose,
+  zIndex,
+  fromClientDrawer,
+  pendingClientData,
+}: SessionModalProps) => {
   const { state: timezoneState } = useTimezone();
   const methods = useForm<FormData>({
     mode: 'onSubmit',
@@ -159,7 +165,7 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
       methods.reset({
         ...currentValues,
         spots: 0,
-        class_type: undefined, 
+        class_type: undefined,
       });
     }
   }, [methods.watch('session_type')]);
@@ -176,9 +182,11 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
 
   useEffect(() => {
     if (fromClientDrawer && pendingClientData) {
-      
-      console.log('Session drawer opened from client drawer with data:', pendingClientData);
-      
+      console.log(
+        'Session drawer opened from client drawer with data:',
+        pendingClientData
+      );
+
       methods.setValue('_pendingClientFromDrawer', true);
     }
   }, [fromClientDrawer, pendingClientData, methods]);
@@ -211,25 +219,21 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
       }
 
       const dateOnly = moment(dateObj).format('YYYY-MM-DD');
-      
+
       // CRITICAL TIMEZONE FIX: Format times properly for backend with business timezone awareness
-      const businessTimezone = timezoneState.businessTimezone || 'Africa/Nairobi';
-      
+      const businessTimezone =
+        timezoneState.businessTimezone || 'Africa/Nairobi';
+
       // Format times for backend - these will be interpreted as business local time
       // Fix: Check for actual time values, not just truthy values
-      const formattedStartTime = data.start_time && data.start_time.trim() && dateOnly ? `${dateOnly}T${data.start_time}:00` : null;
-      const formattedEndTime = data.end_time && data.end_time.trim() && dateOnly ? `${dateOnly}T${data.end_time}:00` : null;
-
-      console.log("Business timezone:", businessTimezone);
-      console.log("Date value:", dateOnly);
-      console.log("Start time input:", data.start_time);
-      console.log("End time input:", data.end_time);
-      console.log("Start time type:", typeof data.start_time);
-      console.log("End time type:", typeof data.end_time);
-      console.log("Start time length:", data.start_time?.length);
-      console.log("End time length:", data.end_time?.length);
-      console.log("Formatted start time (business local):", formattedStartTime);
-      console.log("Formatted end time (business local):", formattedEndTime);
+      const formattedStartTime =
+        data.start_time && data.start_time.trim() && dateOnly
+          ? `${dateOnly}T${data.start_time}:00`
+          : null;
+      const formattedEndTime =
+        data.end_time && data.end_time.trim() && dateOnly
+          ? `${dateOnly}T${data.end_time}:00`
+          : null;
 
       let repeatEndDateObj = null;
       if (data.repeat_end_date) {
@@ -250,20 +254,21 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
         return field;
       };
 
-      
       // Handle staff assignment - prioritize multi-select if available
-      const staffAssignment = data.staff_ids && data.staff_ids.length > 0 
-        ? { staff_ids: data.staff_ids }
-        : data.staff
-        ? { staff: extractValue(data.staff) }
-        : {};
-      
+      const staffAssignment =
+        data.staff_ids && data.staff_ids.length > 0
+          ? { staff_ids: data.staff_ids }
+          : data.staff
+          ? { staff: extractValue(data.staff) }
+          : {};
+
       // Handle location assignment - prioritize multi-select if available
-      const locationAssignment = data.location_ids && data.location_ids.length > 0
-        ? { location_ids: data.location_ids }
-        : data.location_id
-        ? { location_id: extractValue(data.location_id) }
-        : {};
+      const locationAssignment =
+        data.location_ids && data.location_ids.length > 0
+          ? { location_ids: data.location_ids }
+          : data.location_id
+          ? { location_id: extractValue(data.location_id) }
+          : {};
 
       const formattedData: any = {
         title: data.title,
@@ -288,18 +293,16 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
         selected_class: extractValue(data.selected_class),
         policy_ids: data.policy_ids || [],
         _pendingClientFromDrawer: fromClientDrawer ? true : undefined,
-        
+
         // Include flexible booking fields
         allow_staff_selection: data.allow_staff_selection || false,
         allow_location_selection: data.allow_location_selection || false,
         require_staff_confirmation: data.require_staff_confirmation || false,
-        staff_confirmation_timeout_hours: data.staff_confirmation_timeout_hours || 24,
-        auto_assign_when_single_option: data.auto_assign_when_single_option || false,
+        staff_confirmation_timeout_hours:
+          data.staff_confirmation_timeout_hours || 24,
+        auto_assign_when_single_option:
+          data.auto_assign_when_single_option || false,
       };
-
-
-      console.log('Session creation payload:', formattedData);
-
 
       if (
         data.session_type === 'class' ||
@@ -368,18 +371,20 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
         console.error('API Error Status:', error.response.status);
         console.error('API Error Headers:', error.response.headers);
         console.error('API Error Response:', error.response.data);
-        
 
-        console.error('Request payload that caused error:', error.config?.data ? JSON.parse(error.config.data) : 'No payload data');
-        
+        console.error(
+          'Request payload that caused error:',
+          error.config?.data ? JSON.parse(error.config.data) : 'No payload data'
+        );
+
         if (error.response.data?.start_time) {
           console.error('Start time error:', error.response.data.start_time);
         }
-        
+
         if (error.response.data?.end_time) {
           console.error('End time error:', error.response.data.end_time);
         }
-        
+
         if (error.response.data?.date) {
           console.error('Date error:', error.response.data.date);
         }
@@ -477,17 +482,31 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
   };
 
   const pendingClientNotice = fromClientDrawer ? (
-    <div className="bg-blue-50 p-3 mb-4 rounded-md border border-blue-200">
-      <div className="flex items-start">
-        <div className="flex-shrink-0 pt-0.5">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-500" viewBox="0 0 20 20" fill="currentColor">
-            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+    <div className='bg-blue-50 p-3 mb-4 rounded-md border border-blue-200'>
+      <div className='flex items-start'>
+        <div className='flex-shrink-0 pt-0.5'>
+          <svg
+            xmlns='http://www.w3.org/2000/svg'
+            className='h-5 w-5 text-blue-500'
+            viewBox='0 0 20 20'
+            fill='currentColor'
+          >
+            <path
+              fillRule='evenodd'
+              d='M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z'
+              clipRule='evenodd'
+            />
           </svg>
         </div>
-        <div className="ml-3">
-          <h3 className="text-sm font-medium text-blue-800">Creating Session for New Client</h3>
-          <div className="mt-1 text-sm text-blue-700">
-            <p>This session will be automatically assigned to the client you're creating.</p>
+        <div className='ml-3'>
+          <h3 className='text-sm font-medium text-blue-800'>
+            Creating Session for New Client
+          </h3>
+          <div className='mt-1 text-sm text-blue-700'>
+            <p>
+              This session will be automatically assigned to the client you're
+              creating.
+            </p>
           </div>
         </div>
       </div>
@@ -515,8 +534,8 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
             padding: 0,
           },
         }}
-              >
-          <div className='flex flex-col'>
+      >
+        <div className='flex flex-col'>
           <div className='flex gap-4 pt-8 px-8'>
             <button
               type='button'
@@ -599,8 +618,8 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
                                   onSelectItem={(selectedItem) =>
                                     field.onChange(selectedItem)
                                   }
-                                  createLabel="Create new class type"
-                                  createDrawerType="session"
+                                  createLabel='Create new class type'
+                                  createDrawerType='session'
                                 />
                               );
                             }}
@@ -660,8 +679,8 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
                                   onSelectItem={(selectedItem) => {
                                     field.onChange(selectedItem);
                                   }}
-                                  createLabel="Create new category"
-                                  createDrawerType="category"
+                                  createLabel='Create new category'
+                                  createDrawerType='category'
                                 />
                               )}
                             />
@@ -676,21 +695,24 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
                               name='date'
                               control={methods.control}
                               render={({ field }) => (
-                                <div className="w-full mt-4 mb-6">
-                                  <div className="relative w-full">
+                                <div className='w-full mt-4 mb-6'>
+                                  <div className='relative w-full'>
                                     <input
-                                      type="date"
-                                      id="date"
+                                      type='date'
+                                      id='date'
                                       value={field.value || ''}
                                       onChange={(e) => {
                                         field.onChange(e.target.value);
-                                        console.log("Date changed:", e.target.value);
+                                        console.log(
+                                          'Date changed:',
+                                          e.target.value
+                                        );
                                       }}
-                                      className="w-full h-[58px] border border-gray-300 rounded-lg px-4 pt-6 pb-2 text-xs focus:outline-none focus:ring-[1px] focus:border-none focus:ring-secondary focus:border-secondary"
+                                      className='w-full h-[58px] border border-gray-300 rounded-lg px-4 pt-6 pb-2 text-xs focus:outline-none focus:ring-[1px] focus:border-none focus:ring-secondary focus:border-secondary'
                                     />
                                     <label
-                                      htmlFor="date"
-                                      className="absolute top-2 text-xs left-4 transition-all duration-200 text-primary"
+                                      htmlFor='date'
+                                      className='absolute top-2 text-xs left-4 transition-all duration-200 text-primary'
                                     >
                                       Date
                                     </label>
@@ -790,76 +812,113 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
                             />
                             <div className='w-full mt-4'>
                               {/* Multi-select Staff for Flexible Booking */}
-                              {bookingSettings?.enable_flexible_booking && methods.watch('allow_staff_selection') ? (
-                                <div className="relative">
+                              {bookingSettings?.enable_flexible_booking &&
+                              methods.watch('allow_staff_selection') ? (
+                                <div className='relative'>
                                   <Controller
                                     name='staff_ids'
                                     control={methods.control}
                                     render={({ field }) => (
-                                      <div className={`transition-all duration-300 ${
-                                        methods.watch('allow_staff_selection') ? 'ring-2 ring-blue-400 ring-opacity-50' : ''
-                                      }`}>
+                                      <div
+                                        className={`transition-all duration-300 ${
+                                          methods.watch('allow_staff_selection')
+                                            ? 'ring-2 ring-blue-400 ring-opacity-50'
+                                            : ''
+                                        }`}
+                                      >
                                         <DropdownSelectInput
                                           label='Assign Staff (Multiple)'
                                           placeholder='Select Multiple Staff'
                                           singleSelect={false}
                                           options={
                                             isStaffLoading
-                                              ? [{ label: 'Loading...', value: '' }]
+                                              ? [
+                                                  {
+                                                    label: 'Loading...',
+                                                    value: '',
+                                                  },
+                                                ]
                                               : staffData
                                                   ?.map((staff: any) => {
                                                     if (!staff || !staff.id) {
-                                                      console.warn('Invalid staff data:', staff);
+                                                      console.warn(
+                                                        'Invalid staff data:',
+                                                        staff
+                                                      );
                                                       return null;
                                                     }
 
-                                                    const userData = staff.user || {};
-                                                    const email = userData.email || staff.email || '';
-                                                    const isActive = staff.isActive ?? false;
-                                                    const status = isActive ? 'active' : 'inactive';
-                                                    
-                                                    if (userData.first_name && userData.last_name) {
+                                                    const userData =
+                                                      staff.user || {};
+                                                    const email =
+                                                      userData.email ||
+                                                      staff.email ||
+                                                      '';
+                                                    const isActive =
+                                                      staff.isActive ?? false;
+                                                    const status = isActive
+                                                      ? 'active'
+                                                      : 'inactive';
+
+                                                    if (
+                                                      userData.first_name &&
+                                                      userData.last_name
+                                                    ) {
                                                       return {
                                                         label: `${userData.first_name} ${userData.last_name}`,
-                                                        value: staff.id.toString(),
+                                                        value:
+                                                          staff.id.toString(),
                                                         subLabel: email,
-                                                        status
+                                                        status,
                                                       };
                                                     } else if (email) {
                                                       return {
                                                         label: email,
-                                                        value: staff.id.toString(),
+                                                        value:
+                                                          staff.id.toString(),
                                                         subLabel: `Staff ${staff.id}`,
-                                                        status
+                                                        status,
                                                       };
                                                     } else {
                                                       return {
                                                         label: `Staff ${staff.id}`,
-                                                        value: staff.id.toString(),
-                                                        status
+                                                        value:
+                                                          staff.id.toString(),
+                                                        status,
                                                       };
                                                     }
                                                   })
                                                   .filter(Boolean) || []
                                           }
-                                          value={field.value ? field.value.map(String) : []}
+                                          value={
+                                            field.value
+                                              ? field.value.map(String)
+                                              : []
+                                          }
                                           onSelectItem={(selectedItems) => {
-                                            const values = Array.isArray(selectedItems)
-                                              ? selectedItems.map((item) => parseInt(item.value))
+                                            const values = Array.isArray(
+                                              selectedItems
+                                            )
+                                              ? selectedItems.map((item) =>
+                                                  parseInt(item.value)
+                                                )
                                               : selectedItems
                                               ? [parseInt(selectedItems.value)]
                                               : [];
                                             field.onChange(values);
                                             // Clear single staff selection when multi-select is used
-                                            methods.setValue('staff', undefined);
+                                            methods.setValue(
+                                              'staff',
+                                              undefined
+                                            );
                                           }}
-                                          createLabel="Create new staff"
-                                          createDrawerType="staff"
+                                          createLabel='Create new staff'
+                                          createDrawerType='staff'
                                         />
                                       </div>
                                     )}
                                   />
-                                  <div className="absolute -top-1 -right-1 text-xs bg-blue-500 text-white px-2 py-1 rounded-full">
+                                  <div className='absolute -top-1 -right-1 text-xs bg-blue-500 text-white px-2 py-1 rounded-full'>
                                     Multi-select
                                   </div>
                                 </div>
@@ -877,34 +936,47 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
                                           : staffData
                                               ?.map((staff: any) => {
                                                 if (!staff || !staff.id) {
-                                                  console.warn('Invalid staff data:', staff);
+                                                  console.warn(
+                                                    'Invalid staff data:',
+                                                    staff
+                                                  );
                                                   return null;
                                                 }
 
-                                                const userData = staff.user || {};
-                                                const email = userData.email || staff.email || '';
-                                                const isActive = staff.isActive ?? false;
-                                                const status = isActive ? 'active' : 'inactive';
-                                                
-                                                if (userData.first_name && userData.last_name) {
+                                                const userData =
+                                                  staff.user || {};
+                                                const email =
+                                                  userData.email ||
+                                                  staff.email ||
+                                                  '';
+                                                const isActive =
+                                                  staff.isActive ?? false;
+                                                const status = isActive
+                                                  ? 'active'
+                                                  : 'inactive';
+
+                                                if (
+                                                  userData.first_name &&
+                                                  userData.last_name
+                                                ) {
                                                   return {
                                                     label: `${userData.first_name} ${userData.last_name}`,
                                                     value: staff.id.toString(),
                                                     subLabel: email,
-                                                    status
+                                                    status,
                                                   };
                                                 } else if (email) {
                                                   return {
                                                     label: email,
                                                     value: staff.id.toString(),
                                                     subLabel: `Staff ${staff.id}`,
-                                                    status
+                                                    status,
                                                   };
                                                 } else {
                                                   return {
                                                     label: `Staff ${staff.id}`,
                                                     value: staff.id.toString(),
-                                                    status
+                                                    status,
                                                   };
                                                 }
                                               })
@@ -919,41 +991,78 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
                                       }
                                       onSelectItem={(selectedItem) => {
                                         const value = selectedItem?.value;
-                                        field.onChange(value ? parseInt(value) : undefined);
+                                        field.onChange(
+                                          value ? parseInt(value) : undefined
+                                        );
                                         // Clear multi-select when single selection is used
                                         methods.setValue('staff_ids', []);
                                       }}
-                                      createLabel="Create new staff"
-                                      createDrawerType="staff"
+                                      createLabel='Create new staff'
+                                      createDrawerType='staff'
                                     />
                                   )}
                                 />
                               )}
-                              
+
                               {(() => {
                                 const staffId = methods.watch('staff');
                                 const staffIds = methods.watch('staff_ids');
-                                const relevantStaffIds = bookingSettings?.enable_flexible_booking && methods.watch('allow_staff_selection') 
-                                  ? staffIds || []
-                                  : staffId ? [staffId] : [];
-                                
+                                const relevantStaffIds =
+                                  bookingSettings?.enable_flexible_booking &&
+                                  methods.watch('allow_staff_selection')
+                                    ? staffIds || []
+                                    : staffId
+                                    ? [
+                                        typeof staffId === 'object' &&
+                                        staffId !== null
+                                          ? String(
+                                              (staffId as any).value || staffId
+                                            )
+                                          : String(staffId),
+                                      ]
+                                    : [];
+
                                 if (relevantStaffIds.length === 0) return null;
-                                
+
                                 const inactiveStaff = relevantStaffIds
-                                  .map(id => staffData?.find((staff: any) => staff.id.toString() === id.toString()))
-                                  .filter(staff => staff && !(staff.isActive ?? true));
-                                
+                                  .map((id) =>
+                                    staffData?.find(
+                                      (staff: any) =>
+                                        staff.id.toString() === id.toString()
+                                    )
+                                  )
+                                  .filter(
+                                    (staff) =>
+                                      staff && !(staff.isActive ?? true)
+                                  );
+
                                 if (inactiveStaff.length > 0) {
                                   return (
-                                    <div className="mt-1 text-amber-600 text-xs flex items-center">
-                                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                    <div className='mt-1 text-amber-600 text-xs flex items-center'>
+                                      <svg
+                                        xmlns='http://www.w3.org/2000/svg'
+                                        className='h-4 w-4 mr-1'
+                                        fill='none'
+                                        viewBox='0 0 24 24'
+                                        stroke='currentColor'
+                                      >
+                                        <path
+                                          strokeLinecap='round'
+                                          strokeLinejoin='round'
+                                          strokeWidth={2}
+                                          d='M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z'
+                                        />
                                       </svg>
-                                      Note: {inactiveStaff.length} selected staff {inactiveStaff.length === 1 ? 'member has' : 'members have'} not completed their account setup yet.
+                                      Note: {inactiveStaff.length} selected
+                                      staff{' '}
+                                      {inactiveStaff.length === 1
+                                        ? 'member has'
+                                        : 'members have'}{' '}
+                                      not completed their account setup yet.
                                     </div>
                                   );
                                 }
-                                
+
                                 return null;
                               })()}
                             </div>
@@ -965,13 +1074,29 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
                           render={({ field }) => (
                             <>
                               {fromClientDrawer ? (
-                                <div className="mb-4">
-                                  <label className="block text-sm mb-1 text-gray-700">Clients</label>
-                                  <div className="flex items-center p-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-700">
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                                <div className='mb-4'>
+                                  <label className='block text-sm mb-1 text-gray-700'>
+                                    Clients
+                                  </label>
+                                  <div className='flex items-center p-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-700'>
+                                    <svg
+                                      xmlns='http://www.w3.org/2000/svg'
+                                      className='h-5 w-5 text-blue-500 mr-2'
+                                      fill='none'
+                                      viewBox='0 0 24 24'
+                                      stroke='currentColor'
+                                    >
+                                      <path
+                                        strokeLinecap='round'
+                                        strokeLinejoin='round'
+                                        strokeWidth='2'
+                                        d='M5 13l4 4L19 7'
+                                      />
                                     </svg>
-                                    <span>Will be assigned to the client you're creating</span>
+                                    <span>
+                                      Will be assigned to the client you're
+                                      creating
+                                    </span>
                                   </div>
                                 </div>
                               ) : (
@@ -982,15 +1107,17 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
                                   options={
                                     isClientsLoading
                                       ? [{ label: 'Loading...', value: '' }]
-                                      : (Array.isArray(clientsData) 
-                                          ? clientsData 
+                                      : (Array.isArray(clientsData)
+                                          ? clientsData
                                           : clientsData?.items || []
                                         )?.map((client: Client) => ({
                                           label: `${client.first_name} ${client.last_name}`,
                                           value: client.id.toString(),
                                         })) || []
                                   }
-                                  value={field.value ? field.value.map(String) : []}
+                                  value={
+                                    field.value ? field.value.map(String) : []
+                                  }
                                   onSelectItem={(selectedItems) => {
                                     const values = Array.isArray(selectedItems)
                                       ? selectedItems.map((item) => item.value)
@@ -999,23 +1126,28 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
                                       : [];
                                     field.onChange(values);
                                   }}
-                                  createLabel="Add new client"
-                                  createDrawerType="client"
+                                  createLabel='Add new client'
+                                  createDrawerType='client'
                                 />
                               )}
                             </>
                           )}
                         />
                         {/* Multi-select Location for Flexible Booking */}
-                        {bookingSettings?.enable_flexible_booking && methods.watch('allow_location_selection') ? (
-                          <div className="relative">
+                        {bookingSettings?.enable_flexible_booking &&
+                        methods.watch('allow_location_selection') ? (
+                          <div className='relative'>
                             <Controller
                               name='location_ids'
                               control={methods.control}
                               render={({ field }) => (
-                                <div className={`transition-all duration-300 ${
-                                  methods.watch('allow_location_selection') ? 'ring-2 ring-green-400 ring-opacity-50' : ''
-                                }`}>
+                                <div
+                                  className={`transition-all duration-300 ${
+                                    methods.watch('allow_location_selection')
+                                      ? 'ring-2 ring-green-400 ring-opacity-50'
+                                      : ''
+                                  }`}
+                                >
                                   <DropdownSelectInput
                                     label='Locations (Multiple)'
                                     placeholder='Select Multiple Locations'
@@ -1026,7 +1158,10 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
                                         : locationsData
                                             ?.map((location: any) => {
                                               if (!location || !location.id) {
-                                                console.warn('Invalid location data:', location);
+                                                console.warn(
+                                                  'Invalid location data:',
+                                                  location
+                                                );
                                                 return null;
                                               }
                                               return {
@@ -1034,26 +1169,38 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
                                                 value: location.id.toString(),
                                               };
                                             })
-                                            .filter((item): item is DropDownItem => item !== null) || []
+                                            .filter(
+                                              (item): item is DropDownItem =>
+                                                item !== null
+                                            ) || []
                                     }
-                                    value={field.value ? field.value.map(String) : []}
+                                    value={
+                                      field.value ? field.value.map(String) : []
+                                    }
                                     onSelectItem={(selectedItems) => {
-                                      const values = Array.isArray(selectedItems)
-                                        ? selectedItems.map((item) => parseInt(item.value))
+                                      const values = Array.isArray(
+                                        selectedItems
+                                      )
+                                        ? selectedItems.map((item) =>
+                                            parseInt(item.value)
+                                          )
                                         : selectedItems
                                         ? [parseInt(selectedItems.value)]
                                         : [];
                                       field.onChange(values);
                                       // Clear single location selection when multi-select is used
-                                      methods.setValue('location_id', undefined);
+                                      methods.setValue(
+                                        'location_id',
+                                        undefined
+                                      );
                                     }}
-                                    createLabel="Create new location"
-                                    createDrawerType="location"
+                                    createLabel='Create new location'
+                                    createDrawerType='location'
                                   />
                                 </div>
                               )}
                             />
-                            <div className="absolute -top-1 -right-1 text-xs bg-green-500 text-white px-2 py-1 rounded-full">
+                            <div className='absolute -top-1 -right-1 text-xs bg-green-500 text-white px-2 py-1 rounded-full'>
                               Multi-select
                             </div>
                           </div>
@@ -1071,7 +1218,10 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
                                     : locationsData
                                         ?.map((location: any) => {
                                           if (!location || !location.id) {
-                                            console.warn('Invalid location data:', location);
+                                            console.warn(
+                                              'Invalid location data:',
+                                              location
+                                            );
                                             return null;
                                           }
                                           return {
@@ -1079,7 +1229,10 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
                                             value: location.id.toString(),
                                           };
                                         })
-                                        .filter((item): item is DropDownItem => item !== null) || []
+                                        .filter(
+                                          (item): item is DropDownItem =>
+                                            item !== null
+                                        ) || []
                                 }
                                 value={
                                   field.value?.toString
@@ -1093,8 +1246,8 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
                                   // Clear multi-select when single selection is used
                                   methods.setValue('location_ids', []);
                                 }}
-                                createLabel="Create new location"
-                                createDrawerType="location"
+                                createLabel='Create new location'
+                                createDrawerType='location'
                               />
                             )}
                           />
@@ -1132,8 +1285,8 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
                                   );
                                 field.onChange(values);
                               }}
-                              createLabel="Create new policy"
-                              createDrawerType="policy"
+                              createLabel='Create new policy'
+                              createDrawerType='policy'
                             />
                           )}
                         />
@@ -1150,21 +1303,30 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
                                   Configure how clients can book this session
                                 </p>
                               </div>
-                              <svg 
-                                className="w-5 h-5 text-blue-500" 
-                                fill="none" 
-                                stroke="currentColor" 
-                                viewBox="0 0 24 24"
+                              <svg
+                                className='w-5 h-5 text-blue-500'
+                                fill='none'
+                                stroke='currentColor'
+                                viewBox='0 0 24 24'
                               >
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                <path
+                                  strokeLinecap='round'
+                                  strokeLinejoin='round'
+                                  strokeWidth={2}
+                                  d='M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'
+                                />
                               </svg>
                             </div>
-                            
+
                             <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
                               <div className='flex items-center justify-between p-3 bg-white rounded-lg border'>
                                 <div>
-                                  <label className='text-sm font-medium text-gray-700'>Staff Selection</label>
-                                  <p className='text-xs text-gray-500'>Allow clients to choose specific staff</p>
+                                  <label className='text-sm font-medium text-gray-700'>
+                                    Staff Selection
+                                  </label>
+                                  <p className='text-xs text-gray-500'>
+                                    Allow clients to choose specific staff
+                                  </p>
                                 </div>
                                 <Controller
                                   name='allow_staff_selection'
@@ -1182,8 +1344,12 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
 
                               <div className='flex items-center justify-between p-3 bg-white rounded-lg border'>
                                 <div>
-                                  <label className='text-sm font-medium text-gray-700'>Location Selection</label>
-                                  <p className='text-xs text-gray-500'>Allow clients to choose locations</p>
+                                  <label className='text-sm font-medium text-gray-700'>
+                                    Location Selection
+                                  </label>
+                                  <p className='text-xs text-gray-500'>
+                                    Allow clients to choose locations
+                                  </p>
                                 </div>
                                 <Controller
                                   name='allow_location_selection'
@@ -1202,12 +1368,19 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
 
                             {methods.watch('allow_staff_selection') && (
                               <div className='space-y-4 p-3 bg-white rounded-lg border'>
-                                <h4 className='text-sm font-medium text-gray-700'>Staff Confirmation Settings</h4>
-                                
+                                <h4 className='text-sm font-medium text-gray-700'>
+                                  Staff Confirmation Settings
+                                </h4>
+
                                 <div className='flex items-center justify-between'>
                                   <div>
-                                    <label className='text-sm font-medium text-gray-700'>Require Staff Confirmation</label>
-                                    <p className='text-xs text-gray-500'>Staff must confirm before booking is finalized</p>
+                                    <label className='text-sm font-medium text-gray-700'>
+                                      Require Staff Confirmation
+                                    </label>
+                                    <p className='text-xs text-gray-500'>
+                                      Staff must confirm before booking is
+                                      finalized
+                                    </p>
                                   </div>
                                   <Controller
                                     name='require_staff_confirmation'
@@ -1223,7 +1396,9 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
                                   />
                                 </div>
 
-                                {methods.watch('require_staff_confirmation') && (
+                                {methods.watch(
+                                  'require_staff_confirmation'
+                                ) && (
                                   <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
                                     <Controller
                                       name='staff_confirmation_timeout_hours'
@@ -1234,16 +1409,27 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
                                           type='number'
                                           label='Confirmation Timeout (hours)'
                                           placeholder='24'
-                                          value={field.value?.toString() || '24'}
-                                          onChange={(e) => field.onChange(parseInt(e.target.value) || 24)}
+                                          value={
+                                            field.value?.toString() || '24'
+                                          }
+                                          onChange={(e) =>
+                                            field.onChange(
+                                              parseInt(e.target.value) || 24
+                                            )
+                                          }
                                         />
                                       )}
                                     />
 
                                     <div className='flex items-center justify-between p-3 bg-gray-50 rounded-lg border'>
                                       <div>
-                                        <label className='text-sm font-medium text-gray-700'>Auto-assign if single option</label>
-                                        <p className='text-xs text-gray-500'>Skip selection if only one staff/location available</p>
+                                        <label className='text-sm font-medium text-gray-700'>
+                                          Auto-assign if single option
+                                        </label>
+                                        <p className='text-xs text-gray-500'>
+                                          Skip selection if only one
+                                          staff/location available
+                                        </p>
                                       </div>
                                       <Controller
                                         name='auto_assign_when_single_option'
@@ -1264,7 +1450,11 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
                             )}
 
                             <div className='text-xs text-blue-600 bg-blue-100 p-2 rounded-lg'>
-                              💡 <strong>Tip:</strong> Flexible booking allows clients to choose their preferred staff and locations when booking this session. Enable business-level flexible booking in Profile → Booking Settings first.
+                              💡 <strong>Tip:</strong> Flexible booking allows
+                              clients to choose their preferred staff and
+                              locations when booking this session. Enable
+                              business-level flexible booking in Profile →
+                              Booking Settings first.
                             </div>
                           </div>
                         )}
@@ -1278,41 +1468,63 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
                             render={({ field }) => (
                               <>
                                 {fromClientDrawer ? (
-                                  <div className="mb-4">
-                                    <label className="block text-sm mb-1 text-gray-700">Client Name</label>
-                                    <div className="flex items-center p-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-700">
-                                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                                  <div className='mb-4'>
+                                    <label className='block text-sm mb-1 text-gray-700'>
+                                      Client Name
+                                    </label>
+                                    <div className='flex items-center p-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-700'>
+                                      <svg
+                                        xmlns='http://www.w3.org/2000/svg'
+                                        className='h-5 w-5 text-blue-500 mr-2'
+                                        fill='none'
+                                        viewBox='0 0 24 24'
+                                        stroke='currentColor'
+                                      >
+                                        <path
+                                          strokeLinecap='round'
+                                          strokeLinejoin='round'
+                                          strokeWidth='2'
+                                          d='M5 13l4 4L19 7'
+                                        />
                                       </svg>
-                                      <span>Will be assigned to the client you're creating</span>
+                                      <span>
+                                        Will be assigned to the client you're
+                                        creating
+                                      </span>
                                     </div>
                                   </div>
                                 ) : (
                                   <DropdownSelectInput
                                     label='Client Name'
                                     placeholder='Select or create Clients'
-                                                                      options={
-                                    isClientsLoading
-                                      ? [{ label: 'Loading...', value: '' }]
-                                      : (Array.isArray(clientsData) 
-                                          ? clientsData 
-                                          : clientsData?.items || []
-                                        )?.map((client: any) => ({
-                                          label: `${client.first_name} ${client.last_name}`,
-                                          value: client.id.toString(),
-                                        })) || []
-                                  }
+                                    options={
+                                      isClientsLoading
+                                        ? [{ label: 'Loading...', value: '' }]
+                                        : (Array.isArray(clientsData)
+                                            ? clientsData
+                                            : clientsData?.items || []
+                                          )?.map((client: any) => ({
+                                            label: `${client.first_name} ${client.last_name}`,
+                                            value: client.id.toString(),
+                                          })) || []
+                                    }
                                     onSelectItem={(selectedItems) => {
-                                      const values = Array.isArray(selectedItems)
-                                        ? selectedItems.map((item) => item.value)
+                                      const values = Array.isArray(
+                                        selectedItems
+                                      )
+                                        ? selectedItems.map(
+                                            (item) => item.value
+                                          )
                                         : selectedItems
                                         ? [selectedItems.value]
                                         : [];
                                       field.onChange(values);
                                       if (values.length > 0) {
                                         const clientId = values[0];
-                                        const clientsList = Array.isArray(clientsData) 
-                                          ? clientsData 
+                                        const clientsList = Array.isArray(
+                                          clientsData
+                                        )
+                                          ? clientsData
                                           : clientsData?.items || [];
                                         const selectedClient = clientsList.find(
                                           (client: Client) =>
@@ -1330,8 +1542,8 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
                                         }
                                       }
                                     }}
-                                    createLabel="Add new client"
-                                    createDrawerType="client"
+                                    createLabel='Add new client'
+                                    createDrawerType='client'
                                   />
                                 )}
                               </>
@@ -1414,8 +1626,8 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
                                     onSelectItem={(selectedItem) =>
                                       field.onChange(selectedItem)
                                     }
-                                    createLabel="Create new session type"
-                                    createDrawerType="session"
+                                    createLabel='Create new session type'
+                                    createDrawerType='session'
                                   />
                                 );
                               }}
@@ -1439,21 +1651,24 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
                               name='date'
                               control={methods.control}
                               render={({ field }) => (
-                                <div className="w-full mt-4 mb-6">
-                                  <div className="relative w-full">
+                                <div className='w-full mt-4 mb-6'>
+                                  <div className='relative w-full'>
                                     <input
-                                      type="date"
-                                      id="appointment-date"
+                                      type='date'
+                                      id='appointment-date'
                                       value={field.value || ''}
                                       onChange={(e) => {
                                         field.onChange(e.target.value);
-                                        console.log("Date changed:", e.target.value);
+                                        console.log(
+                                          'Date changed:',
+                                          e.target.value
+                                        );
                                       }}
-                                      className="w-full h-[58px] border border-gray-300 rounded-lg px-4 pt-6 pb-2 text-xs focus:outline-none focus:ring-[1px] focus:border-none focus:ring-secondary focus:border-secondary"
+                                      className='w-full h-[58px] border border-gray-300 rounded-lg px-4 pt-6 pb-2 text-xs focus:outline-none focus:ring-[1px] focus:border-none focus:ring-secondary focus:border-secondary'
                                     />
                                     <label
-                                      htmlFor="appointment-date"
-                                      className="absolute top-2 text-xs left-4 transition-all duration-200 text-primary"
+                                      htmlFor='appointment-date'
+                                      className='absolute top-2 text-xs left-4 transition-all duration-200 text-primary'
                                     >
                                       Date
                                     </label>
@@ -1507,31 +1722,38 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
                                             );
                                             return null;
                                           }
-                                          
-                                          const userData = staff.user || {};
-                                          const email = userData.email || staff.email || '';
-                                          const isActive = staff.isActive ?? false;
-                                          const status = isActive ? 'active' : 'inactive';
 
-                                          if (userData.first_name && userData.last_name) {
+                                          const userData = staff.user || {};
+                                          const email =
+                                            userData.email || staff.email || '';
+                                          const isActive =
+                                            staff.isActive ?? false;
+                                          const status = isActive
+                                            ? 'active'
+                                            : 'inactive';
+
+                                          if (
+                                            userData.first_name &&
+                                            userData.last_name
+                                          ) {
                                             return {
                                               label: `${userData.first_name} ${userData.last_name}`,
                                               value: staff.id.toString(),
                                               subLabel: email,
-                                              status
+                                              status,
                                             };
                                           } else if (email) {
                                             return {
                                               label: email,
                                               value: staff.id.toString(),
                                               subLabel: `Staff ${staff.id}`,
-                                              status
+                                              status,
                                             };
                                           } else {
                                             return {
                                               label: `Staff ${staff.id}`,
                                               value: staff.id.toString(),
-                                              status
+                                              status,
                                             };
                                           }
                                         })
@@ -1547,32 +1769,52 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
                                 onSelectItem={(selectedItem) => {
                                   field.onChange(selectedItem);
                                 }}
-                                createLabel="Create new staff"
-                                createDrawerType="staff"
+                                createLabel='Create new staff'
+                                createDrawerType='staff'
                               />
                             )}
                           />
                           {(() => {
                             const staffId = methods.watch('staff');
                             if (!staffId) return null;
-                            
-                            const selectedStaff = staffData?.find((staff: any) => {
-                              const staffIdStr = typeof staffId === 'object' && staffId !== null ? 
-                                String((staffId as any).value || staffId) : String(staffId);
-                              return staff.id.toString() === staffIdStr;
-                            });
-                            
-                            if (selectedStaff && !(selectedStaff.isActive ?? true)) {
+
+                            const selectedStaff = staffData?.find(
+                              (staff: any) => {
+                                const staffIdStr =
+                                  typeof staffId === 'object' &&
+                                  staffId !== null
+                                    ? String((staffId as any).value || staffId)
+                                    : String(staffId);
+                                return staff.id.toString() === staffIdStr;
+                              }
+                            );
+
+                            if (
+                              selectedStaff &&
+                              !(selectedStaff.isActive ?? true)
+                            ) {
                               return (
-                                <div className="mt-1 text-amber-600 text-xs flex items-center">
-                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                <div className='mt-1 text-amber-600 text-xs flex items-center'>
+                                  <svg
+                                    xmlns='http://www.w3.org/2000/svg'
+                                    className='h-4 w-4 mr-1'
+                                    fill='none'
+                                    viewBox='0 0 24 24'
+                                    stroke='currentColor'
+                                  >
+                                    <path
+                                      strokeLinecap='round'
+                                      strokeLinejoin='round'
+                                      strokeWidth={2}
+                                      d='M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z'
+                                    />
                                   </svg>
-                                  Note: This staff member has not completed their account setup yet.
+                                  Note: This staff member has not completed
+                                  their account setup yet.
                                 </div>
                               );
                             }
-                            
+
                             return null;
                           })()}
                         </div>
@@ -1586,24 +1828,34 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
                                   Flexible Booking Options
                                 </h3>
                                 <p className='text-sm text-gray-500'>
-                                  Configure how clients can book this appointment
+                                  Configure how clients can book this
+                                  appointment
                                 </p>
                               </div>
-                              <svg 
-                                className="w-5 h-5 text-blue-500" 
-                                fill="none" 
-                                stroke="currentColor" 
-                                viewBox="0 0 24 24"
+                              <svg
+                                className='w-5 h-5 text-blue-500'
+                                fill='none'
+                                stroke='currentColor'
+                                viewBox='0 0 24 24'
                               >
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                <path
+                                  strokeLinecap='round'
+                                  strokeLinejoin='round'
+                                  strokeWidth={2}
+                                  d='M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'
+                                />
                               </svg>
                             </div>
-                            
+
                             <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
                               <div className='flex items-center justify-between p-3 bg-white rounded-lg border'>
                                 <div>
-                                  <label className='text-sm font-medium text-gray-700'>Staff Selection</label>
-                                  <p className='text-xs text-gray-500'>Allow clients to choose specific staff</p>
+                                  <label className='text-sm font-medium text-gray-700'>
+                                    Staff Selection
+                                  </label>
+                                  <p className='text-xs text-gray-500'>
+                                    Allow clients to choose specific staff
+                                  </p>
                                 </div>
                                 <Controller
                                   name='allow_staff_selection'
@@ -1621,8 +1873,12 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
 
                               <div className='flex items-center justify-between p-3 bg-white rounded-lg border'>
                                 <div>
-                                  <label className='text-sm font-medium text-gray-700'>Location Selection</label>
-                                  <p className='text-xs text-gray-500'>Allow clients to choose locations</p>
+                                  <label className='text-sm font-medium text-gray-700'>
+                                    Location Selection
+                                  </label>
+                                  <p className='text-xs text-gray-500'>
+                                    Allow clients to choose locations
+                                  </p>
                                 </div>
                                 <Controller
                                   name='allow_location_selection'
@@ -1641,12 +1897,19 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
 
                             {methods.watch('allow_staff_selection') && (
                               <div className='space-y-4 p-3 bg-white rounded-lg border'>
-                                <h4 className='text-sm font-medium text-gray-700'>Staff Confirmation Settings</h4>
-                                
+                                <h4 className='text-sm font-medium text-gray-700'>
+                                  Staff Confirmation Settings
+                                </h4>
+
                                 <div className='flex items-center justify-between'>
                                   <div>
-                                    <label className='text-sm font-medium text-gray-700'>Require Staff Confirmation</label>
-                                    <p className='text-xs text-gray-500'>Staff must confirm before booking is finalized</p>
+                                    <label className='text-sm font-medium text-gray-700'>
+                                      Require Staff Confirmation
+                                    </label>
+                                    <p className='text-xs text-gray-500'>
+                                      Staff must confirm before booking is
+                                      finalized
+                                    </p>
                                   </div>
                                   <Controller
                                     name='require_staff_confirmation'
@@ -1662,7 +1925,9 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
                                   />
                                 </div>
 
-                                {methods.watch('require_staff_confirmation') && (
+                                {methods.watch(
+                                  'require_staff_confirmation'
+                                ) && (
                                   <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
                                     <Controller
                                       name='staff_confirmation_timeout_hours'
@@ -1673,16 +1938,27 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
                                           type='number'
                                           label='Confirmation Timeout (hours)'
                                           placeholder='24'
-                                          value={field.value?.toString() || '24'}
-                                          onChange={(e) => field.onChange(parseInt(e.target.value) || 24)}
+                                          value={
+                                            field.value?.toString() || '24'
+                                          }
+                                          onChange={(e) =>
+                                            field.onChange(
+                                              parseInt(e.target.value) || 24
+                                            )
+                                          }
                                         />
                                       )}
                                     />
 
                                     <div className='flex items-center justify-between p-3 bg-gray-50 rounded-lg border'>
                                       <div>
-                                        <label className='text-sm font-medium text-gray-700'>Auto-assign if single option</label>
-                                        <p className='text-xs text-gray-500'>Skip selection if only one staff/location available</p>
+                                        <label className='text-sm font-medium text-gray-700'>
+                                          Auto-assign if single option
+                                        </label>
+                                        <p className='text-xs text-gray-500'>
+                                          Skip selection if only one
+                                          staff/location available
+                                        </p>
                                       </div>
                                       <Controller
                                         name='auto_assign_when_single_option'
@@ -1703,7 +1979,11 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
                             )}
 
                             <div className='text-xs text-blue-600 bg-blue-100 p-2 rounded-lg'>
-                              💡 <strong>Tip:</strong> Flexible booking allows clients to choose their preferred staff and locations when booking this appointment. Enable business-level flexible booking in Profile → Booking Settings first.
+                              💡 <strong>Tip:</strong> Flexible booking allows
+                              clients to choose their preferred staff and
+                              locations when booking this appointment. Enable
+                              business-level flexible booking in Profile →
+                              Booking Settings first.
                             </div>
                           </div>
                         )}
@@ -1762,8 +2042,8 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
                                 onSelectItem={(selectedItem) => {
                                   field.onChange(selectedItem);
                                 }}
-                                createLabel="Create new location"
-                                createDrawerType="location"
+                                createLabel='Create new location'
+                                createDrawerType='location'
                               />
                             )}
                           />
@@ -1810,8 +2090,8 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
                                   onSelectItem={(selectedItem) => {
                                     field.onChange(selectedItem);
                                   }}
-                                  createLabel="Create new category"
-                                  createDrawerType="category"
+                                  createLabel='Create new category'
+                                  createDrawerType='category'
                                 />
                               )}
                             />
@@ -1826,21 +2106,24 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
                               name='date'
                               control={methods.control}
                               render={({ field }) => (
-                                <div className="w-full mt-4 mb-6">
-                                  <div className="relative w-full">
+                                <div className='w-full mt-4 mb-6'>
+                                  <div className='relative w-full'>
                                     <input
-                                      type="date"
-                                      id="event-date"
+                                      type='date'
+                                      id='event-date'
                                       value={field.value || ''}
                                       onChange={(e) => {
                                         field.onChange(e.target.value);
-                                        console.log("Date changed:", e.target.value);
+                                        console.log(
+                                          'Date changed:',
+                                          e.target.value
+                                        );
                                       }}
-                                      className="w-full h-[58px] border border-gray-300 rounded-lg px-4 pt-6 pb-2 text-xs focus:outline-none focus:ring-[1px] focus:border-none focus:ring-secondary focus:border-secondary"
+                                      className='w-full h-[58px] border border-gray-300 rounded-lg px-4 pt-6 pb-2 text-xs focus:outline-none focus:ring-[1px] focus:border-none focus:ring-secondary focus:border-secondary'
                                     />
                                     <label
-                                      htmlFor="event-date"
-                                      className="absolute top-2 text-xs left-4 transition-all duration-200 text-primary"
+                                      htmlFor='event-date'
+                                      className='absolute top-2 text-xs left-4 transition-all duration-200 text-primary'
                                     >
                                       Date
                                     </label>
@@ -1911,31 +2194,40 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
                                                 );
                                                 return null;
                                               }
-                                              
+
                                               const userData = staff.user || {};
-                                              const email = userData.email || staff.email || '';
-                                              const isActive = staff.isActive ?? false;
-                                              const status = isActive ? 'active' : 'inactive';
-                                              
-                                              if (userData.first_name && userData.last_name) {
+                                              const email =
+                                                userData.email ||
+                                                staff.email ||
+                                                '';
+                                              const isActive =
+                                                staff.isActive ?? false;
+                                              const status = isActive
+                                                ? 'active'
+                                                : 'inactive';
+
+                                              if (
+                                                userData.first_name &&
+                                                userData.last_name
+                                              ) {
                                                 return {
                                                   label: `${userData.first_name} ${userData.last_name}`,
                                                   value: staff.id.toString(),
                                                   subLabel: email,
-                                                  status
+                                                  status,
                                                 };
                                               } else if (email) {
                                                 return {
                                                   label: email,
                                                   value: staff.id.toString(),
                                                   subLabel: `Staff ${staff.id}`,
-                                                  status
+                                                  status,
                                                 };
                                               } else {
                                                 return {
                                                   label: `Staff ${staff.id}`,
                                                   value: staff.id.toString(),
-                                                  status
+                                                  status,
                                                 };
                                               }
                                             })
@@ -1951,32 +2243,54 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
                                     onSelectItem={(selectedItem) => {
                                       field.onChange(selectedItem);
                                     }}
-                                    createLabel="Create new staff"
-                                    createDrawerType="staff"
+                                    createLabel='Create new staff'
+                                    createDrawerType='staff'
                                   />
                                 )}
                               />
                               {(() => {
                                 const staffId = methods.watch('staff');
                                 if (!staffId) return null;
-                                
-                                const selectedStaff = staffData?.find((staff: any) => {
-                                  const staffIdStr = typeof staffId === 'object' && staffId !== null ? 
-                                    String((staffId as any).value || staffId) : String(staffId);
-                                  return staff.id.toString() === staffIdStr;
-                                });
-                                
-                                if (selectedStaff && !(selectedStaff.isActive ?? true)) {
+
+                                const selectedStaff = staffData?.find(
+                                  (staff: any) => {
+                                    const staffIdStr =
+                                      typeof staffId === 'object' &&
+                                      staffId !== null
+                                        ? String(
+                                            (staffId as any).value || staffId
+                                          )
+                                        : String(staffId);
+                                    return staff.id.toString() === staffIdStr;
+                                  }
+                                );
+
+                                if (
+                                  selectedStaff &&
+                                  !(selectedStaff.isActive ?? true)
+                                ) {
                                   return (
-                                    <div className="mt-1 text-amber-600 text-xs flex items-center">
-                                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                    <div className='mt-1 text-amber-600 text-xs flex items-center'>
+                                      <svg
+                                        xmlns='http://www.w3.org/2000/svg'
+                                        className='h-4 w-4 mr-1'
+                                        fill='none'
+                                        viewBox='0 0 24 24'
+                                        stroke='currentColor'
+                                      >
+                                        <path
+                                          strokeLinecap='round'
+                                          strokeLinejoin='round'
+                                          strokeWidth={2}
+                                          d='M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z'
+                                        />
                                       </svg>
-                                      Note: This staff member has not completed their account setup yet.
+                                      Note: This staff member has not completed
+                                      their account setup yet.
                                     </div>
                                   );
                                 }
-                                
+
                                 return null;
                               })()}
                             </div>
@@ -1988,13 +2302,29 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
                           render={({ field }) => (
                             <>
                               {fromClientDrawer ? (
-                                <div className="mb-4">
-                                  <label className="block text-sm mb-1 text-gray-700">Clients</label>
-                                  <div className="flex items-center p-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-700">
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                                <div className='mb-4'>
+                                  <label className='block text-sm mb-1 text-gray-700'>
+                                    Clients
+                                  </label>
+                                  <div className='flex items-center p-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-700'>
+                                    <svg
+                                      xmlns='http://www.w3.org/2000/svg'
+                                      className='h-5 w-5 text-blue-500 mr-2'
+                                      fill='none'
+                                      viewBox='0 0 24 24'
+                                      stroke='currentColor'
+                                    >
+                                      <path
+                                        strokeLinecap='round'
+                                        strokeLinejoin='round'
+                                        strokeWidth='2'
+                                        d='M5 13l4 4L19 7'
+                                      />
                                     </svg>
-                                    <span>Will be assigned to the client you're creating</span>
+                                    <span>
+                                      Will be assigned to the client you're
+                                      creating
+                                    </span>
                                   </div>
                                 </div>
                               ) : (
@@ -2005,15 +2335,17 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
                                   options={
                                     isClientsLoading
                                       ? [{ label: 'Loading...', value: '' }]
-                                      : (Array.isArray(clientsData) 
-                                          ? clientsData 
+                                      : (Array.isArray(clientsData)
+                                          ? clientsData
                                           : clientsData?.items || []
                                         )?.map((client: Client) => ({
                                           label: `${client.first_name} ${client.last_name}`,
                                           value: client.id.toString(),
                                         })) || []
                                   }
-                                  value={field.value ? field.value.map(String) : []}
+                                  value={
+                                    field.value ? field.value.map(String) : []
+                                  }
                                   onSelectItem={(selectedItems) => {
                                     const values = Array.isArray(selectedItems)
                                       ? selectedItems.map((item) => item.value)
@@ -2022,8 +2354,8 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
                                       : [];
                                     field.onChange(values);
                                   }}
-                                  createLabel="Add new client"
-                                  createDrawerType="client"
+                                  createLabel='Add new client'
+                                  createDrawerType='client'
                                 />
                               )}
                             </>
@@ -2062,8 +2394,8 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
                                   );
                                 field.onChange(values);
                               }}
-                              createLabel="Create new policy"
-                              createDrawerType="policy"
+                              createLabel='Create new policy'
+                              createDrawerType='policy'
                             />
                           )}
                         />
@@ -2080,21 +2412,30 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
                                   Configure how clients can book this session
                                 </p>
                               </div>
-                              <svg 
-                                className="w-5 h-5 text-blue-500" 
-                                fill="none" 
-                                stroke="currentColor" 
-                                viewBox="0 0 24 24"
+                              <svg
+                                className='w-5 h-5 text-blue-500'
+                                fill='none'
+                                stroke='currentColor'
+                                viewBox='0 0 24 24'
                               >
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                <path
+                                  strokeLinecap='round'
+                                  strokeLinejoin='round'
+                                  strokeWidth={2}
+                                  d='M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'
+                                />
                               </svg>
                             </div>
-                            
+
                             <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
                               <div className='flex items-center justify-between p-3 bg-white rounded-lg border'>
                                 <div>
-                                  <label className='text-sm font-medium text-gray-700'>Staff Selection</label>
-                                  <p className='text-xs text-gray-500'>Allow clients to choose specific staff</p>
+                                  <label className='text-sm font-medium text-gray-700'>
+                                    Staff Selection
+                                  </label>
+                                  <p className='text-xs text-gray-500'>
+                                    Allow clients to choose specific staff
+                                  </p>
                                 </div>
                                 <Controller
                                   name='allow_staff_selection'
@@ -2112,8 +2453,12 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
 
                               <div className='flex items-center justify-between p-3 bg-white rounded-lg border'>
                                 <div>
-                                  <label className='text-sm font-medium text-gray-700'>Location Selection</label>
-                                  <p className='text-xs text-gray-500'>Allow clients to choose locations</p>
+                                  <label className='text-sm font-medium text-gray-700'>
+                                    Location Selection
+                                  </label>
+                                  <p className='text-xs text-gray-500'>
+                                    Allow clients to choose locations
+                                  </p>
                                 </div>
                                 <Controller
                                   name='allow_location_selection'
@@ -2132,12 +2477,19 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
 
                             {methods.watch('allow_staff_selection') && (
                               <div className='space-y-4 p-3 bg-white rounded-lg border'>
-                                <h4 className='text-sm font-medium text-gray-700'>Staff Confirmation Settings</h4>
-                                
+                                <h4 className='text-sm font-medium text-gray-700'>
+                                  Staff Confirmation Settings
+                                </h4>
+
                                 <div className='flex items-center justify-between'>
                                   <div>
-                                    <label className='text-sm font-medium text-gray-700'>Require Staff Confirmation</label>
-                                    <p className='text-xs text-gray-500'>Staff must confirm before booking is finalized</p>
+                                    <label className='text-sm font-medium text-gray-700'>
+                                      Require Staff Confirmation
+                                    </label>
+                                    <p className='text-xs text-gray-500'>
+                                      Staff must confirm before booking is
+                                      finalized
+                                    </p>
                                   </div>
                                   <Controller
                                     name='require_staff_confirmation'
@@ -2153,7 +2505,9 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
                                   />
                                 </div>
 
-                                {methods.watch('require_staff_confirmation') && (
+                                {methods.watch(
+                                  'require_staff_confirmation'
+                                ) && (
                                   <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
                                     <Controller
                                       name='staff_confirmation_timeout_hours'
@@ -2164,16 +2518,27 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
                                           type='number'
                                           label='Confirmation Timeout (hours)'
                                           placeholder='24'
-                                          value={field.value?.toString() || '24'}
-                                          onChange={(e) => field.onChange(parseInt(e.target.value) || 24)}
+                                          value={
+                                            field.value?.toString() || '24'
+                                          }
+                                          onChange={(e) =>
+                                            field.onChange(
+                                              parseInt(e.target.value) || 24
+                                            )
+                                          }
                                         />
                                       )}
                                     />
 
                                     <div className='flex items-center justify-between p-3 bg-gray-50 rounded-lg border'>
                                       <div>
-                                        <label className='text-sm font-medium text-gray-700'>Auto-assign if single option</label>
-                                        <p className='text-xs text-gray-500'>Skip selection if only one staff/location available</p>
+                                        <label className='text-sm font-medium text-gray-700'>
+                                          Auto-assign if single option
+                                        </label>
+                                        <p className='text-xs text-gray-500'>
+                                          Skip selection if only one
+                                          staff/location available
+                                        </p>
                                       </div>
                                       <Controller
                                         name='auto_assign_when_single_option'
@@ -2194,7 +2559,11 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
                             )}
 
                             <div className='text-xs text-blue-600 bg-blue-100 p-2 rounded-lg'>
-                              💡 <strong>Tip:</strong> Flexible booking allows clients to choose their preferred staff and locations when booking this session. Enable business-level flexible booking in Profile → Booking Settings first.
+                              💡 <strong>Tip:</strong> Flexible booking allows
+                              clients to choose their preferred staff and
+                              locations when booking this session. Enable
+                              business-level flexible booking in Profile →
+                              Booking Settings first.
                             </div>
                           </div>
                         )}
@@ -2333,8 +2702,8 @@ const AddSession = ({ isOpen, onClose, zIndex, fromClientDrawer, pendingClientDa
                   popoverProps={{
                     withinPortal: true,
                     zIndex: 2000,
-                    shadow: "md",
-                    withOverlay: true
+                    shadow: 'md',
+                    withOverlay: true,
                   }}
                 />
               </div>

@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createColumnHelper } from '@tanstack/react-table';
 import { useDebounce } from '../../hooks/useDebounce';
@@ -14,8 +14,7 @@ import {
 } from '../../hooks/reactQuery';
 import { Session } from '../../types/sessionTypes';
 import { navigateToSessionDetails } from '../../utils/navigationHelpers';
-import { safeToString } from '../../utils/stringUtils';
-import { DatePickerInput } from '@mantine/dates';
+
 import DropDownMenu from '../common/DropdownMenu';
 import { useExportSessions } from '../../hooks/useExport';
 import actionOptionIcon from '../../assets/icons/actionOption.svg';
@@ -49,6 +48,11 @@ const AllSessions = () => {
   const navigate = useNavigate();
   const [rowSelection, setRowSelection] = useState({});
   const [pageIndex, setPageIndex] = useState(1);
+  const [pageSize, setPageSize] = useState(() => {
+    // Get stored page size or default to 10
+    const savedPageSize = sessionStorage.getItem('sessionsPageSize');
+    return savedPageSize ? parseInt(savedPageSize, 10) : 10;
+  });
   const [classTypeDropdownOpen, setClassTypeDropdownOpen] = useState(false);
   const [categoryTypeDropdownOpen, setCategoryTypeDropdownOpen] =
     useState(false);
@@ -60,14 +64,16 @@ const AllSessions = () => {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
 
+  // Reset to first page when filters or search changes
+  useEffect(() => {
+    setPageIndex(1);
+  }, [selectedTypes, selectedCategories, debouncedSearchQuery, pageSize]);
+
   const [tempSelectedTypes, setTempSelectedTypes] = useState<string[]>([]);
   const [tempSelectedCategories, setTempSelectedCategories] = useState<
     string[]
   >([]);
-  const [dateRange, setDateRange] = useState<[Date | null, Date | null]>([
-    null,
-    null,
-  ]);
+
   const [showEmptyState, setShowEmptyState] = useState(true);
 
   const { openDrawer } = useUIStore();
@@ -81,51 +87,23 @@ const AllSessions = () => {
     data,
     isLoading: isLoadingSessions,
     refetch: refetchSessions,
-  } = useGetSessions(pageIndex, 10);
+  } = useGetSessions(
+    pageIndex,
+    pageSize,
+    {
+      categories: selectedCategories,
+      sessionTypes: selectedTypes,
+    },
+    debouncedSearchQuery
+  );
+
+  const handlePageSizeChange = useCallback((newSize: number) => {
+    setPageSize(newSize);
+    setPageIndex(1);
+    sessionStorage.setItem('sessionsPageSize', newSize.toString());
+  }, []);
 
   const allSessionsData = useMemo(() => data?.items || [], [data]);
-
-  const searchSessions = useCallback((sessions: Session[], query: string) => {
-    if (!query.trim()) return sessions;
-
-    try {
-      const searchTerms = query.toLowerCase().trim().split(/\s+/);
-
-      return sessions.filter((session) => {
-        try {
-          const searchableFields = [
-            safeToString(session.title),
-            safeToString(session.category?.name),
-            safeToString(session.class_type),
-            session.assigned_staff
-              ? `${safeToString(
-                  session.assigned_staff.user?.first_name
-                )} ${safeToString(
-                  session.assigned_staff.user?.last_name
-                )}`.trim()
-              : '',
-            safeToString(session.description),
-            safeToString(session.location),
-            safeToString(session.id),
-          ].filter((field) => field.length > 0);
-
-          const combinedText = searchableFields.join(' ');
-
-          return searchTerms.every((term) => combinedText.includes(term));
-        } catch (error) {
-          console.warn(
-            'Error processing session in search:',
-            session.id,
-            error
-          );
-          return false;
-        }
-      });
-    } catch (error) {
-      console.error('Error in searchSessions:', error);
-      return sessions;
-    }
-  }, []);
 
   const filteredSessions = useMemo(() => {
     try {
@@ -134,7 +112,32 @@ const AllSessions = () => {
       let filtered = [...allSessionsData];
 
       if (debouncedSearchQuery.trim()) {
-        filtered = searchSessions(filtered, debouncedSearchQuery);
+        filtered = allSessionsData.filter((session) => {
+          try {
+            const searchableFields = [
+              session.title,
+              session.category?.name,
+              session.class_type,
+              session.assigned_staff
+                ? `${session.assigned_staff.user?.first_name} ${session.assigned_staff.user?.last_name}`.trim()
+                : '',
+              session.description,
+              session.location,
+              session.id?.toString(),
+            ].filter((field) => field && field.toString().length > 0);
+
+            const combinedText = searchableFields.join(' ').toLowerCase();
+
+            return combinedText.includes(debouncedSearchQuery.toLowerCase());
+          } catch (error) {
+            console.warn(
+              'Error filtering session by search:',
+              session.id,
+              error
+            );
+            return false;
+          }
+        });
       }
 
       if (selectedTypes.length > 0) {
@@ -156,47 +159,11 @@ const AllSessions = () => {
       if (selectedCategories.length > 0) {
         filtered = filtered.filter((session) => {
           try {
-            const sessionCategory = session?.category?.name || '';
-            return selectedCategories.includes(sessionCategory);
+            const sessionCategoryId = session?.category?.id?.toString() || '';
+            return selectedCategories.includes(sessionCategoryId);
           } catch (error) {
             console.warn(
-              'Error filtering session by category:',
-              session?.id,
-              error
-            );
-            return false;
-          }
-        });
-      }
-
-      if (dateRange[0] && dateRange[1]) {
-        filtered = filtered.filter((session) => {
-          try {
-            const sessionDate = new Date(session.date);
-            const startDate = new Date(dateRange[0]!);
-            const endDate = new Date(dateRange[1]!);
-
-            if (
-              isNaN(sessionDate.getTime()) ||
-              isNaN(startDate.getTime()) ||
-              isNaN(endDate.getTime())
-            ) {
-              console.warn(
-                'Invalid date in session:',
-                session?.id,
-                session?.date
-              );
-              return false;
-            }
-
-            sessionDate.setHours(0, 0, 0, 0);
-            startDate.setHours(0, 0, 0, 0);
-            endDate.setHours(0, 0, 0, 0);
-
-            return sessionDate >= startDate && sessionDate <= endDate;
-          } catch (error) {
-            console.warn(
-              'Error filtering session by date:',
+              'Error filtering session by category ID:',
               session?.id,
               error
             );
@@ -214,10 +181,12 @@ const AllSessions = () => {
     allSessionsData,
     selectedTypes,
     selectedCategories,
-    dateRange,
     debouncedSearchQuery,
-    searchSessions,
   ]);
+
+  const clearRowSelection = useCallback(() => {
+    setRowSelection({});
+  }, []);
 
   const {
     exportModalOpened,
@@ -225,15 +194,18 @@ const AllSessions = () => {
     closeExportModal,
     handleExport,
     isExporting,
-  } = useExportSessions(filteredSessions || []);
+  } = useExportSessions(filteredSessions || [], clearRowSelection);
 
   const getSelectedSessionIds = useCallback(() => {
     if (!filteredSessions) return [];
 
-    return Object.keys(rowSelection).map((index) => {
-      const sessionIndex = parseInt(index);
-      return filteredSessions[sessionIndex].id;
-    });
+    // Get the actual selected rows using the row selection state
+    return Object.keys(rowSelection)
+      .map((rowIndex) => {
+        const row = parseInt(rowIndex);
+        return filteredSessions[row]?.id;
+      })
+      .filter(Boolean); // Filter out any undefined values
   }, [rowSelection, filteredSessions]);
 
   const { data: categoriesData, isLoading: isLoadingCategories } =
@@ -241,21 +213,38 @@ const AllSessions = () => {
 
   const handleSearchChange = useCallback((value: string) => {
     setSearchQuery(value);
+    // Clear selection when search changes
     setRowSelection({});
+    // Reset to first page when searching
+    setPageIndex(1);
   }, []);
 
   const columns = useMemo(
     () => [
       columnHelper.display({
         id: 'select',
-        header: ({ table }) => (
-          <input
-            type='checkbox'
-            checked={table.getIsAllRowsSelected()}
-            onChange={table.getToggleAllRowsSelectedHandler()}
-            className='w-4 h-4 rounded cursor-pointer bg-[#F7F8FA] accent-[#DBDEDF]'
-          />
-        ),
+        header: ({ table }) => {
+          // Only select rows on the current page
+          const currentPageRows = table.getRowModel().rows;
+          const allCurrentPageSelected =
+            currentPageRows.length > 0 &&
+            currentPageRows.every((row) => row.getIsSelected());
+
+          return (
+            <div className='flex flex-col items-center'>
+              <input
+                type='checkbox'
+                checked={allCurrentPageSelected}
+                onChange={() => {
+                  currentPageRows.forEach((row) => {
+                    row.toggleSelected(!allCurrentPageSelected);
+                  });
+                }}
+                className='w-4 h-4 rounded cursor-pointer bg-[#F7F8FA] accent-[#DBDEDF]'
+              />
+            </div>
+          );
+        },
         cell: ({ row }) => (
           <input
             type='checkbox'
@@ -363,14 +352,14 @@ const AllSessions = () => {
           cell: (info) => {
             const { repeat_on, repeat_unit, repeat_every } = info.getValue();
 
-            const dayMap: Record<number, string> = {
-              1: 'Mon',
-              2: 'Tue',
-              3: 'Wed',
-              4: 'Thu',
-              5: 'Fri',
-              6: 'Sat',
-              0: 'Sun',
+            const dayMap: Record<string, string> = {
+              monday: 'Mon',
+              tuesday: 'Tue',
+              wednesday: 'Wed',
+              thursday: 'Thu',
+              friday: 'Fri',
+              saturday: 'Sat',
+              sunday: 'Sun',
             };
 
             if (repeat_unit === 'days' && repeat_every) {
@@ -378,16 +367,20 @@ const AllSessions = () => {
             }
 
             if (repeat_unit === 'weeks') {
-              return `Weekly`;
-            }
-            if (repeat_unit === 'months' && repeat_every) {
-              return `Monthly`;
+              if (
+                repeat_on &&
+                Array.isArray(repeat_on) &&
+                repeat_on.length > 0
+              ) {
+                return repeat_on
+                  .map((day: string) => dayMap[day.toLowerCase()] || day)
+                  .join(', ');
+              }
+              return 'Weekly';
             }
 
-            if (repeat_on && repeat_on.length > 0) {
-              return repeat_on
-                .map((day: string) => dayMap[Number(day)] || '')
-                .join(', ');
+            if (repeat_unit === 'months' && repeat_every) {
+              return `Monthly`;
             }
 
             return 'No Repeats';
@@ -510,11 +503,12 @@ const AllSessions = () => {
     );
   };
 
-  const toggleCategory = (category: string) => {
+  // Modify the toggleCategory function to work with IDs
+  const toggleCategory = (categoryId: string) => {
     setTempSelectedCategories((prev) =>
-      prev.includes(category)
-        ? prev.filter((c) => c !== category)
-        : [...prev, category]
+      prev.includes(categoryId)
+        ? prev.filter((c) => c !== categoryId)
+        : [...prev, categoryId]
     );
   };
 
@@ -531,11 +525,12 @@ const AllSessions = () => {
   const resetFilters = () => {
     setSelectedTypes([]);
     setSelectedCategories([]);
-    setDateRange([null, null]);
     setSearchQuery('');
     setClassTypeDropdownOpen(false);
     setCategoryTypeDropdownOpen(false);
     setRowSelection({});
+    // Reset to first page when filters are reset
+    setPageIndex(1);
   };
 
   const handleActivateSession = () => {
@@ -625,33 +620,13 @@ const AllSessions = () => {
   const handleOpenAddSession = () =>
     openDrawer({ type: 'session', isEditing: false });
 
-  if (isLoadingSessions) {
-    return (
-      <ErrorBoundary>
-        <div className='flex justify-center items-center h-screen'>
-          <Loader size='xl' color='#1D9B5E' />
-        </div>
-      </ErrorBoundary>
-    );
-  }
-
-  if (isLoadingCategories) {
-    return (
-      <ErrorBoundary>
-        <div className='flex justify-center items-center py-10'>
-          <Loader size='xl' color='#1D9B5E' />
-        </div>
-      </ErrorBoundary>
-    );
-  }
-
   return (
     <ErrorBoundary>
       <div className='flex flex-col h-screen bg-cardsBg w-full overflow-y-auto'>
         <MembersHeader
           title='All Sessions'
           buttonText='New Session'
-          searchPlaceholder='Search by Session, Staff Name or Session Type'
+          searchPlaceholder='Search by Session, Category or Staff Name'
           searchValue={searchQuery}
           onSearchChange={handleSearchChange}
           leftIcon={plusIcon}
@@ -674,39 +649,7 @@ const AllSessions = () => {
                 </p>
               </div>
             </div>
-            <div className='h-full w-[1px] bg-gray-200'></div>
 
-            <div
-              className='flex items-center space-x-2 cursor-pointer border-b border-gray-200 pb-1 w-full md:w-auto justify-center md:border-b-0'
-              onClick={() => {}}
-            >
-              <DatePickerInput
-                type='range'
-                pointer
-                value={dateRange}
-                onChange={setDateRange}
-                placeholder='Pick a date'
-                styles={{
-                  input: {
-                    border: 'none',
-                    padding: '0',
-                    color: '#162F3B',
-                    fontSize: '14px',
-                    fontWeight: 'normal',
-                    cursor: 'pointer',
-                    '&:focus': {
-                      border: 'none',
-                      outline: 'none',
-                    },
-                  },
-                  placeholder: {
-                    color: '#162F3B',
-                    fontSize: '14px',
-                    fontWeight: 'normal',
-                  },
-                }}
-              />
-            </div>
             <div className='h-full w-[1px] bg-gray-200'></div>
 
             <div className='flex items-center border-b border-gray-200 pb-1 w-full md:w-auto justify-center md:border-b-0'>
@@ -804,7 +747,16 @@ const AllSessions = () => {
                   >
                     <p className='text-primary text-sm font-normal'>
                       {selectedCategories.length > 0
-                        ? selectedCategories.join(', ')
+                        ? selectedCategories
+                            .map((id) => {
+                              const category = categoriesData?.find(
+                                (c: { id: number; name: string }) =>
+                                  c.id.toString() === id
+                              );
+                              return category ? category.name : '';
+                            })
+                            .filter((name) => name) // Remove empty names
+                            .join(', ')
                         : 'Categories'}
                     </p>
                     <img src={dropdownIcon} alt='dropdown icon' />
@@ -819,7 +771,7 @@ const AllSessions = () => {
                   <div>
                     <div className='flex flex-col gap-2 mt-4 min-w-[160px]'>
                       {isLoadingCategories ? (
-                        <div className='flex items-center justify-center'>
+                        <div className='flex justify-center items-center h-[80%] w-full shadow-sm bg-white self-center border rounded-xl p-6 pt-12'>
                           <Loader size='xl' color='#1D9B5E' />
                         </div>
                       ) : categoriesData && categoriesData.length > 0 ? (
@@ -833,15 +785,19 @@ const AllSessions = () => {
                                 type='checkbox'
                                 id={`category-${category.id}`}
                                 checked={tempSelectedCategories.includes(
-                                  category.name
+                                  category.id.toString()
                                 )}
-                                onChange={() => toggleCategory(category.name)}
+                                onChange={() =>
+                                  toggleCategory(category.id.toString())
+                                }
                                 className='mr-2 h-4 w-4 rounded border-gray-300 focus:ring-0 focus:ring-offset-0 accent-[#1D9B5E]'
                               />
                               <label
                                 htmlFor={`category-${category.id}`}
                                 className={`text-sm cursor-pointer ${
-                                  tempSelectedCategories.includes(category.name)
+                                  tempSelectedCategories.includes(
+                                    category.id.toString()
+                                  )
                                     ? 'text-secondary font-medium'
                                     : 'text-primary'
                                 }`}
@@ -892,33 +848,28 @@ const AllSessions = () => {
           title={
             searchQuery.trim() ||
             selectedTypes.length > 0 ||
-            selectedCategories.length > 0 ||
-            (dateRange[0] && dateRange[1])
+            selectedCategories.length > 0
               ? 'No Sessions Found!'
               : 'No Sessions Found!'
           }
           description={
             debouncedSearchQuery.trim()
               ? `No sessions match your search "${debouncedSearchQuery}"`
-              : selectedTypes.length > 0 ||
-                selectedCategories.length > 0 ||
-                (dateRange[0] && dateRange[1])
+              : selectedTypes.length > 0 || selectedCategories.length > 0
               ? 'No sessions match your current filters'
               : "You don't have any sessions yet"
           }
           buttonText={
             debouncedSearchQuery.trim() ||
             selectedTypes.length > 0 ||
-            selectedCategories.length > 0 ||
-            (dateRange[0] && dateRange[1])
+            selectedCategories.length > 0
               ? 'Clear Filters'
               : 'Create New Session'
           }
           onButtonClick={
             debouncedSearchQuery.trim() ||
             selectedTypes.length > 0 ||
-            selectedCategories.length > 0 ||
-            (dateRange[0] && dateRange[1])
+            selectedCategories.length > 0
               ? resetFilters
               : handleOpenAddSession
           }
@@ -928,7 +879,6 @@ const AllSessions = () => {
             if (
               selectedTypes.length > 0 ||
               selectedCategories.length > 0 ||
-              (dateRange[0] && dateRange[1]) ||
               searchQuery.trim()
             ) {
               resetFilters();
@@ -956,27 +906,38 @@ const AllSessions = () => {
         />
         <div className='flex-1 md:px-6 px-2 py-2'>
           {isLoadingSessions || isLoadingCategories ? (
-            <div className='flex justify-center items-center'>
+            <div className='flex justify-center items-center h-full w-full shadow-sm bg-white self-center border rounded-xl p-6 pt-12'>
               <Loader size='xl' color='#1D9B5E' />
             </div>
           ) : (
             <div className='flex-1 md:px-6 md:py-3 pt-4 w-full overflow-x-auto'>
               <div className='min-w-[1100px] md:min-w-0'>
-                <Table
-                  data={filteredSessions || []}
-                  columns={columns}
-                  rowSelection={rowSelection}
-                  onRowSelectionChange={setRowSelection}
-                  className='mt-4'
-                  pageSize={7}
-                  onRowClick={(row: Session) =>
-                    navigateToSessionDetails(navigate, row.id.toString())
-                  }
-                  paginateServerSide={true}
-                  pageIndex={pageIndex}
-                  pageCount={data?.totalPages}
-                  onPageChange={setPageIndex}
-                />
+                <div className='mb-2 text-sm text-gray-500'>
+                  {Object.keys(rowSelection).length > 0 && (
+                    <span className='text-sm font-[400] text-gray-500 mt-1 border rounded-full p-2 border-secondary'>
+                      {Object.keys(rowSelection).length} selected
+                    </span>
+                  )}
+                </div>
+                <div className='flex flex-col gap-4'>
+                  <Table
+                    data={filteredSessions || []}
+                    columns={columns}
+                    rowSelection={rowSelection}
+                    onRowSelectionChange={setRowSelection}
+                    className='mt-4'
+                    pageSize={pageSize}
+                    onRowClick={(row: Session) =>
+                      navigateToSessionDetails(navigate, row.id.toString())
+                    }
+                    paginateServerSide={true}
+                    pageIndex={pageIndex}
+                    pageCount={data?.totalPages || 1}
+                    onPageChange={setPageIndex}
+                    onPageSizeChange={handlePageSizeChange}
+                    pageSizeOptions={[10, 25, 50, 100]}
+                  />
+                </div>
               </div>
             </div>
           )}

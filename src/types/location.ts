@@ -1,6 +1,12 @@
 // Location types
+export interface Business {
+  id: number;
+  business_name: string;
+}
+
 export interface Location {
   id: number;
+  business: Business;
   name: string;
   address: string;
   city: string;
