@@ -7,8 +7,7 @@ import {
   OnChangeFn,
   getPaginationRowModel,
 } from '@tanstack/react-table';
-import tableLeftIcon from '../../assets/icons/tableLeft.svg';
-import tableRightIcon from '../../assets/icons/tableRight.svg';
+import { CustomPagination } from './CustomPagination';
 
 export interface TableProps<T> {
   data: T[];
@@ -28,6 +27,8 @@ export interface TableProps<T> {
   pageIndex?: number; // 1-based index from backend
   pageCount?: number;
   onPageChange?: (pageIndex: number) => void; // Expects 1-based index
+  onPageSizeChange?: (size: number) => void;
+  pageSizeOptions?: number[];
 }
 
 const Table = <T extends object>({
@@ -48,6 +49,8 @@ const Table = <T extends object>({
   pageIndex = 1, // Default to 1 (first page)
   pageCount = 1,
   onPageChange,
+  onPageSizeChange,
+  pageSizeOptions = [10, 25, 50, 100],
 }: TableProps<T>) => {
   // Convert 1-based backend index to 0-based for react-table
   const reactTablePageIndex = paginateServerSide ? pageIndex - 1 : undefined;
@@ -71,24 +74,6 @@ const Table = <T extends object>({
     manualPagination: paginateServerSide,
   });
 
-  const handlePreviousPage = () => {
-    if (paginateServerSide) {
-      const newPage = Math.max(pageIndex - 1, 1);
-      onPageChange?.(newPage);
-    } else {
-      table.previousPage();
-    }
-  };
-
-  const handleNextPage = () => {
-    if (paginateServerSide) {
-      const newPage = Math.min(pageIndex + 1, pageCount);
-      onPageChange?.(newPage);
-    } else {
-      table.nextPage();
-    }
-  };
-
   const handlePageChange = (pageNumber: number) => {
     if (paginateServerSide) {
       onPageChange?.(pageNumber);
@@ -103,20 +88,18 @@ const Table = <T extends object>({
     : table.getState().pagination.pageIndex + 1;
 
   // Total number of pages
-  const totalPages = paginateServerSide
-    ? pageCount
-    : table.getPageCount();
+  const totalPages = paginateServerSide ? pageCount : table.getPageCount();
 
   return (
     <div className={`overflow-x-auto shadow-lg rounded-lg ${className}`}>
-      <table className="min-w-full bg-white overflow-hidden">
+      <table className='min-w-full bg-white overflow-hidden'>
         <thead className={`${headerBg} h-[62px]`}>
           {table.getHeaderGroups().map((headerGroup) => (
             <tr key={headerGroup.id}>
               {headerGroup.headers.map((header) => (
                 <th
                   key={header.id}
-                  className="px-6 py-3 text-xs text-start font-medium text-primary uppercase tracking-wider"
+                  className='px-6 py-3 text-xs text-start font-medium text-primary uppercase tracking-wider'
                 >
                   {flexRender(
                     header.column.columnDef.header,
@@ -128,8 +111,8 @@ const Table = <T extends object>({
           ))}
           {showHeaderDivider && (
             <tr>
-              <td 
-                colSpan={columns.length} 
+              <td
+                colSpan={columns.length}
                 className={`${headerDividerColor} h-[1px] p-0`}
               />
             </tr>
@@ -152,7 +135,7 @@ const Table = <T extends object>({
               {row.getVisibleCells().map((cell) => (
                 <td
                   key={cell.id}
-                  className="px-6 py-3 text-sm text-start text-primary"
+                  className='px-6 py-3 text-sm text-start text-primary'
                 >
                   {flexRender(cell.column.columnDef.cell, cell.getContext())}
                 </td>
@@ -161,57 +144,37 @@ const Table = <T extends object>({
           ))}
         </tbody>
 
-        {showPagination && totalPages > 1 && (
-          <tfoot>
-            <tr>
-              <td colSpan={columns.length} className="pb-4">
-                <div className="w-full mx-auto border-t border-gray-200 mb-4" />
-
-                <div className="flex justify-between items-center px-6">
-                  <button
-                    onClick={handlePreviousPage}
-                    disabled={
-                      paginateServerSide
-                        ? pageIndex <= 1
-                        : !table.getCanPreviousPage()
-                    }
-                    className="flex items-center px-2 py-2 border border-gray-300 rounded-lg text-xs text-[#6D7172] hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <img src={tableLeftIcon} alt="Previous" className="w-3 h-3" />
-                  </button>
-
-                  <div className="flex space-x-2">
-                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                      <button
-                        key={page}
-                        onClick={() => handlePageChange(page)}
-                        className={`px-2 py-1 border border-gray-300 rounded-lg text-xs ${
-                          page === currentPageNumber
-                            ? 'bg-[#DBDEDF] text-primary'
-                            : 'text-[#6D7172] hover:bg-gray-50'
-                        }`}
-                      >
-                        {page}
-                      </button>
-                    ))}
+        <tfoot>
+          <tr>
+            <td colSpan={columns.length} className='py-4'>
+              <div className='w-full mx-auto border-t border-gray-200 mb-4' />
+              <div className='px-6 flex flex-col md:flex-row items-center justify-between gap-4'>
+                {onPageSizeChange && (
+                  <div className='flex items-center gap-2 text-sm'>
+                    <span>Show:</span>
+                    <select
+                      value={pageSize}
+                      onChange={(e) => onPageSizeChange(Number(e.target.value))}
+                      className='border focus:outline-none focus:border-secondary rounded-md p-1 text-sm'
+                    >
+                      {pageSizeOptions.map((size) => (
+                        <option key={size} value={size}>
+                          {size}
+                        </option>
+                      ))}
+                    </select>
+                    <span>per page</span>
                   </div>
-
-                  <button
-                    onClick={handleNextPage}
-                    disabled={
-                      paginateServerSide
-                        ? pageIndex >= pageCount
-                        : !table.getCanNextPage()
-                    }
-                    className="flex items-center px-2 py-2 border border-gray-300 rounded-lg text-xs text-[#6D7172] hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <img src={tableRightIcon} alt="Next" className="w-3 h-3" />
-                  </button>
-                </div>
-              </td>
-            </tr>
-          </tfoot>
-        )}
+                )}
+                <CustomPagination
+                  totalPages={totalPages}
+                  currentPage={currentPageNumber}
+                  onPageChange={handlePageChange}
+                />
+              </div>
+            </td>
+          </tr>
+        </tfoot>
       </table>
     </div>
   );

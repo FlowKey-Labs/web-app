@@ -10,42 +10,33 @@ import {
   Group,
   Loader,
 } from '@mantine/core';
+import { getSelectedClientIds } from '../../utils/tableUtils';
 import { useCallback, useMemo, useState } from 'react';
-import { useDisclosure } from '@mantine/hooks';
-import { notifications } from '@mantine/notifications';
 import Table from '../common/Table';
 import { createColumnHelper } from '@tanstack/react-table';
 import { useExportSessionClients } from '../../hooks/useExport';
-import moment from 'moment';
 
 import {
   useGetSessionDetail,
   useGetSessionAnalytics,
   useGetSessionClients,
-  useRemoveClientFromSession,
-  useCreateMakeupSession,
-  useCreateCancelledSession,
-  useCreateAttendedSession,
 } from '../../hooks/reactQuery';
-import { mark_client_attended } from '../../api/api';
 
 import actionOptionIcon from '../../assets/icons/actionOption.svg';
 import { Client } from '../../types/clientTypes';
 import avatar from '../../assets/icons/newAvatar.svg';
-import successIcon from '../../assets/icons/success.svg';
-import errorIcon from '../../assets/icons/error.svg';
 import { useUIStore } from '../../store/ui';
-import { Controller, FormProvider, useForm } from 'react-hook-form';
-import Input from '../common/Input';
+import { useSessionAttendanceActions } from './SessionAttendanceActions';
+import { useForm } from 'react-hook-form';
 import {
-  MakeUpSession,
   AttendedSession,
   CancelledSession,
+  MakeUpSession,
 } from '../../types/sessionTypes';
 
 // Extended participant interface for session details display
 interface SessionParticipant {
-  id: string;
+  id: string | number;
   name: string;
   phone?: string;
   email?: string;
@@ -56,11 +47,13 @@ interface SessionParticipant {
   is_group_booking?: boolean;
   quantity?: number;
   isAttended?: boolean;
-  // For traditional clients
-  clientId?: number;
+  // Client properties
   first_name?: string;
   last_name?: string;
   phone_number?: string;
+  clientId?: number;
+  // Other Client properties that might be needed
+  [key: string]: any; // This allows for any additional properties
 }
 
 const columnHelper = createColumnHelper<SessionParticipant>();
@@ -68,23 +61,13 @@ const columnHelper = createColumnHelper<SessionParticipant>();
 const SessionDetails = () => {
   const { id: sessionId } = useParams();
   const currentSessionId = sessionId ? parseInt(sessionId) : 0;
-
-  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
-  const [, setIsMarkingAttended] = useState(false);
-  const [isRemovingClient, setIsRemovingClient] = useState(false);
+  const [selectedClient, setSelectedClient] = useState<Client | SessionParticipant | null>(null);
   const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
-  const [opened, { open, close }] = useDisclosure(false);
-
-  const removeClientMutation = useRemoveClientFromSession();
-
-  const createMakeupSessionMutation = useCreateMakeupSession();
-  const createAttendedSessionMutation = useCreateAttendedSession();
-  const createCancelledSessionMutation = useCreateCancelledSession();
-
+  const [isRemovingClient, setIsRemovingClient] = useState(false);
+  const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({});
   const [activeTab, setActiveTab] = useState<'overview' | 'clients'>(
     'overview'
   );
-  const [rowSelection, setRowSelection] = useState({});
 
   const {
     data: session,
@@ -105,6 +88,25 @@ const SessionDetails = () => {
     refetch: refetchClients,
   } = useGetSessionClients(sessionId || '');
 
+  const {
+    handleBulkAttendance,
+    handleBulkMakeup,
+    handleBulkCancel,
+    openActionModal,
+    handleRemoveAction,
+    modals: attendanceModals,
+  } = useSessionAttendanceActions({
+    sessionId: sessionId || '',
+    currentSessionId,
+    clients,
+    refetchSession,
+    refetchClients,
+    selectedClient,
+    rowSelection,
+    setRowSelection,
+    setSelectedClient,
+    session,
+  });
   // Process session participants using cleaned attendances data from backend
   const sessionParticipants = useMemo((): SessionParticipant[] => {
     if (!session?.attendances) return [];
@@ -119,19 +121,16 @@ const SessionDetails = () => {
       active: attendance.participant_type === 'client' ? true : undefined,
       booking_reference: attendance.booking_reference,
       isAttended: attendance.attended,
-      clientId: typeof attendance.client === 'object' && attendance.client ? attendance.client.id : (attendance.client as number) || undefined,
+      clientId:
+        attendance.client === null
+          ? undefined
+          : typeof attendance.client === 'object'
+          ? attendance.client.id
+          : typeof attendance.client === 'number'
+          ? attendance.client
+          : undefined,
     }));
   }, [session]);
-
-  const getSelectedClientIds = useCallback(() => {
-    if (!sessionParticipants) return [];
-
-    return Object.keys(rowSelection).map((index) => {
-      const participantIndex = parseInt(index);
-      const participant = sessionParticipants[participantIndex];
-      return participant.clientId || participant.id; 
-    });
-  }, [rowSelection, sessionParticipants]);
 
   const methods = useForm<MakeUpSession | AttendedSession | CancelledSession>();
 
@@ -155,7 +154,6 @@ const SessionDetails = () => {
 
   const formatDate = (dateString: string) => {
     if (!dateString) return '';
-
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', {
       year: 'numeric',
@@ -164,9 +162,13 @@ const SessionDetails = () => {
     });
   };
 
+  // Function to get selected client IDs for export
+  const getExportClientIds = useCallback(() => {
+    return getSelectedClientIds(rowSelection, clients);
+  }, [rowSelection, clients]);
+
   const formatDayNames = (days: (string | number)[] | undefined) => {
     if (!days || !days.length) return '';
-
     const dayNames = [
       'sunday',
       'monday',
@@ -176,7 +178,6 @@ const SessionDetails = () => {
       'friday',
       'saturday',
     ];
-
     const dayAbbreviations: Record<string, string> = {
       monday: 'Mon',
       tuesday: 'Tue',
@@ -186,7 +187,6 @@ const SessionDetails = () => {
       saturday: 'Sat',
       sunday: 'Sun',
     };
-
     return days
       .map((day) => {
         const dayName =
@@ -194,273 +194,6 @@ const SessionDetails = () => {
         return dayAbbreviations[dayName] || dayName;
       })
       .join(', ');
-  };
-
-  const handleRemoveClient = () => {
-    if (!selectedClient || !sessionId) return;
-
-    // Only allow removing traditional clients, not booking clients
-    if (selectedClient.type === 'booking') {
-      notifications.show({
-        title: 'Not Allowed',
-        message: 'Booking clients cannot be removed directly. They must be cancelled through the booking system.',
-        color: 'orange',
-        radius: 'md',
-        withBorder: true,
-        autoClose: 4000,
-        position: 'top-right',
-      });
-      close();
-      return;
-    }
-
-    if (!selectedClient.clientId) {
-      notifications.show({
-        title: 'Error',
-        message: 'Cannot remove this participant.',
-        color: 'red',
-        radius: 'md',
-        withBorder: true,
-        autoClose: 3000,
-        position: 'top-right',
-      });
-      close();
-      return;
-    }
-
-    removeClientMutation.mutate(
-      { clientId: selectedClient.clientId.toString(), sessionId },
-      {
-        onSuccess: () => {
-          notifications.show({
-            title: 'Success',
-            message: 'Client removed from session!',
-            color: 'green',
-            radius: 'md',
-            icon: (
-              <span className='flex items-center justify-center w-6 h-6 rounded-full bg-green-200'>
-                <img src={successIcon} alt='Success' className='w-4 h-4' />
-              </span>
-            ),
-            withBorder: true,
-            autoClose: 3000,
-            position: 'top-right',
-          });
-          close();
-          refetchClients();
-        },
-        onError: () => {
-          notifications.show({
-            title: 'Error',
-            message: 'Failed to remove client from session. Please try again.',
-            color: 'red',
-            radius: 'md',
-            icon: (
-              <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
-                <img src={errorIcon} alt='Error' className='w-4 h-4' />
-              </span>
-            ),
-            withBorder: true,
-            autoClose: 3000,
-            position: 'top-right',
-          });
-          close();
-          refetchClients();
-        },
-      }
-    );
-  };
-
-  const dateOnly = moment(methods.getValues('new_date')).format('YYYY-MM-DD');
-
-  const formattedStartTime =
-    methods.getValues('new_start_time') && dateOnly
-      ? `${dateOnly}T${methods.getValues('new_start_time')}:00.000Z`
-      : '';
-  const formattedEndTime =
-    methods.getValues('new_end_time') && dateOnly
-      ? `${dateOnly}T${methods.getValues('new_end_time')}:00.000Z`
-      : '';
-
-  const handleCreateMakeupSession = () => {
-    if (!sessionId) return;
-
-    // Determine if this is a traditional client or booking client
-    const isTraditionalClient = selectedClient?.type === 'client' && selectedClient?.clientId;
-    const clientId = isTraditionalClient ? selectedClient.clientId : null;
-
-    createMakeupSessionMutation.mutate(
-      {
-        session_title: methods.getValues('session_title'),
-        client_name: methods.getValues('client_name'),
-        session: sessionId,
-        client: clientId,
-        original_date: moment(session?.date).format('YYYY-MM-DD'),
-        new_date: moment(methods.getValues('new_date')).format('YYYY-MM-DD'),
-        new_start_time: formattedStartTime,
-        new_end_time: formattedEndTime,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      },
-      {
-        onSuccess: () => {
-          notifications.show({
-            title: 'Success',
-            message: 'Makeup session created successfully!',
-            color: 'green',
-            radius: 'md',
-            icon: (
-              <span className='flex items-center justify-center w-6 h-6 rounded-full bg-green-200'>
-                <img src={successIcon} alt='Success' className='w-4 h-4' />
-              </span>
-            ),
-            withBorder: true,
-            autoClose: 3000,
-            position: 'top-right',
-          });
-          close();
-          refetchSession();
-        },
-        onError: (error) => {
-          console.error('Detailed error:', error);
-          notifications.show({
-            title: 'Error',
-            message:
-              error?.message ||
-              'Failed to create makeup session. Please try again.',
-            color: 'red',
-            radius: 'md',
-            icon: (
-              <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
-                <img src={errorIcon} alt='Error' className='w-4 h-4' />
-              </span>
-            ),
-            withBorder: true,
-            autoClose: 3000,
-            position: 'top-right',
-          });
-          close();
-        },
-      }
-    );
-  };
-
-  const handleCreateAttendanceRecord = () => {
-    if (!sessionId || !selectedClient) return;
-
-    // Use the proper attendance marking API instead of creating new records
-    // For booking clients, we need to extract the numeric ID from the attendance record
-    const attendanceRecord = session?.attendances?.find(
-      att => att.participant_name === selectedClient.name
-    );
-    
-    if (!attendanceRecord?.client) {
-      notifications.show({
-        title: 'Error',
-        message: 'Cannot mark booking client as attended through this method.',
-        color: 'red',
-        radius: 'md',
-        withBorder: true,
-        autoClose: 3000,
-        position: 'top-right',
-      });
-      close();
-      return;
-    }
-    
-    const clientId = attendanceRecord.client.toString();
-    
-    mark_client_attended(clientId, sessionId).then(() => {
-      notifications.show({
-        title: 'Success',
-        message: 'Client marked as attended successfully!',
-        color: 'green',
-        radius: 'md',
-        icon: (
-          <span className='flex items-center justify-center w-6 h-6 rounded-full bg-green-200'>
-            <img src={successIcon} alt='Success' className='w-4 h-4' />
-          </span>
-        ),
-        withBorder: true,
-        autoClose: 3000,
-        position: 'top-right',
-      });
-      close();
-      refetchSession();
-    }).catch(() => {
-      notifications.show({
-        title: 'Error',
-        message: 'Failed to mark client as attended. Please try again.',
-        color: 'red',
-        radius: 'md',
-        icon: (
-          <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
-            <img src={errorIcon} alt='Error' className='w-4 h-4' />
-          </span>
-        ),
-        withBorder: true,
-        autoClose: 3000,
-        position: 'top-right',
-      });
-      close();
-    });
-  };
-
-  const handleCreateCancelledSession = () => {
-    if (!sessionId) return;
-
-    // Determine if this is a traditional client or booking client
-    const isTraditionalClient = selectedClient?.type === 'client' && selectedClient?.clientId;
-    const clientId = isTraditionalClient ? selectedClient.clientId : null;
-
-    createCancelledSessionMutation.mutate(
-      {
-        session_title: methods.getValues('session_title'),
-        client_name: methods.getValues('client_name'),
-        session: sessionId,
-        client: clientId,
-        date: moment(session?.date).format('YYYY-MM-DD'),
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      },
-      {
-        onSuccess: () => {
-          notifications.show({
-            title: 'Success',
-            message: 'Cancelled session created successfully!',
-            color: 'green',
-            radius: 'md',
-            icon: (
-              <span className='flex items-center justify-center w-6 h-6 rounded-full bg-green-200'>
-                <img src={successIcon} alt='Success' className='w-4 h-4' />
-              </span>
-            ),
-            withBorder: true,
-            autoClose: 3000,
-            position: 'top-right',
-          });
-          close();
-          refetchSession();
-        },
-        onError: () => {
-          notifications.show({
-            title: 'Error',
-            message: 'Failed to create cancelled session. Please try again.',
-            color: 'red',
-            radius: 'md',
-            icon: (
-              <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
-                <img src={errorIcon} alt='Error' className='w-4 h-4' />
-              </span>
-            ),
-            withBorder: true,
-            autoClose: 3000,
-            position: 'top-right',
-          });
-          close();
-        },
-      }
-    );
   };
 
   const handleAttendanceStatusChange = () => {
@@ -479,23 +212,6 @@ const SessionDetails = () => {
       };
 
       fetchSessionDetails();
-    }
-  };
-
-  const onSubmit = async (
-    data: MakeUpSession | AttendedSession | CancelledSession
-  ) => {
-    console.log(data);
-    try {
-      if (selectedStatus === 'make_up') {
-        handleCreateMakeupSession();
-      } else if (selectedStatus === 'attended') {
-        handleCreateAttendanceRecord();
-      } else if (selectedStatus === 'cancelled') {
-        handleCreateCancelledSession();
-      }
-    } catch (error) {
-      console.error(error);
     }
   };
 
@@ -556,7 +272,7 @@ const SessionDetails = () => {
         cell: (info) => {
           const status = info.getValue();
           let colorClasses = 'bg-gray-100 text-gray-700'; // default
-          
+
           switch (status) {
             case 'attended':
               colorClasses = 'bg-green-100 text-green-700';
@@ -579,7 +295,7 @@ const SessionDetails = () => {
             default:
               colorClasses = 'bg-gray-100 text-gray-700';
           }
-          
+
           return (
             <span
               className={`inline-block px-2 py-1 rounded-lg text-xs text-center min-w-[80px] ${colorClasses}`}
@@ -618,7 +334,31 @@ const SessionDetails = () => {
                 </Menu.Target>
                 <Menu.Dropdown>
                   <Menu.Item
-                    color='#162F3B'
+                    color='#1D9B5E'
+                    className='text-sm'
+                    style={{ textAlign: 'center' }}
+                    onClick={handleBulkAttendance}
+                  >
+                    Bulk Attendance
+                  </Menu.Item>
+                  <Menu.Item
+                    color='blue'
+                    className='text-sm'
+                    style={{ textAlign: 'center' }}
+                    onClick={handleBulkMakeup}
+                  >
+                    Bulk Make-up
+                  </Menu.Item>
+                  <Menu.Item
+                    color='gray'
+                    className='text-sm'
+                    style={{ textAlign: 'center' }}
+                    onClick={handleBulkCancel}
+                  >
+                    Bulk Cancel
+                  </Menu.Item>
+                  <Menu.Item
+                    color='gray'
                     className='text-sm'
                     style={{ textAlign: 'center' }}
                     onClick={openExportModal}
@@ -632,7 +372,6 @@ const SessionDetails = () => {
         ),
         cell: ({ row }) => {
           const client = row.original;
-
           return (
             <div
               className='flex space-x-2'
@@ -658,18 +397,13 @@ const SessionDetails = () => {
                     // Traditional client actions
                     <>
                       <Menu.Item
+                        component='div'
                         color='green'
-                        onClick={() => {
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
                           setSelectedClient(client);
-                          setSelectedStatus('attended');
-                          setIsRemovingClient(false);
-                          handleAttendanceStatusChange();
-
-                          methods.setValue(
-                            'client_name',
-                            client.name
-                          );
-                          open();
+                          openActionModal(client, 'attended');
                         }}
                         className='text-sm'
                         style={{ textAlign: 'center' }}
@@ -678,52 +412,42 @@ const SessionDetails = () => {
                       </Menu.Item>
 
                       <Menu.Item
+                        component='div'
                         color='blue'
-                        onClick={() => {
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
                           setSelectedClient(client);
-                          setSelectedStatus('make_up');
-                          setIsRemovingClient(false);
-                          handleAttendanceStatusChange();
-
-                          methods.setValue(
-                            'client_name',
-                            client.name
-                          );
-                          open();
+                          openActionModal(client, 'make_up');
                         }}
                         className='text-sm'
                         style={{ textAlign: 'center' }}
                       >
                         Make-up
                       </Menu.Item>
-                      
-                      <Menu.Item
-                        color='gray'
-                        onClick={() => {
-                          setSelectedClient(client);
-                          setSelectedStatus('cancelled');
-                          setIsRemovingClient(false);
-                          handleAttendanceStatusChange();
 
-                          methods.setValue(
-                            'client_name',
-                            client.name
-                          );
-                          open();
+                      <Menu.Item
+                        component='div'
+                        color='gray'
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setSelectedClient(client);
+                          openActionModal(client, 'cancelled');
                         }}
                         className='text-sm'
                         style={{ textAlign: 'center' }}
                       >
                         Cancelled
                       </Menu.Item>
-                      
+
                       <Menu.Item
+                        component='div'
                         color='red'
-                        onClick={() => {
-                          setSelectedClient(client);
-                          setIsRemovingClient(true);
-                          setSelectedStatus(null);
-                          open();
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          handleRemoveAction(client);
                         }}
                         className='text-sm'
                         style={{ textAlign: 'center' }}
@@ -742,10 +466,7 @@ const SessionDetails = () => {
                           setIsRemovingClient(false);
                           handleAttendanceStatusChange();
 
-                          methods.setValue(
-                            'client_name',
-                            client.name
-                          );
+                          methods.setValue('client_name', client.name);
                           open();
                         }}
                         className='text-sm'
@@ -753,7 +474,7 @@ const SessionDetails = () => {
                       >
                         Mark Attended
                       </Menu.Item>
-                      
+
                       <Menu.Item
                         color='gray'
                         disabled
@@ -772,12 +493,11 @@ const SessionDetails = () => {
       }),
     ],
     [
-      currentSessionId,
-      open,
-      setSelectedClient,
-      setIsMarkingAttended,
-      setIsRemovingClient,
-      setSelectedStatus,
+      handleBulkAttendance,
+      handleBulkMakeup,
+      handleBulkCancel,
+      openActionModal,
+      handleRemoveAction,
     ]
   );
 
@@ -906,7 +626,6 @@ const SessionDetails = () => {
                       {session.location?.name || 'No location set'}
                     </span>
                   </div>
-                  {/* repeats  */}
                   <div className='flex justify-between items-center w-full text-sm'>
                     <span className='text-gray-400 font-bold text-xs'>
                       Calendar
@@ -921,10 +640,8 @@ const SessionDetails = () => {
                           const endDate = session.repeat_end_date
                             ? ` until ${formatDate(session.repeat_end_date)}`
                             : '';
-
                           return `${days}${occurrences}${endDate}`;
                         }
-
                         if (session.repeat_unit && session.repeat_every) {
                           const frequency =
                             session.repeat_every > 1
@@ -934,10 +651,8 @@ const SessionDetails = () => {
                               : session.repeat_unit === 'weeks'
                               ? 'Weekly'
                               : 'Monthly';
-
                           return frequency;
                         }
-
                         return 'No repeats';
                       })()}
                     </span>
@@ -987,7 +702,6 @@ const SessionDetails = () => {
                       %
                     </p>
                   </div>
-
                   <Progress
                     color='#FFAE0080'
                     size='md'
@@ -1036,7 +750,6 @@ const SessionDetails = () => {
                       </p>
                       <p className='text-sm'>Total Participants</p>
                     </div>
-
                     <div className='flex items-center border bg-white py-6 px-10 rounded-xl'>
                       <div className='flex flex-col text-center items-center rounded-xl space-y-4'>
                         <p className='text-2xl font-semibold text-primary'>
@@ -1057,14 +770,15 @@ const SessionDetails = () => {
                   </div>
                   <div className='flex-1 md:px-6 md:py-3 w-full overflow-x-auto'>
                     <div className='min-w-[900px] md:min-w-0'>
-                    <Table
-                      data={sessionParticipants}
-                      columns={columns}
-                      rowSelection={rowSelection}
-                      onRowSelectionChange={setRowSelection}
-                      className='mt-4'
-                      pageSize={5}
-                    /> </div>
+                      <Table
+                        data={sessionParticipants}
+                        columns={columns}
+                        rowSelection={rowSelection}
+                        onRowSelectionChange={setRowSelection}
+                        className='mt-4'
+                        pageSize={5}
+                      />{' '}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1072,200 +786,9 @@ const SessionDetails = () => {
           </div>
         </div>
       </div>
-      <Modal
-        opened={opened}
-        onClose={close}
-        title={
-          <Text fw={600} size='lg' color='#1D9B5E'>
-            {isRemovingClient
-              ? 'Remove Client from Session'
-              : selectedStatus === 'attended'
-              ? 'Mark as Attended'
-              : selectedStatus === 'not_yet'
-              ? 'Mark as Not Yet'
-              : selectedStatus === 'missed'
-              ? 'Mark as Missed'
-              : selectedStatus === 'make_up'
-              ? 'Reschedule Session'
-              : selectedStatus === 'cancelled'
-              ? 'Mark as Cancelled'
-              : 'Update Attendance Status'}
-          </Text>
-        }
-        centered
-        radius='md'
-      >
-        <div className='space-y-4'>
-          <div className=''>
-            {/* {selectedStatus === 'make_up' && ( */}
-            <div className='flex flex-col gap-4'>
-              <div className='flex flex-col w-full justify-start'>
-                <FormProvider {...methods}>
-                  <div className=' space-y-4'>
-                    <Controller
-                      name='session_title'
-                      control={methods.control}
-                      render={({ field }) => (
-                        <Input
-                          {...field}
-                          label='Session Name'
-                          placeholder='Session Name'
-                          value={field.value || ''}
-                          readOnly
-                          style={{
-                            backgroundColor: '#80808052',
-                            cursor: 'not-allowed',
-                          }}
-                          onFocus={(e) => {
-                            e.target.blur();
-                          }}
-                        />
-                      )}
-                    />
-                    <Controller
-                      name='client_name'
-                      control={methods.control}
-                      render={({ field }) => (
-                        <Input
-                          {...field}
-                          label='Client Name'
-                          placeholder='Client Name'
-                          value={field.value || ''}
-                          readOnly
-                          style={{
-                            backgroundColor: '#80808052',
-                            cursor: 'not-allowed',
-                          }}
-                          onFocus={(e) => {
-                            e.target.blur();
-                          }}
-                        />
-                      )}
-                    />
 
-                    {selectedStatus === 'make_up' && (
-                      <Controller
-                        name='original_date'
-                        control={methods.control}
-                        render={({ field }) => (
-                          <Input
-                            {...field}
-                            label='Original Date'
-                            placeholder='2025/03/12'
-                            value={field.value || ''}
-                            type='date'
-                          />
-                        )}
-                      />
-                    )}
-                    <div className=' space-y-4'>
-                      {selectedStatus === 'make_up' && (
-                        <>
-                          <p className='text-base font-medium'>Move to </p>
-                          <Controller
-                            name='new_date'
-                            control={methods.control}
-                            render={({ field }) => (
-                              <Input
-                                {...field}
-                                label='New Date'
-                                placeholder='2025/03/12'
-                                value={field.value || ''}
-                                type='date'
-                              />
-                            )}
-                          />
-                          <div className='flex gap-2'>
-                            <Controller
-                              name='new_start_time'
-                              control={methods.control}
-                              render={({ field }) => (
-                                <Input
-                                  {...field}
-                                  label='New Start Time'
-                                  placeholder='10:00'
-                                  value={field.value || ''}
-                                  type='time'
-                                />
-                              )}
-                            />
-                            <Controller
-                              name='new_end_time'
-                              control={methods.control}
-                              render={({ field }) => (
-                                <Input
-                                  {...field}
-                                  label='New End Time'
-                                  placeholder='12:00'
-                                  value={field.value || ''}
-                                  type='time'
-                                />
-                              )}
-                            />
-                          </div>
-                        </>
-                      )}
-                      {selectedStatus === 'attended' && (
-                        <>
-                          <Controller
-                            name='date'
-                            control={methods.control}
-                            render={({ field }) => (
-                              <Input
-                                {...field}
-                                label='Date'
-                                placeholder='2025/03/12'
-                                value={field.value || ''}
-                                type='date'
-                              />
-                            )}
-                          />
-                        </>
-                      )}
-                      {selectedStatus === 'cancelled' && (
-                        <>
-                          <Controller
-                            name='date'
-                            control={methods.control}
-                            render={({ field }) => (
-                              <Input
-                                {...field}
-                                label='Date'
-                                placeholder='2025/03/12'
-                                value={field.value || ''}
-                                type='date'
-                              />
-                            )}
-                          />
-                        </>
-                      )}
-                    </div>
-                    <div className='flex justify-end space-x-3 pt-2'>
-                      <Button variant='subtle' onClick={close} color='gray'>
-                        Cancel
-                      </Button>
-                      <Button
-                        onClick={() => {
-                          if (isRemovingClient) {
-                            handleRemoveClient();
-                          } else {
-                            methods.handleSubmit((data) => {
-                              onSubmit(data);
-                            })();
-                          }
-                        }}
-                        color={isRemovingClient ? 'red' : '#1D9B5E'}
-                      >
-                        Confirm
-                      </Button>
-                    </div>
-                  </div>
-                </FormProvider>
-              </div>
-            </div>
-          </div>
-        </div>
-      </Modal>
+      {attendanceModals}
+
       <Modal
         opened={exportModalOpened}
         onClose={closeExportModal}
@@ -1295,7 +818,10 @@ const SessionDetails = () => {
               variant='outline'
               color='#1D9B5E'
               radius='md'
-              onClick={() => handleExport('excel', getSelectedClientIds())}
+              onClick={() => {
+                const clientIds = getExportClientIds();
+                handleExport('excel', clientIds);
+              }}
               className='px-6'
               loading={isExporting}
             >
@@ -1306,7 +832,10 @@ const SessionDetails = () => {
               variant='outline'
               color='#1D9B5E'
               radius='md'
-              onClick={() => handleExport('csv', getSelectedClientIds())}
+              onClick={() => {
+                const clientIds = getExportClientIds();
+                handleExport('csv', clientIds);
+              }}
               className='px-6'
               loading={isExporting}
             >

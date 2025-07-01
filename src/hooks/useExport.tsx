@@ -23,7 +23,7 @@ import errorIcon from '../assets/icons/error.svg';
  * @param sessions Array of sessions to export
  * @returns Export functionality and state
  */
-export const useExportSessions = (sessions: Session[]) => {
+export const useExportSessions = (sessions: Session[], onSuccess?: () => void) => {
   const [isExporting, setIsExporting] = useState(false);
   const [
     exportModalOpened,
@@ -98,6 +98,11 @@ export const useExportSessions = (sessions: Session[]) => {
 
         exportDataToFile(dataToExport, type, 'sessions', ['id']);
 
+        // Call onSuccess callback before showing the success notification
+        if (onSuccess) {
+          onSuccess();
+        }
+
         notifications.show({
           title: 'Export successful',
           message: `${
@@ -135,7 +140,7 @@ export const useExportSessions = (sessions: Session[]) => {
         closeExportModal();
       }
     },
-    [sessions, closeExportModal]
+    [sessions, closeExportModal, onSuccess]
   );
 
   return {
@@ -152,7 +157,7 @@ export const useExportSessions = (sessions: Session[]) => {
  * @param clients Array of clients to export
  * @returns Export functionality and state
  */
-export const useExportClients = (clients: Client[]) => {
+export const useExportClients = (clients: Client[], onSuccess?: () => void) => {
   const [isExporting, setIsExporting] = useState(false);
   const [
     exportModalOpened,
@@ -224,6 +229,11 @@ export const useExportClients = (clients: Client[]) => {
       try {
         const dataToExport = processClientsForExport(selectedIds);
         exportDataToFile(dataToExport, type, 'clients', ['id']);
+
+        // Call onSuccess callback before showing the success notification
+        if (onSuccess) {
+          onSuccess();
+        }
 
         notifications.show({
           title: 'Export successful',
@@ -637,31 +647,39 @@ export const useExportSubcategories = (
   };
 };
 
-export const useExportSessionClients = (clients: Client[]) => {
+export const useExportSessionClients = (clients: any[]) => {
   const [isExporting, setIsExporting] = useState(false);
   const [
     exportModalOpened,
     { open: openExportModal, close: closeExportModal },
   ] = useDisclosure(false);
 
-  const processClientsForExport = (selectedIds: number[]) => {
-    const clientsToExport = clients.filter((client) =>
-      selectedIds.includes(client.id)
-    );
+  const processClientsForExport = (selectedIds: (string | number)[]) => {
+    const clientsToExport = clients.filter((client) => {
+      // Handle both string IDs (with 'attendance-' prefix) and numeric IDs
+      const clientId = client.clientId || client.id;
+      const clientIdStr = typeof clientId === 'string' 
+        ? clientId.replace('attendance-', '') 
+        : String(clientId);
+      
+      return selectedIds.some(id => 
+        String(id) === clientIdStr || 
+        (typeof id === 'string' && id.includes(clientIdStr))
+      );
+    });
 
     return clientsToExport.map((client) => {
-      const attendance =
-        client.attendances && client.attendances.length > 0
-          ? client.attendances[0]
-          : null;
+      // Use clientId if available, otherwise fall back to id
+      const clientId = client.clientId || client.id;
+      const attendance = client.attendances?.[0] || null;
 
       return {
-        id: client.id,
-        first_name: client.first_name,
-        last_name: client.last_name,
-        email: client.email,
-        phone_number: client.phone_number || '',
-        attendance_status: attendance?.status_display || 'Not Recorded',
+        id: clientId,
+        first_name: client.first_name || client.name?.split(' ')[0] || '',
+        last_name: client.last_name || client.name?.split(' ').slice(1).join(' ') || '',
+        email: client.email || '',
+        phone_number: client.phone_number || client.phone || '',
+        attendance_status: attendance?.status_display || client.status || 'Not Recorded',
         attendance_timestamp: attendance?.timestamp
           ? new Date(attendance.timestamp).toLocaleString()
           : 'N/A',
@@ -764,7 +782,7 @@ export const useExportSessionClients = (clients: Client[]) => {
   };
 };
 
-export const useExportGroups = (groups: GroupData[]) => {
+export const useExportGroups = (groups: GroupData[], onSuccess?: () => void) => {
   const [isExporting, setIsExporting] = useState(false);
   const [
     exportModalOpened,
@@ -830,6 +848,11 @@ export const useExportGroups = (groups: GroupData[]) => {
       try {
         const dataToExport = processGroupsForExport(selectedIds);
         exportDataToFile(dataToExport, type, 'groups', ['id']);
+
+        if (onSuccess) {
+          onSuccess();
+        }
+
         notifications.show({
           title: 'Export successful',
           message: `${
@@ -866,7 +889,7 @@ export const useExportGroups = (groups: GroupData[]) => {
         closeExportModal();
       }
     },
-    [groups, closeExportModal]
+    [groups, closeExportModal, onSuccess]
   );
 
   return {

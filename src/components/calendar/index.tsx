@@ -19,7 +19,8 @@ import { useAuthStore } from '../../store/auth';
 import { useUIStore } from '../../store/ui';
 import { mapSessionToFullCalendarEvents as convertSessionToEvents } from './calendarUtils';
 import { CalendarSessionType } from '../../types/sessionTypes';
-import { Loader } from '@mantine/core';
+import { Loader, Tooltip } from '@mantine/core';
+import EventTooltip from './EventTooltip';
 
 const popupWidth = 400;
 const popupHeight = 500;
@@ -211,7 +212,7 @@ const CalendarView = () => {
   const renderEventContent = useCallback(
     (eventInfo: {
       timeText: string;
-      event: {
+      event: EventImpl & {
         extendedProps: { session: CalendarSessionType };
         title: string;
         start: Date;
@@ -236,7 +237,7 @@ const CalendarView = () => {
           ? format(displayTime, 'HH:mm a')
           : eventInfo.timeText || '';
 
-        return (
+        const eventContent = (
           <div className='flex justify-between w-full h-full py-1 cursor-pointer'>
             <div
               className={cn('flex items-center gap-1 w-[70%]', {
@@ -250,15 +251,49 @@ const CalendarView = () => {
               />
               <i className='text-xs truncate'>{eventInfo.event.title}</i>
             </div>
-            <div className="flex items-center gap-1 text-xs">
-              {currentView.type !== "Week" && (
-                <b className="flex items-center">
-                  {timeString}
-                </b>
+            <div className='flex items-center gap-1 text-xs'>
+              {currentView.type !== 'Week' && (
+                <b className='flex items-center'>{timeString}</b>
               )}
             </div>
           </div>
         );
+
+        if (eventInfo.event.extendedProps?.session) {
+          return (
+            <Tooltip
+              label={<EventTooltip event={eventInfo.event} />}
+              withArrow
+              transitionProps={{ transition: 'pop', duration: 200 }}
+              className='w-full'
+              multiline
+              zIndex={5000}
+              w={300}
+              withinPortal
+              styles={{
+                tooltip: {
+                  padding: 0,
+                  backgroundColor: 'transparent',
+                  border: 'none',
+                  boxShadow: 'none',
+                  maxHeight: 'none',
+                  lineHeight: '1.25',
+                  fontSize: '0.875rem',
+                  whiteSpace: 'normal',
+                  overflow: 'visible',
+                  color: 'black',
+                },
+                arrow: {
+                  display: 'none',
+                },
+              }}
+            >
+              <div className='w-full h-full'>{eventContent}</div>
+            </Tooltip>
+          );
+        }
+
+        return eventContent;
       } catch (error) {
         console.error('Error rendering event content:', error);
         return (
@@ -351,7 +386,6 @@ const CalendarView = () => {
 
           {permisions?.can_create_sessions && (
             <Button
-              w={140}
               h={42}
               size='sm'
               radius='md'
@@ -366,7 +400,7 @@ const CalendarView = () => {
               }}
               onClick={handleAddEvent}
             >
-              New Event
+              New Session
             </Button>
           )}
         </div>

@@ -99,7 +99,7 @@ const GroupDetails = () => {
         <MembersHeader
           title='Group Details'
           buttonText='Update Group'
-          searchPlaceholder='Search Members...'
+          showSearch={false}
           onButtonClick={openDrawer}
           showFilterIcons={false}
         />

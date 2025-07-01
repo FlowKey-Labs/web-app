@@ -5,7 +5,7 @@ type NotificationType = {
   type: 'success' | 'error' | 'warning' | 'info';
   title: string;
   description: string;
-  autoClose?: boolean | number; 
+  autoClose?: boolean | number;
 };
 
 export const useNotification = () => {
@@ -14,12 +14,13 @@ export const useNotification = () => {
   const addNotification = (notification: Omit<NotificationType, 'id'>) => {
     const id = Math.random().toString(36).substring(2, 9);
     setNotifications((prev) => [...prev, { ...notification, id }]);
-    
+
     if (notification.autoClose !== false) {
-      const duration = typeof notification.autoClose === 'number' 
-        ? notification.autoClose 
-        : 5000;
-        
+      const duration =
+        typeof notification.autoClose === 'number'
+          ? notification.autoClose
+          : 5000;
+
       setTimeout(() => {
         removeNotification(id);
       }, duration);
