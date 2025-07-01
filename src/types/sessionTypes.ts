@@ -256,5 +256,7 @@ export interface CalendarSessionType extends Omit<Session, 'repeat_end_date'> {
 
 export interface SessionFilters {
   sessionTypes: string[];
+  categories?: string[];
+  dateRange?: [Date | null, Date | null];
   pageIndex: number;
 }
