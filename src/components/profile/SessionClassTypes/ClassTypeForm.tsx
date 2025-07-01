@@ -130,13 +130,28 @@ export const ClassTypeForm = ({
             render={({ field }) => (
               <div className='flex items-center gap-2'>
                 <Switch
+                  color='green'
                   checked={field.value}
                   onChange={(event) =>
                     field.onChange(event.currentTarget.checked)
                   }
                   disabled={isLoading}
+                  styles={(theme) => ({
+                    track: {
+                      backgroundColor: field.value ? '#1D9B5E' : theme.colors.gray[4],
+                      borderColor: field.value ? '#1D9B5E' : theme.colors.gray[4],
+                      '&:hover': {
+                        backgroundColor: field.value ? '#1a8a4f' : theme.colors.gray[5],
+                      },
+                    },
+                    thumb: {
+                      borderColor: field.value ? '#1D9B5E' : theme.colors.gray[6],
+                    },
+                  })}
                 />
-                <span className='text-sm font-medium'>
+                <span className={`text-sm font-medium ${
+                  field.value ? 'text-green-700' : 'text-gray-600'
+                }`}>
                   {field.value ? 'Active' : 'Inactive'}
                 </span>
               </div>
