@@ -34,6 +34,9 @@ const END_POINTS = {
   BULK_ATTENDANCE: `${BASE_URL}/api/attendance/bulk_mark_attendance/`,
   CANCELLED_SESSIONS: `${BASE_URL}/api/attendance/cancelled/`,
   BULK_CANCELLED_SESSIONS: `${BASE_URL}/api/attendance/cancelled/bulk_cancel/`,
+  CLASS_TYPES: `${BASE_URL}/api/session/class-types/`,
+  DELETE_CLASS_TYPE: (id: string) =>
+    `${BASE_URL}/api/session/class-types/${id}/`,
   DELETE_SESSION: (id: string) => `${BASE_URL}/api/session/${id}/`,
 };
 
@@ -348,5 +351,37 @@ export const bulkCancelSessions = async (bulkCancelData: {
 
 export const delete_session = async (sessionId: string) => {
   const { data } = await api.delete(END_POINTS.DELETE_SESSION(sessionId));
+  return data;
+};
+
+export const get_class_types = async () => {
+  const { data } = await api.get(END_POINTS.CLASS_TYPES);
+  return data;
+};
+
+export const create_class_type = async (classTypeData: {
+  name: string;
+  description?: string;
+}) => {
+  const { data } = await api.post(END_POINTS.CLASS_TYPES, classTypeData);
+  return data;
+};
+
+export const update_class_type = async (
+  id: string,
+  classTypeData: {
+    name: string;
+    description?: string;
+  }
+) => {
+  const { data } = await api.patch(
+    `${END_POINTS.CLASS_TYPES}${id}/`,
+    classTypeData
+  );
+  return data;
+};
+
+export const delete_class_type = async (id: string) => {
+  const { data } = await api.delete(END_POINTS.DELETE_CLASS_TYPE(id));
   return data;
 };
