@@ -145,6 +145,10 @@ import {
   bulkCancelSessions,
   get_calendar_sessions,
   bulk_mark_attendance,
+  get_class_types,
+  create_class_type,
+  update_class_type,
+  delete_class_type,
 } from '../api/sessionsApi';
 
 import { Role, useAuthStore } from '../store/auth';
@@ -2521,5 +2525,60 @@ export const useGetPublicAvailableLocations = (
     enabled: !!businessSlug && !!sessionId,
     staleTime: 1000 * 60 * 2, // 2 minutes
     refetchOnWindowFocus: false,
+  });
+};
+
+export const useGetClassTypes = () => {
+  return useQuery({
+    queryKey: ['classTypes'],
+    queryFn: get_class_types,
+    staleTime: 1000 * 60 * 5,
+    refetchOnWindowFocus: false,
+    retry: 2,
+  });
+};
+
+export const useCreateClassType = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: create_class_type,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['classTypes'] });
+    },
+    onError: (error) => {
+      console.error('Failed to create class type:', error);
+    },
+  });
+};
+
+export const useUpdateClassType = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      id,
+      classTypeData,
+    }: {
+      id: string;
+      classTypeData: { name: string; description?: string };
+    }) => update_class_type(id, classTypeData),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['classTypes'] });
+    },
+    onError: (error) => {
+      console.error('Failed to update class type:', error);
+    },
+  });
+};
+
+export const useDeleteClassType = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: delete_class_type,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['classTypes'] });
+    },
+    onError: (error) => {
+      console.error('Failed to delete class type:', error);
+    },
   });
 };
