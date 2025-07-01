@@ -626,7 +626,7 @@ const AllSessions = () => {
         <MembersHeader
           title='All Sessions'
           buttonText='New Session'
-          searchPlaceholder='Search by Session, date or Staff Name'
+          searchPlaceholder='Search by Session, Category or Staff Name'
           searchValue={searchQuery}
           onSearchChange={handleSearchChange}
           leftIcon={plusIcon}

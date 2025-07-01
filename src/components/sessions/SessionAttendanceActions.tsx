@@ -211,29 +211,67 @@ export const useSessionAttendanceActions = ({
     }
   };
 
-  const handleRemoveClient = () => {
+  const handleRemoveClient = useCallback(() => {
     if (!selectedClient || !sessionId) return;
 
     removeClientMutation.mutate(
       { clientId: selectedClient.id.toString(), sessionId },
       {
         onSuccess: () => {
-          showNotification('Success', 'Client removed from session!', 'green');
+          notifications.show({
+            title: 'Success',
+            message: 'Client removed from session!',
+            color: 'green',
+          });
           close();
+          refetchSession();
           refetchClients();
+          setSelectedClient(null);
         },
         onError: () => {
-          showNotification(
-            'Error',
-            'Failed to remove client from session. Please try again.',
-            'red'
-          );
+          notifications.show({
+            title: 'Error',
+            message: 'Failed to remove client from session. Please try again.',
+            color: 'red',
+          });
           close();
-          refetchClients();
         },
       }
     );
-  };
+  }, [
+    selectedClient,
+    sessionId,
+    removeClientMutation,
+    close,
+    refetchSession,
+    refetchClients,
+    notifications,
+  ]);
+
+  // Function to handle the remove action and open the confirmation modal
+
+  const handleRemoveAction = useCallback(
+    (client: any) => {
+      const clientObj = {
+        ...client,
+        id: client.clientId || client.id,
+        displayName:
+          client.name ||
+          `${client.first_name || ''} ${client.last_name || ''}`.trim() ||
+          'Client',
+      };
+
+      setSelectedClient(clientObj);
+
+      // Set form values for the modal
+      methods.setValue('session_title', session?.title || 'Session');
+      methods.setValue('client_name', clientObj.displayName);
+
+      setIsRemovingClient(true);
+      open();
+    },
+    [open, session?.title, methods]
+  );
 
   const handleCreateMakeupSession = () => {
     if (!sessionId || !selectedClient?.id) {
@@ -567,8 +605,10 @@ export const useSessionAttendanceActions = ({
     handleBulkMakeup,
     handleBulkCancel,
     openActionModal,
-    handleRemoveClient: () => setIsRemovingClient(true),
+    handleRemoveClient,
+    handleRemoveAction,
     isRemovingClient,
+    setIsRemovingClient,
 
     modals: (
       <>

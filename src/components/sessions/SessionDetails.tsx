@@ -61,7 +61,7 @@ const columnHelper = createColumnHelper<SessionParticipant>();
 const SessionDetails = () => {
   const { id: sessionId } = useParams();
   const currentSessionId = sessionId ? parseInt(sessionId) : 0;
-  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+  const [selectedClient, setSelectedClient] = useState<Client | SessionParticipant | null>(null);
   const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
   const [isRemovingClient, setIsRemovingClient] = useState(false);
   const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({});
@@ -93,7 +93,7 @@ const SessionDetails = () => {
     handleBulkMakeup,
     handleBulkCancel,
     openActionModal,
-    handleRemoveClient,
+    handleRemoveAction,
     modals: attendanceModals,
   } = useSessionAttendanceActions({
     sessionId: sessionId || '',
@@ -404,7 +404,6 @@ const SessionDetails = () => {
                           e.stopPropagation();
                           setSelectedClient(client);
                           openActionModal(client, 'attended');
-
                         }}
                         className='text-sm'
                         style={{ textAlign: 'center' }}
@@ -443,12 +442,12 @@ const SessionDetails = () => {
                       </Menu.Item>
 
                       <Menu.Item
+                        component='div'
                         color='red'
-                        onClick={() => {
-                          setSelectedClient(client);
-                          setIsRemovingClient(true);
-                          setSelectedStatus(null);
-                          open();
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          handleRemoveAction(client);
                         }}
                         className='text-sm'
                         style={{ textAlign: 'center' }}
@@ -498,7 +497,7 @@ const SessionDetails = () => {
       handleBulkMakeup,
       handleBulkCancel,
       openActionModal,
-      handleRemoveClient,
+      handleRemoveAction,
     ]
   );
 
