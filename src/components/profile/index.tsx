@@ -7,13 +7,14 @@ import Categories from './Categories';
 import BookingSettings from './BookingSettings';
 import Availability from './Availability';
 import BookingLink from './BookingLink';
+import ClassTypes from './SessionClassTypes/ClassTypes';
 
-
-type TabType = 'business' | 'locations' | 'schedule' | 'categories' | 'bookings' | 'availability' | 'booking-link';
+type TabType = 'business' | 'locations' | 'schedule' | 'categories' | 'bookings' | 'availability' | 'booking-link' | 'class types';
 
 const tabConfig = [
   { id: 'business', label: 'Business Information' },
   { id: 'categories', label: 'Session Categories' },
+  { id: 'class types', label: 'Session Types' },
   { id: 'locations', label: 'Locations' },
   { id: 'availability', label: 'Availability' },
   { id: 'bookings', label: 'Booking Settings' },
@@ -35,6 +36,7 @@ const Profile = () => {
     locations: <BusinessLocation />,
     schedule: <Schedule />,
     categories: <Categories />,
+    'class types': <ClassTypes />,
     bookings: (
       <BookingSettings
         openedAccordion={openedAccordion}

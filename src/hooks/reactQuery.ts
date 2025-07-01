@@ -149,6 +149,7 @@ import {
   create_class_type,
   update_class_type,
   delete_class_type,
+  get_class_type,
 } from '../api/sessionsApi';
 
 import { Role, useAuthStore } from '../store/auth';
@@ -162,6 +163,7 @@ import {
 import {
   AttendedSession,
   CancelledSession,
+  ClassType,
   MakeUpSession,
   ProgressFeedback,
   Session,
@@ -2538,6 +2540,16 @@ export const useGetClassTypes = () => {
   });
 };
 
+export const useGetClassType = (id?: string) => {
+  return useQuery({
+    queryKey: ['classType', id],
+    queryFn: () => (id ? get_class_type(id) : null),
+    enabled: !!id,
+    staleTime: 1000 * 60 * 5,
+    refetchOnWindowFocus: false,
+  });
+};
+
 export const useCreateClassType = () => {
   const queryClient = useQueryClient();
   return useMutation({
@@ -2559,7 +2571,7 @@ export const useUpdateClassType = () => {
       classTypeData,
     }: {
       id: string;
-      classTypeData: { name: string; description?: string };
+      classTypeData: ClassType;
     }) => update_class_type(id, classTypeData),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['classTypes'] });

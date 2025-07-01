@@ -61,7 +61,6 @@ export interface AssignedStaff {
 }
 
 export type SessionType = 'class' | 'appointment' | 'event';
-export type ClassType = 'private' | 'regular' | 'workshop';
 export type RepeatUnit = 'days' | 'weeks' | 'months';
 export type EndType = 'never' | 'on' | 'after';
 
@@ -259,4 +258,13 @@ export interface SessionFilters {
   categories?: string[];
   dateRange?: [Date | null, Date | null];
   pageIndex: number;
+}
+
+export interface ClassType {
+  id?: string;
+  name: string;
+  description?: string;
+  is_active?: boolean;
+  created_at?: string;
+  updated_at?: string;
 }

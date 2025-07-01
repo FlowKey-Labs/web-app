@@ -2,6 +2,7 @@ import { api } from '../lib/axios';
 import {
   AttendedSession,
   CancelledSession,
+  ClassType,
   CreateSessionData,
   MakeUpSession,
   Session,
@@ -35,6 +36,7 @@ const END_POINTS = {
   CANCELLED_SESSIONS: `${BASE_URL}/api/attendance/cancelled/`,
   BULK_CANCELLED_SESSIONS: `${BASE_URL}/api/attendance/cancelled/bulk_cancel/`,
   CLASS_TYPES: `${BASE_URL}/api/session/class-types/`,
+  CLASS_TYPE: (id: string) => `${BASE_URL}/api/session/class-types/${id}/`,
   DELETE_CLASS_TYPE: (id: string) =>
     `${BASE_URL}/api/session/class-types/${id}/`,
   DELETE_SESSION: (id: string) => `${BASE_URL}/api/session/${id}/`,
@@ -359,20 +361,19 @@ export const get_class_types = async () => {
   return data;
 };
 
-export const create_class_type = async (classTypeData: {
-  name: string;
-  description?: string;
-}) => {
+export const get_class_type = async (id: string) => {
+  const { data } = await api.get(END_POINTS.CLASS_TYPE(id));
+  return data;
+};
+
+export const create_class_type = async (classTypeData: ClassType) => {
   const { data } = await api.post(END_POINTS.CLASS_TYPES, classTypeData);
   return data;
 };
 
 export const update_class_type = async (
   id: string,
-  classTypeData: {
-    name: string;
-    description?: string;
-  }
+  classTypeData: ClassType
 ) => {
   const { data } = await api.patch(
     `${END_POINTS.CLASS_TYPES}${id}/`,
