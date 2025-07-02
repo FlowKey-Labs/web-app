@@ -837,8 +837,8 @@ export const useGetClassSessions = () => {
   });
 };
 
-export const useGetSessionDetail = (id: string) => {
-  return useQuery<Session>({
+export const useGetSessionDetail = <T = Session>(id: string) => {
+  return useQuery<Session, Error, T>({
     queryKey: ['session', id],
     queryFn: () => get_session_detail(id),
     staleTime: 1000 * 60 * 5,

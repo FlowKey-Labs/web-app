@@ -20,6 +20,7 @@ import {
   useGetLocations,
   useGetPolicies,
   useGetBookingSettings,
+  useGetClassTypes,
 } from '../../hooks/reactQuery';
 import { useCreateSession } from '../../hooks/reactQuery';
 import moment from 'moment';
@@ -135,6 +136,9 @@ const AddSession = ({
     useGetLocations();
   const { data: policiesData, isLoading: isPoliciesLoading } = useGetPolicies();
   const { data: bookingSettings } = useGetBookingSettings();
+
+  const { data: classTypes, isLoading: isLoadingClassTypes } =
+    useGetClassTypes();
 
   const createSession = useCreateSession();
 
@@ -605,22 +609,44 @@ const AddSession = ({
                                 }
                               }
 
+                              // Map class types to dropdown options
+                              const classTypeOptions = (classTypes || []).map(
+                                (type: any) => ({
+                                  label: type.name,
+                                  value: type.id.toString(),
+                                  description: type.description || '',
+                                })
+                              );
+
                               return (
-                                <DropdownSelectInput
-                                  value={stringValue}
-                                  label='Class Type'
-                                  placeholder='Select Class Type'
-                                  options={[
-                                    { label: 'Regular', value: 'regular' },
-                                    { label: 'Private', value: 'private' },
-                                    { label: 'Workshop', value: 'workshop' },
-                                  ]}
-                                  onSelectItem={(selectedItem) =>
-                                    field.onChange(selectedItem)
-                                  }
-                                  createLabel='Create new class type'
-                                  createDrawerType='session'
-                                />
+                                <div className='mb-4'>
+                                  <DropdownSelectInput
+                                    value={stringValue}
+                                    label='Class Type'
+                                    placeholder={
+                                      isLoadingClassTypes
+                                        ? 'Loading class types...'
+                                        : 'Select Class Type'
+                                    }
+                                    options={classTypeOptions}
+                                    onSelectItem={(selectedItem) => {
+                                      if (selectedItem) {
+                                        field.onChange(selectedItem);
+                                      }
+                                    }}
+                                    createLabel='Create new class type'
+                                    createDrawerType='session'
+                                    isLoading={isLoadingClassTypes}
+                                  />
+                                  {methods.formState.errors.class_type && (
+                                    <p className='mt-1 text-sm text-red-500'>
+                                      {
+                                        methods.formState.errors.class_type
+                                          .message as string
+                                      }
+                                    </p>
+                                  )}
+                                </div>
                               );
                             }}
                           />
@@ -1613,22 +1639,44 @@ const AddSession = ({
                                   }
                                 }
 
+                                // Map class types to dropdown options
+                                const classTypeOptions = (classTypes || []).map(
+                                  (type: any) => ({
+                                    label: type.name,
+                                    value: type.id.toString(),
+                                    description: type.description || '',
+                                  })
+                                );
+
                                 return (
-                                  <DropdownSelectInput
-                                    value={stringValue}
-                                    label='Session Type'
-                                    placeholder='Select Session Type'
-                                    options={[
-                                      { label: 'Regular', value: 'regular' },
-                                      { label: 'Private', value: 'private' },
-                                      { label: 'Workshop', value: 'workshop' },
-                                    ]}
-                                    onSelectItem={(selectedItem) =>
-                                      field.onChange(selectedItem)
-                                    }
-                                    createLabel='Create new session type'
-                                    createDrawerType='session'
-                                  />
+                                  <div className='mb-4'>
+                                    <DropdownSelectInput
+                                      value={stringValue}
+                                      label='Session Type'
+                                      placeholder={
+                                        isLoadingClassTypes
+                                          ? 'Loading session types...'
+                                          : 'Select Session Type'
+                                      }
+                                      options={classTypeOptions}
+                                      onSelectItem={(selectedItem) => {
+                                        if (selectedItem) {
+                                          field.onChange(selectedItem);
+                                        }
+                                      }}
+                                      createLabel='Create new session type'
+                                      createDrawerType='session'
+                                      isLoading={isLoadingClassTypes}
+                                    />
+                                    {methods.formState.errors.class_type && (
+                                      <p className='mt-1 text-sm text-red-500'>
+                                        {
+                                          methods.formState.errors.class_type
+                                            .message as string
+                                        }
+                                      </p>
+                                    )}
+                                  </div>
                                 );
                               }}
                             />
