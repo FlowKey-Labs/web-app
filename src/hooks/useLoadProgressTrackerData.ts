@@ -10,11 +10,22 @@ export const useLoadProgressTrackerData = (clientId: string) => {
 
   const loadProgressData = async () => {
     try {
-      const [seriesRes, progressRes, outcomesRes] = await Promise.all([
+      const [seriesRes, progressRes, outcomesRes, clientProgressRes] = await Promise.all([
         api.get("/api/progress/series"),
         api.get(`/api/progress/${clientId}/`),
         api.get("/api/progress/outcomes?client_id=" + clientId),
+        api.get(`/api/progress/client/${clientId}/`),  // This will now match our new URL pattern
       ]);
+      
+     
+      
+      // Create a map of level IDs to their assessed_on dates
+      const assessedOnMap = clientProgressRes.data.reduce((acc: Record<string, string>, item: any) => {
+        if (item.assessed_on) {
+          acc[item.id] = item.assessed_on;
+        }
+        return acc;
+      }, {});
 
       const series = seriesRes.data;
       const progress: SeriesProgress = progressRes.data;
@@ -38,11 +49,14 @@ export const useLoadProgressTrackerData = (clientId: string) => {
               ? Math.round((completed.length / outcomes.length) * 100)
               : 0;
 
+          const assessedOn = assessedOnMap[level.id] || null;
+            
           return {
             ...level,
             outcomes,
             completed,
             progress,
+            assessed_on: assessedOn,
           };
         }),
         progress: (() => {

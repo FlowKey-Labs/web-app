@@ -41,6 +41,22 @@ import {
   useUnmarkOutcomeIncomplete,
 } from '../../hooks/reactQuery';
 
+const formatDate = (dateString: string | null | undefined): string => {
+  if (!dateString) return '';
+  try {
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return '';
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+  } catch (error) {
+    console.error('Error formatting date:', error);
+    return '';
+  }
+};
+
 const ProgressTracker = ({ clientId }: { clientId: string }) => {
   const {
     selectedLevel,
@@ -104,26 +120,35 @@ const ProgressTracker = ({ clientId }: { clientId: string }) => {
     [key: string]: boolean;
   }>({});
 
-  const previewLevelData = useMemo(() => {
+  const previewLevelData = useMemo<{
+    title: string;
+    outcomes: Outcome[];
+    completed: string[];
+    assessedOn: string | null;
+    dueDate: string;
+  }>(() => {
     const levelId = selectedLevel?.id;
-
     let outcomes: Outcome[] = [];
     let completed: string[] = [];
+    let assessedOn: string | null = null;
+    let levelLabel = selectedLevel?.label || '';
 
     for (const series of seriesData) {
       const level = series?.levels?.find((lvl) => lvl.id === levelId);
       if (level) {
         outcomes = level.outcomes || [];
         completed = level.completed || [];
+        assessedOn = level.assessed_on || null;
+        levelLabel = level.label || level.name || levelLabel;
         break;
       }
     }
 
     return {
-      title: selectedLevel?.label,
+      title: levelLabel,
       outcomes,
       completed,
-      assessedOn: '2024-02-15',
+      assessedOn,
       dueDate: '2024-03-15',
     };
   }, [selectedLevel, seriesData]);
@@ -284,12 +309,16 @@ const ProgressTracker = ({ clientId }: { clientId: string }) => {
                 {previewLevelData.title}
               </Text>
             </Flex>
-            <Text size='lg' fw={600} mb='xs'>
-              Learning Outcomes
-            </Text>
-            <Text size='sm' c='dimmed' mb='lg'>
-              Assessed on: {previewLevelData.assessedOn}
-            </Text>
+            <Box>
+              <Text size='lg' fw={600} mb='xs'>
+                Learning Outcomes
+              </Text>
+              {previewLevelData.assessedOn && (
+                <Text size='sm' c='dimmed' mb='md'>
+                  Assessed on: {formatDate(previewLevelData.assessedOn)}
+                </Text>
+              )}
+            </Box>
             <div className='space-y-3 mb-6'>
               {previewLevelData.outcomes.map(
                 (outcome: Outcome, index: number) => {
@@ -473,6 +502,11 @@ const ProgressTracker = ({ clientId }: { clientId: string }) => {
               }
             />
             <Box>
+              <Text size='lg' fw={600} mb='xs'>
+                {seriesData.find(s => 
+                  s.levels?.some(l => l.id === selectedLevel?.id)
+                )?.title || 'Learning Progress'}
+              </Text>
               <Text size='md' fw={600} c='#8A8D8E'>
                 {selectedLevel?.label || 'No Series Selected'}
               </Text>
@@ -697,10 +731,7 @@ const ProgressTracker = ({ clientId }: { clientId: string }) => {
               borderRadius: 'var(--mantine-radius-lg)',
             }}
           >
-            <Box
-              ta='center'
-              w='30%'
-            >
+            <Box ta='center' w='30%'>
               <Text size='2rem' fw={600} c='white'>
                 100%
               </Text>
