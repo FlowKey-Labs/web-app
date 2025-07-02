@@ -144,14 +144,8 @@ export const useSessionAttendanceActions = ({
       position: 'top-right',
       radius: 'md',
       icon: (
-        <span
-          className={`flex items-center justify-center w-6 h-6 rounded-full bg-${color}-200`}
-        >
-          <img
-            src={color === 'green' ? successIcon : errorIcon}
-            alt={color === 'green' ? 'Success' : 'Error'}
-            className='w-4 h-4'
-          />
+        <span className='flex items-center justify-center w-6 h-6 rounded-full bg-green-200'>
+          <img src={successIcon} alt='Success' className='w-4 h-4' />
         </span>
       ),
     });
@@ -222,7 +216,17 @@ export const useSessionAttendanceActions = ({
             title: 'Success',
             message: 'Client removed from session!',
             color: 'green',
+            icon: (
+              <span className='flex items-center justify-center w-6 h-6 rounded-full bg-green-200'>
+                <img src={successIcon} alt='Success' className='w-4 h-4' />
+              </span>
+            ),
+            radius: 'md',
+            withBorder: true,
+            autoClose: 3000,
+            position: 'top-right',
           });
+
           close();
           refetchSession();
           refetchClients();
@@ -233,6 +237,15 @@ export const useSessionAttendanceActions = ({
             title: 'Error',
             message: 'Failed to remove client from session. Please try again.',
             color: 'red',
+            icon: (
+              <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+                <img src={errorIcon} alt='Error' className='w-4 h-4' />
+              </span>
+            ),
+            radius: 'md',
+            withBorder: true,
+            autoClose: 3000,
+            position: 'top-right',
           });
           close();
         },
@@ -340,6 +353,15 @@ export const useSessionAttendanceActions = ({
         title: 'Error',
         message: 'No client selected',
         color: 'red',
+        icon: (
+          <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+            <img src={errorIcon} alt='Error' className='w-4 h-4' />
+          </span>
+        ),
+        radius: 'md',
+        withBorder: true,
+        autoClose: 3000,
+        position: 'top-right',
       });
       return;
     }
@@ -351,6 +373,15 @@ export const useSessionAttendanceActions = ({
         title: 'Error',
         message: 'Invalid client ID',
         color: 'red',
+        icon: (
+          <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+            <img src={errorIcon} alt='Error' className='w-4 h-4' />
+          </span>
+        ),
+        radius: 'md',
+        withBorder: true,
+        autoClose: 3000,
+        position: 'top-right',
       });
       return;
     }
@@ -361,7 +392,16 @@ export const useSessionAttendanceActions = ({
         title: 'Error',
         message: 'Please select a date',
         color: 'red',
-      });
+        icon: (
+          <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+            <img src={errorIcon} alt='Error' className='w-4 h-4' />
+          </span>
+        ),
+        radius: 'md',
+        withBorder: true,
+        autoClose: 3000,
+        position: 'top-right',
+      }); 
       return;
     }
 
@@ -382,6 +422,15 @@ export const useSessionAttendanceActions = ({
         title: 'Success',
         message: 'Attendance recorded successfully',
         color: 'green',
+        icon: (
+          <span className='flex items-center justify-center w-6 h-6 rounded-full bg-green-200'>
+            <img src={successIcon} alt='Success' className='w-4 h-4' />
+          </span>
+        ),
+        radius: 'md',
+        withBorder: true,
+        autoClose: 3000,
+        position: 'top-right',
       });
 
       close();
@@ -393,6 +442,15 @@ export const useSessionAttendanceActions = ({
         title: 'Error',
         message: 'Failed to record attendance. Please try again.',
         color: 'red',
+        icon: (
+          <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+            <img src={errorIcon} alt='Error' className='w-4 h-4' />
+          </span>
+        ),
+        radius: 'md',
+        withBorder: true,
+        autoClose: 3000,
+        position: 'top-right',
       });
     }
   }, [
@@ -408,13 +466,39 @@ export const useSessionAttendanceActions = ({
 
   const handleCreateCancelledSession = () => {
     if (!sessionId || !selectedClient?.id) {
-      showNotification('Error', 'Please select a client', 'red');
+      notifications.show({
+        title: 'Error',
+        message: 'Please select a client',
+        color: 'red',
+        icon: (
+          <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+            <img src={errorIcon} alt='Error' className='w-4 h-4' />
+          </span>
+        ),
+        radius: 'md',
+        withBorder: true,
+        autoClose: 3000,
+        position: 'top-right',
+      });
       return;
     }
 
     const selectedDate = methods.getValues('date');
     if (!selectedDate) {
-      showNotification('Error', 'Please select a date', 'red');
+      notifications.show({
+        title: 'Error',
+        message: 'Please select a date',
+        color: 'red',
+        icon: (
+          <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+            <img src={errorIcon} alt='Error' className='w-4 h-4' />
+          </span>
+        ),
+        radius: 'md',
+        withBorder: true,
+        autoClose: 3000,
+        position: 'top-right',
+      });
       return;
     }
 
@@ -428,20 +512,38 @@ export const useSessionAttendanceActions = ({
       },
       {
         onSuccess: () => {
-          showNotification(
-            'Success',
-            'Cancelled session created successfully!',
-            'green'
-          );
+          notifications.show({
+            title: 'Success',
+            message: 'Cancelled session created successfully!',
+            color: 'green',
+            icon: (
+              <span className='flex items-center justify-center w-6 h-6 rounded-full bg-green-200'>
+                <img src={successIcon} alt='Success' className='w-4 h-4' />
+              </span>
+            ),
+            radius: 'md',
+            withBorder: true,
+            autoClose: 3000,
+            position: 'top-right',
+          });
           close();
           refetchSession();
         },
         onError: () => {
-          showNotification(
-            'Error',
-            'Failed to create cancelled session. Please try again.',
-            'red'
-          );
+          notifications.show({
+            title: 'Error',
+            message: 'Failed to create cancelled session. Please try again.',
+            color: 'red',
+            icon: (
+              <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+                <img src={errorIcon} alt='Error' className='w-4 h-4' />
+              </span>
+            ),
+            radius: 'md',
+            withBorder: true,
+            autoClose: 3000,
+            position: 'top-right',
+          });
           close();
         },
       }
@@ -451,11 +553,20 @@ export const useSessionAttendanceActions = ({
   const onBulkActionSubmit = async (data: BulkActionFormValues) => {
     const clientIds = getSelectedClientIds();
     if (!clientIds || clientIds.length === 0) {
-      showNotification(
-        'Error',
-        'No clients selected. Please select at least one client.',
-        'red'
-      );
+      notifications.show({
+        title: 'Error',
+        message: 'No clients selected. Please select at least one client.',
+        color: 'red',
+        icon: (
+          <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+            <img src={errorIcon} alt='Error' className='w-4 h-4' />
+          </span>
+        ),
+        radius: 'md',
+        withBorder: true,
+        autoClose: 3000,
+        position: 'top-right',
+      });
       return;
     }
 
@@ -473,13 +584,22 @@ export const useSessionAttendanceActions = ({
           new_end_time: data.newEndTime || '10:00',
         });
 
-        showNotification(
-          'Success',
-          `Successfully scheduled make-up for ${clientIds.length} client${
+        notifications.show({
+          title: 'Success',
+          message: `Successfully scheduled make-up for ${clientIds.length} client${
             clientIds.length > 1 ? 's' : ''
           }`,
-          'green'
-        );
+          color: 'green',
+          icon: (
+            <span className='flex items-center justify-center w-6 h-6 rounded-full bg-green-200'>
+              <img src={successIcon} alt='Success' className='w-4 h-4' />
+            </span>
+          ),
+          radius: 'md',
+          withBorder: true,
+          autoClose: 3000,
+          position: 'top-right',
+        });
       } else if (bulkActionType === 'cancellation') {
         const formattedDate = moment(data.date).format('YYYY-MM-DD');
 
@@ -489,13 +609,22 @@ export const useSessionAttendanceActions = ({
           date: formattedDate,
         });
 
-        showNotification(
-          'Success',
-          `Successfully cancelled attendance for ${clientIds.length} client${
+        notifications.show({
+          title: 'Success',
+          message: `Successfully cancelled attendance for ${clientIds.length} client${
             clientIds.length > 1 ? 's' : ''
           }`,
-          'green'
-        );
+          color: 'green',
+          icon: (
+            <span className='flex items-center justify-center w-6 h-6 rounded-full bg-green-200'>
+              <img src={successIcon} alt='Success' className='w-4 h-4' />
+            </span>
+          ),
+          radius: 'md',
+          withBorder: true,
+          autoClose: 3000,
+          position: 'top-right',
+        });
       } else {
         const formattedDate = moment(data.date).format('YYYY-MM-DD');
 
@@ -505,13 +634,22 @@ export const useSessionAttendanceActions = ({
           date: formattedDate,
         });
 
-        showNotification(
-          'Success',
-          `Successfully marked ${clientIds.length} client${
+        notifications.show({
+          title: 'Success',
+          message: `Successfully marked ${clientIds.length} client${
             clientIds.length > 1 ? 's' : ''
           } as attended`,
-          'green'
-        );
+          color: 'green',
+          icon: (
+            <span className='flex items-center justify-center w-6 h-6 rounded-full bg-green-200'>
+              <img src={successIcon} alt='Success' className='w-4 h-4' />
+            </span>
+          ),
+          radius: 'md',
+          withBorder: true,
+          autoClose: 3000,
+          position: 'top-right',
+        });
       }
 
       closeBulkAttendance();
@@ -538,7 +676,20 @@ export const useSessionAttendanceActions = ({
         }
       }
 
-      showNotification('Error', errorMessage, 'red');
+      notifications.show({
+        title: 'Error',
+        message: errorMessage,
+        color: 'red',
+        icon: (
+          <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+            <img src={errorIcon} alt='Error' className='w-4 h-4' />
+          </span>
+        ),
+        radius: 'md',
+        withBorder: true,
+        autoClose: 3000,
+        position: 'top-right',
+      });
     }
   };
 
@@ -548,6 +699,15 @@ export const useSessionAttendanceActions = ({
         title: 'Error',
         message: 'No action selected',
         color: 'red',
+        icon: (
+          <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+            <img src={errorIcon} alt='Error' className='w-4 h-4' />
+          </span>
+        ),
+        radius: 'md',
+        withBorder: true,
+        autoClose: 3000,
+        position: 'top-right',
       });
       return;
     }
@@ -566,6 +726,15 @@ export const useSessionAttendanceActions = ({
         title: 'Error',
         message: 'An error occurred while processing your request',
         color: 'red',
+        icon: (
+          <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
+            <img src={errorIcon} alt='Error' className='w-4 h-4' />
+          </span>
+        ),
+        radius: 'md',
+        withBorder: true,
+        autoClose: 3000,
+        position: 'top-right',
       });
     }
   };
