@@ -247,9 +247,6 @@ const UpdateSession = ({
           })
           .filter((id) => id !== null) || [];
 
-
-      
-
       const policyIds =
         sessionData.policy_ids || sessionData.policies?.map((p) => p.id) || [];
 
@@ -268,7 +265,6 @@ const UpdateSession = ({
         }
       }
 
-
       const formattedStartTime =
         sessionData._frontend_start_time ||
         (sessionData.start_time
@@ -279,7 +275,6 @@ const UpdateSession = ({
         (sessionData.end_time
           ? moment(sessionData.end_time).format('HH:mm')
           : '');
-
 
       // Format class type for dropdown
       const formattedClassType = (() => {
@@ -605,11 +600,7 @@ const UpdateSession = ({
           data.auto_assign_when_single_option || false,
       };
 
-      
-
       formattedData.client_ids = clientIds;
-
-      
 
       await updateSessionMutation.mutateAsync({
         id: sessionId,
@@ -916,7 +907,6 @@ const UpdateSession = ({
                                     value={field.value || ''}
                                     onChange={(e) => {
                                       field.onChange(e.target.value);
-                                      
                                     }}
                                     className='w-full h-[58px] border border-gray-300 rounded-lg px-4 pt-6 pb-2 text-xs focus:outline-none focus:ring-[1px] focus:border-none focus:ring-secondary focus:border-secondary'
                                   />
@@ -943,7 +933,6 @@ const UpdateSession = ({
                                       value={field.value || ''}
                                       onChange={(e) => {
                                         field.onChange(e.target.value);
-                                       
                                       }}
                                       className='w-full h-[58px] border border-gray-300 rounded-lg px-4 pt-6 pb-2 text-xs focus:outline-none focus:ring-[1px] focus:border-none focus:ring-secondary focus:border-secondary'
                                     />
@@ -2281,7 +2270,6 @@ const UpdateSession = ({
                                     value={field.value || ''}
                                     onChange={(e) => {
                                       field.onChange(e.target.value);
-                                     
                                     }}
                                     className='w-full h-[58px] border border-gray-300 rounded-lg px-4 pt-6 pb-2 text-xs focus:outline-none focus:ring-[1px] focus:border-none focus:ring-secondary focus:border-secondary'
                                   />
@@ -2380,7 +2368,7 @@ const UpdateSession = ({
                             <DropdownSelectInput
                               label='Clients'
                               placeholder='Select Clients'
-                              singleSelect={false}
+                              // singleSelect={false}
                               options={
                                 isClientsLoading
                                   ? [{ label: 'Loading...', value: '' }]
