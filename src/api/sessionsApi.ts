@@ -59,9 +59,8 @@ export const get_sessions = async (
   // Handle filters if they exist
   if (filters) {
     if (filters.sessionTypes && filters.sessionTypes.length > 0) {
-      filters.sessionTypes.forEach((type: string) => {
-        params.append('session_type', type);
-      });
+      // Use class_type parameter for filtering by class type
+      params.append('class_type', filters.sessionTypes.join(','));
     }
 
     if (filters.categories && filters.categories.length > 0) {

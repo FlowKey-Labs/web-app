@@ -782,7 +782,6 @@ export const categoryOptions = [
   "Platinum",
 ];
 
-export const classTypesOptions = ["private", "regular", "workshop"];
 
 export const chartData = [
   { day: "Mon", clients: 25 },

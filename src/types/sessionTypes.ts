@@ -103,7 +103,7 @@ export interface CreateSessionData {
 export interface Session
   extends Omit<
     CreateSessionData,
-    'category' | 'client_ids' | 'location_id' | 'location_ids'
+    'category' | 'client_ids' | 'location_id' | 'location_ids' | 'class_type'
   > {
   id: number;
   assigned_staff: AssignedStaff | null;
@@ -127,6 +127,8 @@ export interface Session
   require_staff_confirmation?: boolean;
   staff_confirmation_timeout_hours?: number;
   auto_assign_when_single_option?: boolean;
+  class_type?: string;
+  class_type_detail?: ClassType;
 }
 
 export interface SessionTableData {
@@ -254,7 +256,7 @@ export interface CalendarSessionType extends Omit<Session, 'repeat_end_date'> {
 }
 
 export interface SessionFilters {
-  sessionTypes: string[];
+  sessionTypes?: string[];
   categories?: string[];
   dateRange?: [Date | null, Date | null];
   pageIndex: number;
