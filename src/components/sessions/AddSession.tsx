@@ -27,6 +27,8 @@ import moment from 'moment';
 import { Modal, Drawer } from '@mantine/core';
 import { useTimezone } from '../../contexts/TimezoneContext';
 
+import './index.css';
+
 interface Client {
   id: number;
   first_name: string;
@@ -696,14 +698,17 @@ const AddSession = ({
                                       : []
                                   }
                                   value={
-                                    field.value?.toString
-                                      ? field.value?.toString()
-                                      : field.value?.toString
-                                      ? field.value.toString()
-                                      : ''
+                                    field.value
+                                      ? (typeof field.value === 'object'
+                                          ? field.value.value
+                                          : field.value
+                                        )?.toString()
+                                      : undefined
                                   }
                                   onSelectItem={(selectedItem) => {
-                                    field.onChange(selectedItem);
+                                    field.onChange(
+                                      selectedItem ? parseInt(selectedItem.value) : null
+                                    );
                                   }}
                                   createLabel='Create new category'
                                   createDrawerType='category'
@@ -1261,14 +1266,15 @@ const AddSession = ({
                                         ) || []
                                 }
                                 value={
-                                  field.value?.toString
-                                    ? field.value?.toString()
-                                    : field.value?.toString
-                                    ? field.value.toString()
-                                    : ''
+                                  field.value
+                                    ? (typeof field.value === 'object'
+                                        ? field.value.value
+                                        : field.value
+                                      )?.toString()
+                                    : undefined
                                 }
                                 onSelectItem={(selectedItem) => {
-                                  field.onChange(selectedItem);
+                                  field.onChange(selectedItem ? parseInt(selectedItem.value) : null);
                                   // Clear multi-select when single selection is used
                                   methods.setValue('location_ids', []);
                                 }}
@@ -2129,14 +2135,17 @@ const AddSession = ({
                                       : []
                                   }
                                   value={
-                                    field.value?.toString
-                                      ? field.value?.toString()
-                                      : field.value?.toString
-                                      ? field.value.toString()
-                                      : ''
+                                    field.value
+                                      ? (typeof field.value === 'object'
+                                          ? field.value.value
+                                          : field.value
+                                        )?.toString()
+                                      : undefined
                                   }
                                   onSelectItem={(selectedItem) => {
-                                    field.onChange(selectedItem);
+                                    field.onChange(
+                                      selectedItem ? parseInt(selectedItem.value) : null
+                                    );
                                   }}
                                   createLabel='Create new category'
                                   createDrawerType='category'

@@ -1,0 +1,20 @@
+.multi-select-policies {
+  .react-select__multi-value {
+    background: #eafcf3;
+    border-radius: 4px;
+    padding: 2px 6px;
+    margin: 2px;
+  }
+
+  .react-select__multi-value__label {
+    color: #1d9b5e;
+    font-size: 12px;
+  }
+
+  .react-select__multi-value__remove {
+    &:hover {
+      background: #daf8e6;
+      color: #1d9b5e;
+    }
+  }
+}
