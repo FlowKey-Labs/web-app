@@ -27,8 +27,6 @@ import moment from 'moment';
 import { Modal, Drawer } from '@mantine/core';
 import { useTimezone } from '../../contexts/TimezoneContext';
 
-import './index.css';
-
 interface Client {
   id: number;
   first_name: string;
@@ -225,10 +223,6 @@ const AddSession = ({
       }
 
       const dateOnly = moment(dateObj).format('YYYY-MM-DD');
-
-      // CRITICAL TIMEZONE FIX: Format times properly for backend with business timezone awareness
-      const businessTimezone =
-        timezoneState.businessTimezone || 'Africa/Nairobi';
 
       // Format times for backend - these will be interpreted as business local time
       // Fix: Check for actual time values, not just truthy values
@@ -707,7 +701,9 @@ const AddSession = ({
                                   }
                                   onSelectItem={(selectedItem) => {
                                     field.onChange(
-                                      selectedItem ? parseInt(selectedItem.value) : null
+                                      selectedItem
+                                        ? parseInt(selectedItem.value)
+                                        : null
                                     );
                                   }}
                                   createLabel='Create new category'
@@ -1274,7 +1270,11 @@ const AddSession = ({
                                     : undefined
                                 }
                                 onSelectItem={(selectedItem) => {
-                                  field.onChange(selectedItem ? parseInt(selectedItem.value) : null);
+                                  field.onChange(
+                                    selectedItem
+                                      ? parseInt(selectedItem.value)
+                                      : null
+                                  );
                                   // Clear multi-select when single selection is used
                                   methods.setValue('location_ids', []);
                                 }}
@@ -2144,7 +2144,9 @@ const AddSession = ({
                                   }
                                   onSelectItem={(selectedItem) => {
                                     field.onChange(
-                                      selectedItem ? parseInt(selectedItem.value) : null
+                                      selectedItem
+                                        ? parseInt(selectedItem.value)
+                                        : null
                                     );
                                   }}
                                   createLabel='Create new category'
