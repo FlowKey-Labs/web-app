@@ -32,6 +32,8 @@ import { DonutChart } from '../common/DonutChart';
 import { format } from 'date-fns';
 import { formatToEATTime } from '../../utils/formatTo12Hour';
 import { Progress, Skeleton, Card, Text, Group, Badge } from '@mantine/core';
+import { Select } from '@mantine/core';
+import { IconCalendar } from '@tabler/icons-react';
 
 import { SessionsPerStaff } from './SessionsPerStaff';
 import { UpcomingBirthdays } from './UpcomingBirthdays';
@@ -150,82 +152,37 @@ const GettingStarted = () => {
                     Here's what we have for you today
                   </p>
                 </div>
-
-                <div className='flex-shrink-0'>
-                  <DropDownMenu
-                    show={dropdownOpen}
-                    setShow={setDropdownOpen}
-                    dropDownPosition='center'
-                    actionElement={
-                      <div
-                        id='viewSelect'
-                        className='p-3 border border-gray-200 bg-white text-primary rounded-lg w-full sm:w-44 h-11 outline-none cursor-pointer flex items-center justify-between shadow-sm hover:shadow-sm hover:border-primary/20 transition-all duration-200'
-                      >
-                        <img
-                          src={calenderIcon}
-                          alt='Calendar icon'
-                          className='w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0'
-                        />
-                        <p className='text-sm font-medium truncate mx-2'>
-                          {selectedTimeRange === 'to_date'
-                            ? 'To Date'
-                            : selectedTimeRange === 'today'
-                            ? 'Today'
-                            : selectedTimeRange === 'last_7_days'
-                            ? 'Last 7 Days'
-                            : selectedTimeRange === 'last_30_days'
-                            ? 'Last 30 Days'
-                            : selectedTimeRange === 'last_3_months'
-                            ? 'Last 3 Months'
-                            : selectedTimeRange === 'last_year'
-                            ? 'Last Year'
-                            : selectedTimeRange}
-                        </p>
-                        <img
-                          src={dropdownIcon}
-                          alt='Dropdown arrow'
-                          className='w-4 h-4 flex-shrink-0'
-                        />
-                      </div>
-                    }
-                  >
-                    <div className='border border-gray-200 rounded-lg shadow-sm bg-white min-w-[200px]'>
-                      <ul className='w-full flex flex-col py-2'>
-                        {[
-                          'to_date',
-                          'today',
-                          'last_7_days',
-                          'last_30_days',
-                          'last_3_months',
-                          'last_year',
-                        ].map((range) => (
-                          <li
-                            key={range}
-                            className={`cursor-pointer text-left px-4 py-2 hover:bg-gray-50 transition-colors duration-150 ${
-                              selectedTimeRange === range
-                                ? 'text-green-600 bg-green-50 font-medium'
-                                : 'text-gray-700'
-                            }`}
-                            onClick={() => handleTimeRangeSelect(range)}
-                          >
-                            {range === 'to_date'
-                              ? 'To Date'
-                              : range === 'today'
-                              ? 'Today'
-                              : range === 'last_7_days'
-                              ? 'Last 7 Days'
-                              : range === 'last_30_days'
-                              ? 'Last 30 Days'
-                              : range === 'last_3_months'
-                              ? 'Last 3 Months'
-                              : range === 'last_year'
-                              ? 'Last Year'
-                              : range}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  </DropDownMenu>
+                {/* Time filter dropdown */}
+                <div className='flex-shrink-0 w-48'>
+                  <Select
+                    data={[
+                      { value: 'to_date', label: 'To Date' },
+                      { value: 'today', label: 'Today' },
+                      { value: 'last_7_days', label: 'Last 7 Days' },
+                      { value: 'last_30_days', label: 'Last 30 Days' },
+                      { value: 'last_3_months', label: 'Last 3 Months' },
+                      { value: 'last_year', label: 'Last Year' },
+                    ]}
+                    value={selectedTimeRange}
+                    onChange={(value) => setSelectedTimeRange(value || 'to_date')}
+                    leftSection={<IconCalendar size={16} />}
+                    styles={{
+                      input: {
+                        borderColor: '#e2e8f0',
+                        '&:hover': {
+                          borderColor: 'rgba(0, 0, 0, 0.1)',
+                          boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)'
+                        },
+                        '&:focus': {
+                          borderColor: 'var(--mantine-color-primary-filled)',
+                          boxShadow: '0 0 0 1px var(--mantine-color-primary-filled)'
+                        }
+                      },
+                      section: {
+                        marginRight: 8
+                      }
+                    }}
+                  />
                 </div>
               </div>
             </div>
