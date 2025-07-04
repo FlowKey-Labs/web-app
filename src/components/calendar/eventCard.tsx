@@ -154,14 +154,14 @@ const EventCard = ({
           </div>
 
           {/* <div className='space-y-3 pl-6'> */}
-          <div className='flex items-center space-x-3'>
+          <div className='flex items-center pl-6 space-x-3'>
             <div className='w-5 h-5 flex items-center justify-center'>
               <span className='text-gray-500 text-lg'>📅</span>
             </div>
             <p className='text-gray-700 font-medium'>{dateStr}</p>
           </div>
 
-          <div className='flex items-center space-x-3'>
+          <div className='flex items-center pl-6 space-x-3'>
             <div className='w-5 h-5 flex items-center justify-center'>
               <span className='text-gray-500 text-lg'>⏰</span>
             </div>
