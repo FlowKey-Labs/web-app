@@ -604,17 +604,7 @@ const GettingStarted = () => {
                       Last 30 Days
                     </Badge>
                   </Group>
-                  <CancellationsReschedules
-                    data={
-                      analytics?.cancellation_metrics || {
-                        total_cancellations: 0,
-                        total_reschedules: 0,
-                        trend: 0,
-                        daily_data: [],
-                      }
-                    }
-                    isLoading={isLoadingAnalytics}
-                  />
+                  <CancellationsReschedules />
                 </Card>
               </div>
             </div>
