@@ -97,7 +97,6 @@ export function DonutChart({
     return null;
   };
 
-  // Check if there's any data to display
   const hasData = chartData.some(item => item.value > 0);
 
   if (!hasData) {
