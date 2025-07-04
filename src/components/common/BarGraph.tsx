@@ -1,8 +1,12 @@
 import { Bar, BarChart, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
-import { AnalyticsData } from '../../types/dashboard';
+
+interface BarData {
+  day: string;
+  clients: number;
+}
 
 interface BarGraphProps {
-  analytics?: AnalyticsData;
+  data: BarData[];
   height?: number | string;
   className?: string;
 }
@@ -21,17 +25,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   return null;
 };
 
-export function BarGraph({ analytics, height = 300, className = '' }: BarGraphProps) {
-  const data = [
-    { day: 'Mon', clients: analytics?.total_clients || 0 },
-    { day: 'Tue', clients: analytics?.total_clients || 0 },
-    { day: 'Wed', clients: analytics?.total_clients || 0 },
-    { day: 'Thu', clients: analytics?.total_clients || 0 },
-    { day: 'Fri', clients: analytics?.total_clients || 0 },
-    { day: 'Sat', clients: analytics?.total_clients || 0 },
-    { day: 'Sun', clients: analytics?.total_clients || 0 },
-  ];
-
+export function BarGraph({ data, height = 300, className = '' }: BarGraphProps) {
   const maxValue = Math.max(...data.map(item => item.clients), 10);
   const yAxisTicks = Array.from({ length: Math.min(5, maxValue + 1) }, (_, i) => 
     Math.ceil((maxValue * i) / 4)

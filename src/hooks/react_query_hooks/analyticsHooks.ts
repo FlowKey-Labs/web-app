@@ -4,12 +4,14 @@ import {
   get_category_distribution,
   get_sessions_per_staff,
   get_cancellation_reschedule_analytics,
+  get_weekly_clients,
 } from '../../api/analytics';
 
 import { UpcomingBirthdaysResponse } from '../../types/birthdays';
 import { CategoryDistributionResponse } from '../../types/categoryDistribution';
 import { DailyStaffSessionsResponse } from '../../types/sessionTypes';
 import { CancellationRescheduleAnalyticsResponse } from '../../types/cancelRescheduleTypes';
+import { WeeklyClientsResponse } from '../../types/weeklyClients';
 
 export const useGetUpcomingBirthdays = () => {
   const { data, isLoading, error } = useQuery<UpcomingBirthdaysResponse>({
@@ -100,4 +102,15 @@ export const useGetCancellationRescheduleAnalytics = (
     error: error as Error,
     rawData: data,
   };
+};
+
+export const useGetWeeklyClients = () => {
+  const { data, isLoading, error } = useQuery<WeeklyClientsResponse>({
+    queryKey: ['weekly-clients'],
+    queryFn: () => get_weekly_clients(),
+    staleTime: 1000 * 60 * 5,
+    refetchOnWindowFocus: false,
+    retry: 2,
+  });
+  return { data, isLoading, error };
 };

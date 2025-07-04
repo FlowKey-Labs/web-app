@@ -1,4 +1,3 @@
-import DropDownMenu from '../common/DropdownMenu';
 import Header from '../headers/Header';
 import ErrorBoundary from '../common/ErrorBoundary';
 
@@ -14,10 +13,9 @@ import {
   useGetUpcomingSessions,
   useGetClients,
 } from '../../hooks/reactQuery';
+import { useGetWeeklyClients } from '../../hooks/react_query_hooks/analyticsHooks';
 import { DateFilterOption } from '../../types/dashboard';
 
-import dropdownIcon from '../../assets/icons/dropIcon.svg';
-import calenderIcon from '../../assets/icons/calendar.svg';
 import sessionsIcon from '../../assets/icons/sessions.svg';
 import totalClientsIcon from '../../assets/icons/totalClients.svg';
 import totalStaffIcon from '../../assets/icons/totalStaff.svg';
@@ -83,9 +81,7 @@ const columns = [
 ];
 
 const GettingStarted = () => {
-  const [dropdownOpen, setDropdownOpen] = useState(false);
   const [rowSelection, setRowSelection] = useState({});
-
   const [selectedTimeRange, setSelectedTimeRange] = useState('to_date');
 
   const navigate = useNavigate();
@@ -94,6 +90,7 @@ const GettingStarted = () => {
   const { data: analytics, isLoading: isLoadingAnalytics } = useGetAnalytics(
     selectedTimeRange as DateFilterOption
   );
+  const { data: weeklyClientsData, isLoading: isLoadingWeeklyClients } = useGetWeeklyClients();
   const { data: upcomingSessions, isLoading: isLoadingSessions } =
     useGetUpcomingSessions();
   const {
@@ -327,7 +324,23 @@ const GettingStarted = () => {
                     Weekly Clients
                   </h4>
                   <div className='flex justify-center items-center w-full h-[200px]'>
-                    <BarGraph analytics={analytics} height={160} />
+                    {isLoadingWeeklyClients ? (
+                      <div className='h-full flex items-center justify-center'>
+                        <Skeleton height={200} width="100%" />
+                      </div>
+                    ) : weeklyClientsData ? (
+                      <BarGraph 
+                        data={weeklyClientsData.data.map(item => ({
+                          day: item.day.substring(0, 3), 
+                          clients: item.value
+                        }))} 
+                        height="100%" 
+                      />
+                    ) : (
+                      <div className='h-full flex items-center justify-center text-gray-500'>
+                        No data available
+                      </div>
+                    )}
                   </div>
                 </div>
 
