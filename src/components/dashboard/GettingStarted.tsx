@@ -24,16 +24,20 @@ import totalStaffIcon from '../../assets/icons/totalStaff.svg';
 import rightIcon from '../../assets/icons/greenRight.svg';
 import { useState } from 'react';
 import { BarGraph } from '../common/BarGraph';
-import donutIcon from '../../assets/icons/donutIcon.svg';
 
 import Table from '../common/Table';
 import { createColumnHelper } from '@tanstack/react-table';
 import { useNavigate } from 'react-router-dom';
-import { DonutChart } from '@mantine/charts';
+import { DonutChart } from '../common/DonutChart';
 import { format } from 'date-fns';
-import { Client } from '../../types/clientTypes';
-import { Progress, Skeleton } from '@mantine/core';
 import { formatToEATTime } from '../../utils/formatTo12Hour';
+import { Progress, Skeleton, Card, Text, Group, Badge } from '@mantine/core';
+
+import { SessionsPerStaff } from './SessionsPerStaff';
+import { UpcomingBirthdays } from './UpcomingBirthdays';
+import { CategoryDistribution } from './CategoryDistribution';
+import { CancellationsReschedules } from './CancellationsReschedules';
+import { Client } from '../../types/clientTypes';
 
 const columnHelper = createColumnHelper<Client>();
 
@@ -95,11 +99,11 @@ const GettingStarted = () => {
       items: [],
       total: 0,
       page: 1,
-      pageSize: 8,
+      pageSize: 6,
       totalPages: 1,
     },
     isLoading: isLoadingClients,
-  } = useGetClients(1, 8);
+  } = useGetClients(1, 6);
 
   const handleTimeRangeSelect = (range: string) => {
     setSelectedTimeRange(range);
@@ -345,83 +349,93 @@ const GettingStarted = () => {
               </div>
             </div>
 
-            <div className='grid grid-cols-1 xl:grid-cols-12 gap-6 lg:gap-8'>
+            <div className='grid grid-cols-1 xl:grid-cols-12 gap-6 lg:gap-8 mt-6'>
               <div className='xl:col-span-4 space-y-6'>
+                {/* Clients Overview Card */}
                 <div className='bg-white rounded-lg p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-200'>
-                  <h4 className='text-[#08040C] text-lg font-semibold mb-6'>
-                    Clients Overview
-                  </h4>
-                  <div className='flex flex-col'>
-                    <div className='flex justify-center'>
+                  <div className='flex flex-col justify-between items-center mb-6'>
+                    <h4 className='text-[#08040C] self-start text-lg font-semibold pb-4'>
+                      Clients Overview
+                    </h4>
+                    <div className='w-full h-[240px]'>
                       <DonutChart
-                        data={(() => {
-                          const chartData = (
-                            analytics?.gender_distribution || []
-                          ).map((item, index) => ({
-                            ...item,
-                            color: index === 0 ? '#00A76F' : '#EEEAF2',
-                          }));
-                          return chartData;
-                        })()}
-                        startAngle={180}
-                        endAngle={0}
-                        size={160}
-                        thickness={25}
-                        w={200}
-                        h={200}
-                        withLabels
-                        withLabelsLine
-                        labelsType='percent'
-                        tooltipDataSource='segment'
-                        tooltipProps={{
-                          content: ({ payload }) => {
-                            if (!payload?.[0]?.payload) return null;
-                            const data = payload[0].payload;
-                            return (
-                              <div className='bg-white p-2 border border-gray-200 rounded-md shadow-sm'>
-                                <div className='font-medium'>{data.name}</div>
-                                <div className='text-primary font-semibold'>
-                                  {data.value}%
-                                </div>
-                              </div>
-                            );
-                          },
-                        }}
-                        withTooltip
-                        style={{ objectFit: 'cover' }}
-                      >
-                        <div className='w-full flex items-center justify-center'>
-                          <img src={donutIcon} alt='Chart center icon' />
-                        </div>
-                      </DonutChart>
-                    </div>
-                    <div className='flex justify-around w-full items-center mt-4'>
-                      <p className='text-[#08040C] text-xs font-semibold'>
-                        Male
-                      </p>
-                      <p className='text-[#08040C] text-xs font-semibold'>
-                        Female
-                      </p>
+                        data={analytics?.gender_distribution || []}
+                        height={180}
+                        width={400}
+                      />
                     </div>
                   </div>
                 </div>
 
-                <div className='bg-white rounded-lg p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-200'>
-                  <h4 className='text-[#08040C] text-lg font-semibold mb-6'>
-                    Total Daily Clients
+                {/* Weekly Clients Bar Chart */}
+                <div className='bg-white rounded-lg p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-200 mt-6'>
+                  <h4 className='text-[#08040C] text-lg font-semibold mb-4'>
+                    Weekly Clients
                   </h4>
-                  <div className='w-full overflow-x-auto'>
-                    <BarGraph analytics={analytics} />
+                  <div className='flex justify-center items-center w-full h-[200px]'>
+                    <BarGraph analytics={analytics} height={160} />
                   </div>
                 </div>
+
+                {/* Sessions per Staff Card */}
+                <Card
+                  withBorder
+                  radius='md'
+                  className='hover:shadow-md transition-shadow h-[400px]'
+                >
+                  <Group justify='space-between' mb='md'>
+                    <Text size='lg' fw={600}>
+                      Sessions per Staff
+                    </Text>
+                    <Badge variant='light' color='blue'>
+                      Today
+                    </Badge>
+                  </Group>
+                  <SessionsPerStaff />
+                </Card>
+
+                {/* Upcoming Birthdays Card */}
+                <Card
+                  withBorder
+                  radius='md'
+                  className='hover:shadow-md transition-shadow h-[400px]'
+                >
+                  <Group justify='space-between' mb='md'>
+                    <Text size='lg' fw={600}>
+                      Upcoming Birthdays
+                    </Text>
+                    <Badge variant='light' color='pink'>
+                      This Week
+                    </Badge>
+                  </Group>
+                  <UpcomingBirthdays />
+                </Card>
+
+                {/* Category Distribution Card */}
+                <Card
+                  withBorder
+                  radius='md'
+                  className='hover:shadow-md transition-shadow h-[400px]'
+                >
+                  <Group justify='space-between' mb='md'>
+                    <Text size='lg' fw={600}>
+                      Category Distribution
+                    </Text>
+                    <Badge variant='light' color='violet'>
+                      All Time
+                    </Badge>
+                  </Group>
+                  <CategoryDistribution />
+                </Card>
               </div>
 
               <div className='xl:col-span-8 space-y-6'>
+                {/* Upcoming Sessions Card */}
                 <div className='bg-white rounded-lg p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-200'>
-                  <div className='flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 gap-3'>
-                    <h3 className='text-lg font-semibold text-primary'>
+                  <div className='flex justify-between items-center mb-6'>
+                    <h4 className='text-[#08040C] text-lg font-semibold'>
                       Upcoming Sessions
-                    </h3>
+                    </h4>
                     <button
                       className='flex gap-2 items-center cursor-pointer hover:bg-gray-50 px-3 py-2 rounded-md transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-secondary focus:ring-opacity-50 self-start sm:self-auto'
                       onClick={() => navigateToCalendar(navigate)}
@@ -466,8 +480,8 @@ const GettingStarted = () => {
                         >
                           <div className='flex justify-between sm:block sm:w-20 sm:text-center'>
                             <p className='text-xs font-semibold text-gray-900'>
-                              {formatToEATTime(session?.start_time)} -{' '}
-                              {formatToEATTime(session?.end_time)}
+                              {formatToEATTime(session?.start_time || '')} -{' '}
+                              {formatToEATTime(session?.end_time || '')}
                             </p>
                             <p className='text-sm text-gray-600 sm:hidden'>
                               {session?.date
@@ -508,6 +522,7 @@ const GettingStarted = () => {
                   </div>
                 </div>
 
+                {/* Clients Table Card */}
                 <div className='bg-white rounded-lg shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-200'>
                   <div className='flex flex-col sm:flex-row sm:justify-between sm:items-center p-6 border-b border-gray-100 gap-3'>
                     <h3 className='text-lg font-semibold text-primary'>
@@ -552,7 +567,7 @@ const GettingStarted = () => {
                           columns={columns}
                           rowSelection={rowSelection}
                           onRowSelectionChange={setRowSelection}
-                          pageSize={8}
+                          // pageSize={8}
                           onRowClick={(row: Client) =>
                             navigateToClientDetails(navigate, row.id.toString())
                           }
@@ -574,6 +589,33 @@ const GettingStarted = () => {
                     )}
                   </div>
                 </div>
+
+                {/* Cancellations & Reschedules Card */}
+                <Card
+                  withBorder
+                  radius='md'
+                  className='hover:shadow-md transition-shadow'
+                >
+                  <Group justify='space-between' mb='md'>
+                    <Text size='lg' fw={600}>
+                      Cancellations & Reschedules
+                    </Text>
+                    <Badge variant='light' color='orange'>
+                      Last 30 Days
+                    </Badge>
+                  </Group>
+                  <CancellationsReschedules
+                    data={
+                      analytics?.cancellation_metrics || {
+                        total_cancellations: 0,
+                        total_reschedules: 0,
+                        trend: 0,
+                        daily_data: [],
+                      }
+                    }
+                    isLoading={isLoadingAnalytics}
+                  />
+                </Card>
               </div>
             </div>
           </div>

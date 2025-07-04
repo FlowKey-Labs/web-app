@@ -8,6 +8,7 @@ import { Client, GroupData } from '../types/clientTypes';
 import { BookingRequest } from '../types/clientTypes';
 import { BookingSettings } from '../types/bookingTypes';
 
+
 export interface PaginatedResponse<T> {
   items: T[];
   total: number;

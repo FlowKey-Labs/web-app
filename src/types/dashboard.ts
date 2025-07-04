@@ -15,11 +15,45 @@ export interface GenderDistribution {
   value: number;
 }
 
+export interface StaffSessions {
+  staff_id: string;
+  staff_name: string;
+  session_count: number;
+}
+
+export interface Birthday {
+  client_id: string;
+  client_name: string;
+  date: string;
+  age: number;
+}
+
+export interface CategoryDistribution {
+  category: string;
+  count: number;
+  percentage: number;
+}
+
+export interface CancellationData {
+  date: string;
+  cancellations: number;
+  reschedules: number;
+}
+
 export interface AnalyticsData {
   total_sessions: number;
   total_clients: number;
   total_staff: number;
   gender_distribution: GenderDistribution[];
+  staff_sessions: StaffSessions[];
+  upcoming_birthdays: Birthday[];
+  category_distribution: CategoryDistribution[];
+  cancellation_metrics: {
+    total_cancellations: number;
+    total_reschedules: number;
+    trend: number; // percentage change
+    daily_data: CancellationData[];
+  };
 }
 
 export type DateFilterOption =

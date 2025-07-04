@@ -270,3 +270,24 @@ export interface ClassType {
   created_at?: string;
   updated_at?: string;
 }
+
+export type SessionsPerStaff = {
+  id: string;
+  title: string;
+  start_time: string; // Format: "HH:MM"
+  end_time: string; // Format: "HH:MM"
+  client_count: number;
+};
+
+export type StaffSessionsPerStaff = {
+  staff_id: string | number;
+  staff_name: string;
+  session_count: number;
+  sessions: Session[];
+};
+
+export type DailyStaffSessionsResponse = {
+  date: string; // ISO date format (YYYY-MM-DD)
+  staff_sessions?: StaffSessionsPerStaff[]; // Made optional with ?
+  total_sessions: number;
+};
