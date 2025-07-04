@@ -267,7 +267,7 @@ const CalendarView = () => {
               transitionProps={{ transition: 'pop', duration: 200 }}
               className='w-full'
               multiline
-              zIndex={5000}
+              zIndex={10000}
               w={300}
               withinPortal
               styles={{

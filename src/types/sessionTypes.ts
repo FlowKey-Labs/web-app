@@ -251,6 +251,18 @@ export interface CalendarSessionType extends Omit<Session, 'repeat_end_date'> {
   date: string;
   spots: number;
   attendances?: Attendance[];
+  
+  // Client attendees for the session
+  attendees?: Array<{
+    id?: number | string;
+    first_name?: string;
+    last_name?: string;
+    name?: string;
+    email?: string;
+    phone_number?: string;
+    phone?: string;
+  }>;
+  
   // Allow for any additional properties coming from the backend
   [key: string]: unknown;
 }

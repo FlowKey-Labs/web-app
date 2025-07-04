@@ -58,6 +58,7 @@ const EventCard = ({
   handleEditEvent: (id: string) => void;
 }) => {
   const session = data?.session as CalendarSessionType;
+
   const participants = processSessionParticipants(session);
   const summary = getParticipantSummary(session);
   const { dateStr, timeStr, repeatStr } = formatSessionInfo(
@@ -116,34 +117,30 @@ const EventCard = ({
 
   return (
     <div className='w-full h-full bg-white space-y-6'>
-      <div className='flex w-full items-center justify-end gap-3'>
-        <img
-          src={editIcon}
-          className='cursor-pointer hover:opacity-70 transition-opacity'
-          onClick={() => handleEditEvent(data?.session?.id)}
-          alt='Edit event'
-        />
-        <img
-          src={deleteIcon}
-          className='cursor-pointer hover:opacity-70 transition-opacity'
-          onClick={handleDeleteClick}
-          alt='Delete event'
-        />
-        <img
-          src={closeIcon}
-          className='cursor-pointer hover:opacity-70 transition-opacity'
-          onClick={() => onClose?.()}
-          alt='Close popup'
-        />
-        <div className='flex items-start space-x-3'>
-          <span className='w-3 h-3 bg-blue-500 rounded-full mt-1.5 flex-shrink-0' />
-          <h2 className='text-xl font-semibold text-gray-900 leading-tight'>
-            {session?.title}
-          </h2>
+      <div className='flex flex-col w-full items-center justify-end gap-3'>
+        <div className='flex items-center self-end gap-2'>
+          <img
+            src={editIcon}
+            className='cursor-pointer hover:opacity-70 transition-opacity'
+            onClick={() => handleEditEvent(data?.session?.id)}
+            alt='Edit event'
+          />
+          <img
+            src={deleteIcon}
+            className='cursor-pointer hover:opacity-70 transition-opacity'
+            onClick={handleDeleteClick}
+            alt='Delete event'
+          />
+          <img
+            src={closeIcon}
+            className='cursor-pointer hover:opacity-70 transition-opacity'
+            onClick={() => onClose?.()}
+            alt='Close popup'
+          />
         </div>
 
-        <div className='space-y-3 pl-6'>
-           <div className='flex items-start space-x-3'>
+        <div className='flex flex-col space-y-3 pl-4 w-full'>
+          <div className='flex self-start space-x-3 w-full'>
             <span className='w-3 h-3 bg-blue-500 rounded-full mt-1.5 flex-shrink-0' />
             <h2
               className='text-xl font-semibold text-gray-900 leading-tight hover:text-blue-600 cursor-pointer transition-colors'
