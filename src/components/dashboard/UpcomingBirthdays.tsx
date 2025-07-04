@@ -4,7 +4,7 @@ import { useGetUpcomingBirthdays } from '../../hooks/react_query_hooks/analytics
 
 export function UpcomingBirthdays() {
   const { data, isLoading } = useGetUpcomingBirthdays();
-  
+
   if (isLoading) {
     return (
       <div className='space-y-3'>
@@ -32,7 +32,7 @@ export function UpcomingBirthdays() {
     <div className='space-y-3'>
       {upcomingBirthdays.map((birthdayPerson) => {
         const birthdayDate = birthdayPerson.birthday_date || birthdayPerson.dob;
-        
+
         return (
           <div
             key={birthdayPerson.id}
@@ -43,8 +43,8 @@ export function UpcomingBirthdays() {
                 {birthdayPerson.first_name} {birthdayPerson.last_name}
               </p>
               <p className='text-xs text-gray-500'>
-                {birthdayDate ? format(new Date(birthdayDate), 'MMM d') : 'N/A'} •{' '}
-                {birthdayPerson.age || 'N/A'} years
+                {birthdayDate ? format(new Date(birthdayDate), 'MMM d') : 'N/A'}{' '}
+                • {birthdayPerson.age || 'N/A'} years
               </p>
             </div>
             <button className='text-xs font-medium text-primary hover:text-primary-dark'>

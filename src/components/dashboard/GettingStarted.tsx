@@ -107,11 +107,6 @@ const GettingStarted = () => {
     isLoading: isLoadingClients,
   } = useGetClients(1, 6);
 
-  const handleTimeRangeSelect = (range: string) => {
-    setSelectedTimeRange(range);
-    setDropdownOpen(false);
-  };
-
   const formatNumber = (num: number | undefined): string => {
     if (num === undefined || num === null) return '0';
     if (num >= 1000) {
@@ -152,7 +147,6 @@ const GettingStarted = () => {
                     Here's what we have for you today
                   </p>
                 </div>
-                {/* Time filter dropdown */}
                 <div className='flex-shrink-0 w-48'>
                   <Select
                     data={[
@@ -164,23 +158,26 @@ const GettingStarted = () => {
                       { value: 'last_year', label: 'Last Year' },
                     ]}
                     value={selectedTimeRange}
-                    onChange={(value) => setSelectedTimeRange(value || 'to_date')}
+                    onChange={(value) =>
+                      setSelectedTimeRange(value || 'to_date')
+                    }
                     leftSection={<IconCalendar size={16} />}
                     styles={{
                       input: {
                         borderColor: '#e2e8f0',
                         '&:hover': {
                           borderColor: 'rgba(0, 0, 0, 0.1)',
-                          boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)'
+                          boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
                         },
                         '&:focus': {
                           borderColor: 'var(--mantine-color-primary-filled)',
-                          boxShadow: '0 0 0 1px var(--mantine-color-primary-filled)'
-                        }
+                          boxShadow:
+                            '0 0 0 1px var(--mantine-color-primary-filled)',
+                        },
                       },
                       section: {
-                        marginRight: 8
-                      }
+                        marginRight: 8,
+                      },
                     }}
                   />
                 </div>
@@ -338,7 +335,7 @@ const GettingStarted = () => {
                 <Card
                   withBorder
                   radius='md'
-                  className='hover:shadow-md transition-shadow h-[400px]'
+                  className='hover:shadow-md transition-shadow'
                 >
                   <Group justify='space-between' mb='md'>
                     <Text size='lg' fw={600}>
@@ -355,7 +352,7 @@ const GettingStarted = () => {
                 <Card
                   withBorder
                   radius='md'
-                  className='hover:shadow-md transition-shadow h-[400px]'
+                  className='hover:shadow-md transition-shadow'
                 >
                   <Group justify='space-between' mb='md'>
                     <Text size='lg' fw={600}>
@@ -372,7 +369,7 @@ const GettingStarted = () => {
                 <Card
                   withBorder
                   radius='md'
-                  className='hover:shadow-md transition-shadow h-[400px]'
+                  className='hover:shadow-md transition-shadow'
                 >
                   <Group justify='space-between' mb='md'>
                     <Text size='lg' fw={600}>
