@@ -172,6 +172,7 @@ const EventCard = ({
               <div className='w-5 h-5 flex items-center justify-center'>
                 <span className='text-gray-500 text-sm'>🔄</span>
               </div>
+              
               <p className='text-gray-600 text-sm'>{repeatStr}</p>
             </div>
           )}

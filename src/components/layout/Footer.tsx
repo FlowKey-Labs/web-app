@@ -64,7 +64,7 @@ export const Footer = () => {
       <div
         className='flex flex-col items-center justify-center w-full md:pt-12 py-12'
         style={{
-          backgroundImage: `url(${footerImage})`,
+          backgroundImage: `url(${'https://res.cloudinary.com/djxu3bryf/image/upload/v1751724656/subscribe_vxj7nf.png'})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
         }}

@@ -119,7 +119,7 @@ const FlowkeyLandingPage = () => {
       <div
         className='flex flex-col w-full justify-center'
         style={{
-          backgroundImage: `url(${headerImage})`,
+          backgroundImage: `url(${'https://res.cloudinary.com/djxu3bryf/image/upload/v1751721489/Hero_Section_wr4hnm.png'})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
         }}
@@ -290,12 +290,16 @@ const FlowkeyLandingPage = () => {
             </div>
             <div className='flex justify-center'>
               <img
-                src={headerPhone}
+                src={
+                  'https://res.cloudinary.com/djxu3bryf/image/upload/v1751720371/headerImage_zthpj6.png'
+                }
                 alt='headerPhone'
                 className='hidden md:block'
               />
               <img
-                src={fullPhone}
+                src={
+                  'https://res.cloudinary.com/djxu3bryf/image/upload/v1751721024/fullPhone_c4aj57.jpg'
+                }
                 alt='fullPhone'
                 className='md:hidden self-center mt-4 w-[230px] h-[365px]'
               />
@@ -387,7 +391,9 @@ const FlowkeyLandingPage = () => {
             </div>
             <div className='relative z-20'>
               <img
-                src={scheduling}
+                src={
+                  'https://res.cloudinary.com/djxu3bryf/image/upload/v1751722250/scheduling_vz3nhu.png'
+                }
                 alt='scheduling'
                 className='relative z-20'
               />
@@ -415,7 +421,13 @@ const FlowkeyLandingPage = () => {
         <div className='flex flex-col-reverse md:flex-row w-[90%] md:w-[80%] mx-auto justify-around py-4 md:py-12 md:mt-12'>
           <div className='relative mt-5 md:mt-0'>
             <div className='relative z-20'>
-              <img src={payments} alt='payments' className='relative z-20' />
+              <img
+                src={
+                  'https://res.cloudinary.com/djxu3bryf/image/upload/v1751722770/appointment_tr7scs.png'
+                }
+                alt='payments'
+                className='relative z-20'
+              />
             </div>
             <div className='absolute md:top-[350px] md:right-[-100px] top-[270px] right-[10px] md:w-[330px] md:h-[132px] w-[247px] h-[99px] bg-white rounded-xl shadow-sm border-[1px] border-[#F2F2F2] items-center z-30'>
               <div className='flex flex-col p-2 gap-3 items-center'>
@@ -497,7 +509,9 @@ const FlowkeyLandingPage = () => {
             </div>
             <div className='relative z-20'>
               <img
-                src={payroll}
+                src={
+                  'https://res.cloudinary.com/djxu3bryf/image/upload/v1751722910/payments_p4hrop.png'
+                }
                 alt='scheduling'
                 className='relative z-20 hidden md:block'
               />
@@ -521,10 +535,21 @@ const FlowkeyLandingPage = () => {
         <div className='flex flex-col-reverse md:flex-row w-[90%] md:w-[80%] mx-auto justify-around py-4 md:py-12 md:mt-12'>
           <div className='relative mt-5 mb:mt-0'>
             <div className='relative z-20 '>
-              <img src={graph360} alt='payments' className='relative z-20' />
+              <img
+                src={
+                  'https://res.cloudinary.com/djxu3bryf/image/upload/v1751724272/360_dvwbgb.png'
+                }
+                alt='payments'
+                className='relative z-20'
+              />
             </div>
             <div className='absolute md:top-[280px] top-[240px] md:right-[-100px] right-[-10px] md:w-[330px] md:h-[132px] w-[247px] h-[99px] shadow-sm z-30'>
-              <img src={graph} alt='graph' />
+              <img
+                src={
+                  'https://res.cloudinary.com/djxu3bryf/image/upload/v1751725332/columnGraph_ztxzts.png'
+                }
+                alt='graph'
+              />
             </div>
             <div className='flex absolute md:top-[180px] top-[170px] md:left-[-30px] right-[-20px] z-10'>
               <img
@@ -627,7 +652,9 @@ const FlowkeyLandingPage = () => {
             </div>
           </div>
           <img
-            src={whiteCurve}
+            src={
+              'https://res.cloudinary.com/djxu3bryf/image/upload/v1751725503/white-curve-1_csslur.png'
+            }
             alt='whiteCurve'
             className='flex justify-end w-[100%] md:h-[140px] mt-12 self-end object-cover'
           />
