@@ -826,8 +826,11 @@ const FlowkeyLandingPage = () => {
             </motion.div>
             <motion.div
               className='absolute md:top-[280px] top-[240px] md:right-[-100px] right-[-10px] md:w-[330px] md:h-[132px] w-[247px] h-[99px] shadow-sm z-30'
-              whileHover={{ scale: 1.02 }}
-              transition={{ type: 'spring', stiffness: 300 }}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.3, duration: 0.5 }}
+              whileHover={{ y: -5 }}
             >
               <img
                 src={
