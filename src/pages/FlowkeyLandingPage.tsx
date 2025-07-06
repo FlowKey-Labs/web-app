@@ -606,8 +606,15 @@ const FlowkeyLandingPage = () => {
                 className='relative z-20'
               />
             </motion.div>
-            <div className='absolute md:top-[350px] md:right-[-100px] top-[270px] right-[10px] md:w-[330px] md:h-[132px] w-[247px] h-[99px] bg-white rounded-xl shadow-sm border-[1px] border-[#F2F2F2] items-center z-30'>
-              <div className='flex flex-col p-2 gap-3 items-center'>
+            <motion.div
+              className='absolute md:top-[350px] md:right-[-100px] top-[270px] right-[10px] md:w-[330px] md:h-[132px] w-[247px] h-[99px] bg-white rounded-xl shadow-sm border-[1px] border-[#F2F2F2] items-center z-30'
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.3, duration: 0.5 }}
+              whileHover={{ y: -5 }}
+            >
+              <motion.div className='flex flex-col p-2 gap-3 items-center'>
                 <div className='relative justify-between w-full'>
                   <div className='flex md:w-full'>
                     <img src={payIncomeIcon} alt='payIncomeIcon' />
@@ -625,8 +632,8 @@ const FlowkeyLandingPage = () => {
                 <div className='flex flex-col  gap-1 w-[149px] md:w-full'>
                   <img src={paymentsIncome} alt='paymentsIncome' />
                 </div>
-              </div>
-            </div>
+              </motion.div>
+            </motion.div>
             <div className='flex absolute md:top-[180px] top-[170px] md:left-[-30px] right-[-20px] z-10'>
               <img
                 src={eclipse}
