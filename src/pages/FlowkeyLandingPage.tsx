@@ -134,9 +134,6 @@ const FlowkeyLandingPage = () => {
               src={logo}
               alt='logo'
               className='w-[28px] h-[24px] md:w-[55px] md:h-[48px]'
-              initial={{ rotate: 0 }}
-              animate={{ rotate: 360 }}
-              transition={{ duration: 2, ease: 'easeInOut' }}
             />
             <motion.p
               className='text-[24px] md:text-[36px] font-[900] text-[#0F2028]'
@@ -679,24 +676,67 @@ const FlowkeyLandingPage = () => {
           </motion.div>
         </motion.div>
 
-        <div className='flex flex-col md:flex-row w-[90%] md:w-[80%] mx-auto justify-around py-4 md:py-12 md:mt-12'>
-          <div className='flex flex-col gap-2 md:gap-4 justify-center md:w-[570px]'>
-            <h2 className='font-[700] text-[32px] md:text-[40px] w-full text-[#0F2028] font-spaceGrotesk'>
+        <motion.div
+          className='flex flex-col md:flex-row w-[90%] md:w-[80%] mx-auto justify-around py-4 md:py-12 md:mt-12'
+          initial={{ opacity: 0, y: 50 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-100px' }}
+          transition={{ duration: 0.6 }}
+        >
+          <motion.div
+            className='flex flex-col gap-2 md:gap-4 justify-center md:w-[570px]'
+            initial={{ opacity: 0, x: -20 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.2, duration: 0.5 }}
+          >
+            <motion.h2
+              className='font-[700] text-[32px] md:text-[40px] w-full text-[#0F2028] font-spaceGrotesk'
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.3, duration: 0.5 }}
+            >
               Comprehensive{' '}
               <span className='text-secondary'>Client Progress</span> &
               Engagement Tracking
-            </h2>
-            <p className='text-[#8A8D8E] text-[20px] font-[400]'>
+            </motion.h2>
+            <motion.p
+              className='text-[#8A8D8E] text-[20px] font-[400]'
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.4, duration: 0.5 }}
+            >
               Keep detailed records of client journeys, preferences and
               engagement.
-            </p>
-            <p className='text-[#8A8D8E] text-[20px] font-[400]'>
+            </motion.p>
+            <motion.p
+              className='text-[#8A8D8E] text-[20px] font-[400]'
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.5, duration: 0.5 }}
+            >
               Understand what motivates your clients and personalize their
               experience for better retention.
-            </p>
-          </div>
-          <div className='relative'>
-            <div className='absolute top-[300px] md:left-[-120px] left-[10px] md:w-[360px] md:h-[100px] w-[201px] h-[71px] bg-white rounded-xl shadow-sm border-[1px] border-[#F2F2F2] items-center z-30'>
+            </motion.p>
+          </motion.div>
+          <motion.div
+            className='relative'
+            initial={{ opacity: 0, x: 20 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+          >
+            <motion.div
+              className='absolute top-[300px] md:left-[-120px] left-[10px] md:w-[360px] md:h-[100px] w-[201px] h-[71px] bg-white rounded-xl shadow-sm border-[1px] border-[#F2F2F2] items-center z-30'
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.3, duration: 0.5 }}
+              whileHover={{ y: -5 }}
+            >
               <div className='flex md:p-4 p-2 gap-3'>
                 <img
                   src={payrollBell}
@@ -710,8 +750,12 @@ const FlowkeyLandingPage = () => {
                   </p>
                 </div>
               </div>
-            </div>
-            <div className='relative z-20'>
+            </motion.div>
+            <motion.div
+              className='relative z-20'
+              whileHover={{ scale: 1.02 }}
+              transition={{ type: 'spring', stiffness: 300 }}
+            >
               <img
                 src={
                   'https://res.cloudinary.com/djxu3bryf/image/upload/v1751722910/payments_p4hrop.png'
@@ -724,21 +768,47 @@ const FlowkeyLandingPage = () => {
                 alt='payrollMobile'
                 className='relative z-20 block md:hidden w-[430px] h-[430px]'
               />
-            </div>
+            </motion.div>
 
-            <div className='flex absolute md:top-[180px] top-[170px] md:right-[-30px] right-[-20px] z-10'>
+            <motion.div
+              className='flex absolute md:top-[180px] top-[170px] md:right-[-30px] right-[-20px] z-10'
+              animate={{
+                rotate: 360,
+                transition: {
+                  repeat: Infinity,
+                  duration: 20,
+                  ease: 'linear',
+                },
+              }}
+            >
               <img
                 src={eclipse}
                 alt='eclipse'
                 className='w-[50px] h-[50px] md:w-[77px] md:h-[77px]'
               />
-            </div>
-          </div>
-        </div>
+            </motion.div>
+          </motion.div>
+        </motion.div>
 
-        <div className='flex flex-col-reverse md:flex-row w-[90%] md:w-[80%] mx-auto justify-around py-4 md:py-12 md:mt-12'>
-          <div className='relative mt-5 mb:mt-0'>
-            <div className='relative z-20 '>
+        <motion.div
+          className='flex flex-col-reverse md:flex-row w-[90%] md:w-[80%] mx-auto justify-around py-4 md:py-12 md:mt-12'
+          initial={{ opacity: 0, y: 50 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-100px' }}
+          transition={{ duration: 0.6 }}
+        >
+          <motion.div
+            className='relative mt-5 mb:mt-0'
+            initial={{ opacity: 0, x: 20 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.2, duration: 0.5 }}
+          >
+            <motion.div
+              className='relative z-20 '
+              whileHover={{ scale: 1.02 }}
+              transition={{ type: 'spring', stiffness: 300 }}
+            >
               <img
                 src={
                   'https://res.cloudinary.com/djxu3bryf/image/upload/v1751724272/360_dvwbgb.png'
@@ -746,54 +816,128 @@ const FlowkeyLandingPage = () => {
                 alt='payments'
                 className='relative z-20'
               />
-            </div>
-            <div className='absolute md:top-[280px] top-[240px] md:right-[-100px] right-[-10px] md:w-[330px] md:h-[132px] w-[247px] h-[99px] shadow-sm z-30'>
+            </motion.div>
+            <motion.div
+              className='absolute md:top-[280px] top-[240px] md:right-[-100px] right-[-10px] md:w-[330px] md:h-[132px] w-[247px] h-[99px] shadow-sm z-30'
+              whileHover={{ scale: 1.02 }}
+              transition={{ type: 'spring', stiffness: 300 }}
+            >
               <img
                 src={
                   'https://res.cloudinary.com/djxu3bryf/image/upload/v1751725332/columnGraph_ztxzts.png'
                 }
                 alt='graph'
               />
-            </div>
-            <div className='flex absolute md:top-[180px] top-[170px] md:left-[-30px] right-[-20px] z-10'>
+            </motion.div>
+            <motion.div className='flex absolute md:top-[180px] top-[170px] md:left-[-30px] right-[-20px] z-10'>
               <img
                 src={eclipse}
                 alt='eclipse'
                 className='w-[50px] h-[50px] md:w-[77px] md:h-[77px]'
               />
-            </div>
-          </div>
-          <div className='flex flex-col gap-2 md:gap-4 justify-center md:w-[570px]'>
-            <h2 className='font-[700] text-[32px] md:text-[40px] w-full text-[#0F2028] font-spaceGrotesk'>
+            </motion.div>
+          </motion.div>
+          <motion.div
+            className='flex flex-col gap-2 md:gap-4 justify-center md:w-[570px]'
+            initial={{ opacity: 0, x: 20 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.2, duration: 0.5 }}
+          >
+            <motion.h2
+              className='font-[700] text-[32px] md:text-[40px] w-full text-[#0F2028] font-spaceGrotesk'
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.3, duration: 0.5 }}
+            >
               Get a 360°{' '}
               <span className='text-secondary'>business insights</span> without
               extra tools
-            </h2>
-            <p className='text-[#8A8D8E] text-[20px] font-[400]'>
+            </motion.h2>
+            <motion.p
+              className='text-[#8A8D8E] text-[20px] font-[400]'
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.4, duration: 0.5 }}
+            >
               Gain valuable data on what’s working in your business.
-            </p>
-            <p className='text-[#8A8D8E] text-[20px] font-[400]'>
+            </motion.p>
+            <motion.p
+              className='text-[#8A8D8E] text-[20px] font-[400]'
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.5, duration: 0.5 }}
+            >
               Track popular services, peak booking times, and client activity to
               make informed decisions without needing complex analytics
               software.
-            </p>
-          </div>
-        </div>
+            </motion.p>
+          </motion.div>
+        </motion.div>
 
-        <div className='bg-cardsBg mx-auto w-full pt-12 mt-12  items-center justify-center'>
-          <div className='flex flex-col md:flex-row mx-auto md:w-[80%] w-[90%] justify-around'>
-            <div className='flex flex-col gap-4 md:w-[50%] w-full justify-center'>
-              <h3 className='text-secondary font-[600] text-base '>
+        <motion.div
+          className='bg-cardsBg mx-auto w-full pt-12 mt-12  items-center justify-center'
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+        >
+          <motion.div
+            className='flex flex-col md:flex-row mx-auto md:w-[80%] w-[90%] justify-around'
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{
+              staggerChildren: 0.2,
+              when: 'beforeChildren',
+            }}
+          >
+            <motion.div
+              className='flex flex-col gap-4 md:w-[50%] w-full justify-center'
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5 }}
+            >
+              <motion.h3
+                className='text-secondary font-[600] text-base '
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.2, duration: 0.5 }}
+              >
                 COMING SOON
-              </h3>
-              <h2 className='md:text-[60px] text-[40px] font-[700] font-spaceGrotesk'>
+              </motion.h3>
+              <motion.h2
+                className='md:text-[60px] text-[40px] font-[700] font-spaceGrotesk'
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.3, duration: 0.5 }}
+              >
                 Even More Power to Your Business!
-              </h2>
-              <p className='text-[#8A8D8E] text-[20px] font-[400] w-[100%] md:w-full'>
+              </motion.h2>
+              <motion.p
+                className='text-[#8A8D8E] text-[20px] font-[400] w-[100%] md:w-full'
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.4, duration: 0.5 }}
+              >
                 We're continuously evolving FlowKey to be the ultimate solution
                 for your service business:
-              </p>
-              <div className='hidden md:block'>
+              </motion.p>
+              <motion.div
+                className='hidden md:block'
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.5, duration: 0.5 }}
+                whileHover={{ scale: 1.03 }}
+              >
                 <Button
                   variant='transparent'
                   rightSection={<img src={arrowRight} alt='arrow' />}
@@ -807,11 +951,32 @@ const FlowkeyLandingPage = () => {
                 >
                   Start Free Trial
                 </Button>
-              </div>
-            </div>
-            <div className='flex flex-col md:w-[50%] w-full md:gap-6 gap-2 mt-5 md:mt-0 items-center justify-end'>
-              <div className='flex gap-4 bg-white px-6 py-8 rounded-lg md:w-[500px] w-full shadow-sm'>
-                <img src={tools} alt='' className='self-start' />
+              </motion.div>
+            </motion.div>
+            <motion.div
+              className='flex flex-col md:w-[50%] w-full md:gap-6 gap-2 mt-5 md:mt-0 items-center justify-end'
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{
+                staggerChildren: 0.2,
+                when: 'beforeChildren',
+              }}
+            >
+              <motion.div
+                className='flex gap-4 bg-white px-6 py-8 rounded-lg md:w-[500px] w-full shadow-sm'
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.6, duration: 0.5 }}
+                whileHover={{ y: -5 }}
+              >
+                <motion.img
+                  src={tools}
+                  alt=''
+                  className='self-start'
+                  whileHover={{ rotate: 15 }}
+                />
                 <div className='flex flex-col gap-1'>
                   <h3 className='text-[#323232] font-[700] font-spaceGrotesk md:text-lg text-sm'>
                     Easy M-Pesa & Card Payments Integration
@@ -822,10 +987,22 @@ const FlowkeyLandingPage = () => {
                     both you and your clients.
                   </p>
                 </div>
-              </div>
+              </motion.div>
 
-              <div className='flex gap-4 bg-white px-6 py-8 rounded-lg md:w-[500px] w-full shadow-sm'>
-                <img src={tools} alt='' className='self-start' />
+              <motion.div
+                className='flex gap-4 bg-white px-6 py-8 rounded-lg md:w-[500px] w-full shadow-sm'
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.6, duration: 0.5 }}
+                whileHover={{ y: -5 }}
+              >
+                <motion.img
+                  src={tools}
+                  alt=''
+                  className='self-start'
+                  whileHover={{ rotate: 15 }}
+                />
                 <div className='flex flex-col gap-1'>
                   <h3 className='text-[#323232] font-[700] font-spaceGrotesk md:text-lg text-sm'>
                     Simple Payroll & Team Management
@@ -835,9 +1012,16 @@ const FlowkeyLandingPage = () => {
                     shift logs. Print or email pay-slips directly to staff.
                   </p>
                 </div>
-              </div>
+              </motion.div>
 
-              <div className='self-start md:hidden'>
+              <motion.div
+                className='self-start md:hidden'
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.3, duration: 0.5 }}
+                whileHover={{ scale: 1.03 }}
+              >
                 <Button
                   h='55px'
                   w='200px'
@@ -852,30 +1036,62 @@ const FlowkeyLandingPage = () => {
                 >
                   Start Free Trial
                 </Button>
-              </div>
-            </div>
-          </div>
-          <img
+              </motion.div>
+            </motion.div>
+          </motion.div>
+          <motion.img
             src={
               'https://res.cloudinary.com/djxu3bryf/image/upload/v1751725503/white-curve-1_csslur.png'
             }
             alt='whiteCurve'
             className='flex justify-end w-[100%] md:h-[140px] mt-12 self-end object-cover'
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
           />
-        </div>
+        </motion.div>
 
-        <div
+        <motion.div
           className='flex flex-col items-center justify-center md:w-full md:pt-12 pt-6 bg-white w-[90%] mx-auto'
           id='about'
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ delay: 0.3, duration: 0.5 }}
         >
-          <div className='flex flex-col gap-4 items-center text-center'>
-            <h2 className='md:font-[600] font-[400] text-base text-secondary'>
+          <motion.div
+            className='flex flex-col gap-4 items-center text-center'
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.3, duration: 0.5 }}
+          >
+            <motion.h2
+              className='md:font-[600] font-[400] text-base text-secondary'
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.3, duration: 0.5 }}
+            >
               Our Story
-            </h2>
-            <h3 className='font-[700] w-[327px] md:w-full text-[40px] text-[#0F2028] font-spaceGrotesk'>
+            </motion.h2>
+            <motion.h3
+              className='font-[700] w-[327px] md:w-full text-[40px] text-[#0F2028] font-spaceGrotesk'
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.4, duration: 0.5 }}
+            >
               Built in Kenya, for Kenyan Businesses
-            </h3>
-            <p className='text-[#969696] text-base font-[400] w-[327px] md:w-[940px]'>
+            </motion.h3>
+            <motion.p
+              className='text-[#969696] text-base font-[400] w-[327px] md:w-[940px]'
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.5, duration: 0.5 }}
+            >
               FlowKey started in 2024 when our founder, a Nairobi salon owner,
               got tired of losing money to missed appointments and messy
               spreadsheets. After struggling with expensive, complex tools that
@@ -883,8 +1099,13 @@ const FlowkeyLandingPage = () => {
               developers to build a better solution. Today, FlowKey powers
               hundreds of service businesses across Kenya – from salons to
               tutoring centers – helping them save time and boost profits.
-            </p>
-            <div>
+            </motion.p>
+            <motion.div
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.6, duration: 0.5 }}
+            >
               <Button
                 variant='transparent'
                 rightSection={<img src={arrowRight} alt='arrow' />}
@@ -898,11 +1119,17 @@ const FlowkeyLandingPage = () => {
               >
                 Start Free Trial
               </Button>
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
 
           {/* Slider Container */}
-          <div className='relative w-full md:py-12 py-6'>
+          <motion.div
+            className='relative w-full md:py-12 py-6'
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.6, duration: 0.5 }}
+          >
             <div className='hidden md:flex gap-8 items-center justify-center'>
               {slides.map((slide, index) => (
                 <SlideCard key={index} {...slide} />
@@ -911,7 +1138,13 @@ const FlowkeyLandingPage = () => {
 
             {/* Mobile Slider */}
             {isMobile && (
-              <div className='md:hidden w-full overflow-hidden relative'>
+              <motion.div
+                className='md:hidden w-full overflow-hidden relative'
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.6, duration: 0.5 }}
+              >
                 <div
                   className='flex transition-transform duration-300 ease-out'
                   style={{
@@ -939,10 +1172,10 @@ const FlowkeyLandingPage = () => {
                     />
                   ))}
                 </div>
-              </div>
+              </motion.div>
             )}
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
 
         <Footer />
       </motion.div>
