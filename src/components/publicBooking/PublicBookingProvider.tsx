@@ -16,12 +16,12 @@ import { useTimezone } from '../../contexts/TimezoneContext';
 import { useGetPublicBusinessServices } from '../../hooks/reactQuery';
 
 interface BookingAction {
-  type: 'SET_BUSINESS_INFO' | 'SELECT_SERVICE' | 'SELECT_SERVICE_CATEGORY' | 'SELECT_SERVICE_SUBCATEGORY' | 'SELECT_STAFF' | 'SELECT_LOCATION' | 'SELECT_DATE' | 'SELECT_SLOT' | 'SELECT_TIME_SLOT' | 'SET_TIMEZONE' | 'UPDATE_FORM_DATA' | 'SET_STEP' | 'SET_CURRENT_STEP' | 'RESET_FLOW' | 'RESET_SELECTIONS' | 'SET_FLEXIBLE_SETTINGS' | 'CLEAR_FLEXIBLE_SELECTIONS' | 'SET_BOOKING_CONFIRMATION' | 'SET_BOOKING_MODE' | 'SET_PRESELECTION';
+  type: 'SET_BUSINESS_INFO' | 'SELECT_SERVICE' | 'SELECT_SERVICE_CATEGORY' | 'SELECT_SERVICE_SUBCATEGORY' | 'SELECT_STAFF' | 'SELECT_LOCATION' | 'SELECT_DATE' | 'SELECT_SLOT' | 'SELECT_TIME_SLOT' | 'SET_TIMEZONE' | 'UPDATE_FORM_DATA' | 'SET_STEP' | 'SET_CURRENT_STEP' | 'RESET_FLOW' | 'RESET_SELECTIONS' | 'SET_FLEXIBLE_SETTINGS' | 'CLEAR_FLEXIBLE_SELECTIONS' | 'SET_BOOKING_CONFIRMATION' | 'SET_BOOKING_MODE' | 'SET_PRESELECTION' | 'SET_PRESELECTED_LOCATION_ID' | 'SET_PRESELECTED_STAFF_ID';
   payload?: any;
   
 }
 
-const initialState: BookingFlowState & { bookingConfirmation?: BookingConfirmation | null } = {
+const initialState: BookingFlowState & { bookingConfirmation?: BookingConfirmation | null; preselectedLocationId?: number; preselectedStaffId?: number } = {
   currentStep: 'service',
   selectedService: null,
   selectedServiceCategory: null,
@@ -38,9 +38,11 @@ const initialState: BookingFlowState & { bookingConfirmation?: BookingConfirmati
   bookingConfirmation: null,
   bookingMode: 'hybrid',
   isFlexibleBooking: false,
+  preselectedLocationId: undefined,
+  preselectedStaffId: undefined,
 };
 
-function bookingReducer(state: BookingFlowState & { bookingConfirmation?: BookingConfirmation | null }, action: BookingAction): BookingFlowState & { bookingConfirmation?: BookingConfirmation | null } {
+function bookingReducer(state: BookingFlowState & { bookingConfirmation?: BookingConfirmation | null; preselectedLocationId?: number; preselectedStaffId?: number }, action: BookingAction): BookingFlowState & { bookingConfirmation?: BookingConfirmation | null; preselectedLocationId?: number; preselectedStaffId?: number } {
   switch (action.type) {
     case 'SET_BUSINESS_INFO':
       return {
@@ -236,13 +238,23 @@ function bookingReducer(state: BookingFlowState & { bookingConfirmation?: Bookin
         flexibleBookingSettings: action.payload.flexibleBookingSettings,
         bookingConfirmation: action.payload.bookingConfirmation,
       };
+    case 'SET_PRESELECTED_LOCATION_ID':
+      return {
+        ...state,
+        preselectedLocationId: action.payload as number,
+      };
+    case 'SET_PRESELECTED_STAFF_ID':
+      return {
+        ...state,
+        preselectedStaffId: action.payload as number,
+      };
     default:
       return state;
   }
 }
 
 interface BookingContextType {
-  state: BookingFlowState & { bookingConfirmation?: BookingConfirmation | null };
+  state: BookingFlowState & { bookingConfirmation?: BookingConfirmation | null; preselectedLocationId?: number; preselectedStaffId?: number };
   dispatch: React.Dispatch<BookingAction>;
   goToStep: (step: BookingStep) => void;
   goToNextStep: () => void;
@@ -360,28 +372,22 @@ export function PublicBookingProvider({ children, businessSlug, preselection }: 
             payload: subcategory 
           });
           
-          // Pre-select staff if provided
+          // Store preselected staff ID (staff object will be resolved later)
           if (preselection.staffId) {
-            const staff = state.businessInfo.staff?.find(s => s.id === preselection.staffId);
-            if (staff) {
-              console.log('👤 Pre-selecting staff:', staff);
-              dispatch({ 
-                type: 'SELECT_STAFF', 
-                payload: staff 
-              });
-            }
+            console.log('👤 Storing preselected staff ID:', preselection.staffId);
+            dispatch({ 
+              type: 'SET_PRESELECTED_STAFF_ID', 
+              payload: preselection.staffId 
+            });
           }
           
-          // Pre-select location if provided
+          // Store preselected location ID (location object will be resolved later)
           if (preselection.locationId) {
-            const location = state.businessInfo.locations?.find(l => l.id === preselection.locationId);
-            if (location) {
-              console.log('📍 Pre-selecting location:', location);
-              dispatch({ 
-                type: 'SELECT_LOCATION', 
-                payload: location 
-              });
-            }
+            console.log('📍 Storing preselected location ID:', preselection.locationId);
+            dispatch({ 
+              type: 'SET_PRESELECTED_LOCATION_ID', 
+              payload: preselection.locationId 
+            });
           }
           
           // Determine starting step based on what's pre-selected

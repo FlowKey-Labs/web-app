@@ -16,8 +16,6 @@ import {
   SearchIcon,
   InfoIcon,
   ArrowLeftIcon,
-  UserIcon,
-  ClockIcon,
   ChevronDownIcon,
   ChevronUpIcon,
 } from "../bookingIcons";
@@ -50,12 +48,19 @@ export function StaffSelectionStep({
   const selectedDate = state.selectedDate;
 
   const serviceId = selectedSubcategory?.id || selectedService?.id || 0;
-  const locationId = selectedLocation?.id || 0;
+  
+  // Handle location ID - use selected location object, or fall back to preselected location ID
+  const locationId = selectedLocation?.id || state.preselectedLocationId || 0;
+
+  // Handle date - if no date is selected, pass undefined to get all available staff
+  const dateParam = selectedDate 
+    ? (typeof selectedDate === 'string' ? selectedDate : selectedDate?.toISOString()?.split('T')[0])
+    : undefined;
 
   const { data: staffResponse, isLoading, error } = useGetPublicAvailableStaff(
     businessSlug,
     serviceId,
-    typeof selectedDate === 'string' ? selectedDate : selectedDate?.toISOString()?.split('T')[0],
+    dateParam,
     true,
     locationId
   );

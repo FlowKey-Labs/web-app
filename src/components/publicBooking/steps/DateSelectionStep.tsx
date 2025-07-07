@@ -72,9 +72,9 @@ export function DateSelectionStep({ businessSlug, businessInfo }: DateSelectionS
     ? state.selectedServiceSubcategory?.id 
     : state.selectedService?.id;
 
-  // Get selected staff and location for flexible booking
-  const selectedStaffId = state.isFlexibleBooking ? state.selectedStaff?.id : null;
-  const selectedLocationId = state.isFlexibleBooking ? state.selectedLocation?.id : null;
+  // Get selected staff and location for flexible booking - use selected objects or fall back to preselected IDs
+  const selectedStaffId = state.isFlexibleBooking ? (state.selectedStaff?.id || (state as { preselectedStaffId?: number }).preselectedStaffId) : null;
+  const selectedLocationId = state.isFlexibleBooking ? (state.selectedLocation?.id || (state as { preselectedLocationId?: number }).preselectedLocationId) : null;
 
   // Debug location access
   console.log('🔍 DateSelectionStep DEBUG - Location access details:', {
