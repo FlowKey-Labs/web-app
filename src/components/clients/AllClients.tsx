@@ -922,7 +922,7 @@ const AllClients = () => {
         />
 
         {/* Enhanced Tab Navigation */}
-        <div className='px-6 pt-4 pb-2'>
+        <div className='px-6 pt-4 pb-2 mt-12 md:mt-0'>
           <Group>
             <TabButton
               active={activeView === 'clients'}
@@ -987,7 +987,7 @@ const AllClients = () => {
             Boolean(permisions?.can_create_clients)
           }
         />
-        <div className='flex-1 px-2 md:px-6 md:py-3 pt-4 w-full overflow-x-auto'>
+        <div className='flex-1 px-2 md:px-6 md:py-3 w-full overflow-x-auto'>
           <div className='min-w-[900px] md:min-w-0'>
             {isLoadingCurrent && (
               <ErrorBoundary>

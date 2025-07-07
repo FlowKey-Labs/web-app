@@ -7,12 +7,13 @@ import { Controller } from 'react-hook-form';
 import { useGetClients, useGetLocations } from '../../hooks/reactQuery'; // Added useGetLocations
 import { useGetSessions } from '../../hooks/reactQuery';
 import { useUpdateGroup } from '../../hooks/reactQuery';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { Location } from '../../types/location'; // Added
 
 import { notifications } from '@mantine/notifications';
 import successIcon from '../../assets/icons/success.svg';
 import errorIcon from '../../assets/icons/error.svg';
+import { Session } from '../../types/sessionTypes';
 
 interface UpdateGroupProps {
   groupData: GroupData;
@@ -29,7 +30,6 @@ const UpdateGroup = ({ groupData, onSuccess }: UpdateGroupProps) => {
     useUpdateGroup();
 
   const methods = useForm<GroupData>({
-
     defaultValues: {
       name: '',
       description: '',
@@ -45,16 +45,41 @@ const UpdateGroup = ({ groupData, onSuccess }: UpdateGroupProps) => {
   // Pre-fill form with group data
   useEffect(() => {
     if (groupData) {
-      reset({
+      let clientIds: number[] = [];
+
+      if (Array.isArray(groupData.members) && groupData.members.length > 0) {
+        clientIds = [...groupData.members];
+      } else if (
+        Array.isArray(groupData.client_ids) &&
+        groupData.client_ids.length > 0
+      ) {
+        clientIds = [...groupData.client_ids];
+      }
+
+      let contactPerson = undefined;
+      if (groupData.contact_person?.id) {
+        contactPerson = {
+          id: groupData.contact_person.id,
+          first_name: groupData.contact_person.first_name || '',
+          last_name: groupData.contact_person.last_name || '',
+          email: groupData.contact_person.email,
+        };
+      }
+
+      const formData = {
         name: groupData.name,
         description: groupData.description || '',
         location: groupData.location || '',
-        client_ids: groupData.client_ids || [],
-        session_ids: groupData.session_ids || [],
-        contact_person: groupData.contact_person ? { id: groupData.contact_person.id } : undefined,
-      });
+        client_ids: clientIds,
+        session_ids: Array.isArray(groupData.session_ids)
+          ? groupData.session_ids
+          : [],
+        contact_person: contactPerson,
+      };
+
+      reset(formData);
     }
-  }, [groupData, reset]);
+  }, [groupData, reset, methods]);
 
   const onSubmit = (data: GroupData) => {
     if (!groupData.id) {
@@ -66,7 +91,6 @@ const UpdateGroup = ({ groupData, onSuccess }: UpdateGroupProps) => {
       return;
     }
 
-    // Prepare the data for submission
     const updateData = {
       name: data.name,
       description: data.description,
@@ -97,7 +121,6 @@ const UpdateGroup = ({ groupData, onSuccess }: UpdateGroupProps) => {
             autoClose: 3000,
             position: 'top-right',
           });
-          // Trigger a full data refresh
           onSuccess();
         },
         onError: (error) => {
@@ -121,12 +144,35 @@ const UpdateGroup = ({ groupData, onSuccess }: UpdateGroupProps) => {
     );
   };
 
-  // Get selected clients for contact person dropdown
   const selectedClientIds = watch('client_ids') || [];
-  const selectedClients =
-    clientsData?.filter((client: Client) =>
-      selectedClientIds.includes(client.id)
-    ) || [];
+
+  const selectedClients = useMemo(() => {
+    if (!clientsData) {
+      return [];
+    }
+
+    const filteredClients = clientsData.filter((client: Client) => {
+      const isIncluded = selectedClientIds.includes(client.id);
+      return isIncluded;
+    });
+
+    const contactPerson = watch('contact_person');
+
+    if (contactPerson?.id && !selectedClientIds.includes(contactPerson.id)) {
+      const contactClient = clientsData.find((c: Client) => c.id === contactPerson.id);
+
+      if (contactClient) {
+        const enhancedContact = {
+          ...contactClient,
+          first_name: contactPerson.first_name || contactClient.first_name,
+          last_name: contactPerson.last_name || contactClient.last_name,
+          email: contactPerson.email || contactClient.email,
+        };
+        filteredClients.push(enhancedContact);
+      }
+    }
+    return filteredClients;
+  }, [selectedClientIds, clientsData, watch('contact_person')]);
 
   return (
     <FormProvider {...methods}>
@@ -169,28 +215,31 @@ const UpdateGroup = ({ groupData, onSuccess }: UpdateGroupProps) => {
           <Controller
             name='location'
             control={control}
-            render={({ field }) => (
-              <DropdownSelectInput
-                label='Location'
-                placeholder={
-                  isLocationsLoading
-                    ? 'Loading locations...'
-                    : 'Select business location'
-                }
-                options={
-                  isLocationsLoading
-                    ? [{ label: 'Loading...', value: '' }]
-                    : locationsData?.map((location) => ({
-                        label: location.name,
-                        value: location.name,
-                      })) || []
-                }
-                value={field.value}
-                onSelectItem={(selected) => {
-                  field.onChange(selected.value);
-                }}
-              />
-            )}
+            render={({ field }) => {
+              const locationOptions = isLocationsLoading
+                ? [{ label: 'Loading...', value: '' }]
+                : locationsData?.map((location) => ({
+                    label: location.name,
+                    value: location.id.toString(), 
+                  })) || [];
+
+
+              return (
+                <DropdownSelectInput
+                  label='Location'
+                  placeholder={
+                    isLocationsLoading
+                      ? 'Loading locations...'
+                      : 'Select business location'
+                  }
+                  options={locationOptions}
+                  value={field.value ? field.value.toString() : ''}
+                  onSelectItem={(selected) => {
+                    field.onChange(Number(selected.value));
+                  }}
+                />
+              );
+            }}
           />
 
           <Controller
@@ -199,33 +248,43 @@ const UpdateGroup = ({ groupData, onSuccess }: UpdateGroupProps) => {
             rules={{
               required: 'At least one client is required for a group',
             }}
-            render={({ field }) => (
-              <DropdownSelectInput
-                label='Group Members'
-                placeholder={
-                  isClientsLoading
-                    ? 'Loading clients...'
-                    : 'Select clients to add to this group'
-                }
-                singleSelect={false}
-                options={
-                  isClientsLoading
-                    ? [{ label: 'Loading...', value: '' }]
-                    : clientsData?.map((client: Client) => ({
-                        label: `${client.first_name} ${client.last_name}`,
-                        value: client.id.toString(),
-                      })) || []
-                }
-                value={field.value?.map((id: number) => id.toString()) || []}
-                onSelectItem={(selectedItems) => {
-                  field.onChange(
-                    selectedItems.map((item: { value: string }) =>
-                      parseInt(item.value)
-                    )
-                  );
-                }}
-              />
-            )}
+            render={({ field }) => {
+              const clientOptions = isClientsLoading
+                ? [{ label: 'Loading...', value: '' }]
+                : clientsData?.map((client: Client) => ({
+                    label: `${client.first_name} ${client.last_name}`,
+                    value: client.id.toString(),
+                  })) || [];
+
+              return (
+                <DropdownSelectInput
+                  label='Group Members'
+                  placeholder={
+                    isClientsLoading
+                      ? 'Loading clients...'
+                      : 'Select clients to add to this group'
+                  }
+                  singleSelect={false}
+                  options={clientOptions}
+                  value={field.value?.map(String) || []}
+                  onSelectItem={(selectedItems) => {
+                    const newValues = selectedItems.map(
+                      (item: { value: string }) => Number(item.value)
+                    );
+
+                    field.onChange(newValues);
+
+                    const currentContactPerson =
+                      methods.getValues('contact_person');
+                    if (currentContactPerson?.id) {
+                      if (!newValues.includes(currentContactPerson.id)) {
+                        methods.setValue('contact_person', undefined);
+                      }
+                    }
+                  }}
+                />
+              );
+            }}
           />
 
           <Controller
@@ -243,7 +302,7 @@ const UpdateGroup = ({ groupData, onSuccess }: UpdateGroupProps) => {
                 options={
                   isSessionsLoading
                     ? [{ label: 'Loading...', value: '' }]
-                    : sessionsData?.map((session) => ({
+                    : sessionsData?.map((session: Session) => ({
                         label: session.title,
                         value: session.id.toString(),
                       })) || []

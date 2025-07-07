@@ -20,6 +20,7 @@ import DropdownSelectInput from '../common/Dropdown';
 import Button from '../common/Button';
 import successIcon from '../../assets/icons/success.svg';
 import errorIcon from '../../assets/icons/error.svg';
+import { Session } from '../../types/sessionTypes';
 
 const emptyClient: AddClient = {
   first_name: '',
@@ -452,7 +453,9 @@ export default function ClientDrawer({
       const groupData = {
         name: data.name,
         description: data.description || '',
-        location: data.location || '',
+        ...(data.location !== undefined && { 
+          location: typeof data.location === 'number' ? String(data.location) : data.location 
+        }),
         active: data.active !== undefined ? data.active : true,
         client_ids: data.client_ids,
         session_ids: data.session_ids || [],
@@ -885,7 +888,7 @@ export default function ClientDrawer({
                                       'Unnamed Session',
                                     value: session.id?.toString() || '',
                                   }))
-                                  .filter((item) => item.value) || []
+                                  .filter((item: any) => item.value) || []
                           }
                           value={
                             field.value && Array.isArray(field.value)
@@ -1051,7 +1054,7 @@ export default function ClientDrawer({
                                 value: location.id.toString(),
                               })) || []
                       }
-                      value={field.value}
+                      value={field.value ? String(field.value) : ''}
                       onSelectItem={(selected) => {
                         field.onChange(selected.value);
                       }}
@@ -1117,7 +1120,7 @@ export default function ClientDrawer({
                         options={
                           isSessionsLoading
                             ? [{ label: 'Loading...', value: '' }]
-                            : sessionsData?.filter(Boolean).map((session) => ({
+                            : sessionsData?.filter(Boolean).map((session: Session) => ({
                                 label:
                                   session.title ||
                                   session.id.toString() ||
