@@ -20,6 +20,12 @@ import ErrorBoundary from "../common/ErrorBoundary";
 interface PublicBookingWidgetProps {
   businessSlug: string;
   className?: string;
+  preselection?: {
+    sessionId?: number;
+    serviceId?: number;
+    staffId?: number;
+    locationId?: number;
+  };
 }
 
 function BookingWidgetContent({ businessSlug }: { businessSlug: string }) {
@@ -221,11 +227,12 @@ function BookingWidgetContent({ businessSlug }: { businessSlug: string }) {
 export function PublicBookingWidget({
   businessSlug,
   className,
+  preselection,
 }: PublicBookingWidgetProps) {
   return (
     <div className={className}>
       <ErrorBoundary>
-        <PublicBookingProvider>
+        <PublicBookingProvider businessSlug={businessSlug} preselection={preselection}>
           <BookingWidgetContent businessSlug={businessSlug} />
         </PublicBookingProvider>
       </ErrorBoundary>

@@ -13,9 +13,10 @@ import {
   BookingConfirmation,
 } from '../../types/clientTypes';
 import { useTimezone } from '../../contexts/TimezoneContext';
+import { useGetPublicBusinessServices } from '../../hooks/reactQuery';
 
 interface BookingAction {
-  type: 'SET_BUSINESS_INFO' | 'SELECT_SERVICE' | 'SELECT_SERVICE_CATEGORY' | 'SELECT_SERVICE_SUBCATEGORY' | 'SELECT_STAFF' | 'SELECT_LOCATION' | 'SELECT_DATE' | 'SELECT_SLOT' | 'SELECT_TIME_SLOT' | 'SET_TIMEZONE' | 'UPDATE_FORM_DATA' | 'SET_STEP' | 'SET_CURRENT_STEP' | 'RESET_FLOW' | 'RESET_SELECTIONS' | 'SET_FLEXIBLE_SETTINGS' | 'CLEAR_FLEXIBLE_SELECTIONS' | 'SET_BOOKING_CONFIRMATION' | 'SET_BOOKING_MODE';
+  type: 'SET_BUSINESS_INFO' | 'SELECT_SERVICE' | 'SELECT_SERVICE_CATEGORY' | 'SELECT_SERVICE_SUBCATEGORY' | 'SELECT_STAFF' | 'SELECT_LOCATION' | 'SELECT_DATE' | 'SELECT_SLOT' | 'SELECT_TIME_SLOT' | 'SET_TIMEZONE' | 'UPDATE_FORM_DATA' | 'SET_STEP' | 'SET_CURRENT_STEP' | 'RESET_FLOW' | 'RESET_SELECTIONS' | 'SET_FLEXIBLE_SETTINGS' | 'CLEAR_FLEXIBLE_SELECTIONS' | 'SET_BOOKING_CONFIRMATION' | 'SET_BOOKING_MODE' | 'SET_PRESELECTION';
   payload?: any;
   
 }
@@ -217,6 +218,24 @@ function bookingReducer(state: BookingFlowState & { bookingConfirmation?: Bookin
       };
     case 'RESET_FLOW':
       return initialState;
+    case 'SET_PRESELECTION':
+      return {
+        ...state,
+        selectedService: action.payload.selectedService,
+        selectedServiceCategory: action.payload.selectedServiceCategory,
+        selectedServiceSubcategory: action.payload.selectedServiceSubcategory,
+        selectedStaff: action.payload.selectedStaff,
+        selectedLocation: action.payload.selectedLocation,
+        selectedDate: action.payload.selectedDate,
+        selectedSlot: action.payload.selectedSlot,
+        selectedTimeSlot: action.payload.selectedTimeSlot,
+        formData: { ...state.formData, ...action.payload.formData },
+        currentStep: action.payload.currentStep,
+        isFlexibleBooking: action.payload.isFlexibleBooking,
+        bookingMode: action.payload.bookingMode,
+        flexibleBookingSettings: action.payload.flexibleBookingSettings,
+        bookingConfirmation: action.payload.bookingConfirmation,
+      };
     default:
       return state;
   }
@@ -230,6 +249,7 @@ interface BookingContextType {
   goToPreviousStep: () => void;
   canProceedToNext: () => boolean;
   resetFlow: () => void;
+  setPreselection: (preselection: any) => void;
 }
 
 const BookingContext = createContext<BookingContextType | undefined>(undefined);
@@ -238,11 +258,25 @@ const stepOrder: BookingStep[] = ['service', 'subcategory', 'date', 'location', 
 
 interface BookingProviderProps {
   children: ReactNode;
+  businessSlug?: string;
+  preselection?: {
+    sessionId?: number;
+    serviceId?: number;
+    staffId?: number;
+    locationId?: number;
+  };
 }
 
-export function PublicBookingProvider({ children }: BookingProviderProps) {
+export function PublicBookingProvider({ children, businessSlug, preselection }: BookingProviderProps) {
   const [state, dispatch] = useReducer(bookingReducer, initialState);
   const { state: timezoneState, actions: timezoneActions } = useTimezone();
+  
+  // Fetch services data when preselection is provided and we have a businessSlug
+  const shouldFetchServices = !!(businessSlug && preselection);
+  const {
+    data: services,
+    isLoading: servicesLoading,
+  } = useGetPublicBusinessServices(shouldFetchServices ? businessSlug! : '');
   
   // Use ref to always have access to current state
   const stateRef = useRef(state);
@@ -264,6 +298,130 @@ export function PublicBookingProvider({ children }: BookingProviderProps) {
       timezoneActions.setBusinessTimezone(state.businessInfo.timezone);
     }
   }, [state.businessInfo?.timezone]);
+
+  // Handle preselection when business info and services are available
+  useEffect(() => {
+    if (preselection && state.businessInfo && !state.selectedService && !state.selectedServiceCategory && !servicesLoading) {
+      console.log('🎯 Processing preselection:', preselection);
+      
+      // Process direct session link
+      if (preselection.sessionId && services) {
+        // Look for session in services data (sessions appear as individual services)
+        const session = services.find((service: any) => 
+          service.session_id === preselection.sessionId || service.id === preselection.sessionId
+        );
+        
+        if (session) {
+          console.log('📋 Direct session link - selecting session:', session);
+          dispatch({ 
+            type: 'SELECT_SERVICE', 
+            payload: {
+              id: session.id,
+              name: session.name,
+              description: session.description,
+              duration_minutes: session.duration_minutes,
+              capacity: session.capacity,
+              price: session.price,
+              category_type: session.category_type,
+              image_url: session.image_url,
+              session_id: session.session_id || session.id,
+              is_session: true,
+            }
+          });
+          // Skip to date selection for direct session bookings
+          dispatch({ 
+            type: 'SET_CURRENT_STEP', 
+            payload: 'date' 
+          });
+          return;
+        } else {
+          console.warn('⚠️ Session not found for sessionId:', preselection.sessionId);
+        }
+      }
+      
+      // Process direct service link (flexible booking)
+      if (preselection.serviceId && services) {
+        const service = services.find((cat: any) => 
+          cat.subcategories?.some((sub: any) => sub.id === preselection.serviceId)
+        );
+        const subcategory = service?.subcategories?.find((sub: any) => sub.id === preselection.serviceId);
+        
+        // Also check if the subcategory is marked as a service
+        if (service && subcategory && subcategory.is_service === true) {
+          console.log('🎯 Direct service link - selecting service category and subcategory:', { service, subcategory });
+          
+          // Set service category and subcategory
+          dispatch({ 
+            type: 'SELECT_SERVICE_CATEGORY', 
+            payload: service 
+          });
+          dispatch({ 
+            type: 'SELECT_SERVICE_SUBCATEGORY', 
+            payload: subcategory 
+          });
+          
+          // Pre-select staff if provided
+          if (preselection.staffId) {
+            const staff = state.businessInfo.staff?.find(s => s.id === preselection.staffId);
+            if (staff) {
+              console.log('👤 Pre-selecting staff:', staff);
+              dispatch({ 
+                type: 'SELECT_STAFF', 
+                payload: staff 
+              });
+            }
+          }
+          
+          // Pre-select location if provided
+          if (preselection.locationId) {
+            const location = state.businessInfo.locations?.find(l => l.id === preselection.locationId);
+            if (location) {
+              console.log('📍 Pre-selecting location:', location);
+              dispatch({ 
+                type: 'SELECT_LOCATION', 
+                payload: location 
+              });
+            }
+          }
+          
+          // Determine starting step based on what's pre-selected
+          if (preselection.staffId && preselection.locationId) {
+            // Both staff and location pre-selected, go to date
+            console.log('🎯 Both staff and location pre-selected, going to date');
+            dispatch({ 
+              type: 'SET_CURRENT_STEP', 
+              payload: 'date' 
+            });
+          } else if (preselection.staffId) {
+            // Only staff pre-selected, go to location
+            console.log('🎯 Only staff pre-selected, going to location');
+            dispatch({ 
+              type: 'SET_CURRENT_STEP', 
+              payload: 'location' 
+            });
+          } else if (preselection.locationId) {
+            // Only location pre-selected, go to staff
+            console.log('🎯 Only location pre-selected, going to staff');
+            dispatch({ 
+              type: 'SET_CURRENT_STEP', 
+              payload: 'staff' 
+            });
+          } else {
+            // Nothing pre-selected, go to location (normal flexible booking flow)
+            console.log('🎯 Nothing pre-selected, going to location');
+            dispatch({ 
+              type: 'SET_CURRENT_STEP', 
+              payload: 'location' 
+            });
+          }
+          
+          return;
+        } else {
+          console.warn('⚠️ Service not found or not marked as service for serviceId:', preselection.serviceId);
+        }
+      }
+    }
+  }, [preselection, state.businessInfo, state.selectedService, state.selectedServiceCategory, services, servicesLoading]);
 
   const goToStep = useCallback((step: BookingStep) => {
     dispatch({ type: 'SET_STEP', payload: step });
@@ -486,6 +644,10 @@ export function PublicBookingProvider({ children }: BookingProviderProps) {
     dispatch({ type: 'RESET_FLOW' });
   }, []);
 
+  const setPreselection = useCallback((preselection: any) => {
+    dispatch({ type: 'SET_PRESELECTION', payload: preselection });
+  }, []);
+
   const contextValue: BookingContextType = useMemo(() => ({
     state,
     dispatch,
@@ -494,7 +656,8 @@ export function PublicBookingProvider({ children }: BookingProviderProps) {
     goToPreviousStep,
     canProceedToNext,
     resetFlow,
-  }), [state, goToStep, goToNextStep, goToPreviousStep, canProceedToNext, resetFlow]);
+    setPreselection,
+  }), [state, goToStep, goToNextStep, goToPreviousStep, canProceedToNext, resetFlow, setPreselection]);
 
   return (
     <BookingContext.Provider value={contextValue}>

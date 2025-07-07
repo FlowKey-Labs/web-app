@@ -69,7 +69,10 @@ export function SubcategorySelectionStep({
         subcategoryName.toLowerCase().includes(searchQuery.toLowerCase()) ||
         subcategoryDescription.toLowerCase().includes(searchQuery.toLowerCase());
 
-      return matchesSearch;
+      // Only show subcategories that are marked as services
+      const isMarkedAsService = subcategory.is_service === true;
+
+      return matchesSearch && isMarkedAsService;
     });
   }, [subcategories, searchQuery]);
 

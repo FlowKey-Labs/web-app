@@ -132,6 +132,66 @@ function App() {
               }
             />
             
+            {/* Direct Session Booking - No authentication required */}
+            <Route
+              path='/book/:businessSlug/session/:sessionId'
+              element={
+                <AuthWrapper requireAuth={false} allowPublicAccess={true}>
+                  <PublicBookingPage />
+                </AuthWrapper>
+              }
+            />
+            
+            {/* Direct Service Booking - No authentication required */}
+            <Route
+              path='/book/:businessSlug/service/:serviceId'
+              element={
+                <AuthWrapper requireAuth={false} allowPublicAccess={true}>
+                  <PublicBookingPage />
+                </AuthWrapper>
+              }
+            />
+            
+            {/* Direct Service Booking with Staff - No authentication required */}
+            <Route
+              path='/book/:businessSlug/service/:serviceId/staff/:staffId'
+              element={
+                <AuthWrapper requireAuth={false} allowPublicAccess={true}>
+                  <PublicBookingPage />
+                </AuthWrapper>
+              }
+            />
+            
+            {/* Direct Service Booking with Location - No authentication required */}
+            <Route
+              path='/book/:businessSlug/service/:serviceId/location/:locationId'
+              element={
+                <AuthWrapper requireAuth={false} allowPublicAccess={true}>
+                  <PublicBookingPage />
+                </AuthWrapper>
+              }
+            />
+            
+            {/* Direct Service Booking with Staff and Location - No authentication required */}
+            <Route
+              path='/book/:businessSlug/service/:serviceId/staff/:staffId/location/:locationId'
+              element={
+                <AuthWrapper requireAuth={false} allowPublicAccess={true}>
+                  <PublicBookingPage />
+                </AuthWrapper>
+              }
+            />
+            
+            {/* Direct Service Booking with Location and Staff (alternate order) - No authentication required */}
+            <Route
+              path='/book/:businessSlug/service/:serviceId/location/:locationId/staff/:staffId'
+              element={
+                <AuthWrapper requireAuth={false} allowPublicAccess={true}>
+                  <PublicBookingPage />
+                </AuthWrapper>
+              }
+            />
+            
             {/* Public Booking Management Routes - No authentication required */}
             <Route
               path='/booking/cancel/:bookingReference'
