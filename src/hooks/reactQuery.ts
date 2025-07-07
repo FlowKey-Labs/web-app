@@ -148,6 +148,17 @@ import {
   reschedule_client_booking,
   get_public_available_staff,
   get_public_available_locations,
+  // Staff Management imports
+  get_staff_exceptions,
+  create_staff_exception,
+  update_staff_exception,
+  delete_staff_exception,
+  get_staff_portal_data,
+  approve_staff_exception,
+  deny_staff_exception,
+  get_staff_own_exceptions,
+  create_staff_own_exception,
+  update_staff_own_exception,
 } from "../api/api";
 import { Role, useAuthStore } from "../store/auth";
 import { AddClient, Client, BookingRequest } from "../types/clientTypes";
@@ -2628,11 +2639,12 @@ export const useDeleteStaffLocationAssignment = () => {
 export const useGetStaffExceptions = () => {
   return useQuery({
     queryKey: ['staff-exceptions'],
-    queryFn: () => fetch('/api/staff/exceptions/', {
-      headers: {
-        'Authorization': `Bearer ${useAuthStore.getState().accessToken}`,
-      },
-    }).then(res => res.json()),
+    queryFn: get_staff_exceptions,
+    staleTime: 0, // Always fetch fresh data
+    gcTime: 0, // Don't cache the data
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
+    refetchOnReconnect: true,
   });
 };
 
@@ -2640,14 +2652,15 @@ export const useCreateStaffException = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: any) => fetch('/api/staff/exceptions/', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${useAuthStore.getState().accessToken}`,
-      },
-      body: JSON.stringify(data),
-    }).then(res => res.json()),
+    mutationFn: (data: {
+      staff: number;
+      date: string;
+      exception_type?: string;
+      reason?: string;
+      is_all_day?: boolean;
+      start_time?: string;
+      end_time?: string;
+    }) => create_staff_exception(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['staff-exceptions'] });
       queryClient.invalidateQueries({ queryKey: ['booking-notifications'] });
@@ -2659,14 +2672,16 @@ export const useUpdateStaffException = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: any) => fetch(`/api/staff/exceptions/${data.id}/`, {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${useAuthStore.getState().accessToken}`,
-      },
-      body: JSON.stringify(data),
-    }).then(res => res.json()),
+    mutationFn: (data: {
+      id: number;
+      exception_type?: string;
+      reason?: string;
+      is_all_day?: boolean;
+      start_time?: string;
+      end_time?: string;
+      status?: string;
+      admin_notes?: string;
+    }) => update_staff_exception(data.id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['staff-exceptions'] });
       queryClient.invalidateQueries({ queryKey: ['booking-notifications'] });
@@ -2679,14 +2694,7 @@ export const useApproveStaffException = () => {
 
   return useMutation({
     mutationFn: (data: { id: number; admin_notes: string }) => 
-      fetch(`/api/staff/exceptions/${data.id}/approve/`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${useAuthStore.getState().accessToken}`,
-        },
-        body: JSON.stringify({ admin_notes: data.admin_notes }),
-      }).then(res => res.json()),
+      approve_staff_exception(data.id, data.admin_notes),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['staff-exceptions'] });
       queryClient.invalidateQueries({ queryKey: ['booking-notifications'] });
@@ -2699,16 +2707,76 @@ export const useDenyStaffException = () => {
 
   return useMutation({
     mutationFn: (data: { id: number; admin_notes: string }) => 
-      fetch(`/api/staff/exceptions/${data.id}/deny/`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${useAuthStore.getState().accessToken}`,
-        },
-        body: JSON.stringify({ admin_notes: data.admin_notes }),
-      }).then(res => res.json()),
+      deny_staff_exception(data.id, data.admin_notes),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['staff-exceptions'] });
+      queryClient.invalidateQueries({ queryKey: ['booking-notifications'] });
+    },
+  });
+};
+
+// Staff Portal Hook (for staff to access their own data)
+export const useGetStaffPortalData = () => {
+  return useQuery({
+    queryKey: ['staff-portal'],
+    queryFn: get_staff_portal_data,
+    retry: 2,
+    staleTime: 0, // Always fetch fresh data
+    gcTime: 0, // Don't cache the data
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
+    refetchOnReconnect: true,
+  });
+};
+
+// Staff Own Exception Hooks (for staff to manage their own exceptions)
+export const useGetStaffOwnExceptions = () => {
+  return useQuery({
+    queryKey: ['staff-own-exceptions'],
+    queryFn: get_staff_own_exceptions,
+    staleTime: 0, // Always fetch fresh data
+    gcTime: 0, // Don't cache the data
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
+    refetchOnReconnect: true,
+  });
+};
+
+export const useCreateStaffOwnException = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: {
+      date: string;
+      exception_type?: string;
+      reason?: string;
+      is_all_day?: boolean;
+      start_time?: string;
+      end_time?: string;
+    }) => create_staff_own_exception(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['staff-own-exceptions'] });
+      queryClient.invalidateQueries({ queryKey: ['staff-portal'] });
+      queryClient.invalidateQueries({ queryKey: ['booking-notifications'] });
+    },
+  });
+};
+
+export const useUpdateStaffOwnException = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: {
+      id: number;
+      exception_type?: string;
+      reason?: string;
+      is_all_day?: boolean;
+      start_time?: string;
+      end_time?: string;
+    }) => update_staff_own_exception(data.id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['staff-own-exceptions'] });
+      queryClient.invalidateQueries({ queryKey: ['staff-portal'] });
       queryClient.invalidateQueries({ queryKey: ['booking-notifications'] });
     },
   });

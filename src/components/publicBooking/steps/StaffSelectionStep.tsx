@@ -339,7 +339,7 @@ export function StaffSelectionStep({
             transition={{ delay: 0.5, duration: 0.5 }}
             className="mb-4 lg:mb-6"
           >
-            <div className="flex flex-col sm:flex-row gap-3 max-w-2xl">
+            <div className="flex flex-col sm:flex-row gap-3 lg:gap-4">
               <TextInput
                 placeholder="Search staff..."
                 value={searchQuery}
@@ -348,20 +348,26 @@ export function StaffSelectionStep({
                 className="flex-1"
                 classNames={{
                   input:
-                    "bg-white/60 backdrop-blur-sm border-white/30 focus:border-emerald-300 focus:bg-white/80 transition-all duration-200",
+                    "bg-white/60 backdrop-blur-sm border-white/30 focus:border-green-300 focus:bg-white/80 transition-all duration-200",
                 }}
               />
+
               <Select
                 placeholder="Filter by specialization"
                 value={specializationFilter}
-                onChange={setSpecializationFilter}
-                data={specializations.map(spec => ({ value: spec, label: spec }))}
-                clearable
-                className="sm:w-48"
+                onChange={(value) => setSpecializationFilter(value)}
+                data={[
+                  { value: "", label: "All Specializations" },
+                  ...specializations.map(spec => ({ value: spec, label: spec }))
+                ]}
+                className="min-w-48"
                 classNames={{
                   input:
-                    "bg-white/60 backdrop-blur-sm border-white/30 focus:border-emerald-300 focus:bg-white/80 transition-all duration-200",
+                    "bg-white/60 backdrop-blur-sm border-white/30 focus:border-green-300",
                 }}
+                clearable
+                searchable={specializations.length > 5}
+                disabled={specializations.length === 0}
               />
             </div>
           </motion.div>
@@ -476,86 +482,102 @@ const StaffCard: React.FC<{
 
   return (
     <Card
-      className="bg-white/70 backdrop-blur-sm border border-white/30 hover:bg-white/90 hover:border-emerald-300 hover:shadow-lg transition-all duration-300 hover:shadow-emerald-100/50 group"
-      radius="lg"
-      p="lg"
-      style={{ transform: 'none' }}
+      className="bg-white/80 backdrop-blur-sm border border-white/40 hover:bg-white/95 transition-all duration-300 hover:shadow-emerald-100/60 group cursor-pointer"
+      radius="xl"
+      p="md"
     >
-      <div className="flex items-start gap-3 lg:gap-4">
-        <div className="w-12 h-12 lg:w-16 lg:h-16 rounded-xl bg-gradient-to-br from-emerald-100 to-green-100 flex items-center justify-center text-base lg:text-lg group-hover:from-emerald-200 group-hover:to-green-200 transition-all duration-300 flex-shrink-0">
-          <UserIcon className="w-6 h-6 lg:w-8 lg:h-8 text-emerald-600" />
+      <div className="flex items-start gap-3">
+        <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-lg bg-gradient-to-br from-emerald-50 to-green-50 border border-emerald-100 flex items-center justify-center group-hover:from-emerald-100 group-hover:to-green-100 group-hover:border-emerald-200 transition-all duration-300 flex-shrink-0">
+          {staffMember.image_url ? (
+            <img 
+              src={staffMember.image_url} 
+              alt={staffMember.name}
+              className="w-full h-full rounded-lg object-cover"
+            />
+          ) : (
+            <div className="w-5 h-5 lg:w-6 lg:h-6 rounded-full bg-emerald-600 text-white flex items-center justify-center text-xs font-medium">
+              {staffMember.name.charAt(0).toUpperCase()}
+            </div>
+          )}
         </div>
 
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2 mb-2">
-            <div className="flex-1">
-              <Title
-                order={4}
-                className="text-sm lg:text-base font-semibold text-slate-800 group-hover:text-emerald-700 transition-colors duration-200 mb-1"
-              >
-                {staffMember.name}
-              </Title>
-              <div className="flex items-center gap-2 mb-2">
-                <Badge 
-                  color={getAvailabilityColor(staffMember.availability || 'available')} 
-                  variant="light" 
-                  size="xs"
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-1">
+                <Title
+                  order={4}
+                  className="text-sm lg:text-base font-semibold text-slate-800 group-hover:text-emerald-700 transition-colors duration-200 truncate"
                 >
-                  {staffMember.availability || 'Available'}
-                </Badge>
-                {staffMember.competency_level && (
+                  {staffMember.name}
+                </Title>
+                <div className="flex items-center gap-1 flex-shrink-0">
                   <Badge 
-                    color={getCompetencyColor(staffMember.competency_level)} 
-                    variant="outline" 
+                    color={getAvailabilityColor(staffMember.availability || 'available')} 
+                    variant="light" 
                     size="xs"
+                    className="text-xs"
                   >
-                    {staffMember.competency_level}
+                    {staffMember.availability || 'Available'}
                   </Badge>
+                  {staffMember.competency_level && (
+                    <Badge 
+                      color={getCompetencyColor(staffMember.competency_level)} 
+                      variant="outline" 
+                      size="xs"
+                      className="text-xs"
+                    >
+                      {staffMember.competency_level}
+                    </Badge>
+                  )}
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-3 text-xs text-slate-500 mb-2">
+                {staffMember.years_of_experience && staffMember.years_of_experience > 0 && (
+                  <div className="flex items-center gap-1">
+                    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+                    </svg>
+                    <span>{staffMember.years_of_experience}y exp</span>
+                  </div>
                 )}
+                
+              </div>
+            </div>
+            
+            <div className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 mt-1">
+              <div className="w-6 h-6 rounded-full bg-emerald-100 flex items-center justify-center">
+                <svg className="w-3 h-3 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
               </div>
             </div>
           </div>
 
           {staffMember.bio && (
             <Text
-              size="sm"
-              className="text-slate-600 mb-3 line-clamp-2 group-hover:text-slate-700 transition-colors duration-200"
+              size="xs"
+              className="text-slate-600 mb-2 line-clamp-1 group-hover:text-slate-700 transition-colors duration-200"
             >
               {staffMember.bio}
             </Text>
           )}
 
-          <div className="flex items-center gap-4 text-sm text-slate-500 mb-3">
-            {staffMember.years_of_experience && (
-              <div className="flex items-center gap-1">
-                <ClockIcon className="w-4 h-4" />
-                <span>{staffMember.years_of_experience} years exp.</span>
-              </div>
-            )}
-            {staffMember.rating && (
-              <div className="flex items-center gap-1">
-                <span>⭐</span>
-                <span>{staffMember.rating}</span>
-              </div>
-            )}
-          </div>
-
           {staffMember.specializations && staffMember.specializations.length > 0 && (
             <div className="flex flex-wrap gap-1">
               {staffMember.specializations.slice(0, 3).map((specialization, index) => (
-                <Badge
+                <div
                   key={index}
-                  color="emerald"
-                  variant="outline"
-                  size="xs"
+                  className="inline-flex items-center px-2 py-1 rounded-md bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-medium"
                 >
                   {specialization}
-                </Badge>
+                </div>
               ))}
               {staffMember.specializations.length > 3 && (
-                <Badge color="gray" variant="outline" size="xs">
+                <div className="inline-flex items-center px-2 py-1 rounded-md bg-slate-100 border border-slate-200 text-slate-600 text-xs">
                   +{staffMember.specializations.length - 3} more
-                </Badge>
+                </div>
               )}
             </div>
           )}

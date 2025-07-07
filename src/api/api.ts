@@ -1674,6 +1674,53 @@ const delete_staff_exception = async (id: number) => {
   return data;
 };
 
+const get_staff_portal_data = async () => {
+  const { data } = await api.get(END_POINTS.STAFF.PORTAL);
+  return data;
+};
+
+const approve_staff_exception = async (id: number, admin_notes: string) => {
+  const { data } = await api.post(`${END_POINTS.STAFF.EXCEPTIONS}${id}/approve/`, {
+    admin_notes
+  });
+  return data;
+};
+
+const deny_staff_exception = async (id: number, admin_notes: string) => {
+  const { data } = await api.post(`${END_POINTS.STAFF.EXCEPTIONS}${id}/deny/`, {
+    admin_notes
+  });
+  return data;
+};
+
+const get_staff_own_exceptions = async () => {
+  const { data } = await api.get(END_POINTS.STAFF.MY_EXCEPTIONS);
+  return data;
+};
+
+const create_staff_own_exception = async (exceptionData: {
+  date: string;
+  exception_type?: string;
+  reason?: string;
+  is_all_day?: boolean;
+  start_time?: string;
+  end_time?: string;
+}) => {
+  const { data } = await api.post(END_POINTS.STAFF.MY_EXCEPTIONS, exceptionData);
+  return data;
+};
+
+const update_staff_own_exception = async (id: number, exceptionData: {
+  exception_type?: string;
+  reason?: string;
+  is_all_day?: boolean;
+  start_time?: string;
+  end_time?: string;
+}) => {
+  const { data } = await api.patch(`${END_POINTS.STAFF.MY_EXCEPTIONS}${id}/`, exceptionData);
+  return data;
+};
+
 export {
   END_POINTS,
   registerUser,
@@ -1831,4 +1878,10 @@ export {
   create_staff_exception,
   update_staff_exception,
   delete_staff_exception,
+  get_staff_portal_data,
+  approve_staff_exception,
+  deny_staff_exception,
+  get_staff_own_exceptions,
+  create_staff_own_exception,
+  update_staff_own_exception,
 };

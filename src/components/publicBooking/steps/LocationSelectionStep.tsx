@@ -326,14 +326,14 @@ export function LocationSelectionStep({
             className="mb-4 lg:mb-6"
           >
             <TextInput
-              placeholder="Search locations..."
+              placeholder="Search locations by name, address, or city..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               leftSection={<SearchIcon className="w-4 h-4 text-slate-400" />}
               className="max-w-md"
               classNames={{
                 input:
-                  "bg-white/60 backdrop-blur-sm border-white/30 focus:border-emerald-300 focus:bg-white/80 transition-all duration-200",
+                  "bg-white/60 backdrop-blur-sm border-white/30 focus:border-green-300 focus:bg-white/80 transition-all duration-200",
               }}
             />
           </motion.div>
@@ -415,65 +415,79 @@ export function LocationSelectionStep({
   );
 }
 
-// Location Card Component - Updated to green color scheme and fixed hover overflow
+// Location Card Component - Updated to be more compact and appealing
 const LocationCard: React.FC<{
   location: PublicLocation;
   onClick: (location: PublicLocation) => void;
 }> = ({ location }) => {
   return (
     <Card
-      className="bg-white/70 backdrop-blur-sm border border-white/30 hover:bg-white/90 hover:border-emerald-300 hover:shadow-lg transition-all duration-300 hover:shadow-emerald-100/50 group"
-      radius="lg"
-      p="lg"
-      style={{ transform: 'none' }} // Prevent scaling overflow
+      className="bg-white/80 backdrop-blur-sm border border-white/40 hover:bg-white/95 transition-all duration-300 hover:shadow-emerald-100/60 group cursor-pointer"
+      radius="xl"
+      p="md"
     >
-      <div className="flex items-start gap-3 lg:gap-4">
-        <div className="w-12 h-12 lg:w-16 lg:h-16 rounded-xl bg-gradient-to-br from-emerald-100 to-green-100 flex items-center justify-center text-base lg:text-lg group-hover:from-emerald-200 group-hover:to-green-200 transition-all duration-300 flex-shrink-0">
-          <LocationIcon className="w-6 h-6 lg:w-8 lg:h-8 text-emerald-600" />
+      <div className="flex items-center gap-3">
+        {/* Icon Section - More compact */}
+        <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-lg bg-gradient-to-br from-emerald-50 to-green-50 border border-emerald-100 flex items-center justify-center group-hover:from-emerald-100 group-hover:to-green-100 group-hover:border-emerald-200 transition-all duration-300 flex-shrink-0">
+          <LocationIcon className="w-5 h-5 lg:w-6 lg:h-6 text-emerald-600 group-hover:text-emerald-700" />
         </div>
 
+        {/* Content Section - Optimized layout */}
         <div className="flex-1 min-w-0">
-          <div className="flex items-start justify-between gap-2 mb-2">
-            <div className="flex-1">
-              <Title
-                order={4}
-                className="text-sm lg:text-base font-semibold text-slate-800 group-hover:text-emerald-700 transition-colors duration-200 mb-1"
-              >
-                {location.name}
-              </Title>
-              <div className="flex items-center gap-2 mb-2">
-                <Badge 
-                  color="green" 
-                  variant="light" 
-                  size="xs"
+          <div className="flex items-start justify-between gap-2">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-1">
+                <Title
+                  order={4}
+                  className="text-sm lg:text-base font-semibold text-slate-800 group-hover:text-emerald-700 transition-colors duration-200 truncate"
                 >
-                  Available
-                </Badge>
-                {location.is_primary && (
+                  {location.name}
+                </Title>
+                <div className="flex items-center gap-1 flex-shrink-0">
                   <Badge 
-                    color="emerald" 
-                    variant="outline" 
+                    color="green" 
+                    variant="light" 
                     size="xs"
+                    className="text-xs"
                   >
-                    Primary
+                    Available
                   </Badge>
-                )}
+                  {location.is_primary && (
+                    <Badge 
+                      color="emerald" 
+                      variant="outline" 
+                      size="xs"
+                      className="text-xs"
+                    >
+                      Primary
+                    </Badge>
+                  )}
+                </div>
+              </div>
+              
+              <Text
+                size="xs"
+                className="text-slate-600 group-hover:text-slate-700 transition-colors duration-200 line-clamp-1"
+              >
+                {location.address}
+              </Text>
+              
+              <div className="flex items-center gap-1 mt-1">
+                <LocationIcon className="w-3 h-3 text-slate-400" />
+                <Text size="xs" className="text-slate-500">
+                  {location.city}
+                </Text>
               </div>
             </div>
           </div>
+        </div>
 
-          <Text
-            size="sm"
-            className="text-slate-600 mb-2 group-hover:text-slate-700 transition-colors duration-200"
-          >
-            {location.address}
-          </Text>
-
-          <div className="flex items-center gap-4 text-sm text-slate-500">
-            <div className="flex items-center gap-1">
-              <LocationIcon className="w-4 h-4" />
-              <span>{location.city}</span>
-            </div>
+        {/* Arrow indicator */}
+        <div className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+          <div className="w-6 h-6 rounded-full bg-emerald-100 flex items-center justify-center">
+            <svg className="w-3 h-3 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
           </div>
         </div>
       </div>

@@ -15,7 +15,7 @@ import { BookingSidebar } from "./BookingSidebar";
 import { useGetPublicBusinessInfo } from "../../hooks/reactQuery";
 import WithBrandingLayout from "../common/WithBrandingLayout";
 import ErrorBoundary from "../common/ErrorBoundary";
-import { StateDebugger } from "./StateDebugger";
+
 
 interface PublicBookingWidgetProps {
   businessSlug: string;
@@ -176,7 +176,6 @@ function BookingWidgetContent({ businessSlug }: { businessSlug: string }) {
   if (isMobile) {
     return (
       <div className="relative">
-        <StateDebugger />
         <WithBrandingLayout showHelpText={false}>
           <Box style={{ width: "100%", minHeight: "100vh" }}>
             <ErrorBoundary>{renderCurrentStep()}</ErrorBoundary>
@@ -188,7 +187,6 @@ function BookingWidgetContent({ businessSlug }: { businessSlug: string }) {
 
   return (
     <div className="relative">
-      <StateDebugger />
       {["service", "date"].includes(state.currentStep) && (
         <div className="absolute top-4 right-4 z-50">
           <h3 className="text-sm text-primary">

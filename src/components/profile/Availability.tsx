@@ -1,16 +1,19 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { Loader, Modal, ActionIcon, Tooltip, Badge, Text } from '@mantine/core';
+import { Loader, Modal, ActionIcon, Tooltip, Badge, Text, Divider } from '@mantine/core';
 import { Calendar } from '@mantine/dates';
 import { notifications } from '@mantine/notifications';
-import { useForm, FormProvider } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { CalendarIcon, PlusIcon } from '../../assets/icons';
 import Button from '../common/Button';
-import Input from '../common/Input';
+import { StaffException } from '../../types/sessionTypes';
 import { 
   useGetAvailability, 
   useCreateAvailability, 
   useUpdateAvailability,
-  usePartialUpdateAvailability 
+  usePartialUpdateAvailability,
+  useGetStaffExceptions,
+  useApproveStaffException,
+  useDenyStaffException
 } from '../../hooks/reactQuery';
 import successIcon from '../../assets/icons/success.svg';
 import errorIcon from '../../assets/icons/error.svg';
@@ -26,6 +29,8 @@ interface Exception {
   isAllDay: boolean;
   timeSlots?: TimeShift[];
 }
+
+
 
 interface DaySchedule {
   isOpen: boolean;
@@ -409,9 +414,12 @@ const NewDaySchedule = ({
 
 const Availability: React.FC = () => {
   const { data: availabilityData, isLoading, error: fetchError } = useGetAvailability();
+  const { data: staffExceptions, isLoading: staffExceptionsLoading } = useGetStaffExceptions();
   const createAvailability = useCreateAvailability();
   const updateAvailability = useUpdateAvailability();
   const partialUpdateAvailability = usePartialUpdateAvailability();
+  const approveStaffException = useApproveStaffException();
+  const denyStaffException = useDenyStaffException();
   
   const { control, handleSubmit, formState: { errors }, watch, setValue, reset } = useForm<AvailabilityFormData>({
     defaultValues: defaultFormValues
@@ -434,6 +442,11 @@ const Availability: React.FC = () => {
   const [exceptionReason, setExceptionReason] = useState('');
   const [exceptionIsAllDay, setExceptionIsAllDay] = useState(true);
   const [exceptionTimeSlots, setExceptionTimeSlots] = useState<TimeShift[]>([{ start: '09:00', end: '17:00' }]);
+  
+  // Staff exception modal state
+  const [staffExceptionModalOpen, setStaffExceptionModalOpen] = useState(false);
+  const [selectedStaffException, setSelectedStaffException] = useState<StaffException | null>(null);
+  const [adminNotes, setAdminNotes] = useState('');
 
   console.log('🏠 Availability component render - scheduleState:', scheduleState);
   console.log('🏠 isEditing:', isEditing);
@@ -854,10 +867,36 @@ const Availability: React.FC = () => {
               {/* Calendar */}
               <div>
                 <h3 className="text-sm font-medium text-gray-900 mb-3">Select Dates</h3>
+                
+                {/* Color Legend */}
+                <div className="mb-3 p-3 bg-gray-50 rounded-lg">
+                 <div className='mb-2'>
+                 <Text size="xs" fw={500} className="text-gray-700 ">Calendar Legend:</Text>
+                 </div>
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded bg-red-100 border border-red-200"></div>
+                      <span className="text-gray-600">Business Exception</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded bg-green-100 border border-green-200"></div>
+                      <span className="text-gray-600">Approved Staff Exception</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded bg-yellow-100 border border-yellow-200"></div>
+                      <span className="text-gray-600">Pending Staff Exception</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded bg-amber-400 border border-amber-500"></div>
+                      <span className="text-gray-600">Multiple Exceptions</span>
+                    </div>
+                  </div>
+                </div>
+                
                 <div className="border border-gray-200 rounded-lg p-3">
                   <Calendar
                     value={selectedExceptionDate}
-                    onChange={handleCalendarDayClick}
+                    onChange={(date) => date && handleCalendarDayClick(date)}
                     minDate={new Date()}
                     size="sm"
                     className="w-full"
@@ -865,17 +904,66 @@ const Availability: React.FC = () => {
                       // Fix timezone issue: use consistent local date formatting
                       const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
                       const dateStr = localDate.toISOString().split('T')[0];
-                      const hasException = watchedExceptions?.some(ex => ex.date === dateStr);
+                      
+                      // Check for business exceptions
+                      const hasBusinessException = watchedExceptions?.some(ex => ex.date === dateStr);
+                      
+                      // Check for staff exceptions
+                      const staffExceptionsForDate = (staffExceptions as StaffException[])?.filter(ex => ex.date === dateStr) || [];
+                      const hasPendingStaffException = staffExceptionsForDate.some(ex => ex.status === 'pending');
+                      const hasApprovedStaffException = staffExceptionsForDate.some(ex => ex.status === 'approved');
+                      const hasDeniedStaffException = staffExceptionsForDate.some(ex => ex.status === 'denied');
+                      
+                      // Determine styling based on exception types
+                      let backgroundColor = '#ffffff';
+                      let color = '#374151';
+                      let fontWeight = 'normal';
+                      
+                      if (hasBusinessException && (hasPendingStaffException || hasApprovedStaffException)) {
+                        // Both business and staff exceptions
+                        backgroundColor = '#fbbf24'; // amber
+                        color = '#ffffff';
+                        fontWeight = 'bold';
+                      } else if (hasBusinessException) {
+                        // Business exception only
+                        backgroundColor = '#fee2e2'; // red-100
+                        color = '#dc2626'; // red-600
+                        fontWeight = 'bold';
+                      } else if (hasPendingStaffException) {
+                        // Pending staff exception
+                        backgroundColor = '#fef3c7'; // yellow-100
+                        color = '#d97706'; // yellow-600
+                        fontWeight = 'bold';
+                      } else if (hasApprovedStaffException) {
+                        // Approved staff exception
+                        backgroundColor = '#dcfce7'; // green-100
+                        color = '#16a34a'; // green-600
+                        fontWeight = 'bold';
+                      } else if (hasDeniedStaffException) {
+                        // Denied staff exception (lighter styling)
+                        backgroundColor = '#f9fafb'; // gray-50
+                        color = '#6b7280'; // gray-500
+                        fontWeight = 'normal';
+                      }
+                      
                       return {
-                        onClick: () => handleCalendarDayClick(date),
-                        style: hasException ? {
-                          backgroundColor: '#fee2e2',
-                          color: '#dc2626',
-                          fontWeight: 'bold',
-                          borderRadius: '6px'
-                        } : {
+                        onClick: () => {
+                          if (staffExceptionsForDate.length > 0) {
+                            // Show staff exception details if there are staff exceptions
+                            setSelectedStaffException(staffExceptionsForDate[0]);
+                            setStaffExceptionModalOpen(true);
+                          } else {
+                            // Add business exception
+                            handleCalendarDayClick(date);
+                          }
+                        },
+                        style: {
+                          backgroundColor,
+                          color,
+                          fontWeight,
+                          borderRadius: '6px',
                           cursor: 'pointer',
-                          borderRadius: '6px'
+                          position: 'relative',
                         }
                       };
                     }}
@@ -980,7 +1068,7 @@ const Availability: React.FC = () => {
             setExceptionIsAllDay(true);
             setExceptionTimeSlots([{ start: '09:00', end: '17:00' }]);
           }}
-          title="Add Exception"
+          title="Add Business Exception"
           size="md"
           centered
         >
@@ -1112,6 +1200,218 @@ const Availability: React.FC = () => {
               </Button>
             </div>
           </div>
+        </Modal>
+
+        {/* Staff Exception Details Modal */}
+        <Modal
+          opened={staffExceptionModalOpen}
+          onClose={() => {
+            setStaffExceptionModalOpen(false);
+            setSelectedStaffException(null);
+            setAdminNotes('');
+          }}
+          title="Staff Exception Details"
+          size="lg"
+          centered
+        >
+          {selectedStaffException && (
+            <div className="space-y-6">
+              {/* Exception Information */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Text size="sm" fw={600} className="text-gray-700 mb-1">Staff Member</Text>
+                  <Text size="sm" className="text-gray-900">{selectedStaffException.staff_name}</Text>
+                </div>
+                <div>
+                  <Text size="sm" fw={600} className="text-gray-700 mb-1">Date</Text>
+                  <Text size="sm" className="text-gray-900">
+                    {new Date(selectedStaffException.date).toLocaleDateString('en-US', {
+                      weekday: 'long',
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric'
+                    })}
+                  </Text>
+                </div>
+                <div>
+                  <Text size="sm" fw={600} className="text-gray-700 mb-1">Exception Type</Text>
+                  <Badge color="blue" variant="light" size="sm">
+                    {selectedStaffException.exception_type.replace('_', ' ').toUpperCase()}
+                  </Badge>
+                </div>
+                <div>
+                  <Text size="sm" fw={600} className="text-gray-700 mb-1">Duration</Text>
+                  <Badge color={selectedStaffException.is_all_day ? "red" : "orange"} variant="light" size="sm">
+                    {selectedStaffException.is_all_day ? "All Day" : 
+                     `${selectedStaffException.start_time} - ${selectedStaffException.end_time}`}
+                  </Badge>
+                </div>
+                <div className="col-span-2">
+                  <Text size="sm" fw={600} className="text-gray-700 mb-1">Reason</Text>
+                  <Text size="sm" className="text-gray-900 bg-gray-50 p-2 rounded">
+                    {selectedStaffException.reason || 'No reason provided'}
+                  </Text>
+                </div>
+              </div>
+
+              <Divider />
+
+              {/* Status Information */}
+              <div>
+                <Text size="sm" fw={600} className="text-gray-700 mb-2">Status Information</Text>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Text size="sm" fw={600} className="text-gray-700 mb-1">Current Status</Text>
+                    <Badge 
+                      color={
+                        selectedStaffException.status === 'approved' ? 'green' :
+                        selectedStaffException.status === 'denied' ? 'red' : 'yellow'
+                      }
+                      variant="filled"
+                      size="sm"
+                    >
+                      {selectedStaffException.status.toUpperCase()}
+                    </Badge>
+                  </div>
+                  <div>
+                    <Text size="sm" fw={600} className="text-gray-700 mb-1">Requested On</Text>
+                    <Text size="sm" className="text-gray-900">
+                      {new Date(selectedStaffException.created_at).toLocaleDateString()}
+                    </Text>
+                  </div>
+                  {selectedStaffException.reviewed_at && (
+                    <>
+                      <div>
+                        <Text size="sm" fw={600} className="text-gray-700 mb-1">Reviewed By</Text>
+                        <Text size="sm" className="text-gray-900">
+                          {selectedStaffException.reviewed_by_name || 'Admin'}
+                        </Text>
+                      </div>
+                      <div>
+                        <Text size="sm" fw={600} className="text-gray-700 mb-1">Reviewed On</Text>
+                        <Text size="sm" className="text-gray-900">
+                          {new Date(selectedStaffException.reviewed_at).toLocaleDateString()}
+                        </Text>
+                      </div>
+                    </>
+                  )}
+                </div>
+                {selectedStaffException.admin_notes && (
+                  <div className="mt-3">
+                    <Text size="sm" fw={600} className="text-gray-700 mb-1">Admin Notes</Text>
+                    <Text size="sm" className="text-gray-900 bg-gray-50 p-2 rounded">
+                      {selectedStaffException.admin_notes}
+                    </Text>
+                  </div>
+                )}
+              </div>
+
+              {/* Action Section - Only show if pending */}
+              {selectedStaffException.status === 'pending' && (
+                <>
+                  <Divider />
+                  <div>
+                    <Text size="sm" fw={600} className="text-gray-700 mb-3">Admin Action</Text>
+                    <div className="space-y-3">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Admin Notes (Optional)
+                        </label>
+                        <textarea
+                          value={adminNotes}
+                          onChange={(e) => setAdminNotes(e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-secondary focus:border-transparent text-sm"
+                          rows={3}
+                          placeholder="Add notes about your decision..."
+                        />
+                      </div>
+                      <div className="flex gap-3">
+                        <Button
+                          onClick={() => {
+                            approveStaffException.mutate(
+                              { id: selectedStaffException.id, admin_notes: adminNotes },
+                              {
+                                onSuccess: () => {
+                                  notifications.show({
+                                    title: 'Exception Approved',
+                                    message: 'Staff exception has been approved successfully',
+                                    color: 'green',
+                                    icon: <img src={successIcon} alt="Success" className="w-4 h-4" />,
+                                  });
+                                  setStaffExceptionModalOpen(false);
+                                  setSelectedStaffException(null);
+                                  setAdminNotes('');
+                                },
+                                onError: () => {
+                                  notifications.show({
+                                    title: 'Error',
+                                    message: 'Failed to approve exception',
+                                    color: 'red',
+                                    icon: <img src={errorIcon} alt="Error" className="w-4 h-4" />,
+                                  });
+                                }
+                              }
+                            );
+                          }}
+                          className="bg-green-600 hover:bg-green-700 text-white"
+                          disabled={approveStaffException.isPending}
+                        >
+                          Approve
+                        </Button>
+                        <Button
+                          onClick={() => {
+                            denyStaffException.mutate(
+                              { id: selectedStaffException.id, admin_notes: adminNotes },
+                              {
+                                onSuccess: () => {
+                                  notifications.show({
+                                    title: 'Exception Denied',
+                                    message: 'Staff exception has been denied',
+                                    color: 'orange',
+                                    icon: <img src={successIcon} alt="Success" className="w-4 h-4" />,
+                                  });
+                                  setStaffExceptionModalOpen(false);
+                                  setSelectedStaffException(null);
+                                  setAdminNotes('');
+                                },
+                                onError: () => {
+                                  notifications.show({
+                                    title: 'Error',
+                                    message: 'Failed to deny exception',
+                                    color: 'red',
+                                    icon: <img src={errorIcon} alt="Error" className="w-4 h-4" />,
+                                  });
+                                }
+                              }
+                            );
+                          }}
+                          variant="outline"
+                          className="border-red-300 text-red-600 hover:bg-red-50"
+                          disabled={denyStaffException.isPending}
+                        >
+                          Deny
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {/* Close Button */}
+              <div className="flex justify-end">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setStaffExceptionModalOpen(false);
+                    setSelectedStaffException(null);
+                    setAdminNotes('');
+                  }}
+                >
+                  Close
+                </Button>
+              </div>
+            </div>
+          )}
         </Modal>
       </div>
     </AvailabilityErrorBoundary>

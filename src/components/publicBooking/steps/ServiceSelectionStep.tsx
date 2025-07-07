@@ -146,7 +146,7 @@ export function ServiceSelectionStep({
     });
   }, [parsedServices.individualServices, searchQuery, categoryFilter, priceFilter]);
 
-  // Filter categories based on search
+  // Filter categories based on search and selected category filter
   const filteredCategories = useMemo(() => {
     return parsedServices.categories.filter((category: PublicServiceCategory) => {
       const categoryName = category.name || "";
@@ -159,23 +159,28 @@ export function ServiceSelectionStep({
           (sub.description && sub.description.toLowerCase().includes(searchQuery.toLowerCase()))
         );
 
-      return matchesSearch;
+      // Filter by category if one is selected
+      const matchesCategory = categoryFilter === "all" || categoryName === categoryFilter;
+
+      return matchesSearch && matchesCategory;
     });
-  }, [parsedServices.categories, searchQuery]);
+  }, [parsedServices.categories, searchQuery, categoryFilter]);
 
 
   const categories = useMemo(() => {
-    const uniqueCategories = [
+    // Get categories from both flexible service categories and individual service types
+    const flexibleCategories = parsedServices.categories.map(cat => cat.name);
+    const individualServiceTypes = [
       ...new Set(parsedServices.individualServices.map((s: PublicService) => s.category_type).filter(Boolean)),
     ];
-    return uniqueCategories.map((cat) => ({
+    
+    const allCategories = [...new Set([...flexibleCategories, ...individualServiceTypes])];
+    
+    return allCategories.map((cat) => ({
       value: String(cat),
-      label:
-        cat && typeof cat === "string"
-          ? cat.charAt(0).toUpperCase() + cat.slice(1)
-          : "Unknown",
+      label: String(cat),
     }));
-  }, [parsedServices.individualServices]);
+  }, [parsedServices.categories, parsedServices.individualServices]);
 
   const getCategoryIcon = (type: string) => {
     if (!type) return "📋";
@@ -333,7 +338,7 @@ export function ServiceSelectionStep({
               <span>Step 1 of 4</span>
               <span>{progressPercentage}% Complete</span>
             </div>
-            <Progress value={progressPercentage} size="sm" color="teal" />
+            <Progress value={progressPercentage} size="sm" color="green" />
           </motion.div>
 
 
@@ -414,7 +419,7 @@ export function ServiceSelectionStep({
                 className="flex-1"
                 classNames={{
                   input:
-                    "bg-white/60 backdrop-blur-sm border-white/30 focus:border-emerald-300 focus:bg-white/80 transition-all duration-200",
+                    "bg-white/60 backdrop-blur-sm border-white/30 focus:border-green-300 focus:bg-white/80 transition-all duration-200",
                 }}
               />
 
@@ -430,8 +435,9 @@ export function ServiceSelectionStep({
                   className="min-w-36"
                   classNames={{
                     input:
-                      "bg-white/60 backdrop-blur-sm border-white/30 focus:border-emerald-300",
+                      "bg-white/60 backdrop-blur-sm border-white/30 focus:border-green-300",
                   }}
+                  searchable={categories.length > 5}
                 />
 
                 <Select
@@ -446,7 +452,7 @@ export function ServiceSelectionStep({
                   className="min-w-28"
                   classNames={{
                     input:
-                      "bg-white/60 backdrop-blur-sm border-white/30 focus:border-emerald-300",
+                      "bg-white/60 backdrop-blur-sm border-white/30 focus:border-green-300",
                   }}
                 />
               </div>
@@ -482,7 +488,7 @@ export function ServiceSelectionStep({
                   {hasCategories && (
                     <div className="space-y-3">
                       <div className="flex items-center gap-2 mb-4">
-                        <Badge variant="light" color="blue" size="sm">
+                        <Badge variant="light" color="green" size="sm">
                           Flexible Services
                         </Badge>
                         <Text size="sm" className="text-slate-500">
@@ -502,12 +508,12 @@ export function ServiceSelectionStep({
                           onClick={() => handleServiceCategorySelect(category)}
                         >
                           <Card
-                            className="bg-white/70 backdrop-blur-sm border border-white/30 hover:bg-white/90 hover:border-blue-200 hover:shadow-lg transition-all duration-300 group-hover:shadow-blue-100/50"
+                            className="bg-white/70 backdrop-blur-sm border border-white/30 hover:bg-white/90 hover:border-green-200 hover:shadow-lg transition-all duration-300 group-hover:shadow-green-100/50"
                             radius="lg"
                             p="lg"
                           >
                             <div className="flex items-start gap-3 lg:gap-4">
-                              <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-xl bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center text-base lg:text-lg group-hover:from-blue-200 group-hover:to-indigo-200 transition-all duration-300">
+                              <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-xl bg-gradient-to-br from-green-100 to-emerald-100 flex items-center justify-center text-base lg:text-lg group-hover:from-green-200 group-hover:to-emerald-200 transition-all duration-300">
                                 📋
                               </div>
 
@@ -516,7 +522,7 @@ export function ServiceSelectionStep({
                                   <div className="flex-1">
                                     <Title
                                       order={4}
-                                      className="text-sm lg:text-base font-semibold text-slate-800 group-hover:text-blue-700 transition-colors duration-200 mb-1"
+                                      className="text-sm lg:text-base font-semibold text-slate-800 group-hover:text-green-700 transition-colors duration-200 mb-1"
                                     >
                                       {category.name}
                                     </Title>
@@ -536,7 +542,7 @@ export function ServiceSelectionStep({
                                 <div className="flex items-center gap-3 lg:gap-4 mt-2 lg:mt-3">
                                   <Badge
                                     variant="light"
-                                    color="blue"
+                                    color="green"
                                     size="xs"
                                   >
                                     {category.subcategories.length} services

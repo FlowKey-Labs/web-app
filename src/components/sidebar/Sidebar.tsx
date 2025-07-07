@@ -47,7 +47,7 @@ const permissionMap: Record<string, keyof Role> = {
   Profile: "can_manage_profile",
   Settings: "can_manage_settings",
   "Audit Logs": "can_view_audit_logs",
-  "Staff Portal": "can_view_staff_exceptions", // Staff portal shows for users who can view staff exceptions (includes staff themselves)
+  "Staff Portal": "can_access_staff_portal", // Staff portal shows for users who can access the staff portal
 };
 
 function filterMenuItemsByRole<T extends { name: string }>(
@@ -82,8 +82,8 @@ const Sidebar = ({ activeItem, isOpen = true, onClose }: SidebarProps) => {
     
     let items = [...bottomMenuItems];
     
-    // Add Staff Portal for staff users (those who can view staff exceptions or are staff themselves)
-    if (user?.is_staff || role.can_view_staff_exceptions) {
+    // Add Staff Portal for staff users (those who can access the staff portal)
+    if (role.can_access_staff_portal) {
       const staffPortalItem = {
         name: "Staff Portal",
         icon: ({ className }: { className?: string }) => (

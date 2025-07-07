@@ -340,6 +340,13 @@ interface BookingFormData {
   reschedule_fee_policy: string;
   allow_admin_deletion: boolean;
   require_deletion_reason: boolean;
+  
+  // Staff exception settings
+  staff_exception_approval_mode: 'auto' | 'manual' | 'hybrid';
+  auto_approve_exception_types: string[];
+  staff_exception_advance_notice_hours: number;
+  staff_max_exceptions_per_month: number;
+  send_staff_exception_notifications: boolean;
 }
 
 const BookingSettings: React.FC<BookingSettingsProps> = ({
@@ -1358,6 +1365,213 @@ const BookingSettings: React.FC<BookingSettingsProps> = ({
                       className='w-auto'
                     >
                       Save Policy Settings
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Staff Exception Settings */}
+          <div className={`group border transition-all duration-300 rounded-xl overflow-hidden ${
+            openedAccordion === 'staff-exceptions' 
+              ? 'border-[#1D9B5E] shadow-lg shadow-[#1D9B5E]/10 bg-gradient-to-r from-[#1D9B5E]/5 to-[#1D9B5E]/2' 
+              : 'border-gray-200 hover:border-gray-300 hover:shadow-md'
+          }`}>
+            <button
+              onClick={() => setOpenedAccordion(openedAccordion === 'staff-exceptions' ? null : 'staff-exceptions')}
+              className="w-full p-4 flex items-center justify-between transition-all duration-200"
+            >
+              <div className="flex items-center gap-3">
+                <div className={`relative rounded-lg p-2.5 transition-all duration-300 ${
+                  openedAccordion === 'staff-exceptions' 
+                    ? 'bg-[#1D9B5E] shadow-lg shadow-[#1D9B5E]/25' 
+                    : 'bg-gray-100 group-hover:bg-gray-200'
+                }`}>
+                  <svg
+                    width='24'
+                    height='24'
+                    viewBox='0 0 24 24'
+                    fill='none'
+                    xmlns='http://www.w3.org/2000/svg'
+                    className='w-6 h-6'
+                  >
+                    <path
+                      d='M8 12L10.5 14.5L16 9'
+                      stroke={openedAccordion === 'staff-exceptions' ? 'white' : '#6D7172'}
+                      strokeWidth='2'
+                      strokeLinecap='round'
+                      strokeLinejoin='round'
+                    />
+                    <path
+                      d='M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z'
+                      stroke={openedAccordion === 'staff-exceptions' ? 'white' : '#6D7172'}
+                      strokeWidth='2'
+                    />
+                    <path
+                      d='M8 2V6'
+                      stroke={openedAccordion === 'staff-exceptions' ? 'white' : '#6D7172'}
+                      strokeWidth='2'
+                      strokeLinecap='round'
+                    />
+                    <path
+                      d='M16 2V6'
+                      stroke={openedAccordion === 'staff-exceptions' ? 'white' : '#6D7172'}
+                      strokeWidth='2'
+                      strokeLinecap='round'
+                    />
+                  </svg>
+                  {openedAccordion === 'staff-exceptions' && (
+                    <div className="absolute -top-1 -right-1 w-3 h-3 bg-[#D2F801] rounded-full border-2 border-white"></div>
+                  )}
+                </div>
+                <div className="text-left">
+                  <h3 className={`text-base font-semibold transition-colors duration-200 ${
+                    openedAccordion === 'staff-exceptions' 
+                      ? 'text-[#1D9B5E]' 
+                      : 'text-[#162F3B] group-hover:text-[#1D9B5E]'
+                  }`}>
+                    Staff Exception Settings
+                  </h3>
+                  <p className={`text-xs transition-colors duration-200 ${
+                    openedAccordion === 'staff-exceptions' 
+                      ? 'text-[#1D9B5E]/70' 
+                      : 'text-gray-600'
+                  }`}>
+                    Configure staff time-off request policies
+                  </p>
+                </div>
+              </div>
+              <div className={`transition-transform duration-300 ${
+                openedAccordion === 'staff-exceptions' ? 'rotate-180' : 'rotate-0'
+              }`}>
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" className={
+                  openedAccordion === 'staff-exceptions' ? 'text-[#1D9B5E]' : 'text-gray-400'
+                }>
+                  <path d="M5 7.5L10 12.5L15 7.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
+            </button>
+            {openedAccordion === 'staff-exceptions' && (
+              <div className="px-6 pb-6 border-t border-[#1D9B5E]/20 bg-white/50">
+                <div className='py-4 space-y-6'>
+                  <div className='space-y-4'>
+                    <h4 className='text-sm font-medium text-primary'>Approval Process</h4>
+                    
+                    <Controller
+                      name='staff_exception_approval_mode'
+                      control={methods.control}
+                      render={({ field }) => (
+                        <div>
+                          <label className='block text-primary text-sm font-medium mb-2'>
+                            Exception Approval Mode
+                          </label>
+                          <select
+                            {...field}
+                            className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary focus:border-transparent'
+                          >
+                            <option value='manual'>Manual Approval Required</option>
+                            <option value='auto'>Auto Approve All</option>
+                            <option value='hybrid'>Conditional Auto Approval</option>
+                          </select>
+                        </div>
+                      )}
+                    />
+
+                    {methods.watch('staff_exception_approval_mode') === 'hybrid' && (
+                      <Controller
+                        name='auto_approve_exception_types'
+                        control={methods.control}
+                        render={({ field }) => (
+                          <div>
+                            <label className='block text-primary text-sm font-medium mb-2'>
+                              Auto-Approve Exception Types
+                            </label>
+                            <div className='space-y-2'>
+                              {['vacation', 'sick', 'training', 'personal'].map((type) => (
+                                <label key={type} className='flex items-center space-x-2'>
+                                  <input
+                                    type='checkbox'
+                                    checked={field.value?.includes(type) || false}
+                                    onChange={(e) => {
+                                      const currentValue = field.value || [];
+                                      if (e.target.checked) {
+                                        field.onChange([...currentValue, type]);
+                                      } else {
+                                        field.onChange(currentValue.filter((t: string) => t !== type));
+                                      }
+                                    }}
+                                    className='w-4 h-4 text-secondary bg-gray-100 border-gray-300 rounded focus:ring-secondary focus:ring-2'
+                                  />
+                                  <span className='text-sm text-gray-700 capitalize'>{type}</span>
+                                </label>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      />
+                    )}
+                  </div>
+
+                  <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+                    <Controller
+                      name='staff_exception_advance_notice_hours'
+                      control={methods.control}
+                      render={({ field }) => (
+                        <Input
+                          type='number'
+                          label='Required Advance Notice (hours)'
+                          placeholder='24'
+                          {...field}
+                          value={field.value?.toString() || ''}
+                          onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                        />
+                      )}
+                    />
+
+                    <Controller
+                      name='staff_max_exceptions_per_month'
+                      control={methods.control}
+                      render={({ field }) => (
+                        <Input
+                          type='number'
+                          label='Max Exceptions Per Month (0 = unlimited)'
+                          placeholder='5'
+                          {...field}
+                          value={field.value?.toString() || ''}
+                          onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                        />
+                      )}
+                    />
+                  </div>
+
+                  <div className='flex items-center justify-between p-3 bg-gray-50 rounded-lg'>
+                    <div>
+                      <h5 className='text-sm font-medium text-primary'>Send Exception Notifications</h5>
+                      <p className='text-xs text-gray-600'>Notify admins when staff request exceptions</p>
+                    </div>
+                    <Controller
+                      name='send_staff_exception_notifications'
+                      control={methods.control}
+                      render={({ field }) => (
+                        <input
+                          type='checkbox'
+                          checked={field.value}
+                          onChange={field.onChange}
+                          className='w-4 h-4 text-secondary bg-gray-100 border-gray-300 rounded focus:ring-secondary focus:ring-2'
+                        />
+                      )}
+                    />
+                  </div>
+
+                  <div className='pt-4'>
+                    <Button
+                      type='submit'
+                      loading={updateSettings.isPending}
+                      onClick={methods.handleSubmit(onSubmit)}
+                      className='w-auto'
+                    >
+                      Save Exception Settings
                     </Button>
                   </div>
                 </div>

@@ -25,6 +25,13 @@ export interface Role {
   can_manage_staff_locations?: boolean;
   can_manage_all_exceptions?: boolean;
   can_view_staff_exceptions?: boolean;
+  
+  // Staff portal access permissions
+  can_access_staff_portal?: boolean;
+  can_create_own_exceptions?: boolean;
+  can_edit_own_exceptions?: boolean;
+  can_view_business_staff_exceptions?: boolean;
+  can_manage_exception_settings?: boolean;
   business: string;
 }
 
@@ -56,21 +63,40 @@ export const useAuthStore = create<AuthState>((set) => ({
       return null;
     }
   })(),
-  role: null,
+  role: (() => {
+    try {
+      const role = localStorage.getItem("role");
+      return role ? JSON.parse(role) : null;
+    } catch (e) {
+      console.error("Failed to parse role from localStorage", e);
+      return null;
+    }
+  })(),
   isInitialized: true,
   isAuthenticated: !!localStorage.getItem("accessToken"),
-  setRole: (role) => set({ role }),
+  setRole: (role) => {
+    console.log('🔧 AuthStore: Setting role in store and localStorage:', role);
+    localStorage.setItem("role", JSON.stringify(role));
+    set({ role });
+  },
   setAuth: (token, refreshToken, user) => {
     localStorage.setItem("accessToken", token);
     localStorage.setItem("refresh", refreshToken);
     localStorage.setItem("user", JSON.stringify(user));
-    set({ accessToken: token, refreshToken, user, isAuthenticated: true });
+    // Also set role if it's included in user data
+    if (user?.role) {
+      localStorage.setItem("role", JSON.stringify(user.role));
+      set({ accessToken: token, refreshToken, user, role: user.role, isAuthenticated: true });
+    } else {
+      set({ accessToken: token, refreshToken, user, isAuthenticated: true });
+    }
   },
 
   logout: () => {
     localStorage.removeItem("accessToken");
     localStorage.removeItem("refresh");
     localStorage.removeItem("user");
+    localStorage.removeItem("role");
     set({ accessToken: null, refreshToken: null, user: null, role: null, isAuthenticated: false });
   },
 }));

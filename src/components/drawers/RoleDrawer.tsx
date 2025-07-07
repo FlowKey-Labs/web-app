@@ -44,6 +44,12 @@ const defaultValues = {
   can_manage_staff_locations: false,
   can_manage_all_exceptions: false,
   can_view_staff_exceptions: false,
+  // Staff portal access permissions
+  can_access_staff_portal: false,
+  can_create_own_exceptions: false,
+  can_edit_own_exceptions: false,
+  can_view_business_staff_exceptions: false,
+  can_manage_exception_settings: false,
 };
 
 function generatePermissionSettings(role: Partial<Role> | null) {
@@ -117,6 +123,12 @@ export default function RoleDrawer({ entityId, zIndex }: RoleDrawerProps) {
           can_manage_staff_locations: roleToEdit.can_manage_staff_locations || false,
           can_manage_all_exceptions: roleToEdit.can_manage_all_exceptions || false,
           can_view_staff_exceptions: roleToEdit.can_view_staff_exceptions || false,
+          // Staff portal access permissions
+          can_access_staff_portal: roleToEdit.can_access_staff_portal || false,
+          can_create_own_exceptions: roleToEdit.can_create_own_exceptions || false,
+          can_edit_own_exceptions: roleToEdit.can_edit_own_exceptions || false,
+          can_view_business_staff_exceptions: roleToEdit.can_view_business_staff_exceptions || false,
+          can_manage_exception_settings: roleToEdit.can_manage_exception_settings || false,
         };
         
         reset(formValues);
@@ -212,6 +224,12 @@ export default function RoleDrawer({ entityId, zIndex }: RoleDrawerProps) {
           can_manage_staff_locations: formData.can_manage_staff_locations ?? false,
           can_manage_all_exceptions: formData.can_manage_all_exceptions ?? false,
           can_view_staff_exceptions: formData.can_view_staff_exceptions ?? false,
+          // Staff portal access permissions
+          can_access_staff_portal: formData.can_access_staff_portal ?? false,
+          can_create_own_exceptions: formData.can_create_own_exceptions ?? false,
+          can_edit_own_exceptions: formData.can_edit_own_exceptions ?? false,
+          can_view_business_staff_exceptions: formData.can_view_business_staff_exceptions ?? false,
+          can_manage_exception_settings: formData.can_manage_exception_settings ?? false,
         },
         {
           onSuccess: () => {

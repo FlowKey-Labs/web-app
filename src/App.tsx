@@ -36,7 +36,7 @@ import Settings from './components/accountSettings';
 import ClientDetails from './components/clients/ClientDetails';
 import ComingSoon from './components/common/ComingSoon';
 import SetPassword from './components/authentication/SetPassword';
-import { useAuthStore } from './store/auth';
+import { useAuthStore, Role } from './store/auth';
 import GroupDetails from './components/clients/GroupDetails';
 import AuthWrapper from './components/common/AuthWrapper';
 import BookingRequestDetails from './components/clients/BookingRequestDetails';
@@ -45,16 +45,68 @@ import StaffPortal from './components/profile/StaffPortal';
 import './App.css';
 import FlowkeyLandingPage from './pages/FlowkeyLandingPage';
 import PublicBookingPage from './pages/PublicBookingPage';
+import LoadingScreen from './components/common/LoadingScreen';
 
 import BookingCancel from './pages/booking/BookingCancel';
 import BookingManage from './pages/booking/BookingManage';
 import { BookingCancelled, BookingRescheduled } from './pages/booking/BookingSuccess';
 import { TimezoneProvider } from './contexts/TimezoneContext';
+import { useGetUserProfile } from './hooks/reactQuery';
+import { ReactNode } from 'react';
+
+
+// Component to handle role-gated routes with proper loading state
+interface RoleGatedRouteProps {
+  children: ReactNode;
+  requiredPermission: (role: Role | null) => boolean;
+}
+
+const RoleGatedRoute = ({ children, requiredPermission }: RoleGatedRouteProps) => {
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const role = useAuthStore((state) => state.role);
+  
+  const { isLoading: profileLoading } = useGetUserProfile({
+    enabled: isAuthenticated,
+    retry: false,
+  });
+
+  // Debug logging
+  console.log('🔍 RoleGatedRoute Debug:', {
+    isAuthenticated,
+    role: role ? { id: role.id, name: role.name, permissions: Object.keys(role).filter(key => key.startsWith('can_')).reduce((acc, key) => ({ ...acc, [key]: role[key as keyof Role] }), {}) } : null,
+    profileLoading,
+    hasRole: !!role,
+    permissionResult: role ? requiredPermission(role) : 'no-role',
+    timestamp: new Date().toISOString()
+  });
+
+  // For authenticated users, wait for both profile loading to complete AND role to be available
+  if (isAuthenticated && (profileLoading || !role)) {
+    console.log('🔄 RoleGatedRoute: Showing loading screen', { profileLoading, hasRole: !!role });
+    return <LoadingScreen />;
+  }
+
+  // For unauthenticated users, don't render anything (will be handled by AuthWrapper)
+  if (!isAuthenticated) {
+    console.log('🚫 RoleGatedRoute: User not authenticated');
+    return null;
+  }
+
+  // Check permission once role is loaded
+  if (role && requiredPermission(role)) {
+    console.log('✅ RoleGatedRoute: Permission granted, rendering children');
+    return <>{children}</>;
+  }
+
+  // If no permission, don't render the route (fallback to catch-all)
+  console.log('❌ RoleGatedRoute: Permission denied', { 
+    hasRole: !!role, 
+    permissionResult: role ? requiredPermission(role) : 'no-role' 
+  });
+  return null;
+};
 
 function App() {
-  const permisions = useAuthStore((state) => state.role);
-  const user = useAuthStore((state) => state.user);
-
   return (
     <MantineProvider
       theme={{
@@ -197,46 +249,115 @@ function App() {
               <Route path='/purpose' element={<Purpose />} />
               <Route path='/logout' element={<LogoutSuccess />} />
 
-              {/* Permission-gated routes */}
-              {permisions?.can_view_staff && (
-                <Route path='staff' element={<AllStaff />} />
-              )}
-              {permisions?.can_view_staff && (
-                <Route path='staff/:id' element={<StaffDetails />} />
-              )}
-              {permisions?.can_view_sessions && (
-                <Route path='sessions' element={<AllClasses />} />
-              )}
-              {permisions?.can_view_sessions && (
-                <Route path='sessions/:id' element={<ClassDetails />} />
-              )}
-              {permisions?.can_view_calendar && (
-                <Route path='calendar' element={<CalendarView />} />
-              )}
-              {permisions?.can_view_clients && (
-                <>
-                  <Route path='clients' element={<AllClients />} />
-                  <Route path='groups/:id' element={<GroupDetails />} />
-                  <Route path='clients/:id' element={<ClientDetails />} />
-                  <Route path='booking-requests/:id' element={<BookingRequestDetails />} />
-                </>
-              )}
-              {permisions?.can_manage_profile && (
-                <Route path='profile' element={<Profile />} />
-              )}
-              {permisions?.can_manage_settings && (
-                <Route path='settings' element={<Settings />} />
-              )}
+              {/* Permission-gated routes with proper loading handling */}
+              <Route 
+                path='staff' 
+                element={
+                  <RoleGatedRoute requiredPermission={(role) => !!(role?.can_view_staff)}>
+                    <AllStaff />
+                  </RoleGatedRoute>
+                } 
+              />
+              <Route 
+                path='staff/:id' 
+                element={
+                  <RoleGatedRoute requiredPermission={(role) => !!(role?.can_view_staff)}>
+                    <StaffDetails />
+                  </RoleGatedRoute>
+                } 
+              />
+              <Route 
+                path='sessions' 
+                element={
+                  <RoleGatedRoute requiredPermission={(role) => !!(role?.can_view_sessions)}>
+                    <AllClasses />
+                  </RoleGatedRoute>
+                } 
+              />
+              <Route 
+                path='sessions/:id' 
+                element={
+                  <RoleGatedRoute requiredPermission={(role) => !!(role?.can_view_sessions)}>
+                    <ClassDetails />
+                  </RoleGatedRoute>
+                } 
+              />
+              <Route 
+                path='calendar' 
+                element={
+                  <RoleGatedRoute requiredPermission={(role) => !!(role?.can_view_calendar)}>
+                    <CalendarView />
+                  </RoleGatedRoute>
+                } 
+              />
+              <Route 
+                path='clients' 
+                element={
+                  <RoleGatedRoute requiredPermission={(role) => !!(role?.can_view_clients)}>
+                    <AllClients />
+                  </RoleGatedRoute>
+                } 
+              />
+              <Route 
+                path='groups/:id' 
+                element={
+                  <RoleGatedRoute requiredPermission={(role) => !!(role?.can_view_clients)}>
+                    <GroupDetails />
+                  </RoleGatedRoute>
+                } 
+              />
+              <Route 
+                path='clients/:id' 
+                element={
+                  <RoleGatedRoute requiredPermission={(role) => !!(role?.can_view_clients)}>
+                    <ClientDetails />
+                  </RoleGatedRoute>
+                } 
+              />
+              <Route 
+                path='booking-requests/:id' 
+                element={
+                  <RoleGatedRoute requiredPermission={(role) => !!(role?.can_view_clients)}>
+                    <BookingRequestDetails />
+                  </RoleGatedRoute>
+                } 
+              />
+              <Route 
+                path='profile' 
+                element={
+                  <RoleGatedRoute requiredPermission={(role) => !!(role?.can_manage_profile)}>
+                    <Profile />
+                  </RoleGatedRoute>
+                } 
+              />
+              <Route 
+                path='settings' 
+                element={
+                  <RoleGatedRoute requiredPermission={(role) => !!(role?.can_manage_settings)}>
+                    <Settings />
+                  </RoleGatedRoute>
+                } 
+              />
 
               {/* Audit Logs route - Permission-based access */}
-              {permisions?.can_view_audit_logs && (
-                <Route path='audit-logs' element={<AuditLogs />} />
-              )}
+              <Route 
+                path='audit-logs' 
+                element={
+                  <RoleGatedRoute requiredPermission={(role) => !!(role?.can_view_audit_logs)}>
+                    <AuditLogs />
+                  </RoleGatedRoute>
+                } 
+              />
 
               {/* Staff Portal route - For staff members to manage their own exceptions */}
-              {(user?.is_staff || permisions?.can_view_staff_exceptions) && (
-                <Route path='staff-portal' element={<StaffPortal />} />
-              )}
+              <Route 
+                path='staff-portal' 
+                element={
+                  <RoleGatedRoute requiredPermission={(role) => !!(role?.can_access_staff_portal)}>
+                    <StaffPortal />
+                  </RoleGatedRoute>
+                } 
+              />
 
               {/* Catch-all route for authenticated users */}
               <Route path='*' element={<ComingSoon />} />
@@ -247,6 +368,9 @@ function App() {
           </Routes>
         </Router>
         </TimezoneProvider>
+
+        {/* Add auth debugger for development */}
+  
       </QueryClientProvider>
     </MantineProvider>
   );
