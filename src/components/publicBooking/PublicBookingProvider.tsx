@@ -242,11 +242,13 @@ function bookingReducer(state: BookingFlowState & { bookingConfirmation?: Bookin
       return {
         ...state,
         preselectedLocationId: action.payload as number,
+        formData: { ...state.formData, selected_location_id: action.payload as number },
       };
     case 'SET_PRESELECTED_STAFF_ID':
       return {
         ...state,
         preselectedStaffId: action.payload as number,
+        formData: { ...state.formData, selected_staff_id: action.payload as number },
       };
     default:
       return state;
