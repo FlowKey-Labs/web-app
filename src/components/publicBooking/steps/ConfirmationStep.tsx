@@ -13,7 +13,7 @@ import {
   ExclamationIcon,
   ArrowPathIcon
 } from '../bookingIcons';
-import { useCreatePublicBooking } from '../../../hooks/reactQuery';
+import { useCreatePublicBooking, useCreateServiceBooking } from '../../../hooks/reactQuery';
 import { useBookingFlow } from '../PublicBookingProvider';
 import { useTimezone } from '../../../contexts/TimezoneContext';
 import { BookingConfirmation, PublicBusinessInfo } from '../../../types/clientTypes';
@@ -66,9 +66,16 @@ export function ConfirmationStep({ businessSlug, businessInfo }: ConfirmationSte
   const [bookingError, setBookingError] = useState<BookingErrorInfo | null>(null);
   
   const isMobile = width < 768;
-  const createBookingMutation = useCreatePublicBooking();
+  
+  // Use appropriate booking mutation based on booking type
+  const createFixedBookingMutation = useCreatePublicBooking();
+  const createServiceBookingMutation = useCreateServiceBooking();
+  
+  // Determine booking type and use correct mutation
+  const isFlexibleBooking = state.isFlexibleBooking && state.formData.selected_staff_id && state.formData.selected_location_id;
+  const createBookingMutation = isFlexibleBooking ? createServiceBookingMutation : createFixedBookingMutation;
 
-  const serviceName = state.selectedService?.name || 'Service';
+  const serviceName = state.selectedService?.name || state.selectedServiceSubcategory?.name || 'Service';
   const sessionTitle = state.selectedTimeSlot?.session_title || serviceName;
 
   const handleScroll = useCallback(() => {
@@ -219,7 +226,30 @@ export function ConfirmationStep({ businessSlug, businessInfo }: ConfirmationSte
       const convertedStartTime = businessStartTime.setZone(timezoneState.selectedTimezone).toFormat('HH:mm');
       const convertedEndTime = businessEndTime.setZone(timezoneState.selectedTimezone).toFormat('HH:mm');
       
-      const bookingData = {
+      let bookingData: any;
+      
+      if (isFlexibleBooking) {
+        // Service-based flexible booking payload
+        bookingData = {
+          service_id: state.formData.session_id, // For flexible bookings, session_id is actually service_id
+          staff_id: state.formData.selected_staff_id!,
+          location_id: state.formData.selected_location_id!,
+          date: finalDate,
+          start_time: convertedStartTime,
+          duration_minutes: state.selectedTimeSlot?.duration_minutes || 60,
+          client_name: state.formData.client_name,
+          client_email: state.formData.client_email,
+          client_phone: state.formData.client_phone,
+          notes: state.formData.notes || '',
+          quantity: state.formData.quantity || 1,
+          client_timezone: timezoneState.selectedTimezone,
+          ...(state.formData.is_group_booking && {
+            group_booking_notes: state.formData.group_booking_notes || 'Group booking request'
+          })
+        };
+      } else {
+        // Fixed session booking payload
+        bookingData = {
         session_id: state.formData.session_id,
         client_name: state.formData.client_name,
         client_email: state.formData.client_email,
@@ -243,6 +273,13 @@ export function ConfirmationStep({ businessSlug, businessInfo }: ConfirmationSte
           group_booking_notes: state.formData.group_booking_notes || 'Group booking request'
         })
       };
+      }
+
+      console.log('🔄 Booking submission:', {
+        isFlexibleBooking,
+        endpoint: isFlexibleBooking ? 'create-service-booking' : 'book',
+        bookingData
+      });
 
       const confirmation = await createBookingMutation.mutateAsync({
         businessSlug,
@@ -303,7 +340,12 @@ export function ConfirmationStep({ businessSlug, businessInfo }: ConfirmationSte
     }
   }, [businessInfo?.timezone, timezoneState.businessTimezone, timezoneActions]);
 
-  if (!businessInfo || !state.selectedService || !state.selectedTimeSlot) {
+  // Validate required information based on booking type
+  const hasRequiredServiceInfo = state.isFlexibleBooking 
+    ? state.selectedServiceSubcategory
+    : state.selectedService;
+
+  if (!businessInfo || !hasRequiredServiceInfo || !state.selectedTimeSlot) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-50">
         <Alert 

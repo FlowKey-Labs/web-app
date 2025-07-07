@@ -15,6 +15,8 @@ import {
   useMarkAllNotificationsAsRead,
   useApproveBookingRequest,
   useRejectBookingRequest,
+  useApproveStaffException,
+  useDenyStaffException,
 } from "../../hooks/reactQuery";
 import {
   NotificationBingIcon,
@@ -53,14 +55,38 @@ interface ApiNotification {
     is_expired?: boolean;
     can_be_approved?: boolean;
   };
+  staff_exception?: {
+    id: number;
+    exception_type: string;
+    date: string;
+    reason: string;
+    status: string;
+    is_all_day: boolean;
+    start_time?: string;
+    end_time?: string;
+    staff: {
+      id: number;
+      name: string;
+      email: string;
+    };
+    reviewed_by?: {
+      id: number;
+      name: string;
+    };
+    reviewed_at?: string;
+    admin_notes?: string;
+  };
   time_since: string;
 }
 
 const NOTIFICATION_CATEGORIES = {
   booking_request: "requests",
   staff_booking_request: "requests",
+  staff_exception_request: "requests",
   booking_approved: "actions",
-  booking_rejected: "actions",
+  booking_rejected: "actions", 
+  staff_exception_approved: "actions",
+  staff_exception_denied: "actions",
   booking_cancelled: "changes",
   booking_rescheduled: "changes",
   booking_expired: "system",
@@ -74,20 +100,20 @@ const NOTIFICATION_TABS = [
     key: "requests",
     label: "Requests",
     color: "#1D9B5E",
-    description: "Active booking requests requiring action",
+    description: "Active booking and staff exception requests requiring action",
     icon: "📝",
-    emptyTitle: "No booking requests",
-    emptyDescription: "New booking requests from clients will appear here",
+    emptyTitle: "No requests",
+    emptyDescription: "New booking requests and staff exception requests will appear here",
   },
   {
     key: "actions",
     label: "Actions",
     color: "#228be6",
-    description: "Approved and rejected bookings",
+    description: "Approved and rejected bookings and staff exceptions",
     icon: "✅",
     emptyTitle: "No recent actions",
     emptyDescription:
-      "Approved and rejected booking notifications will appear here",
+      "Approved and rejected booking and staff exception notifications will appear here",
   },
   {
     key: "changes",
@@ -118,6 +144,8 @@ const Header = ({ showSearch = true }: HeaderProps) => {
   const markAllAsRead = useMarkAllNotificationsAsRead();
   const approveRequest = useApproveBookingRequest();
   const rejectRequest = useRejectBookingRequest();
+  const approveException = useApproveStaffException();
+  const denyException = useDenyStaffException();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
@@ -267,8 +295,11 @@ const Header = ({ showSearch = true }: HeaderProps) => {
     const typeMap: Record<string, string> = {
       booking_request: "New Booking Request",
       staff_booking_request: "New Booking Request",
+      staff_exception_request: "Staff Exception Request",
       booking_approved: "Booking Approved",
       booking_rejected: "Booking Rejected",
+      staff_exception_approved: "Exception Approved",
+      staff_exception_denied: "Exception Denied",
       booking_cancelled: "Booking Cancelled",
       booking_rescheduled: "Booking Rescheduled",
       booking_expired: "Booking Expired",
@@ -332,6 +363,62 @@ const Header = ({ showSearch = true }: HeaderProps) => {
     }
   };
 
+  const handleApproveStaffException = async (notification: ApiNotification) => {
+    try {
+      if (!notification.staff_exception) return;
+
+      const exceptionId = notification.staff_exception.id;
+
+      await handleMarkAsRead(notification.id);
+
+      await approveException.mutateAsync({
+        id: exceptionId,
+        admin_notes: 'Approved via notification',
+      });
+
+      mantineNotifications.show({
+        title: "Success",
+        message: "Staff exception approved successfully",
+        color: "green",
+      });
+    } catch (error) {
+      console.error("Error approving staff exception:", error);
+      mantineNotifications.show({
+        title: "Error",
+        message: "Failed to approve staff exception",
+        color: "red",
+      });
+    }
+  };
+
+  const handleDenyStaffException = async (notification: ApiNotification) => {
+    try {
+      if (!notification.staff_exception) return;
+
+      const exceptionId = notification.staff_exception.id;
+
+      await handleMarkAsRead(notification.id);
+
+      await denyException.mutateAsync({
+        id: exceptionId,
+        admin_notes: 'Please discuss this with management',
+      });
+
+      mantineNotifications.show({
+        title: "Success",
+        message: "Staff exception denied",
+        color: "orange",
+      });
+    } catch (error) {
+      console.error("Error denying staff exception:", error);
+      mantineNotifications.show({
+        title: "Error",
+        message: "Failed to deny staff exception",
+        color: "red",
+      });
+    }
+  };
+
   const handleViewBookingDetails = (notification: ApiNotification) => {
     if (notification.booking_request) {
       if (!notification.is_read) {
@@ -339,6 +426,18 @@ const Header = ({ showSearch = true }: HeaderProps) => {
       }
 
       navigate(`/booking-requests/${notification.booking_request.id}`);
+      setNotificationDropdownOpen(false);
+    }
+  };
+
+  const handleViewStaffException = (notification: ApiNotification) => {
+    if (notification.staff_exception) {
+      if (!notification.is_read) {
+        handleMarkAsRead(notification.id);
+      }
+
+      // Navigate to staff management page with exception details
+      navigate('/profile?tab=staff-management');
       setNotificationDropdownOpen(false);
     }
   };
@@ -547,6 +646,11 @@ const Header = ({ showSearch = true }: HeaderProps) => {
                                               }
                                             </span>
                                           )}
+                                          {notification.staff_exception && (
+                                            <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-semibold">
+                                              {notification.staff_exception.staff.name} - {notification.staff_exception.date}
+                                            </span>
+                                          )}
                                         </div>
                                       </div>
 
@@ -618,6 +722,76 @@ const Header = ({ showSearch = true }: HeaderProps) => {
                                                   {notification.expiry_status
                                                     ?.message ||
                                                     "No actions available"}
+                                                </span>
+                                              </div>
+                                            )}
+                                          </Group>
+                                        )}
+
+                                      {/* Staff Exception Request Actions */}
+                                      {notification.type === "staff_exception_request" &&
+                                        notification.staff_exception && (
+                                          <Group gap="xs" className="mt-3">
+                                            <Button
+                                              size="xs"
+                                              variant="light"
+                                              color="blue"
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleViewStaffException(
+                                                  notification
+                                                );
+                                              }}
+                                              className="flex-1"
+                                            >
+                                              View Details
+                                            </Button>
+                                            {notification.can_take_action !== false && 
+                                             notification.staff_exception.status === 'pending' && (
+                                              <>
+                                                <Button
+                                                  size="xs"
+                                                  variant="light"
+                                                  color="green"
+                                                  onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleApproveStaffException(
+                                                      notification
+                                                    );
+                                                  }}
+                                                  loading={
+                                                    approveException.isPending
+                                                  }
+                                                  className="flex-1"
+                                                >
+                                                  Approve
+                                                </Button>
+                                                <Button
+                                                  size="xs"
+                                                  variant="light"
+                                                  color="red"
+                                                  onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleDenyStaffException(
+                                                      notification
+                                                    );
+                                                  }}
+                                                  loading={
+                                                    denyException.isPending
+                                                  }
+                                                  className="flex-1"
+                                                >
+                                                  Deny
+                                                </Button>
+                                              </>
+                                            )}
+                                            {(notification.can_take_action === false ||
+                                              notification.staff_exception.status !== 'pending') && (
+                                              <div className="flex-1 text-center">
+                                                <span className="text-xs text-gray-500 italic">
+                                                  {notification.staff_exception.status === 'approved' && "Already approved"}
+                                                  {notification.staff_exception.status === 'denied' && "Already denied"}
+                                                  {notification.staff_exception.status === 'pending' && "No actions available"}
                                                 </span>
                                               </div>
                                             )}

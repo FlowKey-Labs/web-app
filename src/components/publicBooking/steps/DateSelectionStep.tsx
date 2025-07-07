@@ -67,15 +67,45 @@ export function DateSelectionStep({ businessSlug, businessInfo }: DateSelectionS
   const startDate = DateTime.now().toFormat('yyyy-MM-dd');
   const endDate = DateTime.now().plus({ days: 30 }).toFormat('yyyy-MM-dd');
 
+  // Get service ID for API call - handle both flexible and fixed booking
+  const serviceId = state.isFlexibleBooking 
+    ? state.selectedServiceSubcategory?.id 
+    : state.selectedService?.id;
+
+  // Get selected staff and location for flexible booking
+  const selectedStaffId = state.isFlexibleBooking ? state.selectedStaff?.id : null;
+  const selectedLocationId = state.isFlexibleBooking ? state.selectedLocation?.id : null;
+
+  // Debug location access
+  console.log('🔍 DateSelectionStep DEBUG - Location access details:', {
+    'state.isFlexibleBooking': state.isFlexibleBooking,
+    'state.selectedLocation': state.selectedLocation,
+    'state.selectedLocation?.id': state.selectedLocation?.id,
+    'typeof state.selectedLocation?.id': typeof state.selectedLocation?.id,
+    'selectedLocationId': selectedLocationId,
+    'typeof selectedLocationId': typeof selectedLocationId
+  });
+
+  console.log('🔍 DateSelectionStep DEBUG - Fetching availability with:', {
+    serviceId,
+    selectedStaffId,
+    selectedLocationId,
+    isFlexibleBooking: state.isFlexibleBooking,
+    selectedStaff: state.selectedStaff,
+    selectedLocation: state.selectedLocation
+  });
+
   const { 
     data: availabilityData, 
     isLoading: slotsLoading, 
     error: slotsError 
   } = useGetPublicAvailability(
     businessSlug,
-    state.selectedService?.id || null,
+    serviceId || null,
     startDate,
-    endDate
+    endDate,
+    selectedStaffId,
+    selectedLocationId
   );
 
   const typedAvailabilityData = availabilityData as PublicAvailabilityResponse | undefined;
@@ -155,6 +185,8 @@ export function DateSelectionStep({ businessSlug, businessInfo }: DateSelectionS
       }
     });
     
+    // Only fetch session flexible settings for fixed session bookings, not service-based flexible bookings
+    if (!state.isFlexibleBooking && slot.session_id) {
     try {
       const apiUrl = `${API_BASE_URL}/api/booking/${businessSlug}/session-flexible-settings/?session_id=${slot.session_id}`;
       
@@ -172,24 +204,19 @@ export function DateSelectionStep({ businessSlug, businessInfo }: DateSelectionS
           type: 'SET_FLEXIBLE_SETTINGS', 
           payload: sessionSettings.settings 
         });
+        }
         
-        setTimeout(() => {
-          isNavigating.current = false;
-          goToNextStep();
-        }, 100);
-      } else {
-        setTimeout(() => {
-          isNavigating.current = false;
-          goToNextStep();
-        }, 100);
+      } catch (error) {
+        console.warn('Failed to fetch session flexible settings:', error);
+        // Continue without flexible settings for fixed sessions
       }
-      
-    } catch {
+    }
+    
+    // Navigate to next step after handling settings
       setTimeout(() => {
         isNavigating.current = false;
         goToNextStep();
-      }, 300);
-    }
+    }, 100);
   };
 
   const handleBack = () => {
@@ -214,7 +241,7 @@ export function DateSelectionStep({ businessSlug, businessInfo }: DateSelectionS
     
     const dateString = formatDateForAPI(date);
     const hasSlots = availableSlots.some((slot: AvailabilitySlot) => 
-      slot.date === dateString && slot.capacity_status === 'available'
+      slot.date === dateString && (slot.capacity_status === 'available' || slot.available === true)
     );
     
     return !hasSlots;
@@ -223,7 +250,7 @@ export function DateSelectionStep({ businessSlug, businessInfo }: DateSelectionS
   const hasAvailability = (date: Date) => {
     const dateString = formatDateForAPI(date);
     return availableSlots.some((slot: AvailabilitySlot) => 
-      slot.date === dateString && slot.capacity_status === 'available'
+      slot.date === dateString && (slot.capacity_status === 'available' || slot.available === true)
     );
   };
 
@@ -266,7 +293,12 @@ export function DateSelectionStep({ businessSlug, businessInfo }: DateSelectionS
     }
   };
 
-  if (!businessInfo || !state.selectedService) {
+  // Validate required information based on booking type
+  const hasRequiredServiceInfo = state.isFlexibleBooking 
+    ? state.selectedServiceSubcategory
+    : state.selectedService;
+
+  if (!businessInfo || !hasRequiredServiceInfo) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-50">
         <Alert 
@@ -519,7 +551,10 @@ export function DateSelectionStep({ businessSlug, businessInfo }: DateSelectionS
                       <ScrollArea className="h-64">
                         <div className="space-y-3">
                           {slotsForSelectedDate
-                            .filter((slot: AvailabilitySlot) => slot.capacity_status === 'available' && slot.available_spots > 0)
+                            .filter((slot: AvailabilitySlot) => 
+                              (slot.capacity_status === 'available' || slot.available === true) && 
+                              (slot.available_spots > 0 || slot.available === true)
+                            )
                             .map((slot: AvailabilitySlot, index: number) => {
                               return (
                                 <motion.div

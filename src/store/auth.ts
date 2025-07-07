@@ -20,6 +20,11 @@ export interface Role {
   can_view_audit_logs: boolean;
   can_view_bookings: boolean;
   can_manage_bookings: boolean;
+  // Staff management permissions
+  can_manage_staff_services?: boolean;
+  can_manage_staff_locations?: boolean;
+  can_manage_all_exceptions?: boolean;
+  can_view_staff_exceptions?: boolean;
   business: string;
 }
 

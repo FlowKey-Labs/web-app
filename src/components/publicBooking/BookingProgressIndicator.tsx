@@ -14,7 +14,7 @@ const stepLabels: Record<BookingStep, string> = {
   confirmation: 'Confirmation',
 };
 
-const stepOrder: BookingStep[] = ['service', 'date', 'time', 'staff', 'location', 'details', 'confirmation'];
+const stepOrder: BookingStep[] = ['service', 'date', 'time', 'location', 'staff', 'details', 'confirmation'];
 
 export function BookingProgressIndicator() {
   const { state } = useBookingFlow();

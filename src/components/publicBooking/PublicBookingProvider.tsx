@@ -3,6 +3,8 @@ import {
   BookingFlowState,
   BookingStep,
   PublicService,
+  PublicServiceCategory,
+  PublicServiceSubcategory,
   AvailabilitySlot,
   PublicBusinessInfo,
   PublicStaff,
@@ -13,7 +15,7 @@ import {
 import { useTimezone } from '../../contexts/TimezoneContext';
 
 interface BookingAction {
-  type: 'SET_BUSINESS_INFO' | 'SELECT_SERVICE' | 'SELECT_STAFF' | 'SELECT_LOCATION' | 'SELECT_DATE' | 'SELECT_SLOT' | 'SELECT_TIME_SLOT' | 'SET_TIMEZONE' | 'UPDATE_FORM_DATA' | 'SET_STEP' | 'SET_CURRENT_STEP' | 'RESET_FLOW' | 'RESET_SELECTIONS' | 'SET_FLEXIBLE_SETTINGS' | 'CLEAR_FLEXIBLE_SELECTIONS' | 'SET_BOOKING_CONFIRMATION';
+  type: 'SET_BUSINESS_INFO' | 'SELECT_SERVICE' | 'SELECT_SERVICE_CATEGORY' | 'SELECT_SERVICE_SUBCATEGORY' | 'SELECT_STAFF' | 'SELECT_LOCATION' | 'SELECT_DATE' | 'SELECT_SLOT' | 'SELECT_TIME_SLOT' | 'SET_TIMEZONE' | 'UPDATE_FORM_DATA' | 'SET_STEP' | 'SET_CURRENT_STEP' | 'RESET_FLOW' | 'RESET_SELECTIONS' | 'SET_FLEXIBLE_SETTINGS' | 'CLEAR_FLEXIBLE_SELECTIONS' | 'SET_BOOKING_CONFIRMATION' | 'SET_BOOKING_MODE';
   payload?: any;
   
 }
@@ -21,6 +23,8 @@ interface BookingAction {
 const initialState: BookingFlowState & { bookingConfirmation?: BookingConfirmation | null } = {
   currentStep: 'service',
   selectedService: null,
+  selectedServiceCategory: null,
+  selectedServiceSubcategory: null,
   selectedStaff: null,
   selectedLocation: null,
   selectedDate: null,
@@ -31,6 +35,8 @@ const initialState: BookingFlowState & { bookingConfirmation?: BookingConfirmati
   businessInfo: null,
   flexibleBookingSettings: undefined,
   bookingConfirmation: null,
+  bookingMode: 'hybrid',
+  isFlexibleBooking: false,
 };
 
 function bookingReducer(state: BookingFlowState & { bookingConfirmation?: BookingConfirmation | null }, action: BookingAction): BookingFlowState & { bookingConfirmation?: BookingConfirmation | null } {
@@ -41,24 +47,73 @@ function bookingReducer(state: BookingFlowState & { bookingConfirmation?: Bookin
         businessInfo: action.payload as PublicBusinessInfo,
       };
     case 'SELECT_SERVICE':
+      // Handle legacy session-based services (fixed bookings)
       return {
         ...state,
         selectedService: action.payload as PublicService,
+        selectedServiceCategory: null,
+        selectedServiceSubcategory: null,
         selectedStaff: null,
         selectedLocation: null,
         selectedDate: null, 
         selectedSlot: null,
         selectedTimeSlot: null,
         formData: { ...state.formData, session_id: action.payload?.id },
+        isFlexibleBooking: false,
+        bookingMode: 'fixed',
+      };
+    case 'SELECT_SERVICE_CATEGORY':
+      // Handle service category selection (potentially flexible bookings)
+      const category = action.payload as PublicServiceCategory;
+      const hasSubcategories = category.subcategories && category.subcategories.length > 0;
+      
+      return {
+        ...state,
+        selectedServiceCategory: category,
+        selectedService: null,
+        selectedServiceSubcategory: null,
+        selectedStaff: null,
+        selectedLocation: null,
+        selectedDate: null, 
+        selectedSlot: null,
+        selectedTimeSlot: null,
+        formData: { ...state.formData },
+        isFlexibleBooking: hasSubcategories,
+        bookingMode: hasSubcategories ? 'flexible' : 'fixed',
+      };
+    case 'SELECT_SERVICE_SUBCATEGORY':
+      // Handle service subcategory selection (flexible bookings)
+      return {
+        ...state,
+        selectedServiceSubcategory: action.payload as PublicServiceSubcategory,
+        selectedStaff: null,
+        selectedLocation: null,
+        selectedDate: null, 
+        selectedSlot: null,
+        selectedTimeSlot: null,
+        formData: { ...state.formData, service_id: action.payload?.id },
+        isFlexibleBooking: true,
+        bookingMode: 'flexible',
       };
     case 'SELECT_STAFF':
+      console.log('🎯 SELECT_STAFF action - Preserving location state:', {
+        currentLocation: state.selectedLocation,
+        newStaff: action.payload,
+        isFlexibleBooking: state.isFlexibleBooking
+      });
       return {
         ...state,
         selectedStaff: action.payload as PublicStaff,
-        selectedLocation: null,
+        // Don't clear location - maintain selection across steps
         formData: { ...state.formData, selected_staff_id: action.payload?.id },
       };
     case 'SELECT_LOCATION':
+      console.log('📍 SELECT_LOCATION action - Setting location state:', {
+        newLocation: action.payload,
+        currentStaff: state.selectedStaff,
+        isFlexibleBooking: state.isFlexibleBooking,
+        currentStep: state.currentStep
+      });
       return {
         ...state,
         selectedLocation: action.payload as PublicLocation,
@@ -101,9 +156,24 @@ function bookingReducer(state: BookingFlowState & { bookingConfirmation?: Bookin
       };
     case 'SET_STEP':
     case 'SET_CURRENT_STEP':
+      console.log('🚶 STEP CHANGE:', {
+        from: state.currentStep,
+        to: action.payload,
+        preservedState: {
+          selectedStaff: state.selectedStaff?.id,
+          selectedLocation: state.selectedLocation?.id,
+          isFlexibleBooking: state.isFlexibleBooking
+        }
+      });
       return {
         ...state,
         currentStep: action.payload as BookingStep,
+      };
+    case 'SET_BOOKING_MODE':
+      return {
+        ...state,
+        bookingMode: action.payload,
+        isFlexibleBooking: action.payload === 'flexible',
       };
     case 'SET_FLEXIBLE_SETTINGS':
       console.log('🎯 SET_FLEXIBLE_SETTINGS action received:', action.payload);
@@ -122,6 +192,8 @@ function bookingReducer(state: BookingFlowState & { bookingConfirmation?: Bookin
       return {
         ...state,
         selectedService: null,
+        selectedServiceCategory: null,
+        selectedServiceSubcategory: null,
         selectedStaff: null,
         selectedLocation: null,
         selectedDate: null,
@@ -129,6 +201,8 @@ function bookingReducer(state: BookingFlowState & { bookingConfirmation?: Bookin
         selectedTimeSlot: null,
         formData: {},
         currentStep: 'service',
+        isFlexibleBooking: false,
+        bookingMode: 'hybrid',
       };
     case 'CLEAR_FLEXIBLE_SELECTIONS':
       return {
@@ -160,7 +234,7 @@ interface BookingContextType {
 
 const BookingContext = createContext<BookingContextType | undefined>(undefined);
 
-const stepOrder: BookingStep[] = ['service', 'date', 'staff', 'location', 'details', 'confirmation'];
+const stepOrder: BookingStep[] = ['service', 'subcategory', 'date', 'location', 'staff', 'details', 'confirmation'];
 
 interface BookingProviderProps {
   children: ReactNode;
@@ -200,52 +274,79 @@ export function PublicBookingProvider({ children }: BookingProviderProps) {
     const currentState = stateRef.current;
     
     console.log('🚀 goToNextStep called - Current step:', currentState.currentStep);
-    console.log('🚀 Flexible booking settings:', currentState.flexibleBookingSettings);
-    console.log('🚀 Selected time slot:', currentState.selectedTimeSlot);
-    console.log('🚀 Selected date:', currentState.selectedDate);
+    console.log('🚀 Booking mode:', currentState.bookingMode);
+    console.log('🚀 Is flexible booking:', currentState.isFlexibleBooking);
+    console.log('🚀 Selected category:', currentState.selectedServiceCategory);
+    console.log('🚀 Selected subcategory:', currentState.selectedServiceSubcategory);
     
     const currentIndex = stepOrder.indexOf(currentState.currentStep);
     
-    // After date selection, check if we need flexible booking steps
+    // Service selection logic
+    if (currentState.currentStep === 'service') {
+      console.log('🔄 After service selection - determining next step');
+      
+      // If we selected a category with subcategories (flexible booking)
+      if (currentState.selectedServiceCategory && currentState.isFlexibleBooking) {
+        console.log('📋 Selected category with subcategories - going to subcategory step');
+        dispatch({ type: 'SET_CURRENT_STEP', payload: 'subcategory' });
+        return;
+      }
+      
+      // If we selected a legacy service (fixed booking) or category without subcategories
+      if (currentState.selectedService || (currentState.selectedServiceCategory && !currentState.isFlexibleBooking)) {
+        console.log('📅 Selected fixed service/category - going to date step');
+        dispatch({ type: 'SET_CURRENT_STEP', payload: 'date' });
+        return;
+      }
+    }
+    
+    // Subcategory selection logic
+    if (currentState.currentStep === 'subcategory') {
+      console.log('🎯 After subcategory selection - going to location selection');
+      dispatch({ type: 'SET_CURRENT_STEP', payload: 'location' });
+      return;
+    }
+    
+    // Location selection logic (flexible booking only)
+    if (currentState.currentStep === 'location') {
+      console.log('📍 After location selection - going to staff selection');
+      dispatch({ type: 'SET_CURRENT_STEP', payload: 'staff' });
+      return;
+    }
+    
+    // Staff selection logic (flexible booking only)
+    if (currentState.currentStep === 'staff') {
+      console.log('👤 After staff selection - going to date selection');
+      dispatch({ type: 'SET_CURRENT_STEP', payload: 'date' });
+      return;
+    }
+    
+    // After date selection
     if (currentState.currentStep === 'date') {
       console.log('📅 After date selection - checking flexible booking requirements');
-      console.log('📅 Allow staff selection:', currentState.flexibleBookingSettings?.allow_staff_selection);
-      console.log('📅 Allow location selection:', currentState.flexibleBookingSettings?.allow_location_selection);
+      
+      // For flexible bookings, we've already selected location and staff, go to details
+      if (currentState.isFlexibleBooking) {
+        console.log('📅 ✅ Flexible booking - going to details');
+        dispatch({ type: 'SET_CURRENT_STEP', payload: 'details' });
+        return;
+      }
+      
+      // For fixed bookings, check if we need flexible booking steps
+      if (currentState.flexibleBookingSettings?.allow_location_selection) {
+        console.log('📅 ✅ Fixed booking with location selection - going to location');
+        dispatch({ type: 'SET_CURRENT_STEP', payload: 'location' });
+        return;
+      }
       
       if (currentState.flexibleBookingSettings?.allow_staff_selection) {
-        console.log('📅 ✅ Going to staff selection step');
+        console.log('📅 ✅ Fixed booking with staff selection - going to staff');
         dispatch({ type: 'SET_CURRENT_STEP', payload: 'staff' });
         return;
       }
-      // Skip staff, check location
-      if (currentState.flexibleBookingSettings?.allow_location_selection) {
-        console.log('📅 ✅ Skipping staff, going to location selection step');
-        dispatch({ type: 'SET_CURRENT_STEP', payload: 'location' });
-        return;
-      }
-      // Skip both, go to details
-      console.log('📅 ⏭️ Skipping both staff and location, going to details');
-      dispatch({ type: 'SET_CURRENT_STEP', payload: 'details' });
-      return;
-    }
-    
-    // After staff selection, check if we need location
-    if (currentState.currentStep === 'staff') {
-      console.log('👤 After staff selection - checking location requirement');
-      if (currentState.flexibleBookingSettings?.allow_location_selection) {
-        console.log('👤 ✅ Going to location selection step');
-        dispatch({ type: 'SET_CURRENT_STEP', payload: 'location' });
-        return;
-      }
-      // Skip location, go to details
-      console.log('👤 ⏭️ Skipping location, going to details');
-      dispatch({ type: 'SET_CURRENT_STEP', payload: 'details' });
-      return;
-    }
-    
-    // After location selection, go to details
-    if (currentState.currentStep === 'location') {
-      console.log('📍 After location selection - going to details');
+      
+      // Fixed booking without flexible options, go to details
+      console.log('📅 ⏭️ Fixed booking - going to details');
       dispatch({ type: 'SET_CURRENT_STEP', payload: 'details' });
       return;
     }
@@ -264,48 +365,83 @@ export function PublicBookingProvider({ children }: BookingProviderProps) {
     const currentState = stateRef.current;
     
     console.log('⬅️ goToPreviousStep called - Current step:', currentState.currentStep);
-    console.log('⬅️ Flexible booking settings:', currentState.flexibleBookingSettings);
-    console.log('⬅️ Selected location:', currentState.selectedLocation);
+    console.log('⬅️ Booking mode:', currentState.bookingMode);
+    console.log('⬅️ Is flexible booking:', currentState.isFlexibleBooking);
     
     // Handle flexible booking step navigation backwards
     if (currentState.currentStep === 'details') {
       console.log('📝 Coming back from details - checking previous step');
-      // Coming back from details, check what step we should go to
-      if (currentState.flexibleBookingSettings?.allow_location_selection && 
-          (currentState.flexibleBookingSettings?.allow_staff_selection || currentState.selectedLocation)) {
-        console.log('📝 ✅ Going back to location selection');
-        dispatch({ type: 'SET_STEP', payload: 'location' });
+      
+      // For flexible bookings, go back to date
+      if (currentState.isFlexibleBooking) {
+        console.log('📝 ✅ Flexible booking - going back to date');
+        dispatch({ type: 'SET_STEP', payload: 'date' });
         return;
       }
-      if (currentState.flexibleBookingSettings?.allow_staff_selection) {
-        console.log('📝 ✅ Going back to staff selection');
+      
+      // For fixed bookings, check what step we should go to
+      if (currentState.flexibleBookingSettings?.allow_staff_selection && 
+          (currentState.flexibleBookingSettings?.allow_location_selection || currentState.selectedStaff)) {
+        console.log('📝 ✅ Fixed booking - going back to staff selection');
         dispatch({ type: 'SET_STEP', payload: 'staff' });
         return;
       }
+      if (currentState.flexibleBookingSettings?.allow_location_selection) {
+        console.log('📝 ✅ Fixed booking - going back to location selection');
+        dispatch({ type: 'SET_STEP', payload: 'location' });
+        return;
+      }
       // If no flexible steps, go back to date
-      console.log('📝 ⬅️ No flexible steps, going back to date');
+      console.log('📝 ⬅️ Fixed booking - going back to date');
+      dispatch({ type: 'SET_STEP', payload: 'date' });
+      return;
+    }
+    
+    if (currentState.currentStep === 'date') {
+      // For flexible bookings, go back to staff
+      if (currentState.isFlexibleBooking) {
+        console.log('📅 Flexible booking - going back to staff');
+        dispatch({ type: 'SET_STEP', payload: 'staff' });
+        return;
+      }
+      
+      // For fixed bookings, go back to service
+      console.log('📅 Fixed booking - going back to service');
+      dispatch({ type: 'SET_STEP', payload: 'service' });
+      return;
+    }
+    
+    if (currentState.currentStep === 'staff') {
+      // For flexible bookings, go back to location
+      if (currentState.isFlexibleBooking) {
+        console.log('👤 Flexible booking - going back to location');
+        dispatch({ type: 'SET_STEP', payload: 'location' });
+        return;
+      }
+      
+      // For fixed bookings with staff selection
+      console.log('👤 Fixed booking - going back to date');
       dispatch({ type: 'SET_STEP', payload: 'date' });
       return;
     }
     
     if (currentState.currentStep === 'location') {
-      console.log('📍 Coming back from location selection');
-      // Coming back from location selection
-      if (currentState.flexibleBookingSettings?.allow_staff_selection) {
-        console.log('📍 ✅ Going back to staff selection');
-        dispatch({ type: 'SET_STEP', payload: 'staff' });
+      // For flexible bookings, go back to subcategory
+      if (currentState.isFlexibleBooking) {
+        console.log('📍 Flexible booking - going back to subcategory');
+        dispatch({ type: 'SET_STEP', payload: 'subcategory' });
         return;
       }
-      // If no staff selection, go back to date
-      console.log('📍 ⬅️ No staff selection, going back to date');
+      
+      // For fixed bookings with location selection
+      console.log('📍 Fixed booking - going back to date');
       dispatch({ type: 'SET_STEP', payload: 'date' });
       return;
     }
     
-    if (currentState.currentStep === 'staff') {
-      console.log('👤 Coming back from staff selection - going to date');
-      // Coming back from staff selection, go to date
-      dispatch({ type: 'SET_STEP', payload: 'date' });
+    if (currentState.currentStep === 'subcategory') {
+      console.log('🎯 Coming back from subcategory - going to service');
+      dispatch({ type: 'SET_STEP', payload: 'service' });
       return;
     }
     
@@ -322,13 +458,15 @@ export function PublicBookingProvider({ children }: BookingProviderProps) {
   const canProceedToNext = useCallback((): boolean => {
     switch (state.currentStep) {
       case 'service':
-        return !!state.selectedService;
-      case 'date':
-        return !!state.selectedDate && !!state.selectedTimeSlot;
+        return !!(state.selectedService || state.selectedServiceCategory);
+      case 'subcategory':
+        return !!state.selectedServiceSubcategory;
+      case 'location':
+        return !!state.selectedLocation;
       case 'staff':
         return !!state.selectedStaff;
-      case 'location':  
-        return !!state.selectedLocation;
+      case 'date':
+        return !!state.selectedDate && (state.isFlexibleBooking || !!state.selectedTimeSlot);
       case 'details':
         return !!(
           state.formData.client_name &&
@@ -342,7 +480,7 @@ export function PublicBookingProvider({ children }: BookingProviderProps) {
       default:
         return false;
     }
-  }, [state.currentStep, state.selectedService, state.selectedDate, state.selectedTimeSlot, state.selectedStaff, state.selectedLocation, state.formData]);
+  }, [state.currentStep, state.selectedService, state.selectedServiceCategory, state.selectedServiceSubcategory, state.selectedStaff, state.selectedLocation, state.selectedDate, state.selectedTimeSlot, state.isFlexibleBooking, state.formData]);
 
   const resetFlow = useCallback(() => {
     dispatch({ type: 'RESET_FLOW' });

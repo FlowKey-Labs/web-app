@@ -73,3 +73,9 @@ export const navigateToAuditLogs = (
 ) => {
   navigate('/audit-logs');
 };
+
+export const navigateToStaffPortal = (
+  navigate: ReturnType<typeof useNavigate>
+) => {
+  navigate('/staff-portal');
+};

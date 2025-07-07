@@ -140,6 +140,7 @@ import {
   getAvailableSlots,
   get_public_availability,
   create_public_booking,
+  create_service_booking,
   get_booking_status,
   get_client_booking_info,
   cancel_client_booking,
@@ -418,12 +419,11 @@ export const useUpdateBusinessProfile = () => {
   });
 };
 
-export const useGetBusinessProfile = () => {
-  return useQuery({
-    queryKey: ['business_profile'],
+export const useGetBusinessProfile = () =>
+  useQuery({
+    queryKey: ['business-profile'],
     queryFn: get_business_profile,
   });
-};
 
 // Availability hooks
 export const useGetAvailability = () => {
@@ -2117,29 +2117,35 @@ export const useGetPublicBusinessServices = (businessSlug: string) => {
 // Get public availability slots
 export const useGetPublicAvailability = (
   businessSlug: string,
-  categoryId: number | null,
+  serviceId: number | null,
   startDate: string,
-  endDate: string
+  endDate: string,
+  staffId?: number | null,
+  locationId?: number | null
 ) => {
   console.log('🔌 DEBUG: useGetPublicAvailability hook called with:', {
     businessSlug,
-    categoryId,
+    serviceId,
     startDate,
-    endDate
+    endDate,
+    staffId,
+    locationId
   });
 
   return useQuery({
-    queryKey: ['public-availability', businessSlug, categoryId, startDate, endDate],
+    queryKey: ['public-availability', businessSlug, serviceId, startDate, endDate, staffId, locationId],
     queryFn: async () => {
       console.log('🚀 DEBUG: Executing API call get_public_availability with params:', {
         businessSlug,
-        categoryId,
+        serviceId,
         startDate,
-        endDate
+        endDate,
+        staffId,
+        locationId
       });
       
       try {
-        const result = await get_public_availability(businessSlug, categoryId || 0, startDate, endDate);
+        const result = await get_public_availability(businessSlug, serviceId || 0, startDate, endDate, staffId, locationId);
         console.log('✅ DEBUG: API call successful, response:', result);
         return result;
       } catch (error) {
@@ -2147,7 +2153,7 @@ export const useGetPublicAvailability = (
         throw error;
       }
     },
-    enabled: !!businessSlug && categoryId !== null && !!startDate && !!endDate,
+    enabled: !!businessSlug && serviceId !== null && !!startDate && !!endDate,
     staleTime: 1000 * 60 * 2, // 2 minutes
     refetchOnWindowFocus: false, // Don't refetch when window focuses
     retry: 2, // Retry failed requests twice
@@ -2273,6 +2279,82 @@ export const useCreatePublicBooking = () => {
       // Standard exponential backoff for other errors
       return Math.min(1000 * 2 ** attemptIndex, 3000);
     },
+  });
+};
+
+// Create service booking (flexible bookings)
+export const useCreateServiceBooking = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async ({ 
+      businessSlug, 
+      bookingData 
+    }: { 
+      businessSlug: string;
+      bookingData: {
+        service_id: number;
+        staff_id: number;
+        location_id: number;
+        date: string;
+        start_time: string;
+        duration_minutes?: number;
+        client_name: string;
+        client_email: string;
+        client_phone: string;
+        notes?: string;
+        quantity?: number;
+        group_booking_notes?: string;
+        client_timezone?: string;
+      }
+    }) => {
+      const response = await create_service_booking(businessSlug, bookingData);
+      
+      // Transform backend response for service booking confirmation
+      const endTime = new Date(new Date(`${bookingData.date}T${bookingData.start_time}`).getTime() + (bookingData.duration_minutes || 60) * 60000).toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' });
+      
+      return {
+        booking_reference: response.booking_reference,
+        status: response.status === 'approved' ? 'auto_approved' : response.status,
+        message: response.message || (response.requires_approval ? 'Your service booking request has been submitted and is pending approval.' : 'Your service booking has been confirmed successfully!'),
+        requires_approval: response.requires_approval || false,
+        session_details: {
+          title: response.service_name || 'Service',
+          date: bookingData.date,
+          start_time: bookingData.start_time,
+          end_time: endTime,
+          location: response.location_name
+        },
+        client_info: {
+          name: bookingData.client_name,
+          email: bookingData.client_email,
+          phone: bookingData.client_phone
+        },
+        business_info: {
+          name: undefined,
+          email: undefined,
+          phone: undefined
+        },
+        next_steps: [
+          response.requires_approval ? 'You\'ll receive an email once your booking is approved' : 'Check your email for booking confirmation and details',
+          'Add the appointment to your calendar',
+          'Arrive on time for your appointment'
+        ]
+      };
+    },
+    onSuccess: () => {
+      // Invalidate availability queries as they might have changed
+      queryClient.invalidateQueries({ queryKey: ['public-availability'] });
+    },
+    onError: (error: unknown) => {
+      console.error("Failed to create service booking:", error);
+      
+      // Enhanced error logging for production debugging
+      const apiError = error as { response?: { data?: { code?: string } } };
+      if (apiError?.response?.data) {
+        console.error("Backend error details:", apiError.response.data);
+      }
+    }
   });
 };
 
@@ -2402,24 +2484,236 @@ export const useGetAvailableSlots = (businessSlug: string, serviceId: string, da
 };
 
 // Get available staff for flexible booking
-export const useGetPublicAvailableStaff = (businessSlug: string, sessionId: number, date?: string) => {
+export const useGetPublicAvailableStaff = (businessSlug: string, serviceOrSessionId: number, date?: string, isServiceId: boolean = true, locationId?: number) => {
+  const params = isServiceId 
+    ? { service_id: serviceOrSessionId, date, location_id: locationId }
+    : { session_id: serviceOrSessionId, date, location_id: locationId };
+    
   return useQuery({
-    queryKey: ['publicAvailableStaff', businessSlug, sessionId, date],
-    queryFn: () => get_public_available_staff(businessSlug, { session_id: sessionId, date }),
-    enabled: !!businessSlug && !!sessionId,
+    queryKey: ['publicAvailableStaff', businessSlug, serviceOrSessionId, date, isServiceId, locationId],
+    queryFn: () => get_public_available_staff(businessSlug, params),
+    enabled: !!businessSlug && !!serviceOrSessionId,
     staleTime: 1000 * 60 * 2, // 2 minutes
     refetchOnWindowFocus: false,
   });
 };
 
 // Get available locations for flexible booking
-export const useGetPublicAvailableLocations = (businessSlug: string, sessionId: number, staffId?: number, date?: string) => {
+export const useGetPublicAvailableLocations = (businessSlug: string, serviceId: number, staffId?: number, date?: string) => {
   return useQuery({
-    queryKey: ['publicAvailableLocations', businessSlug, sessionId, staffId, date],
-    queryFn: () => get_public_available_locations(businessSlug, { session_id: sessionId, staff_id: staffId, date }),
-    enabled: !!businessSlug && !!sessionId,
-    staleTime: 1000 * 60 * 2, // 2 minutes
-    refetchOnWindowFocus: false,
+    queryKey: ['public-available-locations', businessSlug, serviceId, staffId, date],
+    queryFn: () => get_public_available_locations(businessSlug, { 
+      service_id: serviceId, 
+      staff_id: staffId, 
+      date 
+    }),
+    enabled: !!businessSlug && !!serviceId,
   });
 };
+
+// Staff Service Competency Hooks
+export const useGetStaffServiceCompetencies = () => {
+  return useQuery({
+    queryKey: ['staff-service-competencies'],
+    queryFn: async () => {
+      const { get_staff_competencies } = await import('../api/api');
+      return await get_staff_competencies();
+    },
+    staleTime: 0, // Always refetch
+    refetchOnWindowFocus: true,
+  });
+};
+
+export const useCreateStaffServiceCompetency = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (data: any) => {
+      const { create_staff_competency } = await import('../api/api');
+      return await create_staff_competency(data);
+    },
+    onSuccess: () => {
+      // Force refresh by removing cached data
+      queryClient.removeQueries({ queryKey: ['staff-service-competencies'] });
+      queryClient.removeQueries({ queryKey: ['staff'] });
+      // Then refetch
+      queryClient.invalidateQueries({ queryKey: ['staff-service-competencies'] });
+      queryClient.invalidateQueries({ queryKey: ['staff'] });
+    },
+  });
+};
+
+export const useUpdateStaffServiceCompetency = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (data: any) => {
+      const { update_staff_competency } = await import('../api/api');
+      return await update_staff_competency(data.id, data);
+    },
+    onSuccess: () => {
+      // Force refresh by removing cached data
+      queryClient.removeQueries({ queryKey: ['staff-service-competencies'] });
+      queryClient.removeQueries({ queryKey: ['staff'] });
+      // Then refetch
+      queryClient.invalidateQueries({ queryKey: ['staff-service-competencies'] });
+      queryClient.invalidateQueries({ queryKey: ['staff'] });
+    },
+  });
+};
+
+export const useDeleteStaffServiceCompetency = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: number) => {
+      const { delete_staff_competency } = await import('../api/api');
+      return await delete_staff_competency(id);
+    },
+    onSuccess: () => {
+      // Force refresh by removing cached data
+      queryClient.removeQueries({ queryKey: ['staff-service-competencies'] });
+      queryClient.removeQueries({ queryKey: ['staff'] });
+      // Then refetch
+      queryClient.invalidateQueries({ queryKey: ['staff-service-competencies'] });
+      queryClient.invalidateQueries({ queryKey: ['staff'] });
+    },
+  });
+};
+
+// Staff Location Assignment Hooks
+export const useGetStaffLocationAssignments = () => {
+  return useQuery({
+    queryKey: ['staff-location-assignments'],
+    queryFn: async () => {
+      const { get_staff_locations } = await import('../api/api');
+      return await get_staff_locations();
+    },
+  });
+};
+
+export const useCreateStaffLocationAssignment = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (data: any) => {
+      const { create_staff_location } = await import('../api/api');
+      return await create_staff_location(data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['staff-location-assignments'] });
+      queryClient.invalidateQueries({ queryKey: ['staff'] });
+    },
+  });
+};
+
+export const useDeleteStaffLocationAssignment = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: number) => fetch(`/api/staff/locations/${id}/`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${useAuthStore.getState().accessToken}`,
+      },
+    }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['staff-location-assignments'] });
+      queryClient.invalidateQueries({ queryKey: ['staff'] });
+    },
+  });
+};
+
+// Staff Exception Hooks
+export const useGetStaffExceptions = () => {
+  return useQuery({
+    queryKey: ['staff-exceptions'],
+    queryFn: () => fetch('/api/staff/exceptions/', {
+      headers: {
+        'Authorization': `Bearer ${useAuthStore.getState().accessToken}`,
+      },
+    }).then(res => res.json()),
+  });
+};
+
+export const useCreateStaffException = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: any) => fetch('/api/staff/exceptions/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${useAuthStore.getState().accessToken}`,
+      },
+      body: JSON.stringify(data),
+    }).then(res => res.json()),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['staff-exceptions'] });
+      queryClient.invalidateQueries({ queryKey: ['booking-notifications'] });
+    },
+  });
+};
+
+export const useUpdateStaffException = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: any) => fetch(`/api/staff/exceptions/${data.id}/`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${useAuthStore.getState().accessToken}`,
+      },
+      body: JSON.stringify(data),
+    }).then(res => res.json()),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['staff-exceptions'] });
+      queryClient.invalidateQueries({ queryKey: ['booking-notifications'] });
+    },
+  });
+};
+
+export const useApproveStaffException = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: { id: number; admin_notes: string }) => 
+      fetch(`/api/staff/exceptions/${data.id}/approve/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${useAuthStore.getState().accessToken}`,
+        },
+        body: JSON.stringify({ admin_notes: data.admin_notes }),
+      }).then(res => res.json()),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['staff-exceptions'] });
+      queryClient.invalidateQueries({ queryKey: ['booking-notifications'] });
+    },
+  });
+};
+
+export const useDenyStaffException = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: { id: number; admin_notes: string }) => 
+      fetch(`/api/staff/exceptions/${data.id}/deny/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${useAuthStore.getState().accessToken}`,
+        },
+        body: JSON.stringify({ admin_notes: data.admin_notes }),
+      }).then(res => res.json()),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['staff-exceptions'] });
+      queryClient.invalidateQueries({ queryKey: ['booking-notifications'] });
+    },
+  });
+};
+
+// Business Locations Hook (alias for existing useGetLocations)
+export const useGetBusinessLocations = useGetLocations;
 

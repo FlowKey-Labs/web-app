@@ -201,11 +201,38 @@ export interface PublicService {
   id: number;
   name: string;
   description?: string;
-  duration_minutes: number;
-  capacity: number;
+  duration_minutes?: number;
+  capacity?: number;
   price?: string;
-  category_type: 'group' | 'individual' | 'private';
+  category_type?: 'group' | 'individual' | 'private';
   image_url?: string;
+  session_id?: number;
+  is_session?: boolean;
+  default_duration?: number;
+  base_price?: string;
+  is_service?: boolean;
+  subcategories?: PublicServiceSubcategory[];
+}
+
+export interface PublicServiceCategory {
+  id: number;
+  name: string;
+  description?: string;
+  subcategories: PublicServiceSubcategory[];
+  image_url?: string;
+}
+
+export interface PublicServiceSubcategory {
+  id: number;
+  name: string;
+  description?: string;
+  default_duration: number;
+  base_price: string;
+  is_active: boolean;
+  category_id: number;
+  category_name?: string;
+  image_url?: string;
+  is_service: boolean;
 }
 
 export interface AvailabilitySlot {
@@ -224,6 +251,13 @@ export interface AvailabilitySlot {
   location?: string;
   staff_name?: string;
   is_bookable?: boolean;
+  // Service-based booking fields
+  available?: boolean;
+  service_id?: number;
+  service_name?: string;
+  staff_id?: number;
+  location_id?: number;
+  location_name?: string;
 }
 
 export interface PublicAvailabilityResponse {
@@ -463,7 +497,7 @@ export interface RescheduleErrorResponse {
 }
 
 // Booking step management
-export type BookingStep = 'service' | 'staff' | 'location' | 'date' | 'time' | 'details' | 'confirmation';
+export type BookingStep = 'service' | 'subcategory' | 'staff' | 'location' | 'date' | 'time' | 'details' | 'confirmation';
 
 export interface PublicStaff {
   id: number;
@@ -487,6 +521,7 @@ export interface PublicLocation {
   capacity?: number;
   image_url?: string;
   is_available?: boolean;
+  is_primary?: boolean;
 }
 
 export interface FlexibleBookingSettings {
@@ -499,6 +534,8 @@ export interface FlexibleBookingSettings {
 export interface BookingFlowState {
   currentStep: BookingStep;
   selectedService: PublicService | null;
+  selectedServiceCategory: PublicServiceCategory | null;
+  selectedServiceSubcategory: PublicServiceSubcategory | null;
   selectedStaff: PublicStaff | null;
   selectedLocation: PublicLocation | null;
   selectedDate: string | Date | null;
@@ -508,4 +545,6 @@ export interface BookingFlowState {
   formData: Partial<PublicBookingFormData>;
   businessInfo: PublicBusinessInfo | null;
   flexibleBookingSettings?: FlexibleBookingSettings;
+  bookingMode?: 'fixed' | 'flexible' | 'hybrid';
+  isFlexibleBooking?: boolean;
 }

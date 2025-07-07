@@ -86,7 +86,12 @@ const END_POINTS = {
     AUDIT_LOGS: `${BASE_URL}/api/booking/audit-logs/`,
   },
   STAFF: {
-    STAFF_DATA: `${BASE_URL}/api/staff/`,
+    STAFF_DATA: `${BASE_URL}/api/staff/staff/`,
+    COMPETENCIES: `${BASE_URL}/api/staff/competencies/`,
+    LOCATIONS: `${BASE_URL}/api/staff/locations/`,
+    EXCEPTIONS: `${BASE_URL}/api/staff/exceptions/`,
+    PORTAL: `${BASE_URL}/api/staff/portal/`,
+    MY_EXCEPTIONS: `${BASE_URL}/api/staff/portal/my-exceptions/`,
   },
   SESSION: {
     SESSIONS_DATA: `${BASE_URL}/api/session/`,
@@ -1349,25 +1354,45 @@ const getAvailableSlots = async (
 // Get availability slots for a service
 const get_public_availability = async (
   businessSlug: string,
-  categoryId: number | null,
+  serviceId: number | null,
   startDate: string,
-  endDate: string
+  endDate: string,
+  staffId?: number | null,
+  locationId?: number | null
 ) => {
   console.log('🌐 DEBUG: get_public_availability API function called with:', {
     businessSlug,
-    categoryId,
+    serviceId,
     startDate,
-    endDate
+    endDate,
+    staffId,
+    locationId
   });
 
-  const params: { start_date: string; end_date: string; category_id?: number } = {
+  const params: { 
+    start_date: string; 
+    end_date: string; 
+    service_id?: number;
+    staff_id?: number;
+    location_id?: number;
+  } = {
     start_date: startDate,
     end_date: endDate,
   };
   
-  // Only add category_id if it's not null
-  if (categoryId !== null && categoryId > 0) {
-    params.category_id = categoryId;
+  // Only add service_id if it's not null
+  if (serviceId !== null && serviceId > 0) {
+    params.service_id = serviceId;
+  }
+
+  // Add staff_id for flexible booking personalized availability
+  if (staffId !== null && staffId !== undefined && staffId > 0) {
+    params.staff_id = staffId;
+  }
+
+  // Add location_id for flexible booking location-specific availability
+  if (locationId !== null && locationId !== undefined && locationId > 0) {
+    params.location_id = locationId;
   }
 
   console.log('🔧 DEBUG: API request params being sent:', params);
@@ -1394,7 +1419,7 @@ const get_public_availability = async (
   }
 };
 
-// Create public booking
+// Create public booking (fixed sessions)
 const create_public_booking = async (
   businessSlug: string,
   bookingData: {
@@ -1413,6 +1438,29 @@ const create_public_booking = async (
   }
 ) => {
   const { data } = await api.post(`/api/booking/${businessSlug}/book/`, bookingData);
+  return data;
+};
+
+// Create service booking (flexible bookings)
+const create_service_booking = async (
+  businessSlug: string,
+  bookingData: {
+    service_id: number;
+    staff_id: number;
+    location_id: number;
+    date: string;
+    start_time: string;
+    duration_minutes?: number;
+    client_name: string;
+    client_email: string;
+    client_phone: string;
+    notes?: string;
+    quantity?: number;
+    group_booking_notes?: string;
+    client_timezone?: string;
+  }
+) => {
+  const { data } = await api.post(`/api/booking/${businessSlug}/create-service-booking/`, bookingData);
   return data;
 };
 
@@ -1499,7 +1547,8 @@ const reschedule_client_booking = async (
 
 // Get available staff for flexible booking
 const get_public_available_staff = async (businessSlug: string, params: {
-  session_id: number;
+  session_id?: number;
+  service_id?: number;
   date?: string;
 }) => {
   const searchParams = new URLSearchParams();
@@ -1515,7 +1564,7 @@ const get_public_available_staff = async (businessSlug: string, params: {
 
 // Get available locations for flexible booking
 const get_public_available_locations = async (businessSlug: string, params: {
-  session_id: number;
+  service_id: number;
   staff_id?: number;
   date?: string;
 }) => {
@@ -1527,6 +1576,101 @@ const get_public_available_locations = async (businessSlug: string, params: {
   });
   
   const { data } = await api.get(`/api/booking/${businessSlug}/available-locations/?${searchParams.toString()}`);
+  return data;
+};
+
+// Staff Management API Functions
+const get_staff_competencies = async () => {
+  const { data } = await api.get(END_POINTS.STAFF.COMPETENCIES);
+  return data;
+};
+
+const create_staff_competency = async (competencyData: {
+  staff: number;
+  subcategory: number;
+  skill_level?: string;
+  hourly_rate?: number;
+  is_active?: boolean;
+}) => {
+  const { data } = await api.post(END_POINTS.STAFF.COMPETENCIES, competencyData);
+  return data;
+};
+
+const update_staff_competency = async (id: number, competencyData: {
+  skill_level?: string;
+  hourly_rate?: number;
+  is_active?: boolean;
+}) => {
+  const { data } = await api.put(`${END_POINTS.STAFF.COMPETENCIES}${id}/`, competencyData);
+  return data;
+};
+
+const delete_staff_competency = async (id: number) => {
+  const { data } = await api.delete(`${END_POINTS.STAFF.COMPETENCIES}${id}/`);
+  return data;
+};
+
+const get_staff_locations = async () => {
+  const { data } = await api.get(END_POINTS.STAFF.LOCATIONS);
+  return data;
+};
+
+const create_staff_location = async (locationData: {
+  staff: number;
+  location: number;
+  is_primary?: boolean;
+  is_active?: boolean;
+}) => {
+  const { data } = await api.post(END_POINTS.STAFF.LOCATIONS, locationData);
+  return data;
+};
+
+const update_staff_location = async (id: number, locationData: {
+  is_primary?: boolean;
+  is_active?: boolean;
+}) => {
+  const { data } = await api.put(`${END_POINTS.STAFF.LOCATIONS}${id}/`, locationData);
+  return data;
+};
+
+const delete_staff_location = async (id: number) => {
+  const { data } = await api.delete(`${END_POINTS.STAFF.LOCATIONS}${id}/`);
+  return data;
+};
+
+const get_staff_exceptions = async () => {
+  const { data } = await api.get(END_POINTS.STAFF.EXCEPTIONS);
+  return data;
+};
+
+const create_staff_exception = async (exceptionData: {
+  staff: number;
+  date: string;
+  exception_type?: string;
+  reason?: string;
+  is_all_day?: boolean;
+  start_time?: string;
+  end_time?: string;
+}) => {
+  const { data } = await api.post(END_POINTS.STAFF.EXCEPTIONS, exceptionData);
+  return data;
+};
+
+const update_staff_exception = async (id: number, exceptionData: {
+  exception_type?: string;
+  reason?: string;
+  is_all_day?: boolean;
+  start_time?: string;
+  end_time?: string;
+  status?: string;
+  admin_notes?: string;
+}) => {
+  const { data } = await api.put(`${END_POINTS.STAFF.EXCEPTIONS}${id}/`, exceptionData);
+  return data;
+};
+
+const delete_staff_exception = async (id: number) => {
+  const { data } = await api.delete(`${END_POINTS.STAFF.EXCEPTIONS}${id}/`);
   return data;
 };
 
@@ -1666,6 +1810,7 @@ export {
   getAvailableSlots,
   get_public_availability,
   create_public_booking,
+  create_service_booking,
   get_booking_status,
   get_client_booking_info,
   cancel_client_booking,
@@ -1673,4 +1818,17 @@ export {
   reschedule_client_booking,
   get_public_available_staff,
   get_public_available_locations,
+  // Staff Management exports
+  get_staff_competencies,
+  create_staff_competency,
+  update_staff_competency,
+  delete_staff_competency,
+  get_staff_locations,
+  create_staff_location,
+  update_staff_location,
+  delete_staff_location,
+  get_staff_exceptions,
+  create_staff_exception,
+  update_staff_exception,
+  delete_staff_exception,
 };

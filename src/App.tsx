@@ -41,6 +41,7 @@ import GroupDetails from './components/clients/GroupDetails';
 import AuthWrapper from './components/common/AuthWrapper';
 import BookingRequestDetails from './components/clients/BookingRequestDetails';
 import AuditLogs from './components/auditLogs/AuditLogs';
+import StaffPortal from './components/profile/StaffPortal';
 import './App.css';
 import FlowkeyLandingPage from './pages/FlowkeyLandingPage';
 import PublicBookingPage from './pages/PublicBookingPage';
@@ -52,6 +53,7 @@ import { TimezoneProvider } from './contexts/TimezoneContext';
 
 function App() {
   const permisions = useAuthStore((state) => state.role);
+  const user = useAuthStore((state) => state.user);
 
   return (
     <MantineProvider
@@ -229,6 +231,11 @@ function App() {
               {/* Audit Logs route - Permission-based access */}
               {permisions?.can_view_audit_logs && (
                 <Route path='audit-logs' element={<AuditLogs />} />
+              )}
+
+              {/* Staff Portal route - For staff members to manage their own exceptions */}
+              {(user?.is_staff || permisions?.can_view_staff_exceptions) && (
+                <Route path='staff-portal' element={<StaffPortal />} />
               )}
 
               {/* Catch-all route for authenticated users */}

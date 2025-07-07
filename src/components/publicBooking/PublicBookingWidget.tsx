@@ -4,6 +4,7 @@ import { useMediaQuery } from "@mantine/hooks";
 import { ExclamationIcon } from "./bookingIcons";
 import { PublicBookingProvider, useBookingFlow } from "./PublicBookingProvider";
 import { ServiceSelectionStep } from "./steps/ServiceSelectionStep";
+import { SubcategorySelectionStep } from "./steps/SubcategorySelectionStep";
 import { StaffSelectionStep } from "./steps/StaffSelectionStep";
 import { LocationSelectionStep } from "./steps/LocationSelectionStep";
 import { DateSelectionStep } from "./steps/DateSelectionStep";
@@ -14,6 +15,7 @@ import { BookingSidebar } from "./BookingSidebar";
 import { useGetPublicBusinessInfo } from "../../hooks/reactQuery";
 import WithBrandingLayout from "../common/WithBrandingLayout";
 import ErrorBoundary from "../common/ErrorBoundary";
+import { StateDebugger } from "./StateDebugger";
 
 interface PublicBookingWidgetProps {
   businessSlug: string;
@@ -102,18 +104,25 @@ function BookingWidgetContent({ businessSlug }: { businessSlug: string }) {
               businessInfo={businessInfo}
             />
           );
-        case "staff":
+        case "subcategory":
           return (
-            <StaffSelectionStep
-              onNext={goToNextStep}
-              onBack={goToPreviousStep}
+            <SubcategorySelectionStep
+              businessSlug={businessSlug}
+              businessInfo={businessInfo}
             />
           );
         case "location":
           return (
             <LocationSelectionStep
-              onNext={goToNextStep}
-              onBack={goToPreviousStep}
+              businessSlug={businessSlug}
+              businessInfo={businessInfo}
+            />
+          );
+        case "staff":
+          return (
+            <StaffSelectionStep
+              businessSlug={businessSlug}
+              businessInfo={businessInfo}
             />
           );
         case "date":
@@ -167,6 +176,7 @@ function BookingWidgetContent({ businessSlug }: { businessSlug: string }) {
   if (isMobile) {
     return (
       <div className="relative">
+        <StateDebugger />
         <WithBrandingLayout showHelpText={false}>
           <Box style={{ width: "100%", minHeight: "100vh" }}>
             <ErrorBoundary>{renderCurrentStep()}</ErrorBoundary>
@@ -178,6 +188,7 @@ function BookingWidgetContent({ businessSlug }: { businessSlug: string }) {
 
   return (
     <div className="relative">
+      <StateDebugger />
       {["service", "date"].includes(state.currentStep) && (
         <div className="absolute top-4 right-4 z-50">
           <h3 className="text-sm text-primary">
@@ -200,7 +211,6 @@ function BookingWidgetContent({ businessSlug }: { businessSlug: string }) {
               onBookAnother={resetFlow}
             />
           </Box>
-
           <Box style={{ flex: 1, overflow: "hidden" }}>
             <ErrorBoundary>{renderCurrentStep()}</ErrorBoundary>
           </Box>

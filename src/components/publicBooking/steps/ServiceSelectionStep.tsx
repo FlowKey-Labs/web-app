@@ -23,7 +23,7 @@ import {
 } from "../bookingIcons";
 import { useGetPublicBusinessServices } from "../../../hooks/reactQuery";
 import { useBookingFlow } from "../PublicBookingProvider";
-import { PublicService, PublicBusinessInfo } from "../../../types/clientTypes";
+import { PublicService, PublicServiceCategory, PublicBusinessInfo } from "../../../types/clientTypes";
 import { useViewportSize } from "@mantine/hooks";
 
 interface ServiceSelectionStepProps {
@@ -35,7 +35,7 @@ export function ServiceSelectionStep({
   businessSlug,
   businessInfo,
 }: ServiceSelectionStepProps) {
-  const { dispatch, goToNextStep } = useBookingFlow();
+  const { state, dispatch, goToNextStep } = useBookingFlow();
   const {
     data: services,
     isLoading,
@@ -65,27 +65,77 @@ export function ServiceSelectionStep({
     return () => window.removeEventListener("scroll", handleScroll);
   }, [isMobile]);
 
-  const handleServiceSelect = async (service: PublicService) => {
+  // Parse services to detect categories vs individual services
+  const parsedServices = useMemo(() => {
+    if (!services) return { categories: [], individualServices: [] };
+
+    const categories: PublicServiceCategory[] = [];
+    const individualServices: PublicService[] = [];
+
+    services.forEach((item: any) => {
+      // Check if this is a service category with subcategories
+      if (item.subcategories && Array.isArray(item.subcategories) && item.subcategories.length > 0) {
+        categories.push({
+          id: item.id,
+          name: item.name,
+          description: item.description,
+          subcategories: item.subcategories,
+          image_url: item.image_url,
+        });
+      } else {
+        // This is an individual service (session-based/fixed booking)
+        individualServices.push({
+          id: item.id,
+          name: item.name,
+          description: item.description,
+          duration_minutes: item.duration_minutes,
+          capacity: item.capacity,
+          price: item.price,
+          category_type: item.category_type,
+          image_url: item.image_url,
+          session_id: item.session_id,
+          is_session: true,
+        });
+      }
+    });
+
+    return { categories, individualServices };
+  }, [services]);
+
+  const handleServiceCategorySelect = async (category: PublicServiceCategory) => {
+    console.log('🎯 Selected service category:', category);
+    dispatch({ type: "SELECT_SERVICE_CATEGORY", payload: category });
+
+    setTimeout(() => goToNextStep(), 300);
+  };
+
+  const handleIndividualServiceSelect = async (service: PublicService) => {
+    console.log('📅 Selected individual service (fixed booking):', service);
     dispatch({ type: "SELECT_SERVICE", payload: service });
 
     setTimeout(() => goToNextStep(), 300);
   };
 
-  const filteredServices = useMemo(() => {
-    if (!services) return [];
+  const handleServiceSelect = async (service: PublicService) => {
+    // For now, all services in the filteredServices array are individual services
+    // since categories are handled separately
+    await handleIndividualServiceSelect(service);
+  };
 
-    return services.filter((service: PublicService) => {
+
+
+  // Filter services based on search and filters
+  const filteredServices = useMemo(() => {
+    return parsedServices.individualServices.filter((service: PublicService) => {
       const serviceName = service.name || "";
       const serviceDescription = service.description || "";
       const matchesSearch =
         serviceName.toLowerCase().includes(searchQuery.toLowerCase()) ||
         serviceDescription.toLowerCase().includes(searchQuery.toLowerCase());
 
-
       const serviceCategory = service.category_type || "";
       const matchesCategory =
         categoryFilter === "all" || serviceCategory === categoryFilter;
-
 
       const matchesPrice =
         priceFilter === "all" ||
@@ -94,13 +144,29 @@ export function ServiceSelectionStep({
 
       return matchesSearch && matchesCategory && matchesPrice;
     });
-  }, [services, searchQuery, categoryFilter, priceFilter]);
+  }, [parsedServices.individualServices, searchQuery, categoryFilter, priceFilter]);
+
+  // Filter categories based on search
+  const filteredCategories = useMemo(() => {
+    return parsedServices.categories.filter((category: PublicServiceCategory) => {
+      const categoryName = category.name || "";
+      const categoryDescription = category.description || "";
+      const matchesSearch =
+        categoryName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        categoryDescription.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        category.subcategories.some(sub => 
+          sub.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          (sub.description && sub.description.toLowerCase().includes(searchQuery.toLowerCase()))
+        );
+
+      return matchesSearch;
+    });
+  }, [parsedServices.categories, searchQuery]);
 
 
   const categories = useMemo(() => {
-    if (!services) return [];
     const uniqueCategories = [
-      ...new Set(services.map((s: PublicService) => s.category_type).filter(Boolean)),
+      ...new Set(parsedServices.individualServices.map((s: PublicService) => s.category_type).filter(Boolean)),
     ];
     return uniqueCategories.map((cat) => ({
       value: String(cat),
@@ -109,7 +175,7 @@ export function ServiceSelectionStep({
           ? cat.charAt(0).toUpperCase() + cat.slice(1)
           : "Unknown",
     }));
-  }, [services]);
+  }, [parsedServices.individualServices]);
 
   const getCategoryIcon = (type: string) => {
     if (!type) return "📋";
@@ -180,6 +246,9 @@ export function ServiceSelectionStep({
   const businessName = businessInfo.business_name || "Business";
   const businessType = businessInfo.business_type || "Service Provider";
   const businessAbout = businessInfo.about || "";
+
+  const hasCategories = filteredCategories.length > 0;
+  const hasIndividualServices = filteredServices.length > 0;
 
 
   const MobileBusinessHeader = () => {
@@ -387,7 +456,7 @@ export function ServiceSelectionStep({
 
           <div className="flex-1 overflow-y-auto lg:ml-8 booking-mobile-content">
             <AnimatePresence mode="popLayout">
-              {filteredServices.length === 0 ? (
+              {(!hasCategories && !hasIndividualServices) ? (
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
@@ -407,101 +476,193 @@ export function ServiceSelectionStep({
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  className="space-y-3 lg:space-y-4"
+                  className="space-y-6"
                 >
-                  {filteredServices.map((service: PublicService, index: number) => (
-                    <motion.div
-                      key={service.id}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -20 }}
-                      transition={{ delay: index * 0.1, duration: 0.4 }}
-                      whileHover={{ scale: 1.02 }}
-                      className="group cursor-pointer md:px-4 mt-1"
-                      onClick={() => handleServiceSelect(service)}
-                    >
-                      <Card
-                        className="bg-white/70 backdrop-blur-sm border border-white/30 hover:bg-white/90 hover:border-emerald-200 hover:shadow-lg transition-all duration-300 group-hover:shadow-emerald-100/50"
-                        radius="lg"
-                        p="lg"
-                      >
-                        <div className="flex items-start gap-3 lg:gap-4">
-                          <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-xl bg-gradient-to-br from-emerald-100 to-green-100 flex items-center justify-center text-base lg:text-lg group-hover:from-emerald-200 group-hover:to-green-200 transition-all duration-300">
-                            {getCategoryIcon(service.category_type)}
-                          </div>
-
-
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-start justify-between gap-2">
-                              <div className="flex-1">
-                                <Title
-                                  order={4}
-                                  className="text-sm lg:text-base font-semibold text-slate-800 group-hover:text-emerald-700 transition-colors duration-200 mb-1"
-                                >
-                                  {service.name}
-                                </Title>
-
-                                {service.description && (
-                                  <Text
-                                    size="xs"
-                                    className="text-slate-600 line-clamp-2 mb-2"
-                                    lineClamp={2}
-                                  >
-                                    {service.description}
-                                  </Text>
-                                )}
+                  {/* Service Categories (Flexible Booking) */}
+                  {hasCategories && (
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2 mb-4">
+                        <Badge variant="light" color="blue" size="sm">
+                          Flexible Services
+                        </Badge>
+                        <Text size="sm" className="text-slate-500">
+                          Choose a service category to continue
+                        </Text>
+                      </div>
+                      
+                      {filteredCategories.map((category: PublicServiceCategory, index: number) => (
+                        <motion.div
+                          key={category.id}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -20 }}
+                          transition={{ delay: index * 0.1, duration: 0.4 }}
+                          whileHover={{ scale: 1.02 }}
+                          className="group cursor-pointer md:px-4 mt-1"
+                          onClick={() => handleServiceCategorySelect(category)}
+                        >
+                          <Card
+                            className="bg-white/70 backdrop-blur-sm border border-white/30 hover:bg-white/90 hover:border-blue-200 hover:shadow-lg transition-all duration-300 group-hover:shadow-blue-100/50"
+                            radius="lg"
+                            p="lg"
+                          >
+                            <div className="flex items-start gap-3 lg:gap-4">
+                              <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-xl bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center text-base lg:text-lg group-hover:from-blue-200 group-hover:to-indigo-200 transition-all duration-300">
+                                📋
                               </div>
 
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-start justify-between gap-2">
+                                  <div className="flex-1">
+                                    <Title
+                                      order={4}
+                                      className="text-sm lg:text-base font-semibold text-slate-800 group-hover:text-blue-700 transition-colors duration-200 mb-1"
+                                    >
+                                      {category.name}
+                                    </Title>
 
-                              <div className="text-right flex-shrink-0">
-                                {service.price ? (
-                                  <Text className="text-base lg:text-lg font-bold text-emerald-600">
-                                    KSh {service.price}
-                                  </Text>
-                                ) : (
+                                    {category.description && (
+                                      <Text
+                                        size="xs"
+                                        className="text-slate-600 line-clamp-2 mb-2"
+                                        lineClamp={2}
+                                      >
+                                        {category.description}
+                                      </Text>
+                                    )}
+                                  </div>
+                                </div>
+
+                                <div className="flex items-center gap-3 lg:gap-4 mt-2 lg:mt-3">
                                   <Badge
-                                    color="green"
                                     variant="light"
-                                    size="sm"
+                                    color="blue"
+                                    size="xs"
                                   >
-                                    Free
+                                    {category.subcategories.length} services
                                   </Badge>
-                                )}
+                                  <Badge
+                                    variant="light"
+                                    color="gray"
+                                    size="xs"
+                                  >
+                                    Flexible Booking
+                                  </Badge>
+                                </div>
                               </div>
                             </div>
+                          </Card>
+                        </motion.div>
+                      ))}
+                    </div>
+                  )}
 
-
-                            <div className="flex items-center gap-3 lg:gap-4 mt-2 lg:mt-3">
-                              {service.duration_minutes && (
-                                <div className="flex items-center gap-1 text-xs text-slate-500">
-                                  <ClockIcon className="w-3 h-3" />
-                                  <span>{service.duration_minutes} min</span>
-                                </div>
-                              )}
-
-                              {service.capacity && (
-                                <div className="flex items-center gap-1 text-xs text-slate-500">
-                                  <UserIcon className="w-3 h-3" />
-                                  <span>Max {service.capacity}</span>
-                                </div>
-                              )}
-
-                              {service.category_type && (
-                                <Badge
-                                  variant="light"
-                                  color="gray"
-                                  size="xs"
-                                  className="capitalize"
-                                >
-                                  {service.category_type}
-                                </Badge>
-                              )}
-                            </div>
-                          </div>
+                  {/* Individual Services (Fixed Booking) */}
+                  {hasIndividualServices && (
+                    <div className="space-y-3">
+                      {hasCategories && (
+                        <div className="flex items-center gap-2 mb-4">
+                          <Badge variant="light" color="green" size="sm">
+                            Scheduled Classes
+                          </Badge>
+                          <Text size="sm" className="text-slate-500">
+                            Fixed schedule sessions
+                          </Text>
                         </div>
-                      </Card>
-                    </motion.div>
-                  ))}
+                      )}
+                      
+                      {filteredServices.map((service: PublicService, index: number) => (
+                        <motion.div
+                          key={service.id}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -20 }}
+                          transition={{ delay: (hasCategories ? filteredCategories.length : 0 + index) * 0.1, duration: 0.4 }}
+                          whileHover={{ scale: 1.02 }}
+                          className="group cursor-pointer md:px-4 mt-1"
+                          onClick={() => handleServiceSelect(service)}
+                        >
+                          <Card
+                            className="bg-white/70 backdrop-blur-sm border border-white/30 hover:bg-white/90 hover:border-emerald-200 hover:shadow-lg transition-all duration-300 group-hover:shadow-emerald-100/50"
+                            radius="lg"
+                            p="lg"
+                          >
+                            <div className="flex items-start gap-3 lg:gap-4">
+                              <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-xl bg-gradient-to-br from-emerald-100 to-green-100 flex items-center justify-center text-base lg:text-lg group-hover:from-emerald-200 group-hover:to-green-200 transition-all duration-300">
+                                {getCategoryIcon(service.category_type)}
+                              </div>
+
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-start justify-between gap-2">
+                                  <div className="flex-1">
+                                    <Title
+                                      order={4}
+                                      className="text-sm lg:text-base font-semibold text-slate-800 group-hover:text-emerald-700 transition-colors duration-200 mb-1"
+                                    >
+                                      {service.name}
+                                    </Title>
+
+                                    {service.description && (
+                                      <Text
+                                        size="xs"
+                                        className="text-slate-600 line-clamp-2 mb-2"
+                                        lineClamp={2}
+                                      >
+                                        {service.description}
+                                      </Text>
+                                    )}
+                                  </div>
+
+                                  <div className="text-right flex-shrink-0">
+                                    {service.price ? (
+                                      <Text className="text-base lg:text-lg font-bold text-emerald-600">
+                                        KSh {service.price}
+                                      </Text>
+                                    ) : (
+                                      <Badge
+                                        color="green"
+                                        variant="light"
+                                        size="sm"
+                                      >
+                                        Free
+                                      </Badge>
+                                    )}
+                                  </div>
+                                </div>
+
+                                <div className="flex items-center gap-3 lg:gap-4 mt-2 lg:mt-3">
+                                  {service.duration_minutes && (
+                                    <div className="flex items-center gap-1 text-xs text-slate-500">
+                                      <ClockIcon className="w-3 h-3" />
+                                      <span>{service.duration_minutes} min</span>
+                                    </div>
+                                  )}
+
+                                  {service.capacity && (
+                                    <div className="flex items-center gap-1 text-xs text-slate-500">
+                                      <UserIcon className="w-3 h-3" />
+                                      <span>Max {service.capacity}</span>
+                                    </div>
+                                  )}
+
+                                  {service.category_type && (
+                                    <Badge
+                                      variant="light"
+                                      color="gray"
+                                      size="xs"
+                                      className="capitalize"
+                                    >
+                                      {service.category_type}
+                                    </Badge>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          </Card>
+                        </motion.div>
+                      ))}
+                    </div>
+                  )}
                 </motion.div>
               )}
             </AnimatePresence>
