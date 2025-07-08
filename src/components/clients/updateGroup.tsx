@@ -13,7 +13,6 @@ import { Location } from '../../types/location'; // Added
 import { notifications } from '@mantine/notifications';
 import successIcon from '../../assets/icons/success.svg';
 import errorIcon from '../../assets/icons/error.svg';
-import { Session } from '../../types/sessionTypes';
 
 interface UpdateGroupProps {
   groupData: GroupData;
@@ -22,7 +21,6 @@ interface UpdateGroupProps {
 
 const UpdateGroup = ({ groupData, onSuccess }: UpdateGroupProps) => {
   const { data: clientsData, isLoading: isClientsLoading } = useGetClients();
-  const { data: sessionsData, isLoading: isSessionsLoading } = useGetSessions();
   const { data: locationsData, isLoading: isLocationsLoading } =
     useGetLocations() as { data: Location[] | undefined; isLoading: boolean }; // Added
 
@@ -35,7 +33,6 @@ const UpdateGroup = ({ groupData, onSuccess }: UpdateGroupProps) => {
       description: '',
       location: '',
       client_ids: [],
-      session_ids: [],
       contact_person: { id: undefined },
     },
   });
@@ -71,9 +68,6 @@ const UpdateGroup = ({ groupData, onSuccess }: UpdateGroupProps) => {
         description: groupData.description || '',
         location: groupData.location || '',
         client_ids: clientIds,
-        session_ids: Array.isArray(groupData.session_ids)
-          ? groupData.session_ids
-          : [],
         contact_person: contactPerson,
       };
 
@@ -96,7 +90,6 @@ const UpdateGroup = ({ groupData, onSuccess }: UpdateGroupProps) => {
       description: data.description,
       location: data.location,
       client_ids: data.client_ids || [],
-      session_ids: data.session_ids || [],
       contact_person_id: data.contact_person?.id,
     };
 
@@ -159,7 +152,9 @@ const UpdateGroup = ({ groupData, onSuccess }: UpdateGroupProps) => {
     const contactPerson = watch('contact_person');
 
     if (contactPerson?.id && !selectedClientIds.includes(contactPerson.id)) {
-      const contactClient = clientsData.find((c: Client) => c.id === contactPerson.id);
+      const contactClient = clientsData.find(
+        (c: Client) => c.id === contactPerson.id
+      );
 
       if (contactClient) {
         const enhancedContact = {
@@ -220,9 +215,8 @@ const UpdateGroup = ({ groupData, onSuccess }: UpdateGroupProps) => {
                 ? [{ label: 'Loading...', value: '' }]
                 : locationsData?.map((location) => ({
                     label: location.name,
-                    value: location.id.toString(), 
+                    value: location.id.toString(),
                   })) || [];
-
 
               return (
                 <DropdownSelectInput
@@ -285,38 +279,6 @@ const UpdateGroup = ({ groupData, onSuccess }: UpdateGroupProps) => {
                 />
               );
             }}
-          />
-
-          <Controller
-            name='session_ids'
-            control={control}
-            render={({ field }) => (
-              <DropdownSelectInput
-                label='Sessions'
-                placeholder={
-                  isSessionsLoading
-                    ? 'Loading sessions...'
-                    : 'Select sessions for this group'
-                }
-                singleSelect={false}
-                options={
-                  isSessionsLoading
-                    ? [{ label: 'Loading...', value: '' }]
-                    : sessionsData?.map((session: Session) => ({
-                        label: session.title,
-                        value: session.id.toString(),
-                      })) || []
-                }
-                value={field.value?.map((id: number) => id.toString()) || []}
-                onSelectItem={(selectedItems) => {
-                  field.onChange(
-                    selectedItems.map((item: { value: string }) =>
-                      parseInt(item.value)
-                    )
-                  );
-                }}
-              />
-            )}
           />
 
           <Controller
