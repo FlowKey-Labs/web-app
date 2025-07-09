@@ -151,8 +151,14 @@ export interface GroupData {
   member_count?: number;
   created_at?: string;
   client_ids?: number[];
-  session_ids?: number[];
   members?: number[];
+  clients?: Array<{
+    id: number;
+    first_name: string;
+    last_name: string;
+    email?: string;
+  }>;
+  session_ids?: number[];
   source?: ClientSource;
 }
 

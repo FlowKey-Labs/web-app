@@ -49,7 +49,10 @@ import LoadingScreen from './components/common/LoadingScreen';
 
 import BookingCancel from './pages/booking/BookingCancel';
 import BookingManage from './pages/booking/BookingManage';
-import { BookingCancelled, BookingRescheduled } from './pages/booking/BookingSuccess';
+import {
+  BookingCancelled,
+  BookingRescheduled,
+} from './pages/booking/BookingSuccess';
 import { TimezoneProvider } from './contexts/TimezoneContext';
 import { useGetUserProfile } from './hooks/reactQuery';
 import { ReactNode } from 'react';
@@ -107,6 +110,8 @@ const RoleGatedRoute = ({ children, requiredPermission }: RoleGatedRouteProps) =
 };
 
 function App() {
+  const permisions = useAuthStore((state) => state.role);
+
   return (
     <MantineProvider
       theme={{
@@ -118,315 +123,305 @@ function App() {
         <ReactQueryDevtools initialIsOpen={false} />
         <TimezoneProvider>
           <Router>
-          <Routes>
-            {/* Authentication Routes - No authentication required */}
-            <Route path='/' element={<FlowkeyLandingPage />} />
-            
-            {/* Public Booking Route - No authentication required */}
-            <Route
-              path='/book/:businessSlug'
-              element={
-                <AuthWrapper requireAuth={false} allowPublicAccess={true}>
-                  <PublicBookingPage />
-                </AuthWrapper>
-              }
-            />
-            
-            {/* Direct Session Booking - No authentication required */}
-            <Route
-              path='/book/:businessSlug/session/:sessionId'
-              element={
-                <AuthWrapper requireAuth={false} allowPublicAccess={true}>
-                  <PublicBookingPage />
-                </AuthWrapper>
-              }
-            />
-            
-            {/* Direct Service Booking - No authentication required */}
-            <Route
-              path='/book/:businessSlug/service/:serviceId'
-              element={
-                <AuthWrapper requireAuth={false} allowPublicAccess={true}>
-                  <PublicBookingPage />
-                </AuthWrapper>
-              }
-            />
-            
-            {/* Direct Service Booking with Staff - No authentication required */}
-            <Route
-              path='/book/:businessSlug/service/:serviceId/staff/:staffId'
-              element={
-                <AuthWrapper requireAuth={false} allowPublicAccess={true}>
-                  <PublicBookingPage />
-                </AuthWrapper>
-              }
-            />
-            
-            {/* Direct Service Booking with Location - No authentication required */}
-            <Route
-              path='/book/:businessSlug/service/:serviceId/location/:locationId'
-              element={
-                <AuthWrapper requireAuth={false} allowPublicAccess={true}>
-                  <PublicBookingPage />
-                </AuthWrapper>
-              }
-            />
-            
-            {/* Direct Service Booking with Staff and Location - No authentication required */}
-            <Route
-              path='/book/:businessSlug/service/:serviceId/staff/:staffId/location/:locationId'
-              element={
-                <AuthWrapper requireAuth={false} allowPublicAccess={true}>
-                  <PublicBookingPage />
-                </AuthWrapper>
-              }
-            />
-            
-            {/* Direct Service Booking with Location and Staff (alternate order) - No authentication required */}
-            <Route
-              path='/book/:businessSlug/service/:serviceId/location/:locationId/staff/:staffId'
-              element={
-                <AuthWrapper requireAuth={false} allowPublicAccess={true}>
-                  <PublicBookingPage />
-                </AuthWrapper>
-              }
-            />
-            
-            {/* Public Booking Management Routes - No authentication required */}
-            <Route
-              path='/booking/cancel/:bookingReference'
-              element={
-                <AuthWrapper requireAuth={false} allowPublicAccess={true}>
-                  <BookingCancel />
-                </AuthWrapper>
-              }
-            />
-            
-            <Route
-              path='/booking/manage/:bookingReference'
-              element={
-                <AuthWrapper requireAuth={false} allowPublicAccess={true}>
-                  <BookingManage />
-                </AuthWrapper>
-              }
-            />
-            
-            <Route
-              path='/booking/cancelled'
-              element={
-                <AuthWrapper requireAuth={false} allowPublicAccess={true}>
-                  <BookingCancelled />
-                </AuthWrapper>
-              }
-            />
-            
-            <Route
-              path='/booking/rescheduled'
-              element={
-                <AuthWrapper requireAuth={false} allowPublicAccess={true}>
-                  <BookingRescheduled />
-                </AuthWrapper>
-              }
-            />
-            
-
-            
-            <Route
-              path='/login'
-              element={
-                <AuthWrapper requireAuth={false}>
-                  <Login />
-                </AuthWrapper>
-              }
-            />
-            <Route
-              path='/set-password'
-              element={
-                <AuthWrapper requireAuth={false}>
-                  <SetPassword />
-                </AuthWrapper>
-              }
-            />
-            <Route
-              path='/forgot-password'
-              element={
-                <AuthWrapper requireAuth={false}>
-                  <ForgotPassword />
-                </AuthWrapper>
-              }
-            />
-            <Route
-              path='/password-reset'
-              element={
-                <AuthWrapper requireAuth={false}>
-                  <PasswordResetLink />
-                </AuthWrapper>
-              }
-            />
-            <Route
-              path='/reset-password'
-              element={
-                <AuthWrapper requireAuth={false}>
-                  <ResetPassword />
-                </AuthWrapper>
-              }
-            />
-            <Route
-              path='/successful-password-reset'
-              element={
-                <AuthWrapper requireAuth={false}>
-                  <SuccessfulPassReset />
-                </AuthWrapper>
-              }
-            />
-
-            {/* Signup route - only in development */}
-            {import.meta.env.VITE_APP_ENVIRONMENT === 'development' && (
+            <Routes>
+              {/* Authentication Routes - No authentication required */}
+              <Route path='/' element={<FlowkeyLandingPage />} />
+              
+              {/* Public Booking Routes - No authentication required */}
               <Route
-                path='/signup'
+                path='/book/:businessSlug'
                 element={
-                  <AuthWrapper requireAuth={false}>
-                    <Signup />
+                  <AuthWrapper requireAuth={false} allowPublicAccess={true}>
+                    <PublicBookingPage />
                   </AuthWrapper>
                 }
               />
-            )}
-
-            {/* Protected Routes - Require authentication */}
-            <Route
-              path='/'
-              element={
-                <AuthWrapper requireAuth={true}>
-                  <Home />
-                </AuthWrapper>
-              }
-            >
-              <Route path='/dashboard' element={<GettingStarted />} />
-              <Route path='/welcome' element={<Welcome />} />
-              <Route path='/team-members' element={<TeamMembers />} />
-              <Route path='/business-type' element={<BusinessType />} />
-              <Route path='/monthly-clients' element={<MonthlyClients />} />
-              <Route path='/purpose' element={<Purpose />} />
-              <Route path='/logout' element={<LogoutSuccess />} />
-
-              {/* Permission-gated routes with proper loading handling */}
-              <Route 
-                path='staff' 
+              
+              {/* Direct Session Booking - No authentication required */}
+              <Route
+                path='/book/:businessSlug/session/:sessionId'
                 element={
-                  <RoleGatedRoute requiredPermission={(role) => !!(role?.can_view_staff)}>
-                    <AllStaff />
-                  </RoleGatedRoute>
-                } 
+                  <AuthWrapper requireAuth={false} allowPublicAccess={true}>
+                    <PublicBookingPage />
+                  </AuthWrapper>
+                }
               />
-              <Route 
-                path='staff/:id' 
+              
+              {/* Direct Service Booking - No authentication required */}
+              <Route
+                path='/book/:businessSlug/service/:serviceId'
                 element={
-                  <RoleGatedRoute requiredPermission={(role) => !!(role?.can_view_staff)}>
-                    <StaffDetails />
-                  </RoleGatedRoute>
-                } 
+                  <AuthWrapper requireAuth={false} allowPublicAccess={true}>
+                    <PublicBookingPage />
+                  </AuthWrapper>
+                }
               />
-              <Route 
-                path='sessions' 
+              
+              {/* Direct Service Booking with Staff - No authentication required */}
+              <Route
+                path='/book/:businessSlug/service/:serviceId/staff/:staffId'
                 element={
-                  <RoleGatedRoute requiredPermission={(role) => !!(role?.can_view_sessions)}>
-                    <AllClasses />
-                  </RoleGatedRoute>
-                } 
+                  <AuthWrapper requireAuth={false} allowPublicAccess={true}>
+                    <PublicBookingPage />
+                  </AuthWrapper>
+                }
               />
-              <Route 
-                path='sessions/:id' 
+              
+              {/* Direct Service Booking with Location - No authentication required */}
+              <Route
+                path='/book/:businessSlug/service/:serviceId/location/:locationId'
                 element={
-                  <RoleGatedRoute requiredPermission={(role) => !!(role?.can_view_sessions)}>
-                    <ClassDetails />
-                  </RoleGatedRoute>
-                } 
+                  <AuthWrapper requireAuth={false} allowPublicAccess={true}>
+                    <PublicBookingPage />
+                  </AuthWrapper>
+                }
               />
-              <Route 
-                path='calendar' 
+              
+              {/* Direct Service Booking with Staff and Location - No authentication required */}
+              <Route
+                path='/book/:businessSlug/service/:serviceId/staff/:staffId/location/:locationId'
                 element={
-                  <RoleGatedRoute requiredPermission={(role) => !!(role?.can_view_calendar)}>
-                    <CalendarView />
-                  </RoleGatedRoute>
-                } 
+                  <AuthWrapper requireAuth={false} allowPublicAccess={true}>
+                    <PublicBookingPage />
+                  </AuthWrapper>
+                }
               />
-              <Route 
-                path='clients' 
+              
+              {/* Direct Service Booking with Location and Staff (alternate order) - No authentication required */}
+              <Route
+                path='/book/:businessSlug/service/:serviceId/location/:locationId/staff/:staffId'
                 element={
-                  <RoleGatedRoute requiredPermission={(role) => !!(role?.can_view_clients)}>
-                    <AllClients />
-                  </RoleGatedRoute>
-                } 
+                  <AuthWrapper requireAuth={false} allowPublicAccess={true}>
+                    <PublicBookingPage />
+                  </AuthWrapper>
+                }
               />
-              <Route 
-                path='groups/:id' 
+              
+              {/* Public Booking Management Routes - No authentication required */}
+              <Route
+                path='/booking/cancel/:bookingReference'
                 element={
-                  <RoleGatedRoute requiredPermission={(role) => !!(role?.can_view_clients)}>
-                    <GroupDetails />
-                  </RoleGatedRoute>
-                } 
+                  <AuthWrapper requireAuth={false} allowPublicAccess={true}>
+                    <BookingCancel />
+                  </AuthWrapper>
+                }
               />
-              <Route 
-                path='clients/:id' 
+              
+              <Route
+                path='/booking/manage/:bookingReference'
                 element={
-                  <RoleGatedRoute requiredPermission={(role) => !!(role?.can_view_clients)}>
-                    <ClientDetails />
-                  </RoleGatedRoute>
-                } 
+                  <AuthWrapper requireAuth={false} allowPublicAccess={true}>
+                    <BookingManage />
+                  </AuthWrapper>
+                }
               />
-              <Route 
-                path='booking-requests/:id' 
+              
+              <Route
+                path='/booking/cancelled'
                 element={
-                  <RoleGatedRoute requiredPermission={(role) => !!(role?.can_view_clients)}>
-                    <BookingRequestDetails />
-                  </RoleGatedRoute>
-                } 
+                  <AuthWrapper requireAuth={false} allowPublicAccess={true}>
+                    <BookingCancelled />
+                  </AuthWrapper>
+                }
               />
-              <Route 
-                path='profile' 
+              
+              <Route
+                path='/booking/rescheduled'
                 element={
-                  <RoleGatedRoute requiredPermission={(role) => !!(role?.can_manage_profile)}>
-                    <Profile />
-                  </RoleGatedRoute>
-                } 
-              />
-              <Route 
-                path='settings' 
-                element={
-                  <RoleGatedRoute requiredPermission={(role) => !!(role?.can_manage_settings)}>
-                    <Settings />
-                  </RoleGatedRoute>
-                } 
+                  <AuthWrapper requireAuth={false} allowPublicAccess={true}>
+                    <BookingRescheduled />
+                  </AuthWrapper>
+                }
               />
 
-              {/* Audit Logs route - Permission-based access */}
-              <Route 
-                path='audit-logs' 
+              {/* Authentication routes */}
+              <Route
+                path='/login'
                 element={
-                  <RoleGatedRoute requiredPermission={(role) => !!(role?.can_view_audit_logs)}>
-                    <AuditLogs />
-                  </RoleGatedRoute>
-                } 
+                  <AuthWrapper requireAuth={false}>
+                    <Login />
+                  </AuthWrapper>
+                }
+              />
+              <Route
+                path='/set-password'
+                element={
+                  <AuthWrapper requireAuth={false}>
+                    <SetPassword />
+                  </AuthWrapper>
+                }
+              />
+              <Route
+                path='/forgot-password'
+                element={
+                  <AuthWrapper requireAuth={false}>
+                    <ForgotPassword />
+                  </AuthWrapper>
+                }
+              />
+              <Route
+                path='/password-reset'
+                element={
+                  <AuthWrapper requireAuth={false}>
+                    <PasswordResetLink />
+                  </AuthWrapper>
+                }
+              />
+              <Route
+                path='/reset-password'
+                element={
+                  <AuthWrapper requireAuth={false}>
+                    <ResetPassword />
+                  </AuthWrapper>
+                }
+              />
+              <Route
+                path='/successful-password-reset'
+                element={
+                  <AuthWrapper requireAuth={false}>
+                    <SuccessfulPassReset />
+                  </AuthWrapper>
+                }
               />
 
-              {/* Staff Portal route - For staff members to manage their own exceptions */}
-              <Route 
-                path='staff-portal' 
+              {/* Signup route - only in development */}
+              {import.meta.env.VITE_APP_ENVIRONMENT === 'development' && (
+                <Route
+                  path='/signup'
+                  element={
+                    <AuthWrapper requireAuth={false}>
+                      <Signup />
+                    </AuthWrapper>
+                  }
+                />
+              )}
+
+              {/* Protected Routes - Require authentication */}
+              <Route
+                path='/'
                 element={
-                  <RoleGatedRoute requiredPermission={(role) => !!(role?.can_access_staff_portal)}>
-                    <StaffPortal />
-                  </RoleGatedRoute>
-                } 
-              />
+                  <AuthWrapper requireAuth={true}>
+                    <Home />
+                  </AuthWrapper>
+                }
+              >
+                <Route path='/dashboard' element={<GettingStarted />} />
+                <Route path='/welcome' element={<Welcome />} />
+                <Route path='/team-members' element={<TeamMembers />} />
+                <Route path='/business-type' element={<BusinessType />} />
+                <Route path='/monthly-clients' element={<MonthlyClients />} />
+                <Route path='/purpose' element={<Purpose />} />
+                <Route path='/logout' element={<LogoutSuccess />} />
 
-              {/* Catch-all route for authenticated users */}
-              <Route path='*' element={<ComingSoon />} />
-            </Route>
+                {/* Permission-gated routes using both methods for compatibility */}
+                
+                {/* Staff routes */}
+                <Route 
+                  path='staff' 
+                  element={
+                    <RoleGatedRoute requiredPermission={(role) => !!(role?.can_view_staff)}>
+                      <AllStaff />
+                    </RoleGatedRoute>
+                  } 
+                />
+                {permisions?.can_view_staff && (
+                  <Route path='staff/:id' element={<StaffDetails />} />
+                )}
+                
+                {/* Session routes */}
+                <Route 
+                  path='sessions' 
+                  element={
+                    <RoleGatedRoute requiredPermission={(role) => !!(role?.can_view_sessions)}>
+                      <AllClasses />
+                    </RoleGatedRoute>
+                  } 
+                />
+                {permisions?.can_view_sessions && (
+                  <Route path='sessions/:id' element={<ClassDetails />} />
+                )}
+                
+                {/* Calendar route */}
+                <Route 
+                  path='calendar' 
+                  element={
+                    <RoleGatedRoute requiredPermission={(role) => !!(role?.can_view_calendar)}>
+                      <CalendarView />
+                    </RoleGatedRoute>
+                  } 
+                />
+                
+                {/* Client routes */}
+                <Route 
+                  path='clients' 
+                  element={
+                    <RoleGatedRoute requiredPermission={(role) => !!(role?.can_view_clients)}>
+                      <AllClients />
+                    </RoleGatedRoute>
+                  } 
+                />
+                {permisions?.can_view_clients && (
+                  <>
+                    <Route path='groups/:id' element={<GroupDetails />} />
+                    <Route path='clients/:id' element={<ClientDetails />} />
+                    <Route
+                      path='booking-requests/:id'
+                      element={<BookingRequestDetails />}
+                    />
+                  </>
+                )}
+                
+                {/* Profile route */}
+                <Route 
+                  path='profile' 
+                  element={
+                    <RoleGatedRoute requiredPermission={(role) => !!(role?.can_manage_profile)}>
+                      <Profile />
+                    </RoleGatedRoute>
+                  } 
+                />
+                
+                {/* Settings route */}
+                <Route 
+                  path='settings' 
+                  element={
+                    <RoleGatedRoute requiredPermission={(role) => !!(role?.can_manage_settings)}>
+                      <Settings />
+                    </RoleGatedRoute>
+                  } 
+                />
 
-            {/* Redirect any other paths to login */}
-            <Route path='*' element={<Navigate to='/login' replace />} />
-          </Routes>
-        </Router>
+                {/* Audit Logs route - Permission-based access */}
+                <Route 
+                  path='audit-logs' 
+                  element={
+                    <RoleGatedRoute requiredPermission={(role) => !!(role?.can_view_audit_logs)}>
+                      <AuditLogs />
+                    </RoleGatedRoute>
+                  } 
+                />
+                {permisions?.can_view_audit_logs && (
+                  <Route path='audit-logs' element={<AuditLogs />} />
+                )}
+
+                {/* Staff Portal route - For staff members to manage their own exceptions */}
+                <Route 
+                  path='staff-portal' 
+                  element={
+                    <RoleGatedRoute requiredPermission={(role) => !!(role?.can_access_staff_portal)}>
+                      <StaffPortal />
+                    </RoleGatedRoute>
+                  } 
+                />
+
+                {/* Catch-all route for authenticated users */}
+                <Route path='*' element={<ComingSoon />} />
+              </Route>
+
+              {/* Redirect any other paths to login */}
+              <Route path='*' element={<Navigate to='/login' replace />} />
+            </Routes>
+          </Router>
         </TimezoneProvider>
 
         {/* Add auth debugger for development */}

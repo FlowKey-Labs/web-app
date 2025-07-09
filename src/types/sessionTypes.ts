@@ -245,14 +245,13 @@ export interface AssignedStaff {
 }
 
 export type SessionType = 'class' | 'appointment' | 'event';
-export type ClassType = 'private' | 'regular' | 'workshop';
 export type RepeatUnit = 'days' | 'weeks' | 'months';
 export type EndType = 'never' | 'on' | 'after';
 
 export interface Session
   extends Omit<
     CreateSessionData,
-    'category' | 'client_ids' | 'location_id' | 'location_ids'
+    'category' | 'client_ids' | 'location_id' | 'location_ids' | 'class_type'
   > {
   id: number;
   assigned_staff: AssignedStaff | null;
@@ -276,6 +275,8 @@ export interface Session
   require_staff_confirmation?: boolean;
   staff_confirmation_timeout_hours?: number;
   auto_assign_when_single_option?: boolean;
+  class_type?: string;
+  class_type_detail?: ClassType;
 }
 
 export interface SessionTableData {
@@ -398,12 +399,26 @@ export interface CalendarSessionType extends Omit<Session, 'repeat_end_date'> {
   date: string;
   spots: number;
   attendances?: Attendance[];
+  
+  // Client attendees for the session
+  attendees?: Array<{
+    id?: number | string;
+    first_name?: string;
+    last_name?: string;
+    name?: string;
+    email?: string;
+    phone_number?: string;
+    phone?: string;
+  }>;
+  
   // Allow for any additional properties coming from the backend
   [key: string]: unknown;
 }
 
 export interface SessionFilters {
-  sessionTypes: string[];
+  sessionTypes?: string[];
+  categories?: string[];
+  dateRange?: [Date | null, Date | null];
   pageIndex: number;
 }
 
@@ -416,3 +431,33 @@ export interface Business {
   timezone: string;
   // ... other fields
 }
+
+export interface ClassType {
+  id?: string;
+  name: string;
+  description?: string;
+  is_active?: boolean;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export type SessionsPerStaff = {
+  id: string;
+  title: string;
+  start_time: string; // Format: "HH:MM"
+  end_time: string; // Format: "HH:MM"
+  client_count: number;
+};
+
+export type StaffSessionsPerStaff = {
+  staff_id: string | number;
+  staff_name: string;
+  session_count: number;
+  sessions: Session[];
+};
+
+export type DailyStaffSessionsResponse = {
+  date: string; // ISO date format (YYYY-MM-DD)
+  staff_sessions?: StaffSessionsPerStaff[]; // Made optional with ?
+  total_sessions: number;
+};

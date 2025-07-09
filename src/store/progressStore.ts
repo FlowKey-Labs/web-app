@@ -9,9 +9,12 @@ export interface SeriesLevel {
   id: string;
   label: string;
   value: string;
+  name?: string;
   outcomes?: Outcome[];
   completed?: string[];
   progress?: number;
+  assessed_on?: string | null;
+  total?: number;
 }
 
 export interface Series {

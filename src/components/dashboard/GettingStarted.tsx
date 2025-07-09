@@ -1,4 +1,3 @@
-import DropDownMenu from '../common/DropdownMenu';
 import Header from '../headers/Header';
 import ErrorBoundary from '../common/ErrorBoundary';
 
@@ -14,26 +13,31 @@ import {
   useGetUpcomingSessions,
   useGetClients,
 } from '../../hooks/reactQuery';
+import { useGetWeeklyClients } from '../../hooks/react_query_hooks/analyticsHooks';
 import { DateFilterOption } from '../../types/dashboard';
 
-import dropdownIcon from '../../assets/icons/dropIcon.svg';
-import calenderIcon from '../../assets/icons/calendar.svg';
 import sessionsIcon from '../../assets/icons/sessions.svg';
 import totalClientsIcon from '../../assets/icons/totalClients.svg';
 import totalStaffIcon from '../../assets/icons/totalStaff.svg';
 import rightIcon from '../../assets/icons/greenRight.svg';
 import { useState } from 'react';
 import { BarGraph } from '../common/BarGraph';
-import donutIcon from '../../assets/icons/donutIcon.svg';
 
 import Table from '../common/Table';
 import { createColumnHelper } from '@tanstack/react-table';
 import { useNavigate } from 'react-router-dom';
-import { DonutChart } from '@mantine/charts';
+import { DonutChart } from '../common/DonutChart';
 import { format } from 'date-fns';
-import { Client } from '../../types/clientTypes';
-import { Progress, Skeleton } from '@mantine/core';
 import { formatToEATTime } from '../../utils/formatTo12Hour';
+import { Progress, Skeleton, Card, Text, Group, Badge } from '@mantine/core';
+import { Select } from '@mantine/core';
+import { IconCalendar } from '@tabler/icons-react';
+
+import { SessionsPerStaff } from './SessionsPerStaff';
+import { UpcomingBirthdays } from './UpcomingBirthdays';
+import { CategoryDistribution } from './CategoryDistribution';
+import { CancellationsReschedules } from './CancellationsReschedules';
+import { Client } from '../../types/clientTypes';
 
 const columnHelper = createColumnHelper<Client>();
 
@@ -77,9 +81,7 @@ const columns = [
 ];
 
 const GettingStarted = () => {
-  const [dropdownOpen, setDropdownOpen] = useState(false);
   const [rowSelection, setRowSelection] = useState({});
-
   const [selectedTimeRange, setSelectedTimeRange] = useState('to_date');
 
   const navigate = useNavigate();
@@ -88,6 +90,7 @@ const GettingStarted = () => {
   const { data: analytics, isLoading: isLoadingAnalytics } = useGetAnalytics(
     selectedTimeRange as DateFilterOption
   );
+  const { data: weeklyClientsData, isLoading: isLoadingWeeklyClients } = useGetWeeklyClients();
   const { data: upcomingSessions, isLoading: isLoadingSessions } =
     useGetUpcomingSessions();
   const {
@@ -95,16 +98,11 @@ const GettingStarted = () => {
       items: [],
       total: 0,
       page: 1,
-      pageSize: 8,
+      pageSize: 6,
       totalPages: 1,
     },
     isLoading: isLoadingClients,
-  } = useGetClients(1, 8);
-
-  const handleTimeRangeSelect = (range: string) => {
-    setSelectedTimeRange(range);
-    setDropdownOpen(false);
-  };
+  } = useGetClients(1, 6);
 
   const formatNumber = (num: number | undefined): string => {
     if (num === undefined || num === null) return '0';
@@ -146,82 +144,39 @@ const GettingStarted = () => {
                     Here's what we have for you today
                   </p>
                 </div>
-
-                <div className='flex-shrink-0'>
-                  <DropDownMenu
-                    show={dropdownOpen}
-                    setShow={setDropdownOpen}
-                    dropDownPosition='center'
-                    actionElement={
-                      <div
-                        id='viewSelect'
-                        className='p-3 border border-gray-200 bg-white text-primary rounded-lg w-full sm:w-44 h-11 outline-none cursor-pointer flex items-center justify-between shadow-sm hover:shadow-sm hover:border-primary/20 transition-all duration-200'
-                      >
-                        <img
-                          src={calenderIcon}
-                          alt='Calendar icon'
-                          className='w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0'
-                        />
-                        <p className='text-sm font-medium truncate mx-2'>
-                          {selectedTimeRange === 'to_date'
-                            ? 'To Date'
-                            : selectedTimeRange === 'today'
-                            ? 'Today'
-                            : selectedTimeRange === 'last_7_days'
-                            ? 'Last 7 Days'
-                            : selectedTimeRange === 'last_30_days'
-                            ? 'Last 30 Days'
-                            : selectedTimeRange === 'last_3_months'
-                            ? 'Last 3 Months'
-                            : selectedTimeRange === 'last_year'
-                            ? 'Last Year'
-                            : selectedTimeRange}
-                        </p>
-                        <img
-                          src={dropdownIcon}
-                          alt='Dropdown arrow'
-                          className='w-4 h-4 flex-shrink-0'
-                        />
-                      </div>
+                <div className='flex-shrink-0 w-48'>
+                  <Select
+                    data={[
+                      { value: 'to_date', label: 'To Date' },
+                      { value: 'today', label: 'Today' },
+                      { value: 'last_7_days', label: 'Last 7 Days' },
+                      { value: 'last_30_days', label: 'Last 30 Days' },
+                      { value: 'last_3_months', label: 'Last 3 Months' },
+                      { value: 'last_year', label: 'Last Year' },
+                    ]}
+                    value={selectedTimeRange}
+                    onChange={(value) =>
+                      setSelectedTimeRange(value || 'to_date')
                     }
-                  >
-                    <div className='border border-gray-200 rounded-lg shadow-sm bg-white min-w-[200px]'>
-                      <ul className='w-full flex flex-col py-2'>
-                        {[
-                          'to_date',
-                          'today',
-                          'last_7_days',
-                          'last_30_days',
-                          'last_3_months',
-                          'last_year',
-                        ].map((range) => (
-                          <li
-                            key={range}
-                            className={`cursor-pointer text-left px-4 py-2 hover:bg-gray-50 transition-colors duration-150 ${
-                              selectedTimeRange === range
-                                ? 'text-green-600 bg-green-50 font-medium'
-                                : 'text-gray-700'
-                            }`}
-                            onClick={() => handleTimeRangeSelect(range)}
-                          >
-                            {range === 'to_date'
-                              ? 'To Date'
-                              : range === 'today'
-                              ? 'Today'
-                              : range === 'last_7_days'
-                              ? 'Last 7 Days'
-                              : range === 'last_30_days'
-                              ? 'Last 30 Days'
-                              : range === 'last_3_months'
-                              ? 'Last 3 Months'
-                              : range === 'last_year'
-                              ? 'Last Year'
-                              : range}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  </DropDownMenu>
+                    leftSection={<IconCalendar size={16} />}
+                    styles={{
+                      input: {
+                        borderColor: '#e2e8f0',
+                        '&:hover': {
+                          borderColor: 'rgba(0, 0, 0, 0.1)',
+                          boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+                        },
+                        '&:focus': {
+                          borderColor: 'var(--mantine-color-primary-filled)',
+                          boxShadow:
+                            '0 0 0 1px var(--mantine-color-primary-filled)',
+                        },
+                      },
+                      section: {
+                        marginRight: 8,
+                      },
+                    }}
+                  />
                 </div>
               </div>
             </div>
@@ -345,83 +300,109 @@ const GettingStarted = () => {
               </div>
             </div>
 
-            <div className='grid grid-cols-1 xl:grid-cols-12 gap-6 lg:gap-8'>
+            <div className='grid grid-cols-1 xl:grid-cols-12 gap-6 lg:gap-8 mt-6'>
               <div className='xl:col-span-4 space-y-6'>
+                {/* Clients Overview Card */}
                 <div className='bg-white rounded-lg p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-200'>
-                  <h4 className='text-[#08040C] text-lg font-semibold mb-6'>
-                    Clients Overview
-                  </h4>
-                  <div className='flex flex-col'>
-                    <div className='flex justify-center'>
+                  <div className='flex flex-col justify-between items-center mb-6'>
+                    <h4 className='text-[#08040C] self-start text-lg font-semibold pb-4'>
+                      Clients Overview
+                    </h4>
+                    <div className='w-full h-[240px]'>
                       <DonutChart
-                        data={(() => {
-                          const chartData = (
-                            analytics?.gender_distribution || []
-                          ).map((item, index) => ({
-                            ...item,
-                            color: index === 0 ? '#00A76F' : '#EEEAF2',
-                          }));
-                          return chartData;
-                        })()}
-                        startAngle={180}
-                        endAngle={0}
-                        size={160}
-                        thickness={25}
-                        w={200}
-                        h={200}
-                        withLabels
-                        withLabelsLine
-                        labelsType='percent'
-                        tooltipDataSource='segment'
-                        tooltipProps={{
-                          content: ({ payload }) => {
-                            if (!payload?.[0]?.payload) return null;
-                            const data = payload[0].payload;
-                            return (
-                              <div className='bg-white p-2 border border-gray-200 rounded-md shadow-sm'>
-                                <div className='font-medium'>{data.name}</div>
-                                <div className='text-primary font-semibold'>
-                                  {data.value}%
-                                </div>
-                              </div>
-                            );
-                          },
-                        }}
-                        withTooltip
-                        style={{ objectFit: 'cover' }}
-                      >
-                        <div className='w-full flex items-center justify-center'>
-                          <img src={donutIcon} alt='Chart center icon' />
-                        </div>
-                      </DonutChart>
-                    </div>
-                    <div className='flex justify-around w-full items-center mt-4'>
-                      <p className='text-[#08040C] text-xs font-semibold'>
-                        Male
-                      </p>
-                      <p className='text-[#08040C] text-xs font-semibold'>
-                        Female
-                      </p>
+                        data={analytics?.gender_distribution || []}
+                        height={180}
+                        width={400}
+                      />
                     </div>
                   </div>
                 </div>
 
-                <div className='bg-white rounded-lg p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-200'>
-                  <h4 className='text-[#08040C] text-lg font-semibold mb-6'>
-                    Total Daily Clients
+                {/* Weekly Clients Bar Chart */}
+                <div className='bg-white rounded-lg p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-200 mt-6'>
+                  <h4 className='text-[#08040C] text-lg font-semibold mb-4'>
+                    Weekly Clients
                   </h4>
-                  <div className='w-full overflow-x-auto'>
-                    <BarGraph analytics={analytics} />
+                  <div className='flex justify-center items-center w-full h-[200px]'>
+                    {isLoadingWeeklyClients ? (
+                      <div className='h-full flex items-center justify-center'>
+                        <Skeleton height={200} width="100%" />
+                      </div>
+                    ) : weeklyClientsData ? (
+                      <BarGraph 
+                        data={weeklyClientsData.data.map(item => ({
+                          day: item.day.substring(0, 3), 
+                          clients: item.value
+                        }))} 
+                        height="100%" 
+                      />
+                    ) : (
+                      <div className='h-full flex items-center justify-center text-gray-500'>
+                        No data available
+                      </div>
+                    )}
                   </div>
                 </div>
+
+                {/* Sessions per Staff Card */}
+                <Card
+                  withBorder
+                  radius='md'
+                  className='hover:shadow-md transition-shadow'
+                >
+                  <Group justify='space-between' mb='md'>
+                    <Text size='lg' fw={600}>
+                      Sessions per Staff
+                    </Text>
+                    <Badge variant='light' color='blue'>
+                      Today
+                    </Badge>
+                  </Group>
+                  <SessionsPerStaff />
+                </Card>
+
+                {/* Upcoming Birthdays Card */}
+                <Card
+                  withBorder
+                  radius='md'
+                  className='hover:shadow-md transition-shadow'
+                >
+                  <Group justify='space-between' mb='md'>
+                    <Text size='lg' fw={600}>
+                      Upcoming Birthdays
+                    </Text>
+                    <Badge variant='light' color='pink'>
+                      This Week
+                    </Badge>
+                  </Group>
+                  <UpcomingBirthdays />
+                </Card>
+
+                {/* Category Distribution Card */}
+                <Card
+                  withBorder
+                  radius='md'
+                  className='hover:shadow-md transition-shadow'
+                >
+                  <Group justify='space-between' mb='md'>
+                    <Text size='lg' fw={600}>
+                      Category Distribution
+                    </Text>
+                    <Badge variant='light' color='violet'>
+                      All Time
+                    </Badge>
+                  </Group>
+                  <CategoryDistribution />
+                </Card>
               </div>
 
               <div className='xl:col-span-8 space-y-6'>
+                {/* Upcoming Sessions Card */}
                 <div className='bg-white rounded-lg p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-200'>
-                  <div className='flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 gap-3'>
-                    <h3 className='text-lg font-semibold text-primary'>
+                  <div className='flex justify-between items-center mb-6'>
+                    <h4 className='text-[#08040C] text-lg font-semibold'>
                       Upcoming Sessions
-                    </h3>
+                    </h4>
                     <button
                       className='flex gap-2 items-center cursor-pointer hover:bg-gray-50 px-3 py-2 rounded-md transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-secondary focus:ring-opacity-50 self-start sm:self-auto'
                       onClick={() => navigateToCalendar(navigate)}
@@ -466,8 +447,8 @@ const GettingStarted = () => {
                         >
                           <div className='flex justify-between sm:block sm:w-20 sm:text-center'>
                             <p className='text-xs font-semibold text-gray-900'>
-                              {formatToEATTime(session?.start_time)} -{' '}
-                              {formatToEATTime(session?.end_time)}
+                              {formatToEATTime(session?.start_time || '')} -{' '}
+                              {formatToEATTime(session?.end_time || '')}
                             </p>
                             <p className='text-sm text-gray-600 sm:hidden'>
                               {session?.date
@@ -508,6 +489,7 @@ const GettingStarted = () => {
                   </div>
                 </div>
 
+                {/* Clients Table Card */}
                 <div className='bg-white rounded-lg shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-200'>
                   <div className='flex flex-col sm:flex-row sm:justify-between sm:items-center p-6 border-b border-gray-100 gap-3'>
                     <h3 className='text-lg font-semibold text-primary'>
@@ -552,7 +534,7 @@ const GettingStarted = () => {
                           columns={columns}
                           rowSelection={rowSelection}
                           onRowSelectionChange={setRowSelection}
-                          pageSize={8}
+                          // pageSize={8}
                           onRowClick={(row: Client) =>
                             navigateToClientDetails(navigate, row.id.toString())
                           }
@@ -574,6 +556,23 @@ const GettingStarted = () => {
                     )}
                   </div>
                 </div>
+
+                {/* Cancellations & Reschedules Card */}
+                <Card
+                  withBorder
+                  radius='md'
+                  className='hover:shadow-md transition-shadow'
+                >
+                  <Group justify='space-between' mb='md'>
+                    <Text size='lg' fw={600}>
+                      Cancellations & Reschedules
+                    </Text>
+                    <Badge variant='light' color='orange'>
+                      Last 30 Days
+                    </Badge>
+                  </Group>
+                  <CancellationsReschedules />
+                </Card>
               </div>
             </div>
           </div>

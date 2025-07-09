@@ -11,8 +11,19 @@ import Availability from './Availability';
 import BookingLink from './BookingLink';
 import StaffManagement from './StaffManagement';
 import StaffPortal from './StaffPortal';
+import ClassTypes from './SessionClassTypes/ClassTypes';
 
-type TabType = 'business' | 'locations' | 'schedule' | 'categories' | 'bookings' | 'availability' | 'booking-link' | 'staff-management' | 'staff-portal';
+type TabType = 
+  | 'business' 
+  | 'locations' 
+  | 'schedule' 
+  | 'categories' 
+  | 'class types'
+  | 'bookings' 
+  | 'availability' 
+  | 'booking-link' 
+  | 'staff-management' 
+  | 'staff-portal';
 
 const Profile = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -61,6 +72,7 @@ const Profile = () => {
     const baseTabs = [
       { id: 'business', label: 'Business Information' },
       { id: 'categories', label: 'Session Categories' },
+      { id: 'class types', label: 'Session Types' },
       { id: 'locations', label: 'Locations' },
       { id: 'availability', label: 'Availability' },
       { id: 'bookings', label: 'Booking Settings' },
@@ -90,6 +102,7 @@ const Profile = () => {
     locations: <BusinessLocation />,
     schedule: <Schedule />,
     categories: <Categories />,
+    'class types': <ClassTypes />,
     bookings: (
       <BookingSettings
         openedAccordion={openedAccordion}
@@ -111,8 +124,12 @@ const Profile = () => {
         {/* Header Section */}
         <div className='mb-4 lg:mb-6'>
           <div className='px-2 sm:px-3 lg:px-4'>
-            <h1 className='text-primary text-lg sm:text-xl lg:text-2xl font-bold mb-1'>Profile</h1>
-            <p className='text-gray-600 text-xs sm:text-sm lg:text-base'>Manage your business profile and settings</p>
+            <h1 className='text-primary text-lg sm:text-xl lg:text-2xl font-bold mb-1'>
+              Profile
+            </h1>
+            <p className='text-gray-600 text-xs sm:text-sm lg:text-base'>
+              Manage your business profile and settings
+            </p>
           </div>
         </div>
 
@@ -124,15 +141,15 @@ const Profile = () => {
                 <button
                   key={tab.id}
                   className={`relative px-2 sm:px-3 lg:px-4 py-2 sm:py-2.5 text-xs sm:text-xs lg:text-sm font-medium rounded-md transition-all duration-200 whitespace-nowrap flex-shrink-0 min-w-max ${
-                    activeTab === tab.id 
-                      ? 'bg-[#1D9B5E] text-white shadow-sm transform scale-[0.98] lg:scale-100' 
+                    activeTab === tab.id
+                      ? 'bg-[#1D9B5E] text-white shadow-sm transform scale-[0.98] lg:scale-100'
                       : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                   }`}
                   onClick={() => handleTabChange(tab.id as TabType)}
                 >
                   {tab.label}
                   {activeTab === tab.id && (
-                    <div className="absolute inset-0 bg-[#1D9B5E]/10 rounded-md -z-10" />
+                    <div className='absolute inset-0 bg-[#1D9B5E]/10 rounded-md -z-10' />
                   )}
                 </button>
               ))}
