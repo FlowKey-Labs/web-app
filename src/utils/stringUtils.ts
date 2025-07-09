@@ -23,3 +23,53 @@ export const safeToString = (value: unknown): string => {
   }
   return '';
 }; 
+
+/**
+ * Format currency value with business currency settings
+ */
+export const formatCurrency = (
+  amount: number | string | null | undefined,
+  currency: string = 'KSH',
+  currencySymbol: string = 'KSH'
+): string => {
+  if (amount === null || amount === undefined || amount === '') {
+    return `${currencySymbol} 0`;
+  }
+
+  const numericAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
+  
+  if (isNaN(numericAmount)) {
+    return `${currencySymbol} 0`;
+  }
+
+  // Format with commas for thousands
+  const formattedAmount = numericAmount.toLocaleString('en-US', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  });
+
+  return `${currencySymbol} ${formattedAmount}`;
+};
+
+/**
+ * Get currency placeholder text for input fields
+ */
+export const getCurrencyPlaceholder = (
+  currency: string = 'KSH',
+  currencySymbol: string = 'KSH'
+): string => {
+  return `Enter amount in ${currency}`;
+};
+
+/**
+ * Parse currency input to numeric value
+ */
+export const parseCurrencyInput = (value: string | number): number => {
+  if (typeof value === 'number') return value;
+  
+  // Remove currency symbols and non-numeric characters except decimal point
+  const cleanValue = value.replace(/[^\d.]/g, '');
+  const numericValue = parseFloat(cleanValue);
+  
+  return isNaN(numericValue) ? 0 : numericValue;
+}; 

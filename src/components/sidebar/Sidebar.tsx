@@ -9,7 +9,9 @@ import {
   navigateToCalendar,
   navigateToProfile,
   navigateToSettings,
-  navigateToHome, navigateToAuditLogs,
+  navigateToHome, 
+  navigateToAuditLogs,
+  navigateToStaffPortal,
 } from '../../utils/navigationHelpers';
 import { Role, useAuthStore } from '../../store/auth';
 import { useMemo, useState, useEffect } from 'react';
@@ -26,6 +28,7 @@ const navigationMap: NavigationMap = {
   clients: navigateToClients,
   calendar: navigateToCalendar,
   "audit logs": navigateToAuditLogs,
+  "staff portal": navigateToStaffPortal,
   profile: navigateToProfile,
   settings: navigateToSettings,
 };
@@ -44,6 +47,7 @@ const permissionMap: Record<string, keyof Role> = {
   Profile: "can_manage_profile",
   Settings: "can_manage_settings",
   "Audit Logs": "can_view_audit_logs",
+  "Staff Portal": "can_access_staff_portal", // Staff portal shows for users who can access the staff portal
 };
 
 function filterMenuItemsByRole<T extends { name: string }>(
@@ -64,6 +68,7 @@ function filterMenuItemsByRole<T extends { name: string }>(
 const Sidebar = ({ activeItem, isOpen = true, onClose }: SidebarProps) => {
   const navigate = useNavigate();
   const role = useAuthStore((state) => state.role);
+  const user = useAuthStore((state) => state.user);
   const logout = useLogout();
   const [isMobile, setIsMobile] = useState(false);
 
@@ -71,10 +76,79 @@ const Sidebar = ({ activeItem, isOpen = true, onClose }: SidebarProps) => {
     () => (role ? filterMenuItemsByRole(menuItems, role) : []),
     [role]
   );
-  const filteredBottomMenuItems = useMemo(
-    () => (role ? filterMenuItemsByRole(bottomMenuItems, role) : []),
-    [role]
-  );
+  
+  const filteredBottomMenuItems = useMemo(() => {
+    if (!role) return [];
+    
+    let items = [...bottomMenuItems];
+    
+    // Add Staff Portal for staff users (those who can access the staff portal)
+    if (role.can_access_staff_portal) {
+      const staffPortalItem = {
+        name: "Staff Portal",
+        icon: ({ className }: { className?: string }) => (
+          <svg
+            className={className}
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M12 12C14.7614 12 17 9.76142 17 7C17 4.23858 14.7614 2 12 2C9.23858 2 7 4.23858 7 7C7 9.76142 9.23858 12 12 12Z"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            <path
+              d="M20.59 22C20.59 18.13 16.74 15 12 15C7.26 15 3.41 18.13 3.41 22"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        ),
+        iconWhite: ({ className }: { className?: string }) => (
+          <svg
+            className={className}
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M12 12C14.7614 12 17 9.76142 17 7C17 4.23858 14.7614 2 12 2C9.23858 2 7 4.23858 7 7C7 9.76142 9.23858 12 12 12Z"
+              stroke="#ffffff"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            <path
+              d="M20.59 22C20.59 18.13 16.74 15 12 15C7.26 15 3.41 18.13 3.41 22"
+              stroke="#ffffff"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        ),
+      };
+      
+      // Insert Staff Portal before Profile
+      const profileIndex = items.findIndex(item => item.name === "Profile");
+      if (profileIndex !== -1) {
+        items.splice(profileIndex, 0, staffPortalItem);
+      } else {
+        items.unshift(staffPortalItem);
+      }
+    }
+    
+    return filterMenuItemsByRole(items, role);
+  }, [role, user?.is_staff]);
 
   // Check if mobile screen size
   useEffect(() => {

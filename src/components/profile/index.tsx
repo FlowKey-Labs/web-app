@@ -1,5 +1,7 @@
-import { JSX, useState } from 'react';
+import { JSX, useState, useMemo, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import Header from '../headers/Header';
+import { useAuthStore } from '../../store/auth';
 import Schedule from './Schedule';
 import BusinessInformation from './BusinessInformation';
 import { BusinessLocation } from './BusinessLocation';
@@ -7,31 +9,88 @@ import Categories from './Categories';
 import BookingSettings from './BookingSettings';
 import Availability from './Availability';
 import BookingLink from './BookingLink';
+import StaffManagement from './StaffManagement';
+import StaffPortal from './StaffPortal';
 import ClassTypes from './SessionClassTypes/ClassTypes';
 
-type TabType =
-  | 'business'
-  | 'locations'
-  | 'schedule'
-  | 'categories'
-  | 'bookings'
-  | 'availability'
-  | 'booking-link'
-  | 'class types';
-
-const tabConfig = [
-  { id: 'business', label: 'Business Information' },
-  { id: 'categories', label: 'Session Categories' },
-  { id: 'class types', label: 'Session Types' },
-  { id: 'locations', label: 'Locations' },
-  { id: 'availability', label: 'Availability' },
-  { id: 'bookings', label: 'Booking Settings' },
-  { id: 'booking-link', label: 'Booking Link' },
-];
+type TabType = 
+  | 'business' 
+  | 'locations' 
+  | 'schedule' 
+  | 'categories' 
+  | 'class types'
+  | 'bookings' 
+  | 'availability' 
+  | 'booking-link' 
+  | 'staff-management' 
+  | 'staff-portal';
 
 const Profile = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [openedAccordion, setOpenedAccordion] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<TabType>('business');
+  
+  // Get initial tab from URL params or default to 'business'
+  const initialTab = searchParams.get('tab') as TabType || 'business';
+  const [activeTab, setActiveTab] = useState<TabType>(initialTab);
+  
+  const user = useAuthStore((state) => state.user);
+  const permissions = useAuthStore((state) => state.role);
+
+  // Check if user has staff management permissions
+  const canManageStaff = permissions?.can_manage_settings || 
+                         permissions?.can_view_staff || 
+                         permissions?.can_create_staff ||
+                         permissions?.can_edit_staff || false;
+
+  // Check if user is staff (for staff portal)
+  const isStaff = user?.is_staff || false;
+
+  // Update URL when tab changes
+  const handleTabChange = (tabId: TabType) => {
+    setActiveTab(tabId);
+    const newSearchParams = new URLSearchParams(searchParams);
+    newSearchParams.set('tab', tabId);
+    
+    // Preserve staff parameter if it exists and we're on staff-management tab
+    if (tabId !== 'staff-management') {
+      newSearchParams.delete('staff');
+    }
+    
+    setSearchParams(newSearchParams, { replace: true });
+  };
+
+  // Handle URL parameter changes
+  useEffect(() => {
+    const tabParam = searchParams.get('tab') as TabType;
+    if (tabParam && tabParam !== activeTab) {
+      setActiveTab(tabParam);
+    }
+  }, [searchParams, activeTab]);
+
+  // Dynamic tab configuration based on permissions
+  const tabConfig = useMemo(() => {
+    const baseTabs = [
+      { id: 'business', label: 'Business Information' },
+      { id: 'categories', label: 'Session Categories' },
+      { id: 'class types', label: 'Session Types' },
+      { id: 'locations', label: 'Locations' },
+      { id: 'availability', label: 'Availability' },
+      { id: 'bookings', label: 'Booking Settings' },
+      { id: 'booking-link', label: 'Booking Link' },
+    ];
+
+    // Add staff management tab for admins/managers
+    if (canManageStaff) {
+      baseTabs.push({ id: 'staff-management', label: 'Staff Management' });
+    }
+
+    // Add staff portal tab for staff members
+    if (isStaff) {
+      baseTabs.push({ id: 'staff-portal', label: 'Staff Portal' });
+    }
+
+    return baseTabs;
+  }, [canManageStaff, isStaff]);
 
   const contentMap: Record<TabType, JSX.Element> = {
     business: (
@@ -40,7 +99,6 @@ const Profile = () => {
         setOpenedAccordion={setOpenedAccordion}
       />
     ),
-
     locations: <BusinessLocation />,
     schedule: <Schedule />,
     categories: <Categories />,
@@ -53,6 +111,8 @@ const Profile = () => {
     ),
     availability: <Availability />,
     'booking-link': <BookingLink />,
+    'staff-management': <StaffManagement />,
+    'staff-portal': <StaffPortal />,
   };
 
   return (
@@ -85,7 +145,7 @@ const Profile = () => {
                       ? 'bg-[#1D9B5E] text-white shadow-sm transform scale-[0.98] lg:scale-100'
                       : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                   }`}
-                  onClick={() => setActiveTab(tab.id as TabType)}
+                  onClick={() => handleTabChange(tab.id as TabType)}
                 >
                   {tab.label}
                   {activeTab === tab.id && (

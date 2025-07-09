@@ -37,17 +37,12 @@ interface BookingSidebarProps {
 
 const progressSteps: BookingProgressItem[] = [
   { step: "service", label: "Service", shortLabel: "Service" },
-  { step: "date", label: "Date", shortLabel: "Date" },
-  { step: "staff", label: "Staff", shortLabel: "Staff" },
+  { step: "subcategory", label: "Subcategory", shortLabel: "Subcategory" },
   { step: "location", label: "Location", shortLabel: "Location" },
+  { step: "staff", label: "Staff", shortLabel: "Staff" },
+  { step: "date", label: "Date", shortLabel: "Date" },
   { step: "details", label: "Details", shortLabel: "Details" },
   { step: "confirmation", label: "Confirm", shortLabel: "Confirm" },
-];
-
-const howItWorksSteps = [
-  "Select a service from the available options",
-  "Choose your preferred date and time",
-  "Fill in your details to complete booking",
 ];
 
 export function BookingSidebar({
@@ -62,38 +57,86 @@ export function BookingSidebar({
 
   const availableSteps = React.useMemo(() => {
     const steps = progressSteps.filter((step) => {
-      if (
-        step.step === "staff" &&
-        !state.flexibleBookingSettings?.allow_staff_selection
-      ) {
+      // For flexible booking, show different steps
+      if (state.isFlexibleBooking) {
+        if (step.step === "subcategory" && !state.selectedServiceCategory?.subcategories?.length) {
+          return false;
+        }
+        if (step.step === "staff" && !state.flexibleBookingSettings?.allow_staff_selection) {
+          return false;
+        }
+        if (step.step === "location" && !state.flexibleBookingSettings?.allow_location_selection) {
+          return false;
+        }
+        return true;
+      }
+      
+      // For fixed booking, use original logic
+      if (step.step === "subcategory") {
+        return false; // Not used in fixed booking
+      }
+      if (step.step === "staff" && !state.flexibleBookingSettings?.allow_staff_selection) {
         return false;
       }
-      if (
-        step.step === "location" &&
-        !state.flexibleBookingSettings?.allow_location_selection
-      ) {
+      if (step.step === "location" && !state.flexibleBookingSettings?.allow_location_selection) {
         return false;
       }
       return true;
     });
     return steps;
-  }, [state.flexibleBookingSettings]);
+  }, [state.flexibleBookingSettings, state.isFlexibleBooking, state.selectedServiceCategory]);
 
-  const currentStepIndex = availableSteps.findIndex(
-    (step) => step.step === state.currentStep
-  );
-  const progressPercentage =
-    currentStepIndex >= 0
+  const showHowItWorks = state.currentStep === "service" && !state.selectedService && !state.selectedServiceCategory;
+  const showBookingSummary = ["details", "confirmation"].includes(state.currentStep);
+
+  // Dynamic How It Works steps based on booking type and settings
+  const howItWorksSteps = React.useMemo(() => {
+    const steps = [];
+    
+    // Step 1: Service selection
+    if (state.isFlexibleBooking) {
+      steps.push("Select a service category and specific service");
+    } else {
+      steps.push("Choose the service you'd like to book");
+    }
+    
+    // Step 2: Location/Staff selection (only if applicable)
+    const hasLocationSelection = state.flexibleBookingSettings?.allow_location_selection;
+    const hasStaffSelection = state.flexibleBookingSettings?.allow_staff_selection;
+    
+    if (hasLocationSelection && hasStaffSelection) {
+      steps.push("Choose your preferred location and staff");
+    } else if (hasLocationSelection) {
+      steps.push("Choose your preferred location");
+    } else if (hasStaffSelection) {
+      steps.push("Choose your preferred staff member");
+    }
+    
+    // Step 3: Date/Time selection
+    steps.push("Pick your date and time");
+    
+    // Step 4: Details
+    steps.push("Fill in your details to complete booking");
+    
+    return steps;
+  }, [state.isFlexibleBooking, state.flexibleBookingSettings]);
+
+  // Fix current step detection for progress tracking
+  const currentStepIndex = React.useMemo(() => {
+    const stepIndex = availableSteps.findIndex(
+      (step) => step.step === state.currentStep
+    );
+    return stepIndex >= 0 ? stepIndex : 0;
+  }, [availableSteps, state.currentStep]);
+
+  const progressPercentage = React.useMemo(() => {
+    return currentStepIndex >= 0
       ? ((currentStepIndex + 1) / availableSteps.length) * 100
       : 0;
+  }, [currentStepIndex, availableSteps.length]);
+
   const stepNumber = currentStepIndex + 1;
   const totalSteps = availableSteps.length;
-
-  const showHowItWorks =
-    state.currentStep === "service" && !state.selectedService;
-  const showBookingSummary = ["details", "confirmation"].includes(
-    state.currentStep
-  );
 
   const handleEditStep = (step: BookingStep) => {
     if (onEditStep) {
@@ -151,8 +194,6 @@ export function BookingSidebar({
         className="relative mx-auto w-fit"
       >
         <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center shadow-xl border-4 border-white/50 business-logo relative overflow-hidden">
-          {/* Shimmer effect overlay */}
-
           <span className="text-2xl font-bold text-white relative z-10">
             {businessInfo?.business_name?.charAt(0)?.toUpperCase() || "T"}
           </span>
@@ -198,111 +239,94 @@ export function BookingSidebar({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.4, duration: 0.5 }}
-      className="bg-white/40 backdrop-blur-sm rounded-2xl p-5 border border-white/20"
+      className="bg-white/60 backdrop-blur-sm rounded-xl p-4 border border-white/30"
     >
-     <div className="mb-3">
-     <Title order={5} className="text-slate-800 text-sm">
-        How it works
+      <Title order={4} className="text-sm font-bold text-slate-900 mb-3">
+        How It Works
       </Title>
-     </div>
-
       <Stack gap="sm">
         {howItWorksSteps.map((step, index) => (
-          <Text
-            key={index}
-            size="xs"
-            className="text-slate-600 flex items-start gap-3"
-          >
-            <span className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-xs font-medium flex-shrink-0">
-              {index + 1}
-            </span>
-            <span>{step}</span>
-          </Text>
+          <Group key={index} gap="sm" align="flex-start">
+            <Box
+              style={{
+                width: "20px",
+                height: "20px",
+                borderRadius: "50%",
+                backgroundColor: "#10b981",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
+              }}
+            >
+              <Text size="xs" fw={600} className="text-white">
+                {index + 1}
+              </Text>
+            </Box>
+            <Text size="xs" className="text-slate-600 leading-relaxed">
+              {step}
+            </Text>
+          </Group>
         ))}
       </Stack>
     </motion.div>
   );
 
   const ProgressSection = () => (
-    <Stack gap="sm">
+    <Stack gap="md">
       <Group justify="space-between" align="center">
-        <Text size="sm" fw={600} className="text-slate-800">
+        <Text size="sm" fw={600} className="text-slate-900">
           Progress
         </Text>
-        <Text size="xs" className="text-slate-600">
+        <Text size="xs" className="text-slate-500">
           Step {stepNumber} of {totalSteps}
         </Text>
       </Group>
 
-      <Progress
-        value={progressPercentage}
-        color="#10b981"
-        size="md"
-        radius="xl"
-        className="bg-slate-100"
-      />
+      <Box className="relative">
+        <Progress
+          value={progressPercentage}
+          size="lg"
+          radius="xl"
+          className="progress-bar"
+          style={{
+            background: "rgba(226, 232, 240, 0.5)",
+          }}
+          styles={{
+            root: {
+              background: "rgba(226, 232, 240, 0.5)",
+            },
+            bar: {
+              background: "linear-gradient(90deg, #10b981 0%, #059669 100%)",
+            },
+          }}
+        />
+      </Box>
 
-      <Group justify="space-between" gap="xs" wrap="nowrap">
-        {availableSteps.map((stepItem, index) => {
-          const isCompleted = index < currentStepIndex;
-          const isCurrent = index === currentStepIndex;
-
-          return (
-            <Group
-              key={stepItem.step}
-              gap="xs"
-              style={{
-                minWidth: 0,
-                cursor: isCompleted ? "pointer" : "default",
-              }}
-              onClick={() => isCompleted && handleEditStep(stepItem.step)}
-            >
-              <Box
-                style={{
-                  width: "18px",
-                  height: "18px",
-                  borderRadius: "50%",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  backgroundColor: isCompleted
-                    ? "#10b981"
-                    : isCurrent
-                    ? "#10b981"
-                    : "#f1f5f9",
-                  color: isCompleted || isCurrent ? "white" : "#94a3b8",
-                  fontSize: "0.6rem",
-                  fontWeight: 600,
-                  flexShrink: 0,
-                  transition: "all 0.2s ease",
-                }}
-              >
-                {isCompleted ? <CheckIcon className="w-2.5 h-2.5" /> : ""}
-              </Box>
-
-              <Text
-                size="xs"
-                c={isCompleted || isCurrent ? "#10b981" : "#94a3b8"}
-                fw={isCurrent ? 600 : 500}
-                style={{
-                  fontSize: "0.7rem",
-                  whiteSpace: "nowrap",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  minWidth: 0,
-                }}
-              >
-                {stepItem.shortLabel}
-              </Text>
-            </Group>
-          );
-        })}
+      <Group gap="xs">
+        {availableSteps.map((step, index) => (
+          <Badge
+            key={step.step}
+            variant={index <= currentStepIndex ? "filled" : "light"}
+            color={index <= currentStepIndex ? "green" : "gray"}
+            size="xs"
+            className={
+              index <= currentStepIndex
+                ? "bg-emerald-600 text-white"
+                : "bg-slate-100 text-slate-600"
+            }
+            style={{ textTransform: "capitalize" }}
+          >
+            {step.shortLabel || step.label}
+          </Badge>
+        ))}
       </Group>
     </Stack>
   );
 
-  const SelectedServiceSection = () => {
-    if (!state.selectedService) return null;
+  // New: Selected Service Category Section for flexible booking
+  const SelectedServiceCategorySection = () => {
+    if (!state.selectedServiceCategory) return null;
 
     return (
       <motion.div
@@ -317,45 +341,131 @@ export function BookingSidebar({
             fw={600}
             className="text-emerald-700 uppercase tracking-wide"
           >
-            SERVICE
+            SERVICE CATEGORY
           </Text>
           <Text size="sm" fw={600} className="text-slate-900">
-            {state.selectedService.name}
+            {state.selectedServiceCategory.name}
           </Text>
-          <Group justify="space-between" align="center">
-            {state.selectedService.duration_minutes && (
-              <Group gap="xs">
-                <ClockIcon className="w-3 h-3 text-slate-500" />
-                <Text size="xs" className="text-slate-600 font-medium">
-                  {state.selectedService.duration_minutes} min
-                </Text>
-              </Group>
-            )}
-            <Badge
-              variant="filled"
-              color="green"
-              size="sm"
-              className="bg-emerald-600 font-semibold"
-            >
-              {state.selectedService.price &&
-              Number(state.selectedService.price) > 0
-                ? `$${state.selectedService.price}`
-                : "FREE"}
-            </Badge>
-          </Group>
+          {state.selectedServiceCategory.description && (
+            <Text size="xs" className="text-slate-600 leading-relaxed">
+              {state.selectedServiceCategory.description}
+            </Text>
+          )}
         </Stack>
       </motion.div>
     );
   };
 
-  const SelectedDateSection = () => {
-    if (!state.selectedDate) return null;
+  // Updated: Selected Service Section for flexible booking
+  const SelectedServiceSection = () => {
+    // For flexible booking, show subcategory
+    if (state.isFlexibleBooking && state.selectedServiceSubcategory) {
+      return (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2, duration: 0.3 }}
+          className="bg-green-50/80 backdrop-blur-sm rounded-lg p-3 border border-green-200/50"
+        >
+          <Stack gap="xs">
+            <Text
+              size="xs"
+              fw={600}
+              className="text-green-700 uppercase tracking-wide"
+            >
+              SELECTED SERVICE
+            </Text>
+            <Text size="sm" fw={600} className="text-slate-900">
+              {state.selectedServiceSubcategory.name}
+            </Text>
+            {state.selectedServiceSubcategory.description && (
+              <Text size="xs" className="text-slate-600 leading-relaxed mb-2">
+                {state.selectedServiceSubcategory.description}
+              </Text>
+            )}
+            <Group justify="space-between" align="center">
+              {state.selectedServiceSubcategory.default_duration && (
+                <Group gap="xs">
+                  <ClockIcon className="w-3 h-3 text-slate-500" />
+                  <Text size="xs" className="text-slate-600 font-medium">
+                    {state.selectedServiceSubcategory.default_duration} min
+                  </Text>
+                </Group>
+              )}
+              <Badge
+                variant="filled"
+                color="green"
+                size="sm"
+                className="bg-emerald-600 font-semibold"
+              >
+                {state.selectedServiceSubcategory.base_price &&
+                Number(state.selectedServiceSubcategory.base_price) > 0
+                  ? `KSh ${state.selectedServiceSubcategory.base_price}`
+                  : "FREE"}
+              </Badge>
+            </Group>
+          </Stack>
+        </motion.div>
+      );
+    }
+
+    // For fixed booking, show regular service
+    if (!state.isFlexibleBooking && state.selectedService) {
+      return (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1, duration: 0.3 }}
+          className="bg-emerald-50/80 backdrop-blur-sm rounded-lg p-3 border border-emerald-200/50"
+        >
+          <Stack gap="xs">
+            <Text
+              size="xs"
+              fw={600}
+              className="text-emerald-700 uppercase tracking-wide"
+            >
+              SERVICE
+            </Text>
+            <Text size="sm" fw={600} className="text-slate-900">
+              {state.selectedService.name}
+            </Text>
+            <Group justify="space-between" align="center">
+              {state.selectedService.duration_minutes && (
+                <Group gap="xs">
+                  <ClockIcon className="w-3 h-3 text-slate-500" />
+                  <Text size="xs" className="text-slate-600 font-medium">
+                    {state.selectedService.duration_minutes} min
+                  </Text>
+                </Group>
+              )}
+              <Badge
+                variant="filled"
+                color="green"
+                size="sm"
+                className="bg-emerald-600 font-semibold"
+              >
+                {state.selectedService.price &&
+                Number(state.selectedService.price) > 0
+                  ? `KSh ${state.selectedService.price}`
+                  : "FREE"}
+              </Badge>
+            </Group>
+          </Stack>
+        </motion.div>
+      );
+    }
+
+    return null;
+  };
+
+  const SelectedLocationSection = () => {
+    if (!state.selectedLocation) return null;
 
     return (
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2, duration: 0.3 }}
+        transition={{ delay: 0.3, duration: 0.3 }}
         className="bg-blue-50/80 backdrop-blur-sm rounded-lg p-3 border border-blue-200/50"
       >
         <Stack gap="xs">
@@ -364,21 +474,17 @@ export function BookingSidebar({
             fw={600}
             className="text-blue-700 uppercase tracking-wide"
           >
-            DATE & TIME
+            LOCATION
           </Text>
-          <Text
-            size="sm"
-            fw={600}
-            className="text-slate-900 whitespace-pre-line"
-          >
-            {formatDateTime()}
+          <Text size="sm" fw={600} className="text-slate-900">
+            {state.selectedLocation.name}
           </Text>
-          <Group gap="xs">
-            <ClockIcon className="w-3 h-3 text-slate-500" />
-            <Text size="xs" className="text-slate-600 font-medium">
-              {state.selectedService?.duration_minutes || 60} min
-            </Text>
-          </Group>
+          <Text size="xs" className="text-slate-600 leading-relaxed">
+            {state.selectedLocation.address}
+          </Text>
+          <Text size="xs" className="text-slate-500">
+            {state.selectedLocation.city}
+          </Text>
         </Stack>
       </motion.div>
     );
@@ -391,7 +497,7 @@ export function BookingSidebar({
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3, duration: 0.3 }}
+        transition={{ delay: 0.4, duration: 0.3 }}
         className="bg-purple-50/80 backdrop-blur-sm rounded-lg p-3 border border-purple-200/50"
       >
         <Stack gap="xs">
@@ -421,35 +527,48 @@ export function BookingSidebar({
               AVAILABLE
             </Text>
           </Group>
+          {state.selectedStaff.bio && (
+            <Text size="xs" className="text-slate-600 leading-relaxed">
+              {state.selectedStaff.bio}
+            </Text>
+          )}
         </Stack>
       </motion.div>
     );
   };
 
-  const SelectedLocationSection = () => {
-    if (!state.selectedLocation) return null;
+  const SelectedDateSection = () => {
+    if (!state.selectedDate) return null;
 
     return (
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.4, duration: 0.3 }}
-        className="bg-orange-50/80 backdrop-blur-sm rounded-lg p-3 border border-orange-200/50"
+        transition={{ delay: 0.5, duration: 0.3 }}
+        className="bg-teal-50/80 backdrop-blur-sm rounded-lg p-3 border border-teal-200/50"
       >
         <Stack gap="xs">
           <Text
             size="xs"
             fw={600}
-            className="text-orange-700 uppercase tracking-wide"
+            className="text-teal-700 uppercase tracking-wide"
           >
-            LOCATION
+            DATE & TIME
           </Text>
-          <Text size="sm" fw={600} className="text-slate-900">
-            {state.selectedLocation.name}
+          <Text
+            size="sm"
+            fw={600}
+            className="text-slate-900 whitespace-pre-line"
+          >
+            {formatDateTime()}
           </Text>
-          <Text size="xs" className="text-slate-600 leading-relaxed">
-            {state.selectedLocation.address}
-          </Text>
+          <Group gap="xs">
+            <ClockIcon className="w-3 h-3 text-slate-500" />
+            <Text size="xs" className="text-slate-600 font-medium">
+              {state.selectedServiceSubcategory?.default_duration || 
+               state.selectedService?.duration_minutes || 60} min
+            </Text>
+          </Group>
         </Stack>
       </motion.div>
     );
@@ -676,10 +795,14 @@ export function BookingSidebar({
                 <ProgressSection />
 
                 <Stack gap="sm">
+                  {/* For flexible booking, show category and service separately */}
+                  {state.isFlexibleBooking && (
+                    <SelectedServiceCategorySection />
+                  )}
                   <SelectedServiceSection />
-                  <SelectedDateSection />
-                  <SelectedStaffSection />
                   <SelectedLocationSection />
+                  <SelectedStaffSection />
+                  <SelectedDateSection />
                 </Stack>
 
                 {showBookingSummary && <StartOverButton />}

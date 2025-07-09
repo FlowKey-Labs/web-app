@@ -416,19 +416,31 @@ const StaffDetails = () => {
                 Personal Information
               </h3>
               {!isEditing ? (
-                <Button
-                  variant='outline'
-                  color='gray'
-                  radius='md'
-                  h='40'
-                  leftSection={
-                    <img src={editIcon} alt='edit' className='w-4 h-4' />
-                  }
-                  size='sm'
-                  onClick={() => setIsEditing(true)}
-                >
-                  Edit
-                </Button>
+                <div className='flex gap-2'>
+                  <Button
+                    variant='outline'
+                    color='#1D9B5E'
+                    radius='md'
+                    h='40'
+                    size='sm'
+                    onClick={() => navigate(`/profile?tab=staff-management&staff=${staffId}`)}
+                  >
+                    Manage Assignments
+                  </Button>
+                  <Button
+                    variant='outline'
+                    color='gray'
+                    radius='md'
+                    h='40'
+                    leftSection={
+                      <img src={editIcon} alt='edit' className='w-4 h-4' />
+                    }
+                    size='sm'
+                    onClick={() => setIsEditing(true)}
+                  >
+                    Edit
+                  </Button>
+                </div>
               ) : (
                 <div className='flex gap-2'>
                   <Button

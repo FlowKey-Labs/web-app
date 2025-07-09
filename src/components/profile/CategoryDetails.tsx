@@ -22,6 +22,7 @@ import {
   useCreateSessionSkill,
   useUpdateSessionSkill,
   useDeleteSessionSkill,
+  useGetBusinessProfile,
 } from '../../hooks/reactQuery';
 import { useUIStore } from '../../store/ui';
 import Table from '../common/Table';
@@ -32,10 +33,25 @@ import { notifications } from '@mantine/notifications';
 import successIcon from '../../assets/icons/success.svg';
 import errorIcon from '../../assets/icons/error.svg';
 import { IconPlus } from '@tabler/icons-react';
+import { formatCurrency } from '../../utils/stringUtils';
 
 import CreateSkillModal from './CreateSkillModal';
 import UpdateSkillModal from './UpdateSkillModal';
-import { Subcategory, Skill, Category } from '../../types/profileCategories';
+import { Skill, Category } from '../../types/profileCategories';
+
+// Enhanced Subcategory interface with service properties
+interface Subcategory {
+  id: number;
+  name: string;
+  description?: string;
+  category: number;
+  is_service?: boolean;
+  base_price?: number;
+  default_duration?: number;
+  min_duration?: number;
+  max_duration?: number;
+  price_per_minute?: number;
+}
 
 type SkillFormData = {
   skills: Array<{
@@ -71,6 +87,7 @@ const CategoryDetails = ({
   const { mutateAsync: createSkill } = useCreateSessionSkill();
   const { mutateAsync: updateSkill } = useUpdateSessionSkill();
   const { mutateAsync: deleteSkill } = useDeleteSessionSkill();
+  const { data: businessProfile } = useGetBusinessProfile();
 
   // Use the global UI store
   const { openDrawer } = useUIStore();
@@ -654,25 +671,97 @@ const CategoryDetails = ({
         size: 40, // Fixed width for checkbox column
       }),
       columnHelper.accessor('name', {
-        header: 'Subcategory',
-        cell: (info) => info.getValue(),
-        size: 150, // Fixed width for subcategory column
+        header: 'Name',
+        cell: (info) => (
+          <div className='flex flex-col'>
+            <span className='font-medium'>{info.getValue()}</span>
+            {info.row.original.is_service && (
+              <Badge
+                variant='light'
+                color='blue'
+                radius='sm'
+                size='xs'
+                className='w-fit mt-1'
+              >
+                Service
+              </Badge>
+            )}
+          </div>
+        ),
+        size: 150, // Fixed width for name column
       }),
       columnHelper.accessor('description', {
         header: 'Description',
-        cell: (info) => info.getValue() || '-',
+        cell: (info) => (
+          <div className='max-w-[200px] truncate' title={info.getValue() || ''}>
+            {info.getValue() || '-'}
+          </div>
+        ),
         size: 200, // Fixed width for description column
+      }),
+      columnHelper.display({
+        id: 'service_details',
+        header: 'Service Details',
+        size: 180, // Fixed width for service details column
+        cell: ({ row }) => {
+          const subcategory = row.original;
+          
+          if (!subcategory.is_service) {
+            return <span className='text-gray-400 text-sm'>-</span>;
+          }
+
+          return (
+            <div className='flex flex-col space-y-2 text-sm'>
+              {subcategory.base_price && (
+                <div className='flex items-center space-x-2'>
+                  <div className='flex items-center justify-center w-5 h-5 rounded bg-green-100'>
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                    </svg>
+                  </div>
+                  <span className='font-medium text-green-600'>
+                    {formatCurrency(subcategory.base_price, businessProfile?.currency, businessProfile?.currency_symbol)}
+                  </span>
+                </div>
+              )}
+              {subcategory.default_duration && (
+                <div className='flex items-center space-x-2'>
+                  <div className='flex items-center justify-center w-5 h-5 rounded bg-blue-100'>
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <span className='font-medium text-gray-700'>
+                    {subcategory.default_duration}min
+                  </span>
+                </div>
+              )}
+              {subcategory.min_duration && subcategory.max_duration && (
+                <div className='flex items-center space-x-2'>
+                  <div className='flex items-center justify-center w-5 h-5 rounded bg-purple-100'>
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                  </div>
+                  <span className='text-sm text-gray-600 font-medium'>
+                    {subcategory.min_duration}-{subcategory.max_duration}min
+                  </span>
+                </div>
+              )}
+            </div>
+          );
+        },
       }),
       columnHelper.display({
         id: 'skills',
         header: 'Skills',
-        size: 300, // Fixed width for skills column
+        size: 240, // Fixed width for skills column
         cell: ({ row }) => {
           const subcategory = row.original;
           const skills = subcategorySkillsMap.get(subcategory.id) || [];
 
           return (
-            <div className='flex flex-wrap gap-2 max-w-[300px] overflow-hidden'>
+            <div className='flex flex-wrap gap-2 max-w-[240px] overflow-hidden'>
               {skills.length > 0 ? (
                 skills.map((skill) => (
                   <Badge
@@ -680,7 +769,8 @@ const CategoryDetails = ({
                     variant='light'
                     color='#1D9B5E'
                     radius='sm'
-                    className='cursor-default max-w-[120px] truncate'
+                    size='xs'
+                    className='cursor-default max-w-[100px] truncate'
                     title={skill.name} // Show full name on hover
                   >
                     {skill.name}
