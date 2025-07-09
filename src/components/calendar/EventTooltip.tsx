@@ -1,6 +1,6 @@
 import React from 'react';
 import { EventImpl } from '@fullcalendar/core/internal';
-import { Attendance as AttendanceType } from '../../types/sessionTypes';
+import { Attendance } from '../../types/sessionTypes';
 
 interface ClientData {
   id?: number;
@@ -14,7 +14,7 @@ interface SessionData {
   id?: number;
   date?: string;
   spots?: number;
-  attendances?: AttendanceType[];
+  attendances?: Attendance[];
   clients?: ClientData[];
   client_ids?: number[];
   [key: string]: any;
@@ -31,40 +31,83 @@ interface EventTooltipProps {
 
 export const EventTooltip: React.FC<EventTooltipProps> = ({ event }) => {
   const session = event.extendedProps?.session;
-  console.log('Session data:', session);
+  console.log('Session data:', JSON.stringify(session, null, 2));
   if (!session) {
     console.log('No session data available');
     return null;
   }
 
   const totalSpots = session.spots || 0;
+  console.log('Session spots:', totalSpots);
+  console.log('Session clients:', session.clients);
+  console.log('Session attendances:', session.attendances);
 
   let allClients: Array<{ first_name: string; last_name: string }> = [];
 
-  if (Array.isArray(session.attendances)) {
+  // Process attendances first since we know they exist
+  if (Array.isArray(session.attendances) && session.attendances.length > 0) {
     console.log('Processing attendances:', session.attendances);
 
     allClients = session.attendances
-      .filter((att) => {
+      .filter((att): att is Attendance => {
         if (!att) return false;
-
-        // Check if we have a client object with name
-        const hasClient = !!att.client?.first_name || !!att.client?.last_name;
-
-        return hasClient;
+        // Check if we have participant_name or client data
+        return Boolean(
+          att.participant_name ||
+            (typeof att.client === 'object' && att.client !== null) ||
+            (typeof att.client === 'number' &&
+              session.client_ids?.includes(att.client))
+        );
       })
       .map((att) => {
-        const firstName = att.client?.first_name || 'Unknown';
-        const lastName = att.client?.last_name || 'Client';
+        // If we have participant_name, use that
+        if (att.participant_name) {
+          const [first_name, ...rest] = att.participant_name.split(' ');
+          const last_name = rest.join(' ');
+          return {
+            first_name: first_name || 'Unknown',
+            last_name: last_name || 'Client',
+          };
+        }
 
+        // If client is an object with name properties
+        if (typeof att.client === 'object' && att.client !== null) {
+          return {
+            first_name: att.client.first_name || 'Unknown',
+            last_name: att.client.last_name || 'Client',
+          };
+        }
+
+        // If client is just an ID, try to find it in client_ids
+        if (
+          typeof att.client === 'number' &&
+          session.client_ids?.includes(att.client)
+        ) {
+          // If we had client data, we would look it up here
+          // For now, just return a generic client
+          return {
+            first_name: 'Client',
+            last_name: `#${att.client}`,
+          };
+        }
+
+        // Fallback
         return {
-          first_name: firstName,
-          last_name: lastName,
+          first_name: 'Unknown',
+          last_name: 'Client',
         };
       });
   }
 
   console.log('Extracted clients:', allClients);
+  console.log('Raw client data from session:', {
+    clients: session.clients,
+    attendances: session.attendances,
+    client_ids: session.client_ids,
+    hasClients: !!session.clients,
+    hasAttendances: !!session.attendances,
+    hasClientIds: !!session.client_ids,
+  });
 
   const enrolledCount = allClients.length;
   const availableSlots = Math.max(0, totalSpots - enrolledCount);

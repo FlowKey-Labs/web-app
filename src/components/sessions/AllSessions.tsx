@@ -5,14 +5,14 @@ import { useDebounce } from '../../hooks/useDebounce';
 
 import MembersHeader from '../headers/MembersHeader';
 import Table from '../common/Table';
-import { classTypesOptions } from '../../utils/dummyData';
 import {
-  useGetSessions,
   useGetSessionCategories,
+  useGetClassTypes,
+  useGetSessions,
   useActivateSession,
   useDeactivateSession,
 } from '../../hooks/reactQuery';
-import { Session } from '../../types/sessionTypes';
+import { ClassType, Session } from '../../types/sessionTypes';
 import { navigateToSessionDetails } from '../../utils/navigationHelpers';
 
 import DropDownMenu from '../common/DropdownMenu';
@@ -56,7 +56,7 @@ const AllSessions = () => {
   const [classTypeDropdownOpen, setClassTypeDropdownOpen] = useState(false);
   const [categoryTypeDropdownOpen, setCategoryTypeDropdownOpen] =
     useState(false);
-  const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
+  const [selectedClassTypes, setSelectedClassTypes] = useState<string[]>([]);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedSession, setSelectedSession] = useState<Session | null>(null);
   const [isActivating, setIsActivating] = useState(false);
@@ -67,7 +67,7 @@ const AllSessions = () => {
   // Reset to first page when filters or search changes
   useEffect(() => {
     setPageIndex(1);
-  }, [selectedTypes, selectedCategories, debouncedSearchQuery, pageSize]);
+  }, [selectedClassTypes, selectedCategories, debouncedSearchQuery, pageSize]);
 
   const [tempSelectedTypes, setTempSelectedTypes] = useState<string[]>([]);
   const [tempSelectedCategories, setTempSelectedCategories] = useState<
@@ -81,7 +81,7 @@ const AllSessions = () => {
   const activateSessionMutation = useActivateSession();
   const deactivateSessionMutation = useDeactivateSession();
 
-  const permisions = useAuthStore((state) => state.role);
+  const permissions = useAuthStore((state) => state.role);
 
   const {
     data,
@@ -91,8 +91,9 @@ const AllSessions = () => {
     pageIndex,
     pageSize,
     {
+      sessionTypes: selectedClassTypes,
       categories: selectedCategories,
-      sessionTypes: selectedTypes,
+      pageIndex,
     },
     debouncedSearchQuery
   );
@@ -111,43 +112,16 @@ const AllSessions = () => {
 
       let filtered = [...allSessionsData];
 
-      if (debouncedSearchQuery.trim()) {
-        filtered = allSessionsData.filter((session) => {
-          try {
-            const searchableFields = [
-              session.title,
-              session.category?.name,
-              session.class_type,
-              session.assigned_staff
-                ? `${session.assigned_staff.user?.first_name} ${session.assigned_staff.user?.last_name}`.trim()
-                : '',
-              session.description,
-              session.location,
-              session.id?.toString(),
-            ].filter((field) => field && field.toString().length > 0);
-
-            const combinedText = searchableFields.join(' ').toLowerCase();
-
-            return combinedText.includes(debouncedSearchQuery.toLowerCase());
-          } catch (error) {
-            console.warn(
-              'Error filtering session by search:',
-              session.id,
-              error
-            );
-            return false;
-          }
-        });
-      }
-
-      if (selectedTypes.length > 0) {
+      // Filter by class type
+      if (selectedClassTypes.length > 0) {
         filtered = filtered.filter((session) => {
           try {
-            const classType = session?.class_type || '';
-            return selectedTypes.includes(classType);
+            const sessionClassTypeId =
+              session?.class_type_detail?.id?.toString() || '';
+            return selectedClassTypes.includes(sessionClassTypeId);
           } catch (error) {
             console.warn(
-              'Error filtering session by type:',
+              'Error filtering session by class type ID:',
               session?.id,
               error
             );
@@ -172,6 +146,35 @@ const AllSessions = () => {
         });
       }
 
+      if (debouncedSearchQuery.trim()) {
+        filtered = allSessionsData.filter((session) => {
+          try {
+            const searchableFields = [
+              session.title,
+              session.category?.name,
+              session.class_type_detail?.name || '',
+              session.assigned_staff
+                ? `${session.assigned_staff.user?.first_name} ${session.assigned_staff.user?.last_name}`.trim()
+                : '',
+              session.description,
+              session.location,
+              session.id?.toString(),
+            ].filter((field) => field && field.toString().length > 0);
+
+            const combinedText = searchableFields.join(' ').toLowerCase();
+
+            return combinedText.includes(debouncedSearchQuery.toLowerCase());
+          } catch (error) {
+            console.warn(
+              'Error filtering session by search:',
+              session.id,
+              error
+            );
+            return false;
+          }
+        });
+      }
+
       return filtered;
     } catch (error) {
       console.error('Error in filteredSessions:', error);
@@ -179,7 +182,7 @@ const AllSessions = () => {
     }
   }, [
     allSessionsData,
-    selectedTypes,
+    selectedClassTypes,
     selectedCategories,
     debouncedSearchQuery,
   ]);
@@ -277,13 +280,11 @@ const AllSessions = () => {
             : 'Unassigned';
         },
       }),
-      columnHelper.accessor('class_type', {
+      columnHelper.accessor('class_type_detail', {
         header: 'Session Type',
         cell: (info) => {
-          const SessionType = info.getValue();
-          return SessionType
-            ? SessionType.charAt(0).toUpperCase() + SessionType.slice(1)
-            : '';
+          const classType = info.getValue();
+          return classType?.name || '';
         },
       }),
       columnHelper.accessor('spots', {
@@ -497,23 +498,34 @@ const AllSessions = () => {
     [openExportModal, open, setSelectedSession, setIsActivating]
   );
 
-  const toggleSessionType = (type: string) => {
+  const { data: classTypes = [] } = useGetClassTypes();
+
+  // Convert class types to filter options
+  const classTypeOptions = useMemo(() => {
+    return classTypes.map((type: ClassType) => ({
+      value: type?.id?.toString() || '',
+      label: type?.name || '',
+    }));
+  }, [classTypes]);
+
+  const toggleClassType = (typeId: string) => {
     setTempSelectedTypes((prev) =>
-      prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type]
+      prev.includes(typeId)
+        ? prev.filter((id) => id !== typeId)
+        : [...prev, typeId]
     );
   };
 
-  // Modify the toggleCategory function to work with IDs
   const toggleCategory = (categoryId: string) => {
     setTempSelectedCategories((prev) =>
       prev.includes(categoryId)
-        ? prev.filter((c) => c !== categoryId)
+        ? prev.filter((id) => id !== categoryId)
         : [...prev, categoryId]
     );
   };
 
   const applySessionTypeFilter = () => {
-    setSelectedTypes(tempSelectedTypes);
+    setSelectedClassTypes(tempSelectedTypes);
     setClassTypeDropdownOpen(false);
   };
 
@@ -522,8 +534,8 @@ const AllSessions = () => {
     setCategoryTypeDropdownOpen(false);
   };
 
-  const resetFilters = () => {
-    setSelectedTypes([]);
+  const handleResetFilters = useCallback(() => {
+    setSelectedClassTypes([]);
     setSelectedCategories([]);
     setSearchQuery('');
     setClassTypeDropdownOpen(false);
@@ -531,7 +543,7 @@ const AllSessions = () => {
     setRowSelection({});
     // Reset to first page when filters are reset
     setPageIndex(1);
-  };
+  }, []);
 
   const handleActivateSession = () => {
     if (!selectedSession) return;
@@ -631,7 +643,7 @@ const AllSessions = () => {
           onSearchChange={handleSearchChange}
           leftIcon={plusIcon}
           onButtonClick={handleOpenAddSession}
-          showButton={permisions?.can_create_sessions}
+          showButton={permissions?.can_create_sessions}
         />
         <div className='flex mt-12 self-center md:mt-0 md:h-[70px] w-[80%] md:w-[70%] md:ml-6 text-sm p-2 border rounded-md bg-white shadow-sm'>
           <div className='flex flex-col md:flex-row items-center justify-between w-full px-6 py-2 md:py-0 font-bold space-y-2 md:space-y-0'>
@@ -657,7 +669,7 @@ const AllSessions = () => {
                 show={classTypeDropdownOpen}
                 setShow={(show) => {
                   if (show && !classTypeDropdownOpen) {
-                    setTempSelectedTypes([...selectedTypes]);
+                    setTempSelectedTypes([...selectedClassTypes]);
                   }
                   setClassTypeDropdownOpen(show);
                 }}
@@ -668,12 +680,14 @@ const AllSessions = () => {
                     className='md:p-2 w-full gap-2 h-10 rounded-md outline-none cursor-pointer flex items-center justify-center'
                   >
                     <p className='text-primary text-sm font-normal'>
-                      {selectedTypes.length > 0
-                        ? selectedTypes
-                            .map(
-                              (type) =>
-                                type.charAt(0).toUpperCase() + type.slice(1)
+                      {selectedClassTypes.length > 0
+                        ? classTypes
+                            .filter((type: ClassType) =>
+                              selectedClassTypes.includes(
+                                type.id?.toString() || ''
+                              )
                             )
+                            .map((type: ClassType) => type.name)
                             .join(', ')
                         : 'Session Type'}
                     </p>
@@ -685,27 +699,32 @@ const AllSessions = () => {
                   <h3 className='text-lg font-bold text-gray-700'>
                     Select Session Type
                   </h3>
-
                   <div>
                     <div className='flex flex-col gap-2 mt-4 min-w-[160px]'>
-                      {classTypesOptions.map((label, index) => (
-                        <div key={index} className='flex items-center'>
+                      {classTypes.map((type: ClassType) => (
+                        <div key={type.id} className='flex items-center'>
                           <input
                             type='checkbox'
-                            id={`session-type-${index}`}
-                            checked={tempSelectedTypes.includes(label)}
-                            onChange={() => toggleSessionType(label)}
+                            id={`class-type-${type.id}`}
+                            checked={tempSelectedTypes.includes(
+                              type.id?.toString() || ''
+                            )}
+                            onChange={() =>
+                              toggleClassType(type.id?.toString() || '')
+                            }
                             className='mr-2 h-4 w-4 rounded border-gray-300 focus:ring-0 focus:ring-offset-0 accent-[#1D9B5E]'
                           />
                           <label
-                            htmlFor={`session-type-${index}`}
+                            htmlFor={`class-type-${type.id}`}
                             className={`text-sm cursor-pointer ${
-                              tempSelectedTypes.includes(label)
+                              tempSelectedTypes.includes(
+                                type.id?.toString() || ''
+                              )
                                 ? 'text-secondary font-medium'
                                 : 'text-primary'
                             }`}
                           >
-                            {label.charAt(0).toUpperCase() + label.slice(1)}
+                            {type.name}
                           </label>
                         </div>
                       ))}
@@ -833,7 +852,7 @@ const AllSessions = () => {
             <div className='h-full w-[1px] bg-gray-200'></div>
             <div
               className='flex items-center text-center gap-4 cursor-pointer  pb-1 w-full md:w-auto justify-center'
-              onClick={resetFilters}
+              onClick={handleResetFilters}
             >
               <img
                 src={resetIcon}
@@ -847,7 +866,7 @@ const AllSessions = () => {
         <EmptyDataPage
           title={
             searchQuery.trim() ||
-            selectedTypes.length > 0 ||
+            selectedClassTypes.length > 0 ||
             selectedCategories.length > 0
               ? 'No Sessions Found!'
               : 'No Sessions Found!'
@@ -855,33 +874,33 @@ const AllSessions = () => {
           description={
             debouncedSearchQuery.trim()
               ? `No sessions match your search "${debouncedSearchQuery}"`
-              : selectedTypes.length > 0 || selectedCategories.length > 0
+              : selectedClassTypes.length > 0 || selectedCategories.length > 0
               ? 'No sessions match your current filters'
               : "You don't have any sessions yet"
           }
           buttonText={
             debouncedSearchQuery.trim() ||
-            selectedTypes.length > 0 ||
+            selectedClassTypes.length > 0 ||
             selectedCategories.length > 0
               ? 'Clear Filters'
               : 'Create New Session'
           }
           onButtonClick={
             debouncedSearchQuery.trim() ||
-            selectedTypes.length > 0 ||
+            selectedClassTypes.length > 0 ||
             selectedCategories.length > 0
-              ? resetFilters
+              ? handleResetFilters
               : handleOpenAddSession
           }
           showButton={true}
           onClose={() => {
             setShowEmptyState(false);
             if (
-              selectedTypes.length > 0 ||
+              selectedClassTypes.length > 0 ||
               selectedCategories.length > 0 ||
               searchQuery.trim()
             ) {
-              resetFilters();
+              handleResetFilters();
             }
           }}
           opened={
@@ -890,15 +909,15 @@ const AllSessions = () => {
             !isLoadingSessions
           }
           filterType={
-            selectedTypes.length === 1
+            selectedClassTypes.length === 1
               ? 'sessionType'
               : selectedCategories.length === 1
               ? 'category'
               : undefined
           }
           filterValue={
-            selectedTypes.length === 1
-              ? selectedTypes[0]
+            selectedClassTypes.length === 1
+              ? selectedClassTypes[0]
               : selectedCategories.length === 1
               ? selectedCategories[0]
               : undefined

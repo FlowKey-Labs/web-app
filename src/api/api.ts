@@ -1,26 +1,12 @@
 import { api } from '../lib/axios';
 import axios from 'axios';
 
-import {
-  CreateSessionData,
-  AttendedSession,
-  CancelledSession,
-  ProgressFeedback,
-  Session,
-  MakeUpSession,
-} from "../types/sessionTypes";
-import { CreateLocationData } from "../types/location";
-import { Role } from "../store/auth";
-import { Client, GroupData } from "../types/clientTypes";
+import { ProgressFeedback } from '../types/sessionTypes';
+import { CreateLocationData } from '../types/location';
+import { Role } from '../store/auth';
+import { Client, GroupData } from '../types/clientTypes';
 import { BookingRequest } from '../types/clientTypes';
 import { BookingSettings } from '../types/bookingTypes';
-
-// Define a type for the session filters
-interface SessionFilters {
-  sessionTypes?: string[];
-  categories?: string[];
-  dateRange?: [Date | null, Date | null];
-}
 
 export interface PaginatedResponse<T> {
   items: T[];
@@ -88,24 +74,7 @@ const END_POINTS = {
   STAFF: {
     STAFF_DATA: `${BASE_URL}/api/staff/`,
   },
-  SESSION: {
-    SESSIONS_DATA: `${BASE_URL}/api/session/`,
-    CALENDAR_SESSIONS_DATA: `${BASE_URL}/api/session/calendar-sessions/`,
-    SESSION_DETAIL: (id: string) => `${BASE_URL}/api/session/${id}/`,
-    SESSION_CLIENTS: (id: string) => `${BASE_URL}/api/session/${id}/clients/`,
-    CATEGORIES: `${BASE_URL}/api/session/categories/`,
-    CLASS_SESSIONS: `${BASE_URL}/api/session/?session_type=class`,
-    STAFF_SESSIONS: (id: string) => `${BASE_URL}/api/staff/sessions/${id}/`,
-    SUBCATEGORIES: `${BASE_URL}/api/session/subcategories/`,
-    SUBSKILLS: `${BASE_URL}/api/session/subskills/`,
-    MAKEUP_SESSIONS: `${BASE_URL}/api/attendance/makeup-sessions/`,
-    BULK_MAKEUP_SESSIONS: `${BASE_URL}/api/attendance/makeup-sessions/bulk_create_makeup/`,
-    ATTENDED_SESSIONS: `${BASE_URL}/api/attendance/`,
-    BULK_ATTENDANCE: `${BASE_URL}/api/attendance/bulk_mark_attendance/`,
-    CANCELLED_SESSIONS: `${BASE_URL}/api/attendance/cancelled/`,
-    BULK_CANCELLED_SESSIONS: `${BASE_URL}/api/attendance/cancelled/bulk_cancel/`,
-    DELETE_SESSION: (id: string) => `${BASE_URL}/api/session/${id}/`,
-  },
+
   ANALYTICS: {
     ANALYTICS_DATA: `${BASE_URL}/api/dashboard/analytics/`,
     UPCOMING_SESSIONS: `${BASE_URL}/api/dashboard/upcoming-sessions/`,
@@ -260,10 +229,12 @@ const searchCities = async (query: string) => {
       key: GOOGLE_API_KEY,
     },
   });
-  return data.predictions.map((prediction: { description: string; place_id: string }) => ({
-    label: prediction.description,
-    value: prediction.place_id,
-  }));
+  return data.predictions.map(
+    (prediction: { description: string; place_id: string }) => ({
+      label: prediction.description,
+      value: prediction.place_id,
+    })
+  );
 };
 
 const get_business_services = async () => {
@@ -418,179 +389,6 @@ const reschedule_session = async (
   return data;
 };
 
-const get_calendar_sessions = async () => {
-  const { data } = await api.get(END_POINTS.SESSION.CALENDAR_SESSIONS_DATA);
-  return data;
-};
-
-const get_sessions = async (
-  filters?: SessionFilters,
-  pageIndex?: number,
-  pageSize?: number,
-  searchQuery?: string
-): Promise<PaginatedResponse<Session>> => {
-  let url = END_POINTS.SESSION.SESSIONS_DATA;
-  const params = new URLSearchParams();
-
-  // Handle filters if they exist
-  if (filters) {
-    if (filters.sessionTypes && filters.sessionTypes.length > 0) {
-      filters.sessionTypes.forEach((type: string) => {
-        params.append('session_type', type);
-      });
-    }
-
-    if (filters.categories && filters.categories.length > 0) {
-      // Join category IDs with commas for the backend to parse
-      params.append('category', filters.categories.join(','));
-    }
-  }
-
-  if (searchQuery) {
-    params.append('search', searchQuery);
-  }
-
-  // Handle pagination
-  if (pageIndex !== undefined) {
-    params.append('pageIndex', pageIndex.toString());
-  }
-  if (pageSize !== undefined) {
-    params.append('pageSize', pageSize.toString());
-  }
-
-  // Construct final URL
-  if (params.toString()) {
-    url += `?${params.toString()}`;
-  }
-
-  const { data } = await api.get<PaginatedResponse<Session>>(url);
-  return data;
-};
-
-const delete_session = async (sessionId: string) => {
-  const { data } = await api.delete(
-    END_POINTS.SESSION.DELETE_SESSION(sessionId)
-  );
-  return data;
-};
-
-const get_class_sessions = async () => {
-  const { data } = await api.get(END_POINTS.SESSION.CLASS_SESSIONS);
-  return data;
-};
-
-const get_staff_sessions = async (id: string) => {
-  const { data } = await api.get(END_POINTS.SESSION.STAFF_SESSIONS(id));
-  return data.sessions || [];
-};
-
-const get_session_detail = async (id: string) => {
-  const { data } = await api.get(END_POINTS.SESSION.SESSION_DETAIL(id));
-  return data;
-};
-
-const get_session_categories = async () => {
-  const { data } = await api.get(END_POINTS.SESSION.CATEGORIES);
-  return data;
-};
-
-const create_session_category = async (categoryData: {
-  name: string;
-  description?: string;
-}) => {
-  const { data } = await api.post(END_POINTS.SESSION.CATEGORIES, categoryData);
-  return data;
-};
-
-const update_session_category = async (
-  id: number,
-  categoryData: { name: string; description?: string }
-) => {
-  const { data } = await api.patch(
-    `${END_POINTS.SESSION.CATEGORIES}${id}/`,
-    categoryData
-  );
-  return data;
-};
-
-const delete_session_category = async (id: number) => {
-  const { data } = await api.delete(`${END_POINTS.SESSION.CATEGORIES}${id}/`);
-  return data;
-};
-
-const create_session_subcategory = async (subcategoryData: {
-  name: string;
-  description?: string;
-  category: number;
-}) => {
-  const { data } = await api.post(
-    END_POINTS.SESSION.SUBCATEGORIES,
-    subcategoryData
-  );
-  return data;
-};
-
-const get_session_subcategories = async () => {
-  const { data } = await api.get(END_POINTS.SESSION.SUBCATEGORIES);
-  return data;
-};
-
-const update_session_subcategory = async (
-  id: number,
-  subcategoryData: { name: string; description?: string; category: number }
-) => {
-  const { data } = await api.patch(
-    `${END_POINTS.SESSION.SUBCATEGORIES}${id}/`,
-    subcategoryData
-  );
-  return data;
-};
-
-const delete_session_subcategory = async (id: number) => {
-  const { data } = await api.delete(
-    `${END_POINTS.SESSION.SUBCATEGORIES}${id}/`
-  );
-  return data;
-};
-
-const create_session_skill = async (skillData: {
-  name: string;
-  description?: string;
-  subcategory: number;
-}) => {
-  const { data } = await api.post(END_POINTS.SESSION.SUBSKILLS, skillData);
-  return data;
-};
-
-const get_session_skills = async () => {
-  const { data } = await api.get(END_POINTS.SESSION.SUBSKILLS);
-  return data;
-};
-
-const update_session_skill = async (
-  id: number,
-  skillData: { name: string; description?: string; subcategory: number }
-) => {
-  const { data } = await api.patch(
-    `${END_POINTS.SESSION.SUBSKILLS}${id}/`,
-    skillData
-  );
-  return data;
-};
-
-const delete_session_skill = async (id: number) => {
-  const { data } = await api.delete(`${END_POINTS.SESSION.SUBSKILLS}${id}/`);
-  return data;
-};
-
-const create_session = async (sessionData: CreateSessionData) => {
-  const { data } = await api.post(
-    END_POINTS.SESSION.SESSIONS_DATA,
-    sessionData
-  );
-  return data;
-};
-
 const mark_client_attended = async (clientId: string, sessionId: string) => {
   const { data } = await api.post(END_POINTS.CLIENTS.ATTENDANCE, {
     client: clientId,
@@ -630,26 +428,6 @@ const update_attendance_status = async (
   return data;
 };
 
-const activate_session = async (sessionId: string) => {
-  const { data } = await api.patch(
-    END_POINTS.SESSION.SESSION_DETAIL(sessionId),
-    {
-      is_active: true,
-    }
-  );
-  return data;
-};
-
-const deactivate_session = async (sessionId: string) => {
-  const { data } = await api.patch(
-    END_POINTS.SESSION.SESSION_DETAIL(sessionId),
-    {
-      is_active: false,
-    }
-  );
-  return data;
-};
-
 const update_client = async (
   id: string,
   updateData: {
@@ -681,22 +459,6 @@ const activate_client = async (id: string) => {
   const { data } = await api.patch(`${END_POINTS.CLIENTS.CLIENTS_DATA}${id}/`, {
     active: true,
   });
-  return data;
-};
-
-const update_session = async (
-  id: string,
-  sessionData: Partial<CreateSessionData>
-) => {
-  const { data } = await api.patch(
-    END_POINTS.SESSION.SESSION_DETAIL(id),
-    sessionData
-  );
-  return data;
-};
-
-const get_session_clients = async (sessionId: string) => {
-  const { data } = await api.get(END_POINTS.SESSION.SESSION_CLIENTS(sessionId));
   return data;
 };
 
@@ -945,90 +707,8 @@ const deleteRole = async (id: string) => {
 };
 
 // Bulk attendance API function
-const bulk_mark_attendance = (data: {
-  sessionId: number;
-  clientIds: number[];
-  date: string;
-}) => {
-  return api.post(END_POINTS.SESSION.BULK_ATTENDANCE, {
-    session: data.sessionId,
-    client_ids: data.clientIds,
-    date: data.date,
-  });
-};
 
 // Make up session API functions
-
-const getMakeupSessions = async () => {
-  const { data } = await api.get(END_POINTS.SESSION.MAKEUP_SESSIONS);
-  return data;
-};
-
-const createMakeupSession = async (makeupSessionData: MakeUpSession) => {
-  const { data } = await api.post(
-    END_POINTS.SESSION.MAKEUP_SESSIONS,
-    makeupSessionData
-  );
-  return data;
-};
-
-const bulkCreateMakeupSessions = async (makeupData: {
-  session: number;
-  client_ids: number[];
-  original_date: string;
-  new_date: string;
-  new_start_time: string;
-  new_end_time: string;
-}) => {
-  const { data } = await api.post(
-    END_POINTS.SESSION.BULK_MAKEUP_SESSIONS,
-    makeupData
-  );
-  return data;
-};
-
-const bulkCancelSessions = async (bulkCancelData: {
-  session: number;
-  client_ids: number[];
-  date: string;
-}) => {
-  const { data } = await api.post(
-    END_POINTS.SESSION.BULK_CANCELLED_SESSIONS,
-    bulkCancelData
-  );
-  return data;
-};
-
-const updateMakeupSession = async (
-  id: string,
-  makeupSessionData: MakeUpSession
-) => {
-  const { data } = await api.patch(
-    `${END_POINTS.SESSION.MAKEUP_SESSIONS}${id}/`,
-    makeupSessionData
-  );
-  return data;
-};
-
-const deleteMakeupSession = async (id: string) => {
-  const { data } = await api.delete(
-    `${END_POINTS.SESSION.MAKEUP_SESSIONS}${id}/`
-  );
-  return data;
-};
-
-const getAttendedSessions = async () => {
-  const { data } = await api.get(END_POINTS.SESSION.ATTENDED_SESSIONS);
-  return data;
-};
-
-const createAttendedSession = async (attendedSessionData: AttendedSession) => {
-  const { data } = await api.post(
-    END_POINTS.SESSION.ATTENDED_SESSIONS,
-    attendedSessionData
-  );
-  return data;
-};
 
 // Progress tracker API functions
 
@@ -1058,39 +738,6 @@ const markOutcomeComplete = async (payload: {
   return data;
 };
 
-const updateAttendedSession = async (
-  id: string,
-  attendedSessionData: AttendedSession
-) => {
-  const { data } = await api.patch(
-    `${END_POINTS.SESSION.ATTENDED_SESSIONS}${id}/`,
-    attendedSessionData
-  );
-  return data;
-};
-
-const deleteAttendedSession = async (id: string) => {
-  const { data } = await api.delete(
-    `${END_POINTS.SESSION.ATTENDED_SESSIONS}${id}/`
-  );
-  return data;
-};
-
-const getCancelledSessions = async () => {
-  const { data } = await api.get(END_POINTS.SESSION.CANCELLED_SESSIONS);
-  return data;
-};
-
-const createCancelledSession = async (
-  cancelledSessionData: CancelledSession
-) => {
-  const { data } = await api.post(
-    END_POINTS.SESSION.CANCELLED_SESSIONS,
-    cancelledSessionData
-  );
-  return data;
-};
-
 const markOutcomeIncomplete = async (payload: {
   client_id: string;
   subskill_id: string;
@@ -1098,24 +745,6 @@ const markOutcomeIncomplete = async (payload: {
   const { data } = await api.post(
     END_POINTS.PROGRESS.MARK_OUTCOME_INCOMPLETE,
     payload
-  );
-  return data;
-};
-
-const updateCancelledSession = async (
-  id: string,
-  cancelledSessionData: CancelledSession
-) => {
-  const { data } = await api.patch(
-    `${END_POINTS.SESSION.CANCELLED_SESSIONS}${id}/`,
-    cancelledSessionData
-  );
-  return data;
-};
-
-const deleteCancelledSession = async (id: string) => {
-  const { data } = await api.delete(
-    `${END_POINTS.SESSION.CANCELLED_SESSIONS}${id}/`
   );
   return data;
 };
@@ -1146,13 +775,13 @@ const get_booking_requests = async (
   searchQuery?: string
 ): Promise<PaginatedResponse<BookingRequest>> => {
   let url = END_POINTS.BOOKING.BOOKING_REQUESTS(pageIndex, pageSize);
-  
+
   // Add search query if provided
   if (searchQuery && searchQuery.trim()) {
     const separator = url.includes('?') ? '&' : '?';
     url += `${separator}search=${encodeURIComponent(searchQuery.trim())}`;
   }
-  
+
   const { data } = await api.get(url);
   // The backend returns { bookings: [...], total_count: N }
   return {
@@ -1160,45 +789,65 @@ const get_booking_requests = async (
     total: data.total_count || 0,
     page: pageIndex,
     pageSize: pageSize,
-    totalPages: pageSize ? Math.ceil((data.total_count || 0) / pageSize) : undefined,
+    totalPages: pageSize
+      ? Math.ceil((data.total_count || 0) / pageSize)
+      : undefined,
   };
 };
 
 const approve_booking_request = async (requestId: number) => {
-  const { data } = await api.patch(END_POINTS.BOOKING.APPROVE_REQUEST(requestId), {
-    action: 'approve'
-  });
+  const { data } = await api.patch(
+    END_POINTS.BOOKING.APPROVE_REQUEST(requestId),
+    {
+      action: 'approve',
+    }
+  );
   return data;
 };
 
 const reject_booking_request = async (requestId: number, reason?: string) => {
-  const { data } = await api.patch(END_POINTS.BOOKING.REJECT_REQUEST(requestId), {
-    action: 'reject',
-    reason: reason || ''
-  });
+  const { data } = await api.patch(
+    END_POINTS.BOOKING.REJECT_REQUEST(requestId),
+    {
+      action: 'reject',
+      reason: reason || '',
+    }
+  );
   return data;
 };
 
 const convert_client_to_regular = async (clientId: number) => {
-  const { data } = await api.post(END_POINTS.BOOKING.CONVERT_TO_REGULAR(clientId));
+  const { data } = await api.post(
+    END_POINTS.BOOKING.CONVERT_TO_REGULAR(clientId)
+  );
   return data;
 };
 
 const convert_client_to_booking = async (clientId: number) => {
-  const { data } = await api.post(END_POINTS.BOOKING.CONVERT_TO_BOOKING(clientId));
+  const { data } = await api.post(
+    END_POINTS.BOOKING.CONVERT_TO_BOOKING(clientId)
+  );
   return data;
 };
 
-const get_progress_feedback = async (clientId: string, subcategoryId: string) => {
-  const { data } = await api.get(END_POINTS.BOOKING.PROGRESS_FEEDBACK(clientId, subcategoryId));
+const get_progress_feedback = async (
+  clientId: string,
+  subcategoryId: string
+) => {
+  const { data } = await api.get(
+    END_POINTS.BOOKING.PROGRESS_FEEDBACK(clientId, subcategoryId)
+  );
   return data;
 };
 
 const cancel_booking_request = async (requestId: number, reason?: string) => {
-  const { data } = await api.patch(END_POINTS.BOOKING.APPROVE_REQUEST(requestId), {
-    action: 'cancel',
-    reason: reason || ''
-  });
+  const { data } = await api.patch(
+    END_POINTS.BOOKING.APPROVE_REQUEST(requestId),
+    {
+      action: 'cancel',
+      reason: reason || '',
+    }
+  );
   return data;
 };
 
@@ -1217,7 +866,9 @@ const get_availability = async () => {
     return data;
   } catch (error) {
     // Handle 404 gracefully - user might not have availability setup yet
-    if ((error as { response?: { status?: number } })?.response?.status === 404) {
+    if (
+      (error as { response?: { status?: number } })?.response?.status === 404
+    ) {
       console.log('No availability found for user, returning null');
       return null;
     }
@@ -1226,54 +877,78 @@ const get_availability = async () => {
 };
 
 const create_availability = async (availabilityData: {
-  schedule?: Record<string, {
-    isOpen: boolean;
-    shifts: Array<{ start: string; end: string }>;
-  }>;
+  schedule?: Record<
+    string,
+    {
+      isOpen: boolean;
+      shifts: Array<{ start: string; end: string }>;
+    }
+  >;
   working_hours?: Record<string, Array<{ start: string; end: string }>>;
   open_days?: string[];
   exceptions?: Exception[];
   appointment_duration?: number;
 }) => {
-  const { data } = await api.post(END_POINTS.PROFILE.AVAILABILITY, availabilityData);
+  const { data } = await api.post(
+    END_POINTS.PROFILE.AVAILABILITY,
+    availabilityData
+  );
   return data;
 };
 
 const update_availability = async (availabilityData: {
-  schedule?: Record<string, {
-    isOpen: boolean;
-    shifts: Array<{ start: string; end: string }>;
-  }>;
+  schedule?: Record<
+    string,
+    {
+      isOpen: boolean;
+      shifts: Array<{ start: string; end: string }>;
+    }
+  >;
   working_hours?: Record<string, Array<{ start: string; end: string }>>;
   open_days?: string[];
   exceptions?: Exception[];
   appointment_duration?: number;
 }) => {
-  const { data } = await api.put(END_POINTS.PROFILE.AVAILABILITY, availabilityData);
+  const { data } = await api.put(
+    END_POINTS.PROFILE.AVAILABILITY,
+    availabilityData
+  );
   return data;
 };
 
 const partial_update_availability = async (availabilityData: {
-  schedule?: Record<string, {
-    isOpen: boolean;
-    shifts: Array<{ start: string; end: string }>;
-  }>;
+  schedule?: Record<
+    string,
+    {
+      isOpen: boolean;
+      shifts: Array<{ start: string; end: string }>;
+    }
+  >;
   working_hours?: Record<string, Array<{ start: string; end: string }>>;
   open_days?: string[];
   exceptions?: Exception[];
   appointment_duration?: number;
 }) => {
-  console.log('🌐 partial_update_availability called with data:', availabilityData);
+  console.log(
+    '🌐 partial_update_availability called with data:',
+    availabilityData
+  );
   console.log('🌐 Exceptions in API request:', availabilityData.exceptions);
-  
+
   try {
-    const { data } = await api.patch(END_POINTS.PROFILE.AVAILABILITY, availabilityData);
+    const { data } = await api.patch(
+      END_POINTS.PROFILE.AVAILABILITY,
+      availabilityData
+    );
     console.log('🌐 partial_update_availability response:', data);
     console.log('🌐 Exceptions in API response:', data.exceptions);
     return data;
   } catch (error) {
     console.error('🌐 partial_update_availability error:', error);
-    console.error('🌐 Error response:', (error as { response?: { data?: unknown } })?.response?.data);
+    console.error(
+      '🌐 Error response:',
+      (error as { response?: { data?: unknown } })?.response?.data
+    );
     throw error;
   }
 };
@@ -1290,7 +965,9 @@ const get_booking_settings = async () => {
   return data;
 };
 
-const update_booking_settings = async (settingsData: Partial<BookingSettings>) => {
+const update_booking_settings = async (
+  settingsData: Partial<BookingSettings>
+) => {
   const { data } = await api.patch(END_POINTS.BOOKING.SETTINGS, settingsData);
   return data;
 };
@@ -1302,9 +979,12 @@ const get_booking_notifications = async () => {
 };
 
 const mark_notification_as_read = async (notificationId: number) => {
-  const { data } = await api.patch(`${END_POINTS.BOOKING.NOTIFICATIONS}${notificationId}/`, {
-    is_read: true
-  });
+  const { data } = await api.patch(
+    `${END_POINTS.BOOKING.NOTIFICATIONS}${notificationId}/`,
+    {
+      is_read: true,
+    }
+  );
   return data;
 };
 
@@ -1357,37 +1037,49 @@ const get_public_availability = async (
     businessSlug,
     categoryId,
     startDate,
-    endDate
+    endDate,
   });
 
-  const params: { start_date: string; end_date: string; category_id?: number } = {
-    start_date: startDate,
-    end_date: endDate,
-  };
-  
+  const params: { start_date: string; end_date: string; category_id?: number } =
+    {
+      start_date: startDate,
+      end_date: endDate,
+    };
+
   // Only add category_id if it's not null
   if (categoryId !== null && categoryId > 0) {
     params.category_id = categoryId;
   }
 
   console.log('🔧 DEBUG: API request params being sent:', params);
-  console.log('🔗 DEBUG: API endpoint:', `/api/booking/${businessSlug}/availability/`);
+  console.log(
+    '🔗 DEBUG: API endpoint:',
+    `/api/booking/${businessSlug}/availability/`
+  );
 
   try {
-    const { data } = await api.get(`/api/booking/${businessSlug}/availability/`, {
-      params,
-    });
-    
+    const { data } = await api.get(
+      `/api/booking/${businessSlug}/availability/`,
+      {
+        params,
+      }
+    );
+
     console.log('📦 DEBUG: Raw API response received:', data);
     console.log('📊 DEBUG: Response slots array:', data?.slots);
     console.log('📈 DEBUG: Response slots count:', data?.slots?.length || 0);
-    
+
     return data;
   } catch (error: unknown) {
     console.error('🚨 DEBUG: API request failed:', error);
     if (error && typeof error === 'object' && 'response' in error) {
-      const axiosError = error as { response: { status: number; data: unknown } };
-      console.error('🚨 DEBUG: Error response status:', axiosError.response.status);
+      const axiosError = error as {
+        response: { status: number; data: unknown };
+      };
+      console.error(
+        '🚨 DEBUG: Error response status:',
+        axiosError.response.status
+      );
       console.error('🚨 DEBUG: Error response data:', axiosError.response.data);
     }
     throw error;
@@ -1412,7 +1104,10 @@ const create_public_booking = async (
     selected_location_id?: number;
   }
 ) => {
-  const { data } = await api.post(`/api/booking/${businessSlug}/book/`, bookingData);
+  const { data } = await api.post(
+    `/api/booking/${businessSlug}/book/`,
+    bookingData
+  );
   return data;
 };
 
@@ -1436,12 +1131,15 @@ const cancel_client_booking = async (
   client_phone?: string
 ) => {
   const payload: any = {};
-  
+
   if (reason) payload.reason = reason;
   if (client_email) payload.client_email = client_email;
   if (client_phone) payload.client_phone = client_phone;
-  
-  const { data } = await api.post(`/api/booking/client/${bookingReference}/cancel/`, payload);
+
+  const { data } = await api.post(
+    `/api/booking/client/${bookingReference}/cancel/`,
+    payload
+  );
   return data;
 };
 
@@ -1456,7 +1154,7 @@ const get_client_reschedule_options = async (
   if (dateFrom) params.date_from = dateFrom;
   if (dateTo) params.date_to = dateTo;
   if (filterType) params.filter_type = filterType;
-  
+
   const { data } = await api.get(
     `/api/booking/client/${bookingReference}/reschedule-options/`,
     { params }
@@ -1480,53 +1178,66 @@ const reschedule_client_booking = async (
   const payload: any = {
     new_session_id: newSessionId,
   };
-  
+
   if (newDate) payload.new_date = newDate;
   if (newStartTime) payload.new_start_time = newStartTime;
   if (newEndTime) payload.new_end_time = newEndTime;
-  
+
   if (identityVerification) {
     payload.identity_verification = identityVerification;
   }
-  
+
   if (reason) {
     payload.reason = reason;
   }
-  
-  const { data } = await api.post(`/api/booking/client/${bookingReference}/reschedule/`, payload);
+
+  const { data } = await api.post(
+    `/api/booking/client/${bookingReference}/reschedule/`,
+    payload
+  );
   return data;
 };
 
 // Get available staff for flexible booking
-const get_public_available_staff = async (businessSlug: string, params: {
-  session_id: number;
-  date?: string;
-}) => {
+const get_public_available_staff = async (
+  businessSlug: string,
+  params: {
+    session_id: number;
+    date?: string;
+  }
+) => {
   const searchParams = new URLSearchParams();
   Object.entries(params).forEach(([key, value]) => {
     if (value !== undefined && value !== null) {
       searchParams.append(key, value.toString());
     }
   });
-  
-  const { data } = await api.get(`/api/booking/${businessSlug}/available-staff/?${searchParams.toString()}`);
+
+  const { data } = await api.get(
+    `/api/booking/${businessSlug}/available-staff/?${searchParams.toString()}`
+  );
   return data;
 };
 
 // Get available locations for flexible booking
-const get_public_available_locations = async (businessSlug: string, params: {
-  session_id: number;
-  staff_id?: number;
-  date?: string;
-}) => {
+const get_public_available_locations = async (
+  businessSlug: string,
+  params: {
+    session_id: number;
+    staff_id?: number;
+    date?: string;
+  }
+) => {
   const searchParams = new URLSearchParams();
   Object.entries(params).forEach(([key, value]) => {
     if (value !== undefined && value !== null) {
       searchParams.append(key, value.toString());
     }
   });
-  
-  const { data } = await api.get(`/api/booking/${businessSlug}/available-locations/?${searchParams.toString()}`);
+
+  const { data } = await api.get(
+    `/api/booking/${businessSlug}/available-locations/?${searchParams.toString()}`
+  );
   return data;
 };
 
@@ -1554,42 +1265,20 @@ export {
   get_staff_member,
   update_staff_member,
   create_staff,
-  create_session,
   get_user_profile,
   update_user_profile,
   get_analytics,
   get_upcoming_sessions,
   cancel_session,
   reschedule_session,
-  get_sessions,
-  delete_session,
-  get_staff_sessions,
-  get_session_detail,
-  get_session_categories,
-  create_session_category,
-  update_session_category,
-  delete_session_category,
-  get_session_subcategories,
-  create_session_subcategory,
-  update_session_subcategory,
-  delete_session_subcategory,
-  get_session_skills,
-  create_session_skill,
-  update_session_skill,
-  delete_session_skill,
   get_session_analytics,
   get_client_analytics,
-  get_class_sessions,
   update_client,
   deactivate_client,
   activate_client,
-  update_session,
-  get_session_clients,
   mark_client_attended,
   mark_client_not_attended,
   update_attendance_status,
-  activate_session,
-  deactivate_session,
   remove_client_from_session,
   get_places_autocomplete,
   activate_staff,
@@ -1611,22 +1300,6 @@ export {
   createRole,
   updateRole,
   deleteRole,
-  getMakeupSessions,
-  createMakeupSession,
-  updateMakeupSession,
-  deleteMakeupSession,
-  bulkCreateMakeupSessions,
-  // Attended sessions exports
-  getAttendedSessions,
-  createAttendedSession,
-  updateAttendedSession,
-  deleteAttendedSession,
-  // Cancelled sessions exports
-  getCancelledSessions,
-  createCancelledSession,
-  updateCancelledSession,
-  deleteCancelledSession,
-  bulkCancelSessions,
   getSeries,
   markOutcomeComplete,
   markOutcomeIncomplete,
@@ -1634,10 +1307,9 @@ export {
   getClientProgress,
   getOutcomes,
   getLevelFeedback,
-  get_calendar_sessions,
 
- // bulk attendance
- bulk_mark_attendance,
+  // bulk attendance
+
   // Booking exports
   get_booking_requests,
   approve_booking_request,

@@ -117,7 +117,7 @@ const DemoBookingForm = ({
           <div
             className='text-white p-8 flex flex-col rounded-lg w-full md:w-[45%]'
             style={{
-              backgroundImage: `url(${backgroundImage})`,
+              backgroundImage: `url(${'https://res.cloudinary.com/djxu3bryf/image/upload/v1751726418/freeDemoBg_onsjek.png'})`,
               backgroundSize: 'cover',
               backgroundPosition: 'center',
             }}
