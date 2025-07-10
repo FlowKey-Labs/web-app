@@ -28,7 +28,7 @@ const navigationMap: NavigationMap = {
   clients: navigateToClients,
   calendar: navigateToCalendar,
   "audit logs": navigateToAuditLogs,
-  "staff portal": navigateToStaffPortal,
+  "my portal": navigateToStaffPortal,
   profile: navigateToProfile,
   settings: navigateToSettings,
 };
@@ -47,7 +47,7 @@ const permissionMap: Record<string, keyof Role> = {
   Profile: "can_manage_profile",
   Settings: "can_manage_settings",
   "Audit Logs": "can_view_audit_logs",
-  "Staff Portal": "can_access_staff_portal", // Staff portal shows for users who can access the staff portal
+  "My Portal": "can_access_staff_portal", // My portal shows for staff users who can access the staff portal
 };
 
 function filterMenuItemsByRole<T extends { name: string }>(
@@ -82,10 +82,10 @@ const Sidebar = ({ activeItem, isOpen = true, onClose }: SidebarProps) => {
     
     let items = [...bottomMenuItems];
     
-    // Add Staff Portal for staff users (those who can access the staff portal)
+    // Add My Portal for staff users (those who can access the staff portal)
     if (role.can_access_staff_portal) {
       const staffPortalItem = {
-        name: "Staff Portal",
+        name: "My Portal",
         icon: ({ className }: { className?: string }) => (
           <svg
             className={className}
@@ -138,7 +138,7 @@ const Sidebar = ({ activeItem, isOpen = true, onClose }: SidebarProps) => {
         ),
       };
       
-      // Insert Staff Portal before Profile
+      // Insert My Portal before Profile
       const profileIndex = items.findIndex(item => item.name === "Profile");
       if (profileIndex !== -1) {
         items.splice(profileIndex, 0, staffPortalItem);
