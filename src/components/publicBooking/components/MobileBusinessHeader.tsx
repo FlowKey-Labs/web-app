@@ -26,24 +26,32 @@ export function MobileBusinessHeader({
   const businessName = businessInfo.business_name || 'Business';
   const serviceName = state.selectedService?.name || 'Service';
   
-  // Dynamically calculate steps and labels based on flexible booking settings
+  // Dynamically calculate steps based on booking type and settings
   const getStepOrder = () => {
-    const baseSteps = ['service', 'date'];
-    const flexibleSteps = [];
-    
-    if (state.flexibleBookingSettings?.allow_staff_selection) {
-      flexibleSteps.push('staff');
+    if (state.isFlexibleBooking) {
+      // For flexible bookings, we have a specific step order
+      const flexibleSteps = ['service', 'subcategory', 'location', 'staff', 'date', 'details', 'confirmation'];
+      return flexibleSteps;
+    } else {
+      // For fixed bookings, use the original logic
+      const baseSteps = ['service', 'date'];
+      const flexibleSteps = [];
+      
+      if (state.flexibleBookingSettings?.allow_staff_selection) {
+        flexibleSteps.push('staff');
+      }
+      if (state.flexibleBookingSettings?.allow_location_selection) {
+        flexibleSteps.push('location');
+      }
+      
+      return [...baseSteps, ...flexibleSteps, 'details', 'confirmation'];
     }
-    if (state.flexibleBookingSettings?.allow_location_selection) {
-      flexibleSteps.push('location');
-    }
-    
-    return [...baseSteps, ...flexibleSteps, 'details', 'confirmation'];
   };
 
   const getStepLabels = () => {
     return {
       service: 'Select Service',
+      subcategory: 'Service Type',
       date: 'Choose Date & Time',
       staff: 'Select Staff',
       location: 'Choose Location',

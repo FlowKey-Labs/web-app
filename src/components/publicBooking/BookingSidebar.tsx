@@ -57,21 +57,16 @@ export function BookingSidebar({
 
   const availableSteps = React.useMemo(() => {
     const steps = progressSteps.filter((step) => {
-      // For flexible booking, show different steps
+      // For flexible booking, show subcategory, location, staff, date, details, confirmation
       if (state.isFlexibleBooking) {
         if (step.step === "subcategory" && !state.selectedServiceCategory?.subcategories?.length) {
           return false;
         }
-        if (step.step === "staff" && !state.flexibleBookingSettings?.allow_staff_selection) {
-          return false;
-        }
-        if (step.step === "location" && !state.flexibleBookingSettings?.allow_location_selection) {
-          return false;
-        }
+        // For pure flexible bookings, staff and location are always part of the flow
         return true;
       }
       
-      // For fixed booking, use original logic
+      // For fixed booking, show service, date, details, confirmation + optional staff/location
       if (step.step === "subcategory") {
         return false; // Not used in fixed booking
       }

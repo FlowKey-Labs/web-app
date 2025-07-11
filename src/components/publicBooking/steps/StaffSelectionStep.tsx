@@ -61,7 +61,7 @@ export function StaffSelectionStep({
     businessSlug,
     serviceId,
     dateParam,
-    true,
+    true, // isServiceId: true for flexible bookings
     locationId
   );
 
