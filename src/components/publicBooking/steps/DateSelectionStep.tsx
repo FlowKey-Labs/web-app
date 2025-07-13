@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import {
   Title,
@@ -67,32 +67,34 @@ export function DateSelectionStep({ businessSlug, businessInfo }: DateSelectionS
   const startDate = DateTime.now().toFormat('yyyy-MM-dd');
   const endDate = DateTime.now().plus({ days: 30 }).toFormat('yyyy-MM-dd');
 
-  // Get service ID for API call - handle both flexible and fixed booking
-  const serviceId = state.isFlexibleBooking 
-    ? state.selectedServiceSubcategory?.id 
-    : state.selectedService?.id;
+  // Get correct API parameters for flexible vs fixed bookings
+  const apiParams = useMemo(() => {
+    if (state.isFlexibleBooking) {
+      // Flexible booking: use service_id (subcategory ID), staff_id, location_id
+      return {
+        serviceId: state.selectedServiceSubcategory?.id || null,
+        staffId: state.selectedStaff?.id || (state as { preselectedStaffId?: number }).preselectedStaffId || null,
+        locationId: state.selectedLocation?.id || (state as { preselectedLocationId?: number }).preselectedLocationId || null,
+      };
+    } else {
+      // Fixed booking: use service_id for the selected service (backend will handle category lookup)
+      return {
+        serviceId: state.selectedService?.id || state.selectedServiceCategory?.id || null,
+        staffId: null,
+        locationId: null,
+      };
+    }
+  }, [state]);
 
-  // Get selected staff and location for flexible booking - use selected objects or fall back to preselected IDs
-  const selectedStaffId = state.isFlexibleBooking ? (state.selectedStaff?.id || (state as { preselectedStaffId?: number }).preselectedStaffId) : null;
-  const selectedLocationId = state.isFlexibleBooking ? (state.selectedLocation?.id || (state as { preselectedLocationId?: number }).preselectedLocationId) : null;
-
-  // Debug location access
-  console.log('🔍 DateSelectionStep DEBUG - Location access details:', {
-    'state.isFlexibleBooking': state.isFlexibleBooking,
-    'state.selectedLocation': state.selectedLocation,
-    'state.selectedLocation?.id': state.selectedLocation?.id,
-    'typeof state.selectedLocation?.id': typeof state.selectedLocation?.id,
-    'selectedLocationId': selectedLocationId,
-    'typeof selectedLocationId': typeof selectedLocationId
-  });
-
-  console.log('🔍 DateSelectionStep DEBUG - Fetching availability with:', {
-    serviceId,
-    selectedStaffId,
-    selectedLocationId,
-    isFlexibleBooking: state.isFlexibleBooking,
-    selectedStaff: state.selectedStaff,
-    selectedLocation: state.selectedLocation
+  // Debug API parameters
+  console.log('🔍 DateSelectionStep DEBUG - API Parameters:', {
+    'isFlexibleBooking': state.isFlexibleBooking,
+    'apiParams': apiParams,
+    'selectedService': state.selectedService,
+    'selectedServiceCategory': state.selectedServiceCategory,
+    'selectedServiceSubcategory': state.selectedServiceSubcategory,
+    'selectedStaff': state.selectedStaff,
+    'selectedLocation': state.selectedLocation
   });
 
   const { 
@@ -101,11 +103,11 @@ export function DateSelectionStep({ businessSlug, businessInfo }: DateSelectionS
     error: slotsError 
   } = useGetPublicAvailability(
     businessSlug,
-    serviceId || null,
+    apiParams.serviceId,
     startDate,
     endDate,
-    selectedStaffId,
-    selectedLocationId
+    apiParams.staffId,
+    apiParams.locationId
   );
 
   const typedAvailabilityData = availabilityData as PublicAvailabilityResponse | undefined;

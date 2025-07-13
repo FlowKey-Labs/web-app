@@ -53,7 +53,8 @@ export function LocationSelectionStep({
     businessSlug,
     serviceId,
     staffId,
-    typeof selectedDate === 'string' ? selectedDate : selectedDate?.toISOString()?.split('T')[0]
+    typeof selectedDate === 'string' ? selectedDate : selectedDate?.toISOString()?.split('T')[0],
+    true // isServiceId: true for flexible bookings
   );
 
   // Extract locations from the response - handle the API response structure
