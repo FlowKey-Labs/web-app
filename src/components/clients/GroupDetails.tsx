@@ -165,7 +165,7 @@ const GroupDetails = () => {
                       LOCATION
                     </span>
                     <span className='text-gray-400  text-xs'>
-                      {groupDetails.location || 'N/A'}
+                      {groupDetails.location_name || 'N/A'}
                     </span>
                   </div>
                   {groupDetails.contact_person && (
