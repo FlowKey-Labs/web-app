@@ -239,9 +239,6 @@ const UpdateGroup = ({ groupData, onSuccess }: UpdateGroupProps) => {
           <Controller
             name='client_ids'
             control={control}
-            rules={{
-              required: 'At least one client is required for a group',
-            }}
             render={({ field }) => {
               const clientOptions = isClientsLoading
                 ? [{ label: 'Loading...', value: '' }]
@@ -284,7 +281,6 @@ const UpdateGroup = ({ groupData, onSuccess }: UpdateGroupProps) => {
           <Controller
             name='contact_person.id' // Use dot notation for nested field
             control={control}
-            rules={{ required: 'Contact person is required' }}
             render={({ field }) => (
               <DropdownSelectInput
                 label='Contact Person'
