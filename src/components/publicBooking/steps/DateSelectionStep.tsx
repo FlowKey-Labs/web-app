@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import {
   Title,
@@ -67,15 +67,47 @@ export function DateSelectionStep({ businessSlug, businessInfo }: DateSelectionS
   const startDate = DateTime.now().toFormat('yyyy-MM-dd');
   const endDate = DateTime.now().plus({ days: 30 }).toFormat('yyyy-MM-dd');
 
+  // Get correct API parameters for flexible vs fixed bookings
+  const apiParams = useMemo(() => {
+    if (state.isFlexibleBooking) {
+      // Flexible booking: use service_id (subcategory ID), staff_id, location_id
+      return {
+        serviceId: state.selectedServiceSubcategory?.id || null,
+        staffId: state.selectedStaff?.id || (state as { preselectedStaffId?: number }).preselectedStaffId || null,
+        locationId: state.selectedLocation?.id || (state as { preselectedLocationId?: number }).preselectedLocationId || null,
+      };
+    } else {
+      // Fixed booking: use service_id for the selected service (backend will handle category lookup)
+      return {
+        serviceId: state.selectedService?.id || state.selectedServiceCategory?.id || null,
+        staffId: null,
+        locationId: null,
+      };
+    }
+  }, [state]);
+
+  // Debug API parameters
+  console.log('🔍 DateSelectionStep DEBUG - API Parameters:', {
+    'isFlexibleBooking': state.isFlexibleBooking,
+    'apiParams': apiParams,
+    'selectedService': state.selectedService,
+    'selectedServiceCategory': state.selectedServiceCategory,
+    'selectedServiceSubcategory': state.selectedServiceSubcategory,
+    'selectedStaff': state.selectedStaff,
+    'selectedLocation': state.selectedLocation
+  });
+
   const { 
     data: availabilityData, 
     isLoading: slotsLoading, 
     error: slotsError 
   } = useGetPublicAvailability(
     businessSlug,
-    state.selectedService?.id || null,
+    apiParams.serviceId,
     startDate,
-    endDate
+    endDate,
+    apiParams.staffId,
+    apiParams.locationId
   );
 
   const typedAvailabilityData = availabilityData as PublicAvailabilityResponse | undefined;
@@ -155,6 +187,8 @@ export function DateSelectionStep({ businessSlug, businessInfo }: DateSelectionS
       }
     });
     
+    // Only fetch session flexible settings for fixed session bookings, not service-based flexible bookings
+    if (!state.isFlexibleBooking && slot.session_id) {
     try {
       const apiUrl = `${API_BASE_URL}/api/booking/${businessSlug}/session-flexible-settings/?session_id=${slot.session_id}`;
       
@@ -172,24 +206,19 @@ export function DateSelectionStep({ businessSlug, businessInfo }: DateSelectionS
           type: 'SET_FLEXIBLE_SETTINGS', 
           payload: sessionSettings.settings 
         });
+        }
         
-        setTimeout(() => {
-          isNavigating.current = false;
-          goToNextStep();
-        }, 100);
-      } else {
-        setTimeout(() => {
-          isNavigating.current = false;
-          goToNextStep();
-        }, 100);
+      } catch (error) {
+        console.warn('Failed to fetch session flexible settings:', error);
+        // Continue without flexible settings for fixed sessions
       }
-      
-    } catch {
+    }
+    
+    // Navigate to next step after handling settings
       setTimeout(() => {
         isNavigating.current = false;
         goToNextStep();
-      }, 300);
-    }
+    }, 100);
   };
 
   const handleBack = () => {
@@ -214,7 +243,7 @@ export function DateSelectionStep({ businessSlug, businessInfo }: DateSelectionS
     
     const dateString = formatDateForAPI(date);
     const hasSlots = availableSlots.some((slot: AvailabilitySlot) => 
-      slot.date === dateString && slot.capacity_status === 'available'
+      slot.date === dateString && (slot.capacity_status === 'available' || slot.available === true)
     );
     
     return !hasSlots;
@@ -223,7 +252,7 @@ export function DateSelectionStep({ businessSlug, businessInfo }: DateSelectionS
   const hasAvailability = (date: Date) => {
     const dateString = formatDateForAPI(date);
     return availableSlots.some((slot: AvailabilitySlot) => 
-      slot.date === dateString && slot.capacity_status === 'available'
+      slot.date === dateString && (slot.capacity_status === 'available' || slot.available === true)
     );
   };
 
@@ -266,7 +295,12 @@ export function DateSelectionStep({ businessSlug, businessInfo }: DateSelectionS
     }
   };
 
-  if (!businessInfo || !state.selectedService) {
+  // Validate required information based on booking type
+  const hasRequiredServiceInfo = state.isFlexibleBooking 
+    ? state.selectedServiceSubcategory
+    : state.selectedService;
+
+  if (!businessInfo || !hasRequiredServiceInfo) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-50">
         <Alert 
@@ -519,7 +553,10 @@ export function DateSelectionStep({ businessSlug, businessInfo }: DateSelectionS
                       <ScrollArea className="h-64">
                         <div className="space-y-3">
                           {slotsForSelectedDate
-                            .filter((slot: AvailabilitySlot) => slot.capacity_status === 'available' && slot.available_spots > 0)
+                            .filter((slot: AvailabilitySlot) => 
+                              (slot.capacity_status === 'available' || slot.available === true) && 
+                              (slot.available_spots > 0 || slot.available === true)
+                            )
                             .map((slot: AvailabilitySlot, index: number) => {
                               return (
                                 <motion.div

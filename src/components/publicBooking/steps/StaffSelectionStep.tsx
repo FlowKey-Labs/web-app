@@ -1,69 +1,88 @@
-import React, { useState, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Title, 
-  Text, 
-  Button, 
-  Card, 
-  Badge, 
-  Avatar, 
-  Alert, 
-  LoadingOverlay, 
-  Collapse,
+import React, { useState, useMemo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  Title,
+  Text,
+  Alert,
+  LoadingOverlay,
   TextInput,
-  Select
-} from '@mantine/core';
-import { useViewportSize } from '@mantine/hooks';
-import { 
-  ArrowLeftIcon, 
-  ArrowRightIcon, 
-  UserIcon, 
-  InfoIcon, 
-  CheckIcon,
-  SearchIcon
-} from '../bookingIcons';
-import { useBookingFlow } from '../PublicBookingProvider';
-import { MobileBusinessHeader } from '../components/MobileBusinessHeader';
-import { useGetPublicAvailableStaff } from '../../../hooks/reactQuery';
-import { PublicStaff } from '../../../types/clientTypes';
+  Badge,
+  Card,
+  Button,
+  ActionIcon,
+  Select,
+} from "@mantine/core";
+import {
+  SearchIcon,
+  InfoIcon,
+  ArrowLeftIcon,
+  ChevronDownIcon,
+  ChevronUpIcon,
+} from "../bookingIcons";
+import { useBookingFlow } from "../PublicBookingProvider";
+import { PublicStaff, PublicBusinessInfo } from "../../../types/clientTypes";
+import { useGetPublicAvailableStaff } from "../../../hooks/reactQuery";
+import { useViewportSize } from "@mantine/hooks";
 
 interface StaffSelectionStepProps {
-  onNext: () => void;
-  onBack: () => void;
+  businessSlug: string;
+  businessInfo: PublicBusinessInfo;
 }
 
-function StaffSelectionStepComponent({ onNext, onBack }: StaffSelectionStepProps) {
-  const { state, dispatch } = useBookingFlow();
+export function StaffSelectionStep({
+  businessSlug,
+  businessInfo,
+}: StaffSelectionStepProps) {
+  const { state, dispatch, goToNextStep, goToPreviousStep } = useBookingFlow();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [specializationFilter, setSpecializationFilter] = useState<string | null>(null);
+  const [scrollY, setScrollY] = useState(0);
+  const [isBusinessProfileExpanded, setIsBusinessProfileExpanded] = useState(false);
+
   const { width } = useViewportSize();
   const isMobile = width < 768;
-  const [selectedStaff, setSelectedStaff] = useState<PublicStaff | null>(state.selectedStaff);
-  const [expandedStaff, setExpandedStaff] = useState<number | null>(null);
+
+  const selectedSubcategory = state.selectedServiceSubcategory;
+  const selectedService = state.selectedService;
+  const selectedLocation = state.selectedLocation;
+  const selectedDate = state.selectedDate;
+
+  const serviceId = selectedSubcategory?.id || selectedService?.id || 0;
   
+  // Handle location ID - use selected location object, or fall back to preselected location ID
+  const locationId = selectedLocation?.id || state.preselectedLocationId || 0;
 
-  const [searchQuery, setSearchQuery] = useState('');
-  const [specializationFilter, setSpecializationFilter] = useState<string>('all');
-  const [availabilityFilter, setAvailabilityFilter] = useState<string>('all');
-  
+  // Handle date - if no date is selected, pass undefined to get all available staff
+  const dateParam = selectedDate 
+    ? (typeof selectedDate === 'string' ? selectedDate : selectedDate?.toISOString()?.split('T')[0])
+    : undefined;
 
-  const [isBusinessProfileExpanded, setIsBusinessProfileExpanded] = useState(false);
-  const [scrollY, setScrollY] = useState(0);
-
-
-  const businessSlug = window.location.pathname.split('/book/')[1]?.split('/')[0] || '';
-  
-
-  const { 
-    data: staffResponse, 
-    isLoading: staffLoading, 
-    error: staffError 
-  } = useGetPublicAvailableStaff(
-    businessSlug, 
-    state.selectedTimeSlot?.session_id || 0,
-    typeof state.selectedDate === 'string' ? state.selectedDate : state.selectedDate?.toISOString()?.split('T')[0]
+  const { data: staffResponse, isLoading, error } = useGetPublicAvailableStaff(
+    businessSlug,
+    serviceId,
+    dateParam,
+    true, // isServiceId: true for flexible bookings
+    locationId
   );
 
-  const staffList = staffResponse?.staff || [];
-
+  const staff = useMemo(() => {
+    if (!staffResponse) return [];
+    
+    if (Array.isArray(staffResponse)) {
+      return staffResponse;
+    }
+    
+    if (staffResponse.staff && Array.isArray(staffResponse.staff)) {
+      return staffResponse.staff;
+    }
+    
+    if (staffResponse.data && Array.isArray(staffResponse.data)) {
+      return staffResponse.data;
+    }
+    
+    console.warn('Unexpected staff response structure:', staffResponse);
+    return [];
+  }, [staffResponse]);
 
   React.useEffect(() => {
     if (!isMobile) return;
@@ -72,434 +91,504 @@ function StaffSelectionStepComponent({ onNext, onBack }: StaffSelectionStepProps
       setScrollY(window.scrollY);
     };
 
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, [isMobile]);
 
-  const handleStaffSelect = (staff: PublicStaff) => {
-    setSelectedStaff(staff);
-    dispatch({ type: 'SELECT_STAFF', payload: staff });
+  const specializations = useMemo(() => {
+    if (!Array.isArray(staff) || staff.length === 0) return [];
     
-
-    setTimeout(() => {
-      onNext();
-    }, 500);
-  };
-
-  const handleBack = () => {
-    onBack();
-  };
-
-  const handleServiceChange = () => {
-    dispatch({ type: 'SET_CURRENT_STEP', payload: 'service' });
-  };
-
+    const specs = staff.flatMap((member: PublicStaff) => 
+      Array.isArray(member.specializations) ? member.specializations : []
+    );
+    return Array.from(new Set(specs.filter(Boolean)));
+  }, [staff]);
 
   const filteredStaff = useMemo(() => {
-    if (!staffList) return [];
+    if (!Array.isArray(staff)) return [];
 
-          return staffList.filter((staff: PublicStaff) => {
-      const staffName = staff.name || '';
-      const staffSpecializations = staff.specializations?.join(' ') || '';
-      const matchesSearch = staffName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                           staffSpecializations.toLowerCase().includes(searchQuery.toLowerCase());
-
+    return staff.filter((member: PublicStaff) => {
+      const memberName = member.name || "";
+      const memberSpecializations = Array.isArray(member.specializations) ? member.specializations : [];
       
-      const matchesSpecialization = specializationFilter === 'all' || 
-                                   staff.specializations?.includes(specializationFilter);
+      const matchesSearch = 
+        memberName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        memberSpecializations.some(spec => 
+          spec && spec.toLowerCase().includes(searchQuery.toLowerCase())
+        );
 
-      
-      const matchesAvailability = availabilityFilter === 'all' || 
-                                 (availabilityFilter === 'available' && staff.is_available !== false);
+      const matchesSpecialization = !specializationFilter || 
+        memberSpecializations.includes(specializationFilter);
 
-      return matchesSearch && matchesSpecialization && matchesAvailability;
+      return matchesSearch && matchesSpecialization;
     });
-  }, [staffList, searchQuery, specializationFilter, availabilityFilter]);
+  }, [staff, searchQuery, specializationFilter]);
 
+  const handleStaffSelect = async (staffMember: PublicStaff) => {
+    console.log('👨‍💼 Selected staff:', staffMember);
+    dispatch({ type: "SELECT_STAFF", payload: staffMember });
 
-  const specializations = useMemo(() => {
-    if (!staffList) return [];
-    const uniqueSpecs = [...new Set(staffList.flatMap((s: PublicStaff) => s.specializations || []))];
-    return uniqueSpecs.map(spec => ({ 
-      value: String(spec), 
-      label: String(spec)
-    }));
-  }, [staffList]);
+    setTimeout(() => goToNextStep(), 300);
+  };
 
-
-  const businessInfo = state.businessInfo;
-  
-  if (!businessInfo) {
+  if (!selectedSubcategory && !selectedService) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50">
-        <Alert 
-          icon={<InfoIcon className="w-5 h-5" />} 
-          color="red" 
-          title="Missing Information"
+      <div className="flex items-center justify-center min-h-screen">
+        <Alert
+          icon={<InfoIcon className="w-5 h-5" />}
+          color="red"
+          title="No Service Selected"
           radius="md"
           className="max-w-md"
         >
-          Business information is missing. Please refresh the page and try again.
+          Please go back and select a service first.
         </Alert>
       </div>
     );
   }
 
+  const businessName = businessInfo.business_name || "Business";
+  const businessType = businessInfo.business_type || "Service Provider";
+  const businessAbout = businessInfo.about || "";
+  const serviceName = selectedSubcategory?.name || selectedService?.name || "service";
+  const locationName = selectedLocation?.name || "location";
 
-  const getStaffSpecializations = (staff: PublicStaff) => {
-    if (staff.specializations && staff.specializations.length > 0) {
-      return staff.specializations;
-    }
-    return [];
-  };
+  const MobileBusinessHeader = () => {
+    const isCompact = scrollY > 100;
+    const progressPercentage = 90;
 
-  return (
-    <div className="h-screen w-full bg-none relative overflow-hidden">
-
-      <MobileBusinessHeader 
-        businessInfo={businessInfo}
-        scrollY={scrollY}
-        isExpanded={isBusinessProfileExpanded}
-        onToggleExpanded={() => setIsBusinessProfileExpanded(!isBusinessProfileExpanded)}
-        onServiceChange={handleServiceChange}
-      />
-      
-      <div className="flex h-full relative z-10">
-
-        <div className="flex-1 flex flex-col h-full overflow-hidden">
-          
-          <div className="flex-shrink-0 p-4 lg:p-8 bg-none border-b border-gray-100">
-            <div className="max-w-none">
-
-              <div className="flex items-center gap-2 mb-2">
-                <Button
-                  variant="subtle"
-                  size="sm"
-                  leftSection={<ArrowLeftIcon className="w-4 h-4" />}
-                  onClick={handleBack}
-                  className="text-slate-600 hover:text-slate-800 p-0"
-                >
-                  Back
-                </Button>
-              </div>
-              
+    return (
+      <motion.div
+        className="lg:hidden sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-white/20"
+        animate={{
+          height: isCompact ? 80 : isBusinessProfileExpanded ? "auto" : 120,
+          paddingTop: isCompact ? 8 : 16,
+          paddingBottom: isCompact ? 8 : 16,
+        }}
+        transition={{ duration: 0.3, ease: "easeInOut" }}
+      >
+        <div className="px-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
               <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3, duration: 0.6 }}
+                className="rounded-xl bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center shadow-lg"
+                animate={{
+                  width: isCompact ? 40 : 48,
+                  height: isCompact ? 40 : 48,
+                }}
               >
-                <Text className="text-slate-600 text-xs lg:text-sm mb-2">
-                  Select Staff Member
-                </Text>
-                <Title 
-                  order={2} 
-                  className="text-xl lg:text-3xl font-bold text-slate-900 mb-2 lg:mb-4"
-                  style={{
-                    background: 'linear-gradient(135deg, #1e293b 0%, #334155 100%)',
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent',
-                    backgroundClip: 'text',
+                <span
+                  className={`font-bold text-white ${
+                    isCompact ? "text-base" : "text-lg"
+                  }`}
+                >
+                  {businessName.charAt(0).toUpperCase()}
+                </span>
+              </motion.div>
+
+              <div className="flex-1">
+                <motion.div
+                  animate={{
+                    fontSize: isCompact ? "14px" : "16px",
                   }}
+                  className="font-bold text-slate-900 leading-tight"
                 >
-                  Choose your preferred staff member
-                </Title>
-                <Text className="text-slate-600 text-xs lg:text-sm">
-                  Select from our available team members for your session.
-                </Text>
-              </motion.div>
+                  {businessName}
+                </motion.div>
+                {!isCompact && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="text-xs text-slate-600"
+                  >
+                    {businessType}
+                  </motion.div>
+                )}
+              </div>
+            </div>
 
-
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4, duration: 0.5 }}
-                className="mt-6"
-              >
-                <div className="flex flex-col sm:flex-row gap-3 lg:gap-4">
-                  <TextInput
-                    placeholder="Search staff members..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    leftSection={<SearchIcon className="w-4 h-4 text-slate-400" />}
-                    className="flex-1"
-                    classNames={{
-                      input: "bg-white/60 backdrop-blur-sm border-white/30 focus:border-emerald-300 focus:bg-white/80 transition-all duration-200"
-                    }}
-                  />
-                  
-                  <div className="flex gap-2 lg:gap-3">
-                    <Select
-                      placeholder="All Specializations"
-                      value={specializationFilter}
-                      onChange={(value) => setSpecializationFilter(value || 'all')}
-                      data={[
-                        { value: 'all', label: 'All Specializations' },
-                        ...specializations
-                      ]}
-                      className="min-w-36"
-                      classNames={{
-                        input: "bg-white/60 backdrop-blur-sm border-white/30 focus:border-emerald-300"
-                      }}
-                    />
-                    
-                    <Select
-                      placeholder="Availability"
-                      value={availabilityFilter}
-                      onChange={(value) => setAvailabilityFilter(value || 'all')}
-                      data={[
-                        { value: 'all', label: 'All Staff' },
-                        { value: 'available', label: 'Available Only' }
-                      ]}
-                      className="min-w-28"
-                      classNames={{
-                        input: "bg-white/60 backdrop-blur-sm border-white/30 focus:border-emerald-300"
-                      }}
-                    />
-                  </div>
-                </div>
-              </motion.div>
+            <div className="flex items-center gap-2">
+              {!isCompact && (
+                <ActionIcon
+                  variant="subtle"
+                  onClick={() =>
+                    setIsBusinessProfileExpanded(!isBusinessProfileExpanded)
+                  }
+                  className="text-slate-600"
+                >
+                  {isBusinessProfileExpanded ? (
+                    <ChevronUpIcon className="w-4 h-4" />
+                  ) : (
+                    <ChevronDownIcon className="w-4 h-4" />
+                  )}
+                </ActionIcon>
+              )}
             </div>
           </div>
 
+          <motion.div
+            className="mt-3"
+            animate={{ opacity: isCompact ? 0.7 : 1 }}
+          >
+            <div className="flex items-center justify-between text-xs text-slate-600 mb-1">
+              <span>Step 4 of 4</span>
+              <span>{progressPercentage}% Complete</span>
+            </div>
+            <div className="w-full bg-slate-200 rounded-full h-1.5">
+              <div className="bg-emerald-500 h-1.5 rounded-full" style={{ width: `${progressPercentage}%` }}></div>
+            </div>
+          </motion.div>
 
-          <div className="flex-1 overflow-y-auto p-4 lg:p-8 pb-24 lg:pb-8">
-            <div className="max-w-none">
-              {staffLoading && (
-                <div className="relative min-h-[200px]">
-                  <LoadingOverlay visible={true} />
+          {isBusinessProfileExpanded && !isCompact && (
+            <div className="mt-4 space-y-3">
+              <div className="bg-slate-50 rounded-lg p-3">
+                <Text className="text-xs font-medium text-slate-800 mb-1">
+                  About
+                </Text>
+                <Text size="xs" className="text-slate-600 line-clamp-2">
+                  {businessAbout ||
+                    "Professional service provider offering quality experiences."}
+                </Text>
+              </div>
+
+              <div className="bg-emerald-50 rounded-lg p-3">
+                <Text className="text-xs font-medium text-emerald-800 mb-1">
+                  Selected Service
+                </Text>
+                <Text size="xs" className="text-emerald-700 font-semibold">
+                  {serviceName}
+                </Text>
+              </div>
+
+              {selectedLocation && (
+                <div className="bg-blue-50 rounded-lg p-3">
+                  <Text className="text-xs font-medium text-blue-800 mb-1">
+                    Selected Location
+                  </Text>
+                  <Text size="xs" className="text-blue-700 font-semibold">
+                    {locationName}
+                  </Text>
                 </div>
               )}
+            </div>
+          )}
+        </div>
+      </motion.div>
+    );
+  };
 
-              {staffError && (
-                <Alert 
-                  icon={<InfoIcon className="w-5 h-5" />} 
-                  color="red" 
+  if (isLoading) {
+    return (
+      <div className="h-screen w-full bg-none relative">
+        <MobileBusinessHeader />
+        <LoadingOverlay visible={true} />
+      </div>
+    );
+  }
+
+  return (
+    <div className="h-full w-full bg-none relative overflow-hidden">
+      <MobileBusinessHeader />
+
+      <div className="flex-1 flex flex-col h-full relative z-10">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+          className="flex-1 p-4 lg:p-8 flex flex-col min-h-0"
+        >
+          <div className="mb-6 lg:mb-8">
+            <div className="flex items-center gap-4 mb-4">
+              <Button
+                variant="subtle"
+                leftSection={<ArrowLeftIcon className="w-4 h-4" />}
+                onClick={goToPreviousStep}
+                size="sm"
+                className="text-slate-600 hover:text-slate-800"
+              >
+                Back
+              </Button>
+            </div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3, duration: 0.6 }}
+            >
+              <Text className="text-slate-600 text-xs lg:text-sm mb-2">
+                Select Staff Member
+              </Text>
+              <Title
+                order={2}
+                className="text-xl lg:text-3xl font-bold text-slate-900 mb-2 lg:mb-4"
+                style={{
+                  background:
+                    "linear-gradient(135deg, #1e293b 0%, #334155 100%)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  backgroundClip: "text",
+                }}
+              >
+                Choose your preferred staff member
+              </Title>
+              <Text className="text-slate-600 text-xs lg:text-sm">
+                Select from our skilled professionals who can provide your {serviceName} service.
+              </Text>
+            </motion.div>
+          </div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5, duration: 0.5 }}
+            className="mb-4 lg:mb-6"
+          >
+            <div className="flex flex-col sm:flex-row gap-3 lg:gap-4">
+              <TextInput
+                placeholder="Search staff..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                leftSection={<SearchIcon className="w-4 h-4 text-slate-400" />}
+                className="flex-1"
+                classNames={{
+                  input:
+                    "bg-white/60 backdrop-blur-sm border-white/30 focus:border-green-300 focus:bg-white/80 transition-all duration-200",
+                }}
+              />
+
+              <Select
+                placeholder="Filter by specialization"
+                value={specializationFilter}
+                onChange={(value) => setSpecializationFilter(value)}
+                data={[
+                  { value: "", label: "All Specializations" },
+                  ...specializations.map(spec => ({ value: spec, label: spec }))
+                ]}
+                className="min-w-48"
+                classNames={{
+                  input:
+                    "bg-white/60 backdrop-blur-sm border-white/30 focus:border-green-300",
+                }}
+                clearable
+                searchable={specializations.length > 5}
+                disabled={specializations.length === 0}
+              />
+            </div>
+          </motion.div>
+
+          <div className="flex-1 overflow-y-auto">
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 mb-4">
+                <Badge variant="light" color="green" size="sm">
+                  Available Staff
+                </Badge>
+                <Text size="sm" className="text-slate-500">
+                  {filteredStaff.length} staff member{filteredStaff.length !== 1 ? 's' : ''} available
+                </Text>
+              </div>
+
+              {error && (
+                <Alert
+                  icon={<InfoIcon className="w-5 h-5" />}
+                  color="red"
                   title="Error Loading Staff"
                   radius="md"
+                  className="max-w-md"
                 >
-                  Failed to load available staff members. Please refresh and try again.
+                  Failed to load staff members. Please try again.
                 </Alert>
               )}
 
               <AnimatePresence mode="popLayout">
-                {!staffLoading && !staffError && filteredStaff.length === 0 && (
+                {filteredStaff.length > 0 ? (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="space-y-3"
+                  >
+                    {filteredStaff.map((staffMember: PublicStaff, index: number) => (
+                      <motion.div
+                        key={staffMember.id}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -20 }}
+                        transition={{ delay: index * 0.1, duration: 0.4 }}
+                        whileHover={{ y: -2 }}
+                        className="cursor-pointer"
+                        onClick={() => handleStaffSelect(staffMember)}
+                      >
+                        <StaffCard
+                          staffMember={staffMember}
+                          onClick={handleStaffSelect}
+                        />
+                      </motion.div>
+                    ))}
+                  </motion.div>
+                ) : !error && (
                   <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     className="text-center py-8 lg:py-12"
                   >
-                    <div className="w-16 h-16 mx-auto mb-4 bg-slate-100 rounded-full flex items-center justify-center">
-                      <UserIcon className="w-8 h-8 text-slate-400" />
-                    </div>
+                    <div className="text-3xl lg:text-5xl mb-4">👨‍💼</div>
                     <Title order={4} className="text-slate-700 mb-2">
-                      {searchQuery || specializationFilter !== 'all' || availabilityFilter !== 'all' 
-                        ? 'No staff found' 
-                        : 'No staff available'
-                      }
+                      No staff members found
                     </Title>
                     <Text size="sm" className="text-slate-500">
-                      {searchQuery || specializationFilter !== 'all' || availabilityFilter !== 'all'
-                        ? 'Try adjusting your search or filter criteria'
-                        : 'No staff members are currently available for this service'
-                      }
+                      {searchQuery || specializationFilter
+                        ? "No staff members match your search criteria"
+                        : "No staff members are currently available for this service"}
                     </Text>
-                  </motion.div>
-                )}
-
-                {!staffLoading && !staffError && filteredStaff.length > 0 && (
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="space-y-3 lg:space-y-4 pb-6"
-                  >
-                    {filteredStaff.map((staff: PublicStaff, index: number) => {
-                      const isSelected = selectedStaff?.id === staff.id;
-                      const isExpanded = expandedStaff === staff.id;
-                      const specializations = getStaffSpecializations(staff);
-
-                      return (
-                        <motion.div
-                          key={staff.id}
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: -20 }}
-                          transition={{ delay: index * 0.1, duration: 0.4 }}
-                          className="group cursor-pointer"
-                          onClick={() => handleStaffSelect(staff)}
-                        >
-                          <Card
-                            className={`relative transition-all duration-200 border-2 ${
-                              isSelected 
-                                ? 'border-emerald-500 bg-emerald-50 shadow-lg' 
-                                : 'border-transparent bg-white/70 backdrop-blur-sm hover:border-emerald-200 hover:bg-white/90 hover:shadow-md'
-                            }`}
-                            radius="lg"
-                            p="md"
-                          >
-
-                            {isSelected && (
-                              <div className="absolute top-3 right-3">
-                                <div className="w-5 h-5 bg-emerald-500 rounded-full flex items-center justify-center">
-                                  <CheckIcon className="w-3 h-3 text-white" />
-                                </div>
-                              </div>
-                            )}
-
-                            <div className="flex items-start gap-3">
-                              <Avatar
-                                size="sm"
-                                radius="lg"
-                                className="border-2 border-white shadow-sm flex-shrink-0"
-                                src={staff.image_url}
-                              >
-                                <UserIcon className="w-5 h-5 text-slate-400" />
-                              </Avatar>
-
-
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-start justify-between gap-2">
-                                  <div className="flex-1">
-                                    <Title order={5} className="font-semibold text-slate-900 text-sm mb-1">
-                                      {staff.name}
-                                    </Title>
-                                    
-
-                                    <div className="flex items-center gap-2 mb-2">
-                                      <div className={`w-2 h-2 rounded-full ${
-                                        staff.is_available !== false ? 'bg-emerald-500' : 'bg-gray-400'
-                                      }`}></div>
-                                      <Badge 
-                                        color={staff.is_available !== false ? "green" : "gray"}
-                                        variant="light" 
-                                        size="xs"
-                                        className="font-medium"
-                                      >
-                                        {staff.is_available !== false ? 'Available' : 'Busy'}
-                                      </Badge>
-                                      
-                                    
-                                    </div>
-
-
-                                    {staff.bio && (
-                                      <Text size="xs" className="text-slate-600 line-clamp-2 mb-2">
-                                        {staff.bio}
-                                      </Text>
-                                    )}
-
-
-                                    {specializations.length > 0 && (
-                                      <div className="flex flex-wrap gap-1 mb-2">
-                                        {specializations.slice(0, 3).map((spec: string, specIndex: number) => (
-                                          <Badge 
-                                            key={specIndex}
-                                            variant="outline" 
-                                            color="gray" 
-                                            size="xs"
-                                          >
-                                            {spec}
-                                          </Badge>
-                                        ))}
-                                        {specializations.length > 3 && (
-                                          <Badge 
-                                            variant="outline" 
-                                            color="gray" 
-                                            size="xs"
-                                          >
-                                            +{specializations.length - 3} more
-                                          </Badge>
-                                        )}
-                                      </div>
-                                    )}
-
-
-                                    {(specializations.length > 3 || staff.bio) && (
-                                      <button
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          setExpandedStaff(isExpanded ? null : staff.id);
-                                        }}
-                                        className="text-xs text-emerald-600 hover:text-emerald-700 font-medium"
-                                      >
-                                        {isExpanded ? 'Show less' : 'Show more'}
-                                      </button>
-                                    )}
-                                  </div>
-                                </div>
-
-
-                                <Collapse in={isExpanded}>
-                                  <div className="mt-3 pt-3 border-t border-slate-100">
-                                    {specializations.length > 3 && (
-                                      <div className="mb-3">
-                                        <Text size="xs" className="font-medium text-slate-700 mb-1">
-                                          All Specializations:
-                                        </Text>
-                                        <div className="flex flex-wrap gap-1">
-                                          {specializations.map((spec: string, specIndex: number) => (
-                                            <Badge 
-                                              key={specIndex}
-                                              variant="outline" 
-                                              color="gray" 
-                                              size="xs"
-                                            >
-                                              {spec}
-                                            </Badge>
-                                          ))}
-                                        </div>
-                                      </div>
-                                    )}
-                                    
-                                    {staff.bio && (
-                                      <div>
-                                        <Text size="xs" className="font-medium text-slate-700 mb-1">
-                                          About:
-                                        </Text>
-                                        <Text size="xs" className="text-slate-600">
-                                          {staff.bio}
-                                        </Text>
-                                      </div>
-                                    )}
-                                  </div>
-                                </Collapse>
-                              </div>
-                            </div>
-                          </Card>
-                        </motion.div>
-                      );
-                    })}
                   </motion.div>
                 )}
               </AnimatePresence>
             </div>
           </div>
-
-
-          {selectedStaff && (
-            <div className="flex-shrink-0 p-4 lg:p-8 border-t border-slate-100 bg-white/90 backdrop-blur-sm fixed bottom-0 left-0 right-0 lg:relative lg:bottom-auto lg:left-auto lg:right-auto z-50">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="lg:max-w-none max-w-sm mx-auto"
-              >
-                <Button
-                  onClick={onNext}
-                  size="lg"
-                  variant="filled"
-                  className="w-full !bg-emerald-500 hover:!bg-emerald-600 text-white font-semibold py-3 px-6 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200"
-                  rightSection={<ArrowRightIcon className="w-5 h-5" />}
-                >
-                  Continue with {selectedStaff.name}
-                </Button>
-              </motion.div>
-            </div>
-          )}
-        </div>
+        </motion.div>
       </div>
     </div>
   );
 }
 
-export const StaffSelectionStep = StaffSelectionStepComponent
+const StaffCard: React.FC<{
+  staffMember: PublicStaff;
+  onClick: (staffMember: PublicStaff) => void;
+}> = ({ staffMember }) => {
+  const getAvailabilityColor = (availability: string) => {
+    switch (availability.toLowerCase()) {
+      case 'available':
+        return 'green';
+      case 'busy':
+        return 'orange';
+      case 'unavailable':
+        return 'red';
+      default:
+        return 'gray';
+    }
+  };
+
+  const getCompetencyColor = (level: string) => {
+    switch (level.toLowerCase()) {
+      case 'expert':
+        return 'green';
+      case 'advanced':
+        return 'emerald';
+      case 'intermediate':
+        return 'blue';
+      case 'beginner':
+        return 'gray';
+      default:
+        return 'gray';
+    }
+  };
+
+  return (
+    <Card
+      className="bg-white/80 backdrop-blur-sm border border-white/40 hover:bg-white/95 transition-all duration-300 hover:shadow-emerald-100/60 group cursor-pointer"
+      radius="xl"
+      p="md"
+    >
+      <div className="flex items-start gap-3">
+        <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-lg bg-gradient-to-br from-emerald-50 to-green-50 border border-emerald-100 flex items-center justify-center group-hover:from-emerald-100 group-hover:to-green-100 group-hover:border-emerald-200 transition-all duration-300 flex-shrink-0">
+          {staffMember.image_url ? (
+            <img 
+              src={staffMember.image_url} 
+              alt={staffMember.name}
+              className="w-full h-full rounded-lg object-cover"
+            />
+          ) : (
+            <div className="w-5 h-5 lg:w-6 lg:h-6 rounded-full bg-emerald-600 text-white flex items-center justify-center text-xs font-medium">
+              {staffMember.name.charAt(0).toUpperCase()}
+            </div>
+          )}
+        </div>
+
+        <div className="flex-1 min-w-0">
+          <div className="flex items-start justify-between gap-2 mb-2">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-1">
+                <Title
+                  order={4}
+                  className="text-sm lg:text-base font-semibold text-slate-800 group-hover:text-emerald-700 transition-colors duration-200 truncate"
+                >
+                  {staffMember.name}
+                </Title>
+                <div className="flex items-center gap-1 flex-shrink-0">
+                  <Badge 
+                    color={getAvailabilityColor(staffMember.availability || 'available')} 
+                    variant="light" 
+                    size="xs"
+                    className="text-xs"
+                  >
+                    {staffMember.availability || 'Available'}
+                  </Badge>
+                  {staffMember.competency_level && (
+                    <Badge 
+                      color={getCompetencyColor(staffMember.competency_level)} 
+                      variant="outline" 
+                      size="xs"
+                      className="text-xs"
+                    >
+                      {staffMember.competency_level}
+                    </Badge>
+                  )}
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-3 text-xs text-slate-500 mb-2">
+                {staffMember.years_of_experience && staffMember.years_of_experience > 0 && (
+                  <div className="flex items-center gap-1">
+                    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+                    </svg>
+                    <span>{staffMember.years_of_experience}y exp</span>
+                  </div>
+                )}
+                
+              </div>
+            </div>
+            
+            <div className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 mt-1">
+              <div className="w-6 h-6 rounded-full bg-emerald-100 flex items-center justify-center">
+                <svg className="w-3 h-3 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          {staffMember.bio && (
+            <Text
+              size="xs"
+              className="text-slate-600 mb-2 line-clamp-1 group-hover:text-slate-700 transition-colors duration-200"
+            >
+              {staffMember.bio}
+            </Text>
+          )}
+
+          {staffMember.specializations && staffMember.specializations.length > 0 && (
+            <div className="flex flex-wrap gap-1">
+              {staffMember.specializations.slice(0, 3).map((specialization, index) => (
+                <div
+                  key={index}
+                  className="inline-flex items-center px-2 py-1 rounded-md bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-medium"
+                >
+                  {specialization}
+                </div>
+              ))}
+              {staffMember.specializations.length > 3 && (
+                <div className="inline-flex items-center px-2 py-1 rounded-md bg-slate-100 border border-slate-200 text-slate-600 text-xs">
+                  +{staffMember.specializations.length - 3} more
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    </Card>
+  );
+};
+

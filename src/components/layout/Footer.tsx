@@ -7,10 +7,11 @@ import twitter from '../../assets/landingpageAssets/Icons/twitter.svg';
 import linkedin from '../../assets/landingpageAssets/Icons/linkedin.svg';
 import instagram from '../../assets/landingpageAssets/Icons/instagram.svg';
 
-import footerImage from '../../assets/landingpageAssets/images/Footer.png';
 import logo from '../../assets/landingpageAssets/Icons/logo.svg';
 import successIcon from '../../assets/icons/success.svg';
 import errorIcon from '../../assets/icons/error.svg';
+
+import { motion } from 'framer-motion';
 
 interface EmailData {
   email: string;
@@ -61,31 +62,65 @@ export const Footer = () => {
 
   return (
     <div>
-      <div
+      <motion.div
         className='flex flex-col items-center justify-center w-full md:pt-12 py-12'
         style={{
-          backgroundImage: `url(${footerImage})`,
+          backgroundImage: `url(${'https://res.cloudinary.com/djxu3bryf/image/upload/v1751724656/subscribe_vxj7nf.png'})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
         }}
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.6 }}
       >
         <div className='flex flex-col text-center justify-center gap-4'>
           <div>
-            <h2 className='font-[700] md:text-[48px] text-[32px] text-white md:w-[680px] w-[327px] self-center font-spaceGrotesk'>
+            <motion.h2
+              className='font-[700] md:text-[48px] text-[32px] text-white md:w-[680px] w-[327px] self-center font-spaceGrotesk'
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+            >
               Get Early Access & Start Your Pilot Journey Today
-            </h2>
-            <h2 className='font-[300] md:text-[48px] text-[32px] text-white md:w-[680px] w-[327px] self-center font-sans !italic'>
+            </motion.h2>
+            <motion.h2
+              className='font-[300] md:text-[48px] text-[32px] text-white md:w-[680px] w-[327px] self-center font-sans !italic'
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+            >
               at no cost
-            </h2>
+            </motion.h2>
           </div>
-          <p className='text-base font-[400] text-[#969696] md:w-[650px] w-[327px] self-center'>
-            Simplify your operations. Get started with Flowkey and spend less
+          <motion.p
+            className='text-base font-[400] text-[#969696] md:w-[650px] w-[327px] self-center'
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+          >
+            Simplify your operations. Get started with Flowkey and spend less
             time managing your business—and more time running it.
-          </p>
+          </motion.p>
           <FormProvider {...methods}>
             <form onSubmit={handleSubmit(onFormSubmit)} className='self-center'>
-              <div className='flex items-center md:w-[500px] w-[327px] h-[72px] shadow-sm bg-white rounded-[24px] md:rounded-xl justify-between p-3 mt-4 self-center'>
-                <div className='flex items-center gap-3'>
+              <motion.div
+                className='flex items-center md:w-[500px] w-[327px] h-[72px] shadow-sm bg-white rounded-[24px] md:rounded-xl justify-between p-3 mt-4 self-center'
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6 }}
+              >
+                <motion.div
+                  className='flex items-center gap-3'
+                  initial={{ opacity: 0 }}
+                  whileInView={{ opacity: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.6 }}
+                >
                   <img src={email} alt='email' />
                   <Controller
                     name='email'
@@ -108,8 +143,14 @@ export const Footer = () => {
                       </div>
                     )}
                   />
-                </div>
-                <div className='hidden md:block'>
+                </motion.div>
+                <motion.div
+                  className='hidden md:block'
+                  initial={{ opacity: 0 }}
+                  whileInView={{ opacity: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.6 }}
+                >
                   <Button
                     type='submit'
                     color='#1D9B5E'
@@ -120,9 +161,15 @@ export const Footer = () => {
                   >
                     Book Free Demo
                   </Button>
-                </div>
-              </div>
-              <div className='md:hidden mt-5 '>
+                </motion.div>
+              </motion.div>
+              <motion.div
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6 }}
+                className='md:hidden mt-5 '
+              >
                 <Button
                   type='submit'
                   color='#1D9B5E'
@@ -133,41 +180,111 @@ export const Footer = () => {
                 >
                   Book Free Demo
                 </Button>
-              </div>
+              </motion.div>
             </form>
           </FormProvider>
         </div>
-      </div>
+      </motion.div>
 
-      <div className='flex flex-col items-center justify-center w-full pt-12 bg-white md:py-12 py-6'>
-        <div className='md:w-[80%] w-[90%] flex md:flex-row flex-col justify-between mx-auto md:py-4 space-y-6 md:space-y-0'>
-          <div className='flex flex-col gap-8 md:w-[440px] w-[327px]'>
-            <div className='flex items-center gap-2 cursor-pointer'>
+      <motion.div
+        className='flex flex-col items-center justify-center w-full pt-12 bg-white md:py-12 py-6'
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.6 }}
+      >
+        <motion.div
+          className='md:w-[80%] w-[90%] flex md:flex-row flex-col justify-between mx-auto md:py-4 space-y-6 md:space-y-0'
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+        >
+          <motion.div
+            className='flex flex-col gap-8 md:w-[440px] w-[327px]'
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+          >
+            <motion.div
+              className='flex items-center gap-2 cursor-pointer'
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+            >
               <img
                 src={logo}
                 alt='logo'
                 className='w-[28px] h-[24px] md:w-[55px] md:h-[48px]'
               />
-              <p className='text-[24px] md:text-[36px] font-[900] text-[#0F2028]'>
+              <motion.p
+                className='text-[24px] md:text-[36px] font-[900] text-[#0F2028]'
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6 }}
+              >
                 FlowKey
-              </p>
-            </div>
-            <p className='text-[#0F2028] text-xl font-[300]'>
+              </motion.p>
+            </motion.div>
+            <motion.p
+              className='text-[#0F2028] text-xl font-[300]'
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+            >
               Empowering service businesses to run like pros without the
               overhead
-            </p>
-            <p className='text-[#0F2028] font-[300] text-xl'>
+            </motion.p>
+            <motion.p
+              className='text-[#0F2028] font-[300] text-xl'
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+            >
               Streamline.Track.Grow
-            </p>
-          </div>
-          <div
+            </motion.p>
+          </motion.div>
+          <motion.div
             className='flex flex-col gap-4 font-[500] md:text-base text-xs md:text-[#0F2028] text-[#969696]'
             style={{ fontFamily: 'Inter' }}
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
           >
-            <p className='cursor-pointer'>Home</p>
-            <p className='cursor-pointer'>Features</p>
-            <p className='cursor-pointer'>About Us</p>
-          </div>
+            <motion.p
+              className='cursor-pointer'
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+            >
+              Home
+            </motion.p>
+            <motion.p
+              className='cursor-pointer'
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+            >
+              Features
+            </motion.p>
+            <motion.p
+              className='cursor-pointer'
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+            >
+              About Us
+            </motion.p>
+          </motion.div>
           <div className='flex items-center md:justify-end'>
             <div className='flex gap-4 self-end'>
               <img src={facebook} alt='facebook' className='cursor-pointer' />
@@ -177,24 +294,71 @@ export const Footer = () => {
             </div>
           </div>
           <div className='flex flex-col md:hidden gap-6'>
-            <p className='font-[700] text-base'>Contact Us</p>
-            <p className='text-[#969696] text-sm'>info@flowwkeylabs.com</p>
+            <motion.p
+              className='font-[700] text-base'
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+            >
+              Contact Us
+            </motion.p>
+            <motion.p
+              className='text-[#969696] text-sm'
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+            >
+              info@flowwkeylabs.com
+            </motion.p>
           </div>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
 
-      <div className='flex items-center justify-center w-full p-2 bg-[#0F2028]'>
-        <div
+      <motion.div
+        className='flex items-center justify-center w-full p-2 bg-[#0F2028]'
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.6 }}
+      >
+        <motion.div
           className='w-[80%] flex justify-between mx-auto py-4 text-white text-base font-[400]'
           style={{ fontFamily: 'Inter' }}
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
         >
-          <p>
+          <motion.p
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+          >
             &copy; {new Date().getFullYear()} FlowKeyLabs. All rights reserved.
-          </p>
-          <p className='cursor-pointer hidden md:block'>Privacy Policy</p>
-          <p className='cursor-pointer hidden md:block'>Terms of Service</p>
-        </div>
-      </div>
+          </motion.p>
+          <motion.p
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className='cursor-pointer hidden md:block'
+          >
+            Privacy Policy
+          </motion.p>
+          <motion.p
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className='cursor-pointer hidden md:block'
+          >
+            Terms of Service
+          </motion.p>
+        </motion.div>
+      </motion.div>
     </div>
   );
 };

@@ -143,6 +143,17 @@
   border-radius: 8px !important;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15) !important;
   overflow: hidden !important;
+  z-index: 1000 !important; /* Ensure popover is above other elements */
+}
+
+/* Ensure tooltip appears above the popover */
+.mantine-Tooltip-tooltip {
+  z-index: 1001 !important;
+}
+
+/* Fix for FullCalendar's more events popup */
+.fc-more-popover {
+  z-index: 1000 !important;
 }
 
 .fc-popover-header {

@@ -4,6 +4,7 @@ import { useMediaQuery } from "@mantine/hooks";
 import { ExclamationIcon } from "./bookingIcons";
 import { PublicBookingProvider, useBookingFlow } from "./PublicBookingProvider";
 import { ServiceSelectionStep } from "./steps/ServiceSelectionStep";
+import { SubcategorySelectionStep } from "./steps/SubcategorySelectionStep";
 import { StaffSelectionStep } from "./steps/StaffSelectionStep";
 import { LocationSelectionStep } from "./steps/LocationSelectionStep";
 import { DateSelectionStep } from "./steps/DateSelectionStep";
@@ -15,9 +16,16 @@ import { useGetPublicBusinessInfo } from "../../hooks/reactQuery";
 import WithBrandingLayout from "../common/WithBrandingLayout";
 import ErrorBoundary from "../common/ErrorBoundary";
 
+
 interface PublicBookingWidgetProps {
   businessSlug: string;
   className?: string;
+  preselection?: {
+    sessionId?: number;
+    serviceId?: number;
+    staffId?: number;
+    locationId?: number;
+  };
 }
 
 function BookingWidgetContent({ businessSlug }: { businessSlug: string }) {
@@ -102,18 +110,25 @@ function BookingWidgetContent({ businessSlug }: { businessSlug: string }) {
               businessInfo={businessInfo}
             />
           );
-        case "staff":
+        case "subcategory":
           return (
-            <StaffSelectionStep
-              onNext={goToNextStep}
-              onBack={goToPreviousStep}
+            <SubcategorySelectionStep
+              businessSlug={businessSlug}
+              businessInfo={businessInfo}
             />
           );
         case "location":
           return (
             <LocationSelectionStep
-              onNext={goToNextStep}
-              onBack={goToPreviousStep}
+              businessSlug={businessSlug}
+              businessInfo={businessInfo}
+            />
+          );
+        case "staff":
+          return (
+            <StaffSelectionStep
+              businessSlug={businessSlug}
+              businessInfo={businessInfo}
             />
           );
         case "date":
@@ -200,7 +215,6 @@ function BookingWidgetContent({ businessSlug }: { businessSlug: string }) {
               onBookAnother={resetFlow}
             />
           </Box>
-
           <Box style={{ flex: 1, overflow: "hidden" }}>
             <ErrorBoundary>{renderCurrentStep()}</ErrorBoundary>
           </Box>
@@ -213,11 +227,12 @@ function BookingWidgetContent({ businessSlug }: { businessSlug: string }) {
 export function PublicBookingWidget({
   businessSlug,
   className,
+  preselection,
 }: PublicBookingWidgetProps) {
   return (
     <div className={className}>
       <ErrorBoundary>
-        <PublicBookingProvider>
+        <PublicBookingProvider businessSlug={businessSlug} preselection={preselection}>
           <BookingWidgetContent businessSlug={businessSlug} />
         </PublicBookingProvider>
       </ErrorBoundary>

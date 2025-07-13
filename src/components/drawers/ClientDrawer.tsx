@@ -452,17 +452,16 @@ export default function ClientDrawer({
       const groupData = {
         name: data.name,
         description: data.description || '',
-        location: data.location || '',
+        ...(data.location !== undefined && {
+          location:
+            typeof data.location === 'number'
+              ? String(data.location)
+              : data.location,
+        }),
         active: data.active !== undefined ? data.active : true,
         client_ids: data.client_ids,
-        session_ids: data.session_ids || [],
         contact_person_id: contactPersonId,
       };
-
-      if (isFromSessionDrawer && parentDrawer?.entityId) {
-        const sessionId = parentDrawer.entityId;
-        groupData.session_ids = [parseInt(sessionId.toString())];
-      }
 
       addGroup(groupData, {
         onSuccess: () => {
@@ -885,7 +884,7 @@ export default function ClientDrawer({
                                       'Unnamed Session',
                                     value: session.id?.toString() || '',
                                   }))
-                                  .filter((item) => item.value) || []
+                                  .filter((item: any) => item.value) || []
                           }
                           value={
                             field.value && Array.isArray(field.value)
@@ -1051,7 +1050,7 @@ export default function ClientDrawer({
                                 value: location.id.toString(),
                               })) || []
                       }
-                      value={field.value}
+                      value={field.value ? String(field.value) : ''}
                       onSelectItem={(selected) => {
                         field.onChange(selected.value);
                       }}
@@ -1099,48 +1098,6 @@ export default function ClientDrawer({
                     />
                   )}
                 />
-
-                {/* Only show sessions dropdown if not from session drawer */}
-                {!isFromSessionDrawer && (
-                  <Controller
-                    name='session_ids'
-                    control={groupControl}
-                    render={({ field }) => (
-                      <DropdownSelectInput
-                        label='Sessions'
-                        placeholder={
-                          isSessionsLoading
-                            ? 'Loading sessions...'
-                            : 'Select sessions for this group'
-                        }
-                        singleSelect={false}
-                        options={
-                          isSessionsLoading
-                            ? [{ label: 'Loading...', value: '' }]
-                            : sessionsData?.filter(Boolean).map((session) => ({
-                                label:
-                                  session.title ||
-                                  session.id.toString() ||
-                                  'Unnamed Session',
-                                value: session.id.toString(),
-                              })) || []
-                        }
-                        value={
-                          field.value?.map((id: number) => id.toString()) || []
-                        }
-                        onSelectItem={(selectedItems) => {
-                          field.onChange(
-                            selectedItems.map((item: { value: string }) =>
-                              parseInt(item.value)
-                            )
-                          );
-                        }}
-                        createLabel='Create new session'
-                        createDrawerType='session'
-                      />
-                    )}
-                  />
-                )}
 
                 <Controller
                   name='contact_person'

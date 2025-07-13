@@ -37,15 +37,26 @@ export function TimeSelectionStep({ businessSlug, businessInfo }: TimeSelectionS
     : null;
   
   // Get time slots for the selected date
+  // Get service ID for API call - handle both flexible and fixed booking
+  const serviceId = state.isFlexibleBooking 
+    ? state.selectedServiceSubcategory?.id 
+    : state.selectedService?.id;
+
+  // Get selected staff and location for flexible booking
+  const selectedStaffId = state.isFlexibleBooking ? state.selectedStaff?.id : null;
+  const selectedLocationId = state.isFlexibleBooking ? state.selectedLocation?.id : null;
+
   const { 
     data: availabilityData, 
     isLoading, 
     error 
   } = useGetPublicAvailability(
     businessSlug,
-    state.selectedService?.id || null,
+    serviceId || null,
     selectedDateString || '',
-    selectedDateString || ''
+    selectedDateString || '',
+    selectedStaffId,
+    selectedLocationId
   );
 
   const availableSlots: AvailabilitySlot[] = (availabilityData as { slots?: AvailabilitySlot[] })?.slots || [];
@@ -101,7 +112,12 @@ export function TimeSelectionStep({ businessSlug, businessInfo }: TimeSelectionS
     return () => window.removeEventListener('scroll', handleScroll);
   }, [isMobile, handleScroll]);
 
-  if (!businessInfo || !state.selectedService || !state.selectedDate) {
+  // Validate required information based on booking type
+  const hasRequiredServiceInfo = state.isFlexibleBooking 
+    ? state.selectedServiceSubcategory
+    : state.selectedService;
+
+  if (!businessInfo || !hasRequiredServiceInfo || !state.selectedDate) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-50">
         <Alert 

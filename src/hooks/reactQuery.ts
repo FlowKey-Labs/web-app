@@ -33,37 +33,13 @@ import {
   get_upcoming_sessions,
   cancel_session,
   reschedule_session,
-  create_session,
-  get_sessions,
-  delete_session,
-  get_session_detail,
-  // Session Categories API functions
-  get_session_categories,
-  create_session_category,
-  update_session_category,
-  delete_session_category,
-  // Session Subcategories API functions
-  get_session_subcategories,
-  create_session_subcategory,
-  update_session_subcategory,
-  delete_session_subcategory,
-  // Session Skills API functions
-  get_session_skills,
-  create_session_skill,
-  update_session_skill,
-  delete_session_skill,
   get_session_analytics,
   get_client_analytics,
-  get_class_sessions,
   update_client,
   deactivate_client,
   activate_client,
-  update_session,
-  get_session_clients,
   mark_client_attended,
   mark_client_not_attended,
-  activate_session,
-  deactivate_session,
   remove_client_from_session,
   activate_staff,
   deactivate_staff,
@@ -86,26 +62,6 @@ import {
   createRole,
   updateRole,
   deleteRole,
-  get_staff_sessions,
-  // Bulk Attendance API function
-  bulk_mark_attendance,
-  bulkCancelSessions,
-  // Makeup Session API functions
-  getMakeupSessions,
-  createMakeupSession,
-  updateMakeupSession,
-  deleteMakeupSession,
-  bulkCreateMakeupSessions,
-  // Attended Session API functions
-  getAttendedSessions,
-  createAttendedSession,
-  updateAttendedSession,
-  deleteAttendedSession,
-  // Cancelled Session API functions
-  getCancelledSessions,
-  createCancelledSession,
-  updateCancelledSession,
-  deleteCancelledSession,
   markOutcomeComplete,
   markOutcomeIncomplete,
   getSeries,
@@ -114,7 +70,6 @@ import {
   submitProgressFeedback,
   getLevelFeedback,
   PaginatedResponse,
-  get_calendar_sessions,
   get_booking_requests,
   approve_booking_request,
   reject_booking_request,
@@ -140,6 +95,7 @@ import {
   getAvailableSlots,
   get_public_availability,
   create_public_booking,
+  create_service_booking,
   get_booking_status,
   get_client_booking_info,
   cancel_client_booking,
@@ -147,10 +103,70 @@ import {
   reschedule_client_booking,
   get_public_available_staff,
   get_public_available_locations,
-} from "../api/api";
-import { Role, useAuthStore } from "../store/auth";
-import { AddClient, Client, BookingRequest } from "../types/clientTypes";
-import { CreateStaffRequest, StaffResponse } from "../types/staffTypes";
+  // Staff Management imports
+  get_staff_exceptions,
+  create_staff_exception,
+  update_staff_exception,
+  delete_staff_exception,
+  get_staff_portal_data,
+  approve_staff_exception,
+  deny_staff_exception,
+  get_staff_own_exceptions,
+  create_staff_own_exception,
+  update_staff_own_exception,
+} from '../api/api';
+
+import {
+  create_session,
+  get_sessions,
+  delete_session,
+  get_staff_sessions,
+  get_session_detail,
+  get_session_categories,
+  create_session_category,
+  update_session_category,
+  delete_session_category,
+  get_session_subcategories,
+  create_session_subcategory,
+  update_session_subcategory,
+  delete_session_subcategory,
+  get_session_skills,
+  create_session_skill,
+  update_session_skill,
+  delete_session_skill,
+  get_class_sessions,
+  update_session,
+  get_session_clients,
+  activate_session,
+  deactivate_session,
+  getMakeupSessions,
+  createMakeupSession,
+  updateMakeupSession,
+  deleteMakeupSession,
+  bulkCreateMakeupSessions,
+  // Attended sessions exports
+  getAttendedSessions,
+  createAttendedSession,
+  updateAttendedSession,
+  deleteAttendedSession,
+  // Cancelled sessions exports
+  getCancelledSessions,
+  createCancelledSession,
+  updateCancelledSession,
+  deleteCancelledSession,
+  bulkCancelSessions,
+  get_calendar_sessions,
+  bulk_mark_attendance,
+  get_class_types,
+  create_class_type,
+  update_class_type,
+  delete_class_type,
+  get_class_type,
+} from '../api/sessionsApi';
+
+import { Role, useAuthStore } from '../store/auth';
+import { AddClient, Client, BookingRequest } from '../types/clientTypes';
+import { CreateStaffRequest, StaffResponse } from '../types/staffTypes';
 import {
   AnalyticsData,
   DateFilterOption,
@@ -159,9 +175,11 @@ import {
 import {
   AttendedSession,
   CancelledSession,
+  ClassType,
   MakeUpSession,
   ProgressFeedback,
   Session,
+  SessionFilters,
 } from '../types/sessionTypes';
 import { CreateLocationData } from '../types/location';
 import { Group, GroupData } from '../types/clientTypes';
@@ -362,10 +380,10 @@ export const useUpdateUserProfile = () => {
       return update_user_profile(updateData);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["user_profile"] });
-      queryClient.invalidateQueries({ queryKey: ["business_profile"] });
+      queryClient.invalidateQueries({ queryKey: ['user_profile'] });
+      queryClient.invalidateQueries({ queryKey: ['business_profile'] });
     },
-    onError: (error) => console.error("Update user profile error:", error),
+    onError: (error) => console.error('Update user profile error:', error),
   });
 };
 
@@ -418,24 +436,27 @@ export const useUpdateBusinessProfile = () => {
   });
 };
 
-export const useGetBusinessProfile = () => {
-  return useQuery({
-    queryKey: ['business_profile'],
+export const useGetBusinessProfile = () =>
+  useQuery({
+    queryKey: ['business-profile'],
     queryFn: get_business_profile,
   });
-};
 
 // Availability hooks
 export const useGetAvailability = () => {
   return useQuery({
-    queryKey: ["availability"],
+    queryKey: ['availability'],
     queryFn: get_availability,
     staleTime: 1000 * 60 * 5, // 5 minutes
     gcTime: 1000 * 60 * 30, // 30 minutes cache time
     refetchOnWindowFocus: false,
     retry: (failureCount, error: any) => {
       // Don't retry on 401/403/404 errors (user might not have availability setup yet)
-      if (error?.response?.status === 401 || error?.response?.status === 403 || error?.response?.status === 404) {
+      if (
+        error?.response?.status === 401 ||
+        error?.response?.status === 403 ||
+        error?.response?.status === 404
+      ) {
         return false;
       }
       return failureCount < 3;
@@ -456,13 +477,13 @@ export const useCreateAvailability = () => {
   return useMutation({
     mutationFn: create_availability,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["availability"] });
+      queryClient.invalidateQueries({ queryKey: ['availability'] });
       // Also invalidate related queries that might be affected
-      queryClient.invalidateQueries({ queryKey: ["calendar-sessions"] });
-      queryClient.invalidateQueries({ queryKey: ["booking-settings"] });
+      queryClient.invalidateQueries({ queryKey: ['calendar-sessions'] });
+      queryClient.invalidateQueries({ queryKey: ['booking-settings'] });
     },
     onError: (error: any) => {
-      console.error("Create availability error:", error);
+      console.error('Create availability error:', error);
       // Don't throw here, let component handle the error
     },
     retry: 1, // Retry once for mutations
@@ -474,12 +495,12 @@ export const useUpdateAvailability = () => {
   return useMutation({
     mutationFn: update_availability,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["availability"] });
-      queryClient.invalidateQueries({ queryKey: ["calendar-sessions"] });
-      queryClient.invalidateQueries({ queryKey: ["booking-settings"] });
+      queryClient.invalidateQueries({ queryKey: ['availability'] });
+      queryClient.invalidateQueries({ queryKey: ['calendar-sessions'] });
+      queryClient.invalidateQueries({ queryKey: ['booking-settings'] });
     },
     onError: (error: any) => {
-      console.error("Update availability error:", error);
+      console.error('Update availability error:', error);
     },
     retry: 1,
   });
@@ -490,12 +511,12 @@ export const usePartialUpdateAvailability = () => {
   return useMutation({
     mutationFn: partial_update_availability,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["availability"] });
-      queryClient.invalidateQueries({ queryKey: ["calendar-sessions"] });
-      queryClient.invalidateQueries({ queryKey: ["booking-settings"] });
+      queryClient.invalidateQueries({ queryKey: ['availability'] });
+      queryClient.invalidateQueries({ queryKey: ['calendar-sessions'] });
+      queryClient.invalidateQueries({ queryKey: ['booking-settings'] });
     },
     onError: (error: any) => {
-      console.error("Partial update availability error:", error);
+      console.error('Partial update availability error:', error);
     },
     retry: 1,
   });
@@ -767,12 +788,6 @@ export const useGetClientAnalytics = (clientId: string) => {
   });
 };
 
-export interface SessionFilters {
-  sessionTypes?: string[];
-  categories?: string[];
-  dateRange?: [Date | null, Date | null];
-}
-
 export const useGetSessions = (
   pageIndex?: number,
   pageSize?: number,
@@ -833,8 +848,8 @@ export const useGetClassSessions = () => {
   });
 };
 
-export const useGetSessionDetail = (id: string) => {
-  return useQuery<Session>({
+export const useGetSessionDetail = <T = Session>(id: string) => {
+  return useQuery<Session, Error, T>({
     queryKey: ['session', id],
     queryFn: () => get_session_detail(id),
     staleTime: 1000 * 60 * 5,
@@ -1664,7 +1679,7 @@ export const useBulkMarkAttendance = () => {
       queryClient.invalidateQueries({
         queryKey: ['sessions'],
       });
-      
+
       // Invalidate attended sessions to refresh the client's attendance data
       queryClient.invalidateQueries({
         queryKey: ['attended_sessions'],
@@ -1885,7 +1900,7 @@ export const useGetBookingRequests = (
   searchQuery?: string
 ): UseQueryResult<PaginatedResponse<BookingRequest>, Error> => {
   return useQuery({
-    queryKey: ["booking_requests", pageIndex, pageSize, searchQuery],
+    queryKey: ['booking_requests', pageIndex, pageSize, searchQuery],
     queryFn: () => get_booking_requests(pageIndex, pageSize, searchQuery),
     staleTime: 1000 * 60 * 2, // Shorter stale time for booking requests
     refetchOnWindowFocus: true,
@@ -1899,10 +1914,10 @@ export const useApproveBookingRequest = () => {
     mutationFn: (requestId: number) => approve_booking_request(requestId),
     onSuccess: () => {
       // Invalidate queries to refresh the table
-      queryClient.invalidateQueries({ queryKey: ["booking_requests"] });
-      queryClient.invalidateQueries({ queryKey: ["clients"] });
-      queryClient.invalidateQueries({ queryKey: ["booking-notifications"] });
-      
+      queryClient.invalidateQueries({ queryKey: ['booking_requests'] });
+      queryClient.invalidateQueries({ queryKey: ['clients'] });
+      queryClient.invalidateQueries({ queryKey: ['booking-notifications'] });
+
       // Show success notification
       import('@mantine/notifications').then(({ notifications }) => {
         notifications.show({
@@ -1913,7 +1928,7 @@ export const useApproveBookingRequest = () => {
       });
     },
     onError: (error) => {
-      console.error("Approve booking request error:", error);
+      console.error('Approve booking request error:', error);
       // Show error notification
       import('@mantine/notifications').then(({ notifications }) => {
         notifications.show({
@@ -1929,14 +1944,19 @@ export const useApproveBookingRequest = () => {
 export const useRejectBookingRequest = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ requestId, reason }: { requestId: number; reason?: string }) => 
-      reject_booking_request(requestId, reason),
+    mutationFn: ({
+      requestId,
+      reason,
+    }: {
+      requestId: number;
+      reason?: string;
+    }) => reject_booking_request(requestId, reason),
     onSuccess: (data) => {
       // Invalidate queries to refresh the table
-      queryClient.invalidateQueries({ queryKey: ["booking_requests"] });
-      queryClient.invalidateQueries({ queryKey: ["clients"] });
-      queryClient.invalidateQueries({ queryKey: ["booking-notifications"] });
-      
+      queryClient.invalidateQueries({ queryKey: ['booking_requests'] });
+      queryClient.invalidateQueries({ queryKey: ['clients'] });
+      queryClient.invalidateQueries({ queryKey: ['booking-notifications'] });
+
       // Show success notification
       import('@mantine/notifications').then(({ notifications }) => {
         notifications.show({
@@ -1947,7 +1967,7 @@ export const useRejectBookingRequest = () => {
       });
     },
     onError: (error) => {
-      console.error("Reject booking request error:", error);
+      console.error('Reject booking request error:', error);
       // Show error notification
       import('@mantine/notifications').then(({ notifications }) => {
         notifications.show({
@@ -1965,10 +1985,11 @@ export const useConvertClientToRegular = () => {
   return useMutation({
     mutationFn: (clientId: number) => convert_client_to_regular(clientId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["clients"] });
-      queryClient.invalidateQueries({ queryKey: ["booking_requests"] });
+      queryClient.invalidateQueries({ queryKey: ['clients'] });
+      queryClient.invalidateQueries({ queryKey: ['booking_requests'] });
     },
-    onError: (error) => console.error("Convert client to regular error:", error),
+    onError: (error) =>
+      console.error('Convert client to regular error:', error),
   });
 };
 
@@ -1977,11 +1998,11 @@ export const useConvertClientToBooking = () => {
   return useMutation({
     mutationFn: (clientId: number) => convert_client_to_booking(clientId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["clients"] });
+      queryClient.invalidateQueries({ queryKey: ['clients'] });
     },
     onError: (error) => {
       console.error('Error converting client to booking:', error);
-    }
+    },
   });
 };
 
@@ -2003,14 +2024,19 @@ export const useGetProgressFeedback = (
 export const useCancelBookingRequest = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ requestId, reason }: { requestId: number; reason?: string }) => 
-      cancel_booking_request(requestId, reason),
+    mutationFn: ({
+      requestId,
+      reason,
+    }: {
+      requestId: number;
+      reason?: string;
+    }) => cancel_booking_request(requestId, reason),
     onSuccess: () => {
       // Invalidate queries to refresh the table
-      queryClient.invalidateQueries({ queryKey: ["booking_requests"] });
-      queryClient.invalidateQueries({ queryKey: ["clients"] });
-      queryClient.invalidateQueries({ queryKey: ["booking-notifications"] });
-      
+      queryClient.invalidateQueries({ queryKey: ['booking_requests'] });
+      queryClient.invalidateQueries({ queryKey: ['clients'] });
+      queryClient.invalidateQueries({ queryKey: ['booking-notifications'] });
+
       // Show success notification
       import('@mantine/notifications').then(({ notifications }) => {
         notifications.show({
@@ -2021,7 +2047,7 @@ export const useCancelBookingRequest = () => {
       });
     },
     onError: (error) => {
-      console.error("Cancel booking request error:", error);
+      console.error('Cancel booking request error:', error);
       // Show error notification
       import('@mantine/notifications').then(({ notifications }) => {
         notifications.show({
@@ -2117,29 +2143,35 @@ export const useGetPublicBusinessServices = (businessSlug: string) => {
 // Get public availability slots
 export const useGetPublicAvailability = (
   businessSlug: string,
-  categoryId: number | null,
+  serviceId: number | null,
   startDate: string,
-  endDate: string
+  endDate: string,
+  staffId?: number | null,
+  locationId?: number | null
 ) => {
   console.log('🔌 DEBUG: useGetPublicAvailability hook called with:', {
     businessSlug,
-    categoryId,
+    serviceId,
     startDate,
-    endDate
+    endDate,
+    staffId,
+    locationId
   });
 
   return useQuery({
-    queryKey: ['public-availability', businessSlug, categoryId, startDate, endDate],
+    queryKey: ['public-availability', businessSlug, serviceId, startDate, endDate, staffId, locationId],
     queryFn: async () => {
       console.log('🚀 DEBUG: Executing API call get_public_availability with params:', {
         businessSlug,
-        categoryId,
+        serviceId,
         startDate,
-        endDate
+        endDate,
+        staffId,
+        locationId
       });
       
       try {
-        const result = await get_public_availability(businessSlug, categoryId || 0, startDate, endDate);
+        const result = await get_public_availability(businessSlug, serviceId || 0, startDate, endDate, staffId, locationId);
         console.log('✅ DEBUG: API call successful, response:', result);
         return result;
       } catch (error) {
@@ -2147,7 +2179,7 @@ export const useGetPublicAvailability = (
         throw error;
       }
     },
-    enabled: !!businessSlug && categoryId !== null && !!startDate && !!endDate,
+    enabled: !!businessSlug && serviceId !== null && !!startDate && !!endDate,
     staleTime: 1000 * 60 * 2, // 2 minutes
     refetchOnWindowFocus: false, // Don't refetch when window focuses
     retry: 2, // Retry failed requests twice
@@ -2157,12 +2189,12 @@ export const useGetPublicAvailability = (
 // Create public booking
 export const useCreatePublicBooking = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: async ({ 
-      businessSlug, 
-      bookingData 
-    }: { 
+    mutationFn: async ({
+      businessSlug,
+      bookingData,
+    }: {
       businessSlug: string;
       bookingData: {
         session_id: number;
@@ -2183,27 +2215,157 @@ export const useCreatePublicBooking = () => {
         session_title?: string;
         business_name?: string;
         business_email?: string;
-      }
+      };
     }) => {
       const response = await create_public_booking(businessSlug, bookingData);
-      
+
       // Transform backend response to match BookingConfirmation interface
       const sessionTitle = bookingData.session_title || 'Session';
-      const bookingDate = bookingData.selected_date || new Date().toISOString().split('T')[0];
+      const bookingDate =
+        bookingData.selected_date || new Date().toISOString().split('T')[0];
       const startTime = bookingData.selected_time || '09:00';
       const endTime = bookingData.selected_end_time || '10:00';
-      
+
       return {
         booking_reference: response.booking_reference,
-        status: response.status === 'approved' ? 'auto_approved' : response.status,
-        message: response.message || (response.requires_approval ? 'Your booking request has been submitted and is pending approval.' : 'Your booking has been confirmed successfully!'),
+        status:
+          response.status === 'approved' ? 'auto_approved' : response.status,
+        message:
+          response.message ||
+          (response.requires_approval
+            ? 'Your booking request has been submitted and is pending approval.'
+            : 'Your booking has been confirmed successfully!'),
         requires_approval: response.requires_approval || false,
         session_details: {
           title: sessionTitle,
           date: bookingDate,
           start_time: startTime,
           end_time: endTime,
-          location: undefined
+          location: undefined,
+        },
+        client_info: {
+          name: bookingData.client_name,
+          email: bookingData.client_email,
+          phone: bookingData.client_phone,
+        },
+        business_info: {
+          name: bookingData.business_name || 'Business',
+          email: bookingData.business_email,
+          phone: undefined,
+        },
+        next_steps: [
+          response.requires_approval
+            ? "You'll receive an email once your booking is approved"
+            : 'Check your email for booking confirmation and details',
+          'Add the appointment to your calendar',
+          'Arrive on time for your appointment',
+        ],
+      };
+    },
+    onSuccess: () => {
+      // Invalidate availability queries as they might have changed
+      queryClient.invalidateQueries({ queryKey: ['public-availability'] });
+    },
+    onError: (error: unknown) => {
+      console.error('Failed to create booking:', error);
+
+      // Enhanced error logging for production debugging
+      const apiError = error as { response?: { data?: { code?: string } } };
+      if (apiError?.response?.data) {
+        console.error('Backend error details:', apiError.response.data);
+      }
+
+      // Track common error patterns for monitoring
+      const errorCode = apiError?.response?.data?.code || 'UNKNOWN_ERROR';
+      console.info(`Booking error code: ${errorCode}`);
+    },
+    // Enhanced retry logic for race condition scenarios
+    retry: (failureCount, error: unknown) => {
+      const apiError = error as { response?: { data?: { code?: string } } };
+      const errorCode = apiError?.response?.data?.code;
+
+      // Retry race condition and capacity-related errors once
+      if (
+        errorCode === 'CAPACITY_CHANGED' ||
+        errorCode === 'BOOKING_CREATION_ERROR'
+      ) {
+        return failureCount < 1;
+      }
+
+      // Don't retry validation or duplicate booking errors
+      if (
+        errorCode === 'DUPLICATE_BOOKING' ||
+        errorCode === 'INSUFFICIENT_CAPACITY' ||
+        errorCode === 'SESSION_NOT_BOOKABLE' ||
+        errorCode === 'GROUP_BOOKINGS_DISABLED'
+      ) {
+        return false;
+      }
+
+      // Default retry once for other errors
+      return failureCount < 1;
+    },
+    // Add retry delay for capacity-related issues
+    retryDelay: (attemptIndex, error: unknown) => {
+      const apiError = error as { response?: { data?: { code?: string } } };
+      const errorCode = apiError?.response?.data?.code;
+
+      // Short delay for capacity conflicts to allow other bookings to complete
+      if (
+        errorCode === 'CAPACITY_CHANGED' ||
+        errorCode === 'BOOKING_CREATION_ERROR'
+      ) {
+        return 1000; // 1 second
+      }
+
+      // Standard exponential backoff for other errors
+      return Math.min(1000 * 2 ** attemptIndex, 3000);
+    },
+  });
+};
+
+// Create service booking (flexible bookings)
+export const useCreateServiceBooking = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async ({ 
+      businessSlug, 
+      bookingData 
+    }: { 
+      businessSlug: string;
+      bookingData: {
+        service_id: number;
+        staff_id: number;
+        location_id: number;
+        date: string;
+        start_time: string;
+        duration_minutes?: number;
+        client_name: string;
+        client_email: string;
+        client_phone: string;
+        notes?: string;
+        quantity?: number;
+        group_booking_notes?: string;
+        client_timezone?: string;
+      }
+    }) => {
+      const response = await create_service_booking(businessSlug, bookingData);
+      
+      // Transform backend response for service booking confirmation
+      const endTime = new Date(new Date(`${bookingData.date}T${bookingData.start_time}`).getTime() + (bookingData.duration_minutes || 60) * 60000).toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' });
+      
+      return {
+        booking_reference: response.booking_reference,
+        status: response.status === 'approved' ? 'auto_approved' : response.status,
+        message: response.message || (response.requires_approval ? 'Your service booking request has been submitted and is pending approval.' : 'Your service booking has been confirmed successfully!'),
+        requires_approval: response.requires_approval || false,
+        session_details: {
+          title: response.service_name || 'Service',
+          date: bookingData.date,
+          start_time: bookingData.start_time,
+          end_time: endTime,
+          location: response.location_name
         },
         client_info: {
           name: bookingData.client_name,
@@ -2211,8 +2373,8 @@ export const useCreatePublicBooking = () => {
           phone: bookingData.client_phone
         },
         business_info: {
-          name: bookingData.business_name || 'Business',
-          email: bookingData.business_email,
+          name: undefined,
+          email: undefined,
           phone: undefined
         },
         next_steps: [
@@ -2227,52 +2389,14 @@ export const useCreatePublicBooking = () => {
       queryClient.invalidateQueries({ queryKey: ['public-availability'] });
     },
     onError: (error: unknown) => {
-      console.error("Failed to create booking:", error);
+      console.error("Failed to create service booking:", error);
       
       // Enhanced error logging for production debugging
       const apiError = error as { response?: { data?: { code?: string } } };
       if (apiError?.response?.data) {
         console.error("Backend error details:", apiError.response.data);
       }
-      
-      // Track common error patterns for monitoring
-      const errorCode = apiError?.response?.data?.code || 'UNKNOWN_ERROR';
-      console.info(`Booking error code: ${errorCode}`);
-    },
-    // Enhanced retry logic for race condition scenarios
-    retry: (failureCount, error: unknown) => {
-      const apiError = error as { response?: { data?: { code?: string } } };
-      const errorCode = apiError?.response?.data?.code;
-      
-      // Retry race condition and capacity-related errors once
-      if (errorCode === 'CAPACITY_CHANGED' || errorCode === 'BOOKING_CREATION_ERROR') {
-        return failureCount < 1;
-      }
-      
-      // Don't retry validation or duplicate booking errors
-      if (errorCode === 'DUPLICATE_BOOKING' || 
-          errorCode === 'INSUFFICIENT_CAPACITY' || 
-          errorCode === 'SESSION_NOT_BOOKABLE' ||
-          errorCode === 'GROUP_BOOKINGS_DISABLED') {
-        return false;
-      }
-      
-      // Default retry once for other errors
-      return failureCount < 1;
-    },
-    // Add retry delay for capacity-related issues
-    retryDelay: (attemptIndex, error: unknown) => {
-      const apiError = error as { response?: { data?: { code?: string } } };
-      const errorCode = apiError?.response?.data?.code;
-      
-      // Short delay for capacity conflicts to allow other bookings to complete
-      if (errorCode === 'CAPACITY_CHANGED' || errorCode === 'BOOKING_CREATION_ERROR') {
-        return 1000; // 1 second
-      }
-      
-      // Standard exponential backoff for other errors
-      return Math.min(1000 * 2 ** attemptIndex, 3000);
-    },
+    }
   });
 };
 
@@ -2299,27 +2423,37 @@ export const useGetClientBookingInfo = (bookingReference: string) => {
 // Cancel client booking
 export const useCancelClientBooking = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: ({ 
-      bookingReference, 
+    mutationFn: ({
+      bookingReference,
       reason,
       client_email,
-      client_phone
-    }: { 
+      client_phone,
+    }: {
       bookingReference: string;
       reason?: string;
       client_email?: string;
       client_phone?: string;
-    }) => cancel_client_booking(bookingReference, reason, client_email, client_phone),
+    }) =>
+      cancel_client_booking(
+        bookingReference,
+        reason,
+        client_email,
+        client_phone
+      ),
     onSuccess: (_, variables) => {
       // Invalidate client booking info and availability
-      queryClient.invalidateQueries({ queryKey: ['client-booking-info', variables.bookingReference] });
-      queryClient.invalidateQueries({ queryKey: ['booking-status', variables.bookingReference] });
+      queryClient.invalidateQueries({
+        queryKey: ['client-booking-info', variables.bookingReference],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['booking-status', variables.bookingReference],
+      });
       queryClient.invalidateQueries({ queryKey: ['public-availability'] });
     },
     onError: (error) => {
-      console.error("Failed to cancel booking:", error);
+      console.error('Failed to cancel booking:', error);
     },
   });
 };
@@ -2332,8 +2466,20 @@ export const useGetClientRescheduleOptions = (
   filterType?: string
 ) => {
   return useQuery({
-    queryKey: ['client-reschedule-options', bookingReference, dateFrom, dateTo, filterType],
-    queryFn: () => get_client_reschedule_options(bookingReference, dateFrom, dateTo, filterType),
+    queryKey: [
+      'client-reschedule-options',
+      bookingReference,
+      dateFrom,
+      dateTo,
+      filterType,
+    ],
+    queryFn: () =>
+      get_client_reschedule_options(
+        bookingReference,
+        dateFrom,
+        dateTo,
+        filterType
+      ),
     enabled: !!bookingReference && !!dateFrom && !!dateTo && !!filterType, // All parameters must be present
     staleTime: 1000 * 60 * 5, // 5 minutes - longer cache time to prevent refetches
     refetchOnWindowFocus: false, // Don't refetch when window focuses
@@ -2353,17 +2499,17 @@ export const useGetClientRescheduleOptions = (
 // Reschedule client booking
 export const useRescheduleClientBooking = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: ({ 
-      bookingReference, 
+    mutationFn: ({
+      bookingReference,
       newSessionId,
       newDate,
       newStartTime,
       newEndTime,
       identityVerification,
-      reason
-    }: { 
+      reason,
+    }: {
       bookingReference: string;
       newSessionId: number;
       newDate?: string;
@@ -2374,24 +2520,43 @@ export const useRescheduleClientBooking = () => {
         phone?: string;
       };
       reason?: string;
-    }) => reschedule_client_booking(bookingReference, newSessionId, newDate, newStartTime, newEndTime, identityVerification, reason),
+    }) =>
+      reschedule_client_booking(
+        bookingReference,
+        newSessionId,
+        newDate,
+        newStartTime,
+        newEndTime,
+        identityVerification,
+        reason
+      ),
     onSuccess: (_, variables) => {
       // 🔧 FIX: Remove reschedule options from cache instead of invalidating to prevent refetch
       // Remove reschedule options from cache since they're no longer needed after successful reschedule
-      queryClient.removeQueries({ queryKey: ['client-reschedule-options', variables.bookingReference] });
-      
+      queryClient.removeQueries({
+        queryKey: ['client-reschedule-options', variables.bookingReference],
+      });
+
       // Only invalidate booking info and availability which are needed for the success page
-      queryClient.invalidateQueries({ queryKey: ['client-booking-info', variables.bookingReference] });
-      queryClient.invalidateQueries({ queryKey: ['booking-status', variables.bookingReference] });
+      queryClient.invalidateQueries({
+        queryKey: ['client-booking-info', variables.bookingReference],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['booking-status', variables.bookingReference],
+      });
       queryClient.invalidateQueries({ queryKey: ['public-availability'] });
     },
     onError: (error) => {
-      console.error("Failed to reschedule booking:", error);
+      console.error('Failed to reschedule booking:', error);
     },
   });
 };
 
-export const useGetAvailableSlots = (businessSlug: string, serviceId: string, date: string) => {
+export const useGetAvailableSlots = (
+  businessSlug: string,
+  serviceId: string,
+  date: string
+) => {
   return useQuery({
     queryKey: ['availableSlots', businessSlug, serviceId, date],
     queryFn: () => getAvailableSlots(businessSlug, serviceId, date),
@@ -2402,24 +2567,372 @@ export const useGetAvailableSlots = (businessSlug: string, serviceId: string, da
 };
 
 // Get available staff for flexible booking
-export const useGetPublicAvailableStaff = (businessSlug: string, sessionId: number, date?: string) => {
+export const useGetPublicAvailableStaff = (
+  businessSlug: string, 
+  sessionOrServiceId: number, 
+  date?: string, 
+  isServiceId: boolean = false, 
+  locationId?: number
+) => {
+  const params = isServiceId 
+    ? { service_id: sessionOrServiceId, date, location_id: locationId }
+    : { session_id: sessionOrServiceId, date, location_id: locationId };
+    
   return useQuery({
-    queryKey: ['publicAvailableStaff', businessSlug, sessionId, date],
-    queryFn: () => get_public_available_staff(businessSlug, { session_id: sessionId, date }),
-    enabled: !!businessSlug && !!sessionId,
+    queryKey: ['publicAvailableStaff', businessSlug, sessionOrServiceId, date, isServiceId, locationId],
+    queryFn: () => get_public_available_staff(businessSlug, params),
+    enabled: !!businessSlug && !!sessionOrServiceId,
     staleTime: 1000 * 60 * 2, // 2 minutes
     refetchOnWindowFocus: false,
   });
 };
 
 // Get available locations for flexible booking
-export const useGetPublicAvailableLocations = (businessSlug: string, sessionId: number, staffId?: number, date?: string) => {
+export const useGetPublicAvailableLocations = (
+  businessSlug: string, 
+  sessionOrServiceId: number, 
+  staffId?: number, 
+  date?: string, 
+  isServiceId: boolean = false
+) => {
+  const params = isServiceId 
+    ? { service_id: sessionOrServiceId, staff_id: staffId, date }
+    : { session_id: sessionOrServiceId, staff_id: staffId, date };
+    
   return useQuery({
-    queryKey: ['publicAvailableLocations', businessSlug, sessionId, staffId, date],
-    queryFn: () => get_public_available_locations(businessSlug, { session_id: sessionId, staff_id: staffId, date }),
-    enabled: !!businessSlug && !!sessionId,
+    queryKey: ['public-available-locations', businessSlug, sessionOrServiceId, staffId, date, isServiceId],
+    queryFn: () => get_public_available_locations(businessSlug, params),
+    enabled: !!businessSlug && !!sessionOrServiceId,
     staleTime: 1000 * 60 * 2, // 2 minutes
     refetchOnWindowFocus: false,
   });
 };
 
+// Staff Service Competency Hooks
+export const useGetStaffServiceCompetencies = () => {
+  return useQuery({
+    queryKey: ['staff-service-competencies'],
+    queryFn: async () => {
+      const { get_staff_competencies } = await import('../api/api');
+      return await get_staff_competencies();
+    },
+    staleTime: 0, // Always refetch
+    refetchOnWindowFocus: true,
+  });
+};
+
+export const useCreateStaffServiceCompetency = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (data: any) => {
+      const { create_staff_competency } = await import('../api/api');
+      return await create_staff_competency(data);
+    },
+    onSuccess: () => {
+      // Force refresh by removing cached data
+      queryClient.removeQueries({ queryKey: ['staff-service-competencies'] });
+      queryClient.removeQueries({ queryKey: ['staff'] });
+      // Then refetch
+      queryClient.invalidateQueries({ queryKey: ['staff-service-competencies'] });
+      queryClient.invalidateQueries({ queryKey: ['staff'] });
+    },
+  });
+};
+
+export const useUpdateStaffServiceCompetency = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (data: any) => {
+      const { update_staff_competency } = await import('../api/api');
+      return await update_staff_competency(data.id, data);
+    },
+    onSuccess: () => {
+      // Force refresh by removing cached data
+      queryClient.removeQueries({ queryKey: ['staff-service-competencies'] });
+      queryClient.removeQueries({ queryKey: ['staff'] });
+      // Then refetch
+      queryClient.invalidateQueries({ queryKey: ['staff-service-competencies'] });
+      queryClient.invalidateQueries({ queryKey: ['staff'] });
+    },
+  });
+};
+
+export const useDeleteStaffServiceCompetency = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: number) => {
+      const { delete_staff_competency } = await import('../api/api');
+      return await delete_staff_competency(id);
+    },
+    onSuccess: () => {
+      // Force refresh by removing cached data
+      queryClient.removeQueries({ queryKey: ['staff-service-competencies'] });
+      queryClient.removeQueries({ queryKey: ['staff'] });
+      // Then refetch
+      queryClient.invalidateQueries({ queryKey: ['staff-service-competencies'] });
+      queryClient.invalidateQueries({ queryKey: ['staff'] });
+    },
+  });
+};
+
+// Staff Location Assignment Hooks
+export const useGetStaffLocationAssignments = () => {
+  return useQuery({
+    queryKey: ['staff-location-assignments'],
+    queryFn: async () => {
+      const { get_staff_locations } = await import('../api/api');
+      return await get_staff_locations();
+    },
+  });
+};
+
+export const useCreateStaffLocationAssignment = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (data: any) => {
+      const { create_staff_location } = await import('../api/api');
+      return await create_staff_location(data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['staff-location-assignments'] });
+      queryClient.invalidateQueries({ queryKey: ['staff'] });
+    },
+  });
+};
+
+export const useDeleteStaffLocationAssignment = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: number) => fetch(`/api/staff/locations/${id}/`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${useAuthStore.getState().accessToken}`,
+      },
+    }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['staff-location-assignments'] });
+      queryClient.invalidateQueries({ queryKey: ['staff'] });
+    },
+  });
+};
+
+// Staff Exception Hooks
+export const useGetStaffExceptions = () => {
+  return useQuery({
+    queryKey: ['staff-exceptions'],
+    queryFn: get_staff_exceptions,
+    staleTime: 0, // Always fetch fresh data
+    gcTime: 0, // Don't cache the data
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
+    refetchOnReconnect: true,
+  });
+};
+
+export const useCreateStaffException = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: {
+      staff: number;
+      date: string;
+      exception_type?: string;
+      reason?: string;
+      is_all_day?: boolean;
+      start_time?: string;
+      end_time?: string;
+    }) => create_staff_exception(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['staff-exceptions'] });
+      queryClient.invalidateQueries({ queryKey: ['booking-notifications'] });
+    },
+  });
+};
+
+export const useUpdateStaffException = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: {
+      id: number;
+      exception_type?: string;
+      reason?: string;
+      is_all_day?: boolean;
+      start_time?: string;
+      end_time?: string;
+      status?: string;
+      admin_notes?: string;
+    }) => update_staff_exception(data.id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['staff-exceptions'] });
+      queryClient.invalidateQueries({ queryKey: ['booking-notifications'] });
+    },
+  });
+};
+
+export const useApproveStaffException = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: { id: number; admin_notes: string }) => 
+      approve_staff_exception(data.id, data.admin_notes),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['staff-exceptions'] });
+      queryClient.invalidateQueries({ queryKey: ['booking-notifications'] });
+    },
+  });
+};
+
+export const useDenyStaffException = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: { id: number; admin_notes: string }) => 
+      deny_staff_exception(data.id, data.admin_notes),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['staff-exceptions'] });
+      queryClient.invalidateQueries({ queryKey: ['booking-notifications'] });
+    },
+  });
+};
+
+// Staff Portal Hook (for staff to access their own data)
+export const useGetStaffPortalData = () => {
+  return useQuery({
+    queryKey: ['staff-portal'],
+    queryFn: get_staff_portal_data,
+    retry: 2,
+    staleTime: 0, // Always fetch fresh data
+    gcTime: 0, // Don't cache the data
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
+    refetchOnReconnect: true,
+  });
+};
+
+// Staff Own Exception Hooks (for staff to manage their own exceptions)
+export const useGetStaffOwnExceptions = () => {
+  return useQuery({
+    queryKey: ['staff-own-exceptions'],
+    queryFn: get_staff_own_exceptions,
+    staleTime: 0, // Always fetch fresh data
+    gcTime: 0, // Don't cache the data
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
+    refetchOnReconnect: true,
+  });
+};
+
+export const useCreateStaffOwnException = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: {
+      date: string;
+      exception_type?: string;
+      reason?: string;
+      is_all_day?: boolean;
+      start_time?: string;
+      end_time?: string;
+    }) => create_staff_own_exception(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['staff-own-exceptions'] });
+      queryClient.invalidateQueries({ queryKey: ['staff-portal'] });
+      queryClient.invalidateQueries({ queryKey: ['booking-notifications'] });
+    },
+  });
+};
+
+export const useUpdateStaffOwnException = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: {
+      id: number;
+      exception_type?: string;
+      reason?: string;
+      is_all_day?: boolean;
+      start_time?: string;
+      end_time?: string;
+    }) => update_staff_own_exception(data.id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['staff-own-exceptions'] });
+      queryClient.invalidateQueries({ queryKey: ['staff-portal'] });
+      queryClient.invalidateQueries({ queryKey: ['booking-notifications'] });
+    },
+  });
+};
+
+// Class Type Hooks
+export const useGetClassTypes = () => {
+  return useQuery({
+    queryKey: ['classTypes'],
+    queryFn: get_class_types,
+    staleTime: 1000 * 60 * 5,
+    refetchOnWindowFocus: false,
+    retry: 2,
+  });
+};
+
+export const useGetClassType = (id?: string) => {
+  return useQuery({
+    queryKey: ['classType', id],
+    queryFn: () => (id ? get_class_type(id) : null),
+    enabled: !!id,
+    staleTime: 1000 * 60 * 5,
+    refetchOnWindowFocus: false,
+  });
+};
+
+export const useCreateClassType = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: create_class_type,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['classTypes'] });
+    },
+    onError: (error) => {
+      console.error('Failed to create class type:', error);
+    },
+  });
+};
+
+export const useUpdateClassType = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      id,
+      classTypeData,
+    }: {
+      id: string;
+      classTypeData: ClassType;
+    }) => update_class_type(id, classTypeData),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['classTypes'] });
+    },
+    onError: (error) => {
+      console.error('Failed to update class type:', error);
+    },
+  });
+};
+
+export const useDeleteClassType = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: delete_class_type,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['classTypes'] });
+    },
+    onError: (error) => {
+      console.error('Failed to delete class type:', error);
+    },
+  });
+};
+
+// Business Locations Hook (alias for existing useGetLocations)
+export const useGetBusinessLocations = useGetLocations;

@@ -4,7 +4,191 @@ import { Policy } from './policy';
 export interface Category {
   id: number;
   name: string;
+  description?: string;
+  business: number;
+  created_at: string;
+  updated_at: string;
+  subcategories?: SubCategory[];
 }
+
+// Enhanced SubCategory interface for salon services
+export interface SubCategory {
+  id: number;
+  name: string;
+  description?: string;
+  category: number;
+  // Service-specific fields
+  is_service?: boolean;
+  base_price?: number;
+  default_duration?: number;
+  min_duration?: number;
+  max_duration?: number;
+  price_per_minute?: number;
+}
+
+export interface SubSkill {
+  id: number;
+  name: string;
+  description?: string;
+  subcategory: number;
+  created_at: string;
+  updated_at: string;
+}
+
+// Enhanced interfaces for staff service management
+export interface StaffServiceCompetency {
+  id: number;
+  staff: number;
+  staff_name?: string;
+  subcategory: number;
+  subcategory_name?: string;
+  category_name?: string;
+  skill_level: 'trainee' | 'competent' | 'expert' | 'master';
+  hourly_rate?: string;
+  is_active: boolean;
+  created_at: string;
+  
+  // Enhanced service information
+  service_details?: SubCategory;
+}
+
+export interface StaffLocationAssignment {
+  id: number;
+  staff: number;
+  staff_name?: string;
+  location: number;
+  location_name?: string;
+  location_address?: string;
+  is_primary: boolean;
+  is_active: boolean;
+  created_at: string;
+}
+
+export interface StaffException {
+  id: number;
+  staff?: {
+    id: number;
+    user: {
+      id: number;
+      first_name: string;
+      last_name: string;
+      email: string;
+    };
+  };
+  date: string;
+  exception_type: 'unavailable' | 'vacation' | 'sick' | 'training' | 'personal';
+  reason: string;
+  is_all_day: boolean;
+  start_time?: string;
+  end_time?: string;
+  status: 'pending' | 'approved' | 'denied';
+  admin_notes?: string;
+  created_at: string;
+}
+
+export interface CreateSessionData {
+  title: string;
+  description?: string;
+  session_type: 'class' | 'appointment' | 'event';
+  class_type?: 'private' | 'regular' | 'workshop';
+  date: string;
+  start_time: string;
+  end_time: string;
+  spots: number;
+  category?: number;
+  staff?: number;
+  location?: number;
+  client_ids?: number[];
+  policy_ids?: number[];
+  staff_ids?: number[];
+  location_ids?: number[];
+  // Repetition fields
+  repeat_every?: number;
+  repeat_unit?: 'days' | 'weeks' | 'months';
+  repeat_on?: string[];
+  repeat_end_type?: 'never' | 'on' | 'after';
+  repeat_end_date?: string;
+  repeat_occurrences?: number;
+  // Flexible booking fields
+  allow_staff_selection?: boolean;
+  allow_location_selection?: boolean;
+  require_staff_confirmation?: boolean;
+  staff_confirmation_timeout_hours?: number;
+  auto_assign_when_single_option?: boolean;
+}
+
+// Enhanced service pricing utilities
+export interface ServicePricing {
+  basePrice: number;
+  duration: number;
+  pricePerMinute?: number;
+  totalPrice: number;
+  formattedPrice: string;
+}
+
+export const calculateServicePrice = (
+  service: SubCategory, 
+  duration?: number,
+  business?: { currency?: string; currency_symbol?: string }
+): ServicePricing => {
+  const basePrice = parseFloat(service.base_price || '0');
+  const serviceDuration = duration || service.default_duration || 60;
+  const pricePerMinute = parseFloat(service.price_per_minute || '0');
+  
+  let totalPrice = basePrice;
+  
+  // Add variable pricing if duration exceeds default
+  if (duration && service.default_duration && duration > service.default_duration && pricePerMinute > 0) {
+    const extraMinutes = duration - service.default_duration;
+    totalPrice += extraMinutes * pricePerMinute;
+  }
+  
+  // Use business currency symbol or default to KSH
+  const currencySymbol = business?.currency_symbol || 'KSH';
+  
+  return {
+    basePrice,
+    duration: serviceDuration,
+    pricePerMinute,
+    totalPrice,
+    formattedPrice: `${currencySymbol} ${totalPrice.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`
+  };
+};
+
+export const formatDuration = (minutes: number): string => {
+  if (minutes < 60) {
+    return `${minutes}min`;
+  }
+  
+  const hours = Math.floor(minutes / 60);
+  const remainingMinutes = minutes % 60;
+  
+  if (remainingMinutes === 0) {
+    return `${hours}hr${hours > 1 ? 's' : ''}`;
+  }
+  
+  return `${hours}hr${hours > 1 ? 's' : ''} ${remainingMinutes}min`;
+};
+
+export const getDurationOptions = (
+  service: SubCategory, 
+  business?: { currency?: string; currency_symbol?: string }
+): Array<{value: number, label: string}> => {
+  const options: Array<{value: number, label: string}> = [];
+  const min = service.min_duration || service.default_duration || 30;
+  const max = service.max_duration || service.default_duration || 120;
+  const step = 15; // 15-minute increments
+  
+  for (let duration = min; duration <= max; duration += step) {
+    const pricing = calculateServicePrice(service, duration, business);
+    options.push({
+      value: duration,
+      label: `${formatDuration(duration)} - ${pricing.formattedPrice}`
+    });
+  }
+  
+  return options;
+};
 
 export interface Staff {
   id: number;
@@ -61,50 +245,13 @@ export interface AssignedStaff {
 }
 
 export type SessionType = 'class' | 'appointment' | 'event';
-export type ClassType = 'private' | 'regular' | 'workshop';
 export type RepeatUnit = 'days' | 'weeks' | 'months';
 export type EndType = 'never' | 'on' | 'after';
-
-export interface CreateSessionData {
-  title: string;
-  session_type: SessionType;
-  class_type: ClassType;
-  staff?: number;
-  staff_ids?: number[];
-  date: string;
-  start_time: string;
-  end_time: string;
-  spots: number;
-  category: number;
-  location_id?: number;
-  location_ids?: number[];
-  is_active?: boolean;
-  client_ids?: number[];
-  policy_ids?: number[];
-  description?: string;
-  email?: string;
-  phone_number?: string;
-  selected_class?: number;
-  repetition?: 'none' | 'daily' | 'weekly' | 'monthly' | 'custom';
-  repeat_every?: number;
-  repeat_unit?: RepeatUnit;
-  repeat_on?: string[];
-  repeat_end_type?: EndType;
-  repeat_end_date?: string;
-  repeat_occurrences?: number | null;
-
-  // Flexible booking fields
-  allow_staff_selection?: boolean;
-  allow_location_selection?: boolean;
-  require_staff_confirmation?: boolean;
-  staff_confirmation_timeout_hours?: number;
-  auto_assign_when_single_option?: boolean;
-}
 
 export interface Session
   extends Omit<
     CreateSessionData,
-    'category' | 'client_ids' | 'location_id' | 'location_ids'
+    'category' | 'client_ids' | 'location_id' | 'location_ids' | 'class_type'
   > {
   id: number;
   assigned_staff: AssignedStaff | null;
@@ -128,6 +275,8 @@ export interface Session
   require_staff_confirmation?: boolean;
   staff_confirmation_timeout_hours?: number;
   auto_assign_when_single_option?: boolean;
+  class_type?: string;
+  class_type_detail?: ClassType;
 }
 
 export interface SessionTableData {
@@ -250,11 +399,65 @@ export interface CalendarSessionType extends Omit<Session, 'repeat_end_date'> {
   date: string;
   spots: number;
   attendances?: Attendance[];
+  
+  // Client attendees for the session
+  attendees?: Array<{
+    id?: number | string;
+    first_name?: string;
+    last_name?: string;
+    name?: string;
+    email?: string;
+    phone_number?: string;
+    phone?: string;
+  }>;
+  
   // Allow for any additional properties coming from the backend
   [key: string]: unknown;
 }
 
 export interface SessionFilters {
-  sessionTypes: string[];
+  sessionTypes?: string[];
+  categories?: string[];
+  dateRange?: [Date | null, Date | null];
   pageIndex: number;
 }
+
+export interface Business {
+  id: number;
+  business_name: string;
+  business_type: string;
+  currency: string;
+  currency_symbol: string;
+  timezone: string;
+  // ... other fields
+}
+
+export interface ClassType {
+  id?: string;
+  name: string;
+  description?: string;
+  is_active?: boolean;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export type SessionsPerStaff = {
+  id: string;
+  title: string;
+  start_time: string; // Format: "HH:MM"
+  end_time: string; // Format: "HH:MM"
+  client_count: number;
+};
+
+export type StaffSessionsPerStaff = {
+  staff_id: string | number;
+  staff_name: string;
+  session_count: number;
+  sessions: Session[];
+};
+
+export type DailyStaffSessionsResponse = {
+  date: string; // ISO date format (YYYY-MM-DD)
+  staff_sessions?: StaffSessionsPerStaff[]; // Made optional with ?
+  total_sessions: number;
+};

@@ -110,11 +110,16 @@ export function BookingDetailsStep({ businessInfo }: BookingDetailsStepProps) {
     } else if (!form.values.group_booking_notes) {
       form.setFieldValue('group_booking_notes', 'Group booking request');
     }
-  }, [isGroupBooking, form]);
+  }, [isGroupBooking]); // Removed 'form' from dependency array to prevent infinite loop
 
 
 
-  if (!businessInfo || !state.selectedService || !state.selectedTimeSlot) {
+  // Validate required information based on booking type
+  const hasRequiredServiceInfo = state.isFlexibleBooking 
+    ? state.selectedServiceSubcategory
+    : state.selectedService;
+
+  if (!businessInfo || !hasRequiredServiceInfo || !state.selectedTimeSlot) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-50">
         <Alert 
