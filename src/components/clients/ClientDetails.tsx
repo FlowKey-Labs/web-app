@@ -223,10 +223,10 @@ const ClientDetails = () => {
                     </div>
                     <div className='flex justify-between items-center w-full text-sm'>
                       <span className='text-gray-400 font-bold text-xs'>
-                        ASSIGNED TO
+                        CLIENT LOCATION
                       </span>
                       <span className='text-gray-400  text-xs'>
-                        {clientDetails.assignedTo || 'Not Assigned'}
+                        {clientDetails.location_name || 'Not Assigned'}
                       </span>
                     </div>
                   </div>
