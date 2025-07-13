@@ -113,8 +113,8 @@ const StaffDetails = () => {
         header: 'Session Type',
         cell: (info) => {
           const SessionType = info.getValue();
-          return SessionType
-            ? SessionType.charAt(0).toUpperCase() + SessionType.slice(1)
+          return  typeof SessionType === 'string' && SessionType
+            ? SessionType?.charAt(0)?.toUpperCase() + SessionType?.slice(1)
             : '';
         },
       }),
