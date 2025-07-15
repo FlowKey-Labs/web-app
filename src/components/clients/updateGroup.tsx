@@ -21,11 +21,7 @@ interface UpdateGroupProps {
 }
 
 const UpdateGroup = ({ groupData, onSuccess }: UpdateGroupProps) => {
-  const { data: clientsResponse, isLoading: isClientsLoading } = useGetClients(
-    1, // page
-    1000, // pageSize
-    '' // search
-  );
+  const { data: clientsResponse, isLoading: isClientsLoading } = useGetClients();
 
   const clientsData = clientsResponse?.items || [];
   const { data: locationsData, isLoading: isLocationsLoading } =
