@@ -49,7 +49,7 @@ export default function ClientDrawer({
   isEditing,
   zIndex,
 }: ClientDrawerProps) {
-  const { closeDrawer, drawerStack } = useUIStore();
+  const { closeDrawer, drawerStack, activeDrawer } = useUIStore();
   const [activeTab, setActiveTab] = useState<string>('individual');
   const editingId = entityId ? Number(entityId) : null;
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
@@ -338,7 +338,12 @@ export default function ClientDrawer({
         );
       } else {
         addClient(clientData, {
-          onSuccess: () => {
+          onSuccess: (newClient) => {
+            // Call onClientCreated callback if it exists in extraData
+            if (activeDrawer?.extraData?.onClientCreated) {
+              activeDrawer.extraData.onClientCreated(newClient);
+            }
+            
             notifications.show({
               title: 'Success',
               message: 'Client added successfully',
