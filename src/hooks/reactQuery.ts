@@ -939,11 +939,33 @@ export const useCreateSessionSubCategory = () => {
       name,
       description,
       category,
+      is_service,
+      base_price,
+      default_duration,
+      min_duration,
+      max_duration,
+      price_per_minute,
     }: {
       name: string;
       description?: string;
       category: number;
-    }) => create_session_subcategory({ name, description, category }),
+      is_service?: boolean;
+      base_price?: number;
+      default_duration?: number;
+      min_duration?: number;
+      max_duration?: number;
+      price_per_minute?: number;
+    }) => create_session_subcategory({ 
+      name, 
+      description, 
+      category, 
+      is_service, 
+      base_price, 
+      default_duration, 
+      min_duration, 
+      max_duration, 
+      price_per_minute 
+    }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['session_subcategories'] });
     },
@@ -961,12 +983,34 @@ export const useUpdateSessionSubCategory = () => {
       name,
       description,
       category,
+      is_service,
+      base_price,
+      default_duration,
+      min_duration,
+      max_duration,
+      price_per_minute,
     }: {
       id: number;
       name: string;
       description?: string;
       category: number;
-    }) => update_session_subcategory(id, { name, description, category }),
+      is_service?: boolean;
+      base_price?: number;
+      default_duration?: number;
+      min_duration?: number;
+      max_duration?: number;
+      price_per_minute?: number;
+    }) => update_session_subcategory(id, { 
+      name, 
+      description, 
+      category, 
+      is_service, 
+      base_price, 
+      default_duration, 
+      min_duration, 
+      max_duration, 
+      price_per_minute 
+    }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['session_subcategories'] });
     },

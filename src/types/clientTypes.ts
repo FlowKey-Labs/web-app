@@ -201,6 +201,18 @@ export interface PublicBusinessInfo {
     reschedule_deadline_hours: number;
     max_reschedules_per_booking: number;
   };
+  booking_settings?: {
+    booking_mode: 'fixed_only' | 'flexible_only' | 'hybrid';
+    enable_flexible_booking: boolean;
+    enable_staff_selection: boolean;
+    enable_location_selection: boolean;
+    is_active: boolean;
+    requires_approval: boolean;
+    available_booking_types: {
+      fixed: boolean;
+      flexible: boolean;
+    };
+  };
 }
 
 export interface PublicService {
@@ -277,6 +289,7 @@ export interface PublicAvailabilityResponse {
 
 export interface PublicBookingFormData {
   session_id?: number;
+  service_id?: number;
   selected_staff_id?: number;
   selected_location_id?: number;
   client_name?: string;
