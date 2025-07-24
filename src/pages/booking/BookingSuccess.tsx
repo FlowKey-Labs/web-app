@@ -118,18 +118,18 @@ const BookingSuccess: React.FC<BookingSuccessProps> = ({ type }) => {
                   </Title>
                   <div className="space-y-3">
                     <div className="flex justify-between items-center">
-                      <Text className="text-slate-600 font-medium">Reference:</Text>
+                      <Text className="text-slate-600 font-medium">Reference: </Text>
                       <Text className="text-emerald-700 font-bold text-lg">{bookingReference}</Text>
                     </div>
                     {sessionTitle && (
                       <div className="flex justify-between items-center">
-                        <Text className="text-slate-600 font-medium">Session:</Text>
+                        <Text className="text-slate-600 font-medium">Session: </Text>
                         <Text className="text-slate-800 font-semibold">{sessionTitle}</Text>
                       </div>
                     )}
                     {businessName && (
                       <div className="flex justify-between items-center">
-                        <Text className="text-slate-600 font-medium">Business:</Text>
+                        <Text className="text-slate-600 font-medium">Business: </Text>
                         <Text className="text-slate-800 font-semibold">{businessName}</Text>
                       </div>
                     )}
