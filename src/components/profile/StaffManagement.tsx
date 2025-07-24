@@ -51,6 +51,7 @@ import {
 } from '../../hooks/reactQuery';
 import { StaffServiceCompetency, StaffLocationAssignment, SubCategory, formatDuration, calculateServicePrice } from '../../types/sessionTypes';
 import { formatCurrency, getCurrencyPlaceholder } from '../../utils/stringUtils';
+import LocationAvailabilityManagement from './LocationAvailabilityManagement';
 
 // Enhanced types for staff management
 interface Staff {
@@ -348,7 +349,7 @@ const StaffManagement: React.FC = () => {
   const [searchParams] = useSearchParams();
   const selectedStaffId = searchParams.get('staff');
   const [selectedStaff, setSelectedStaff] = useState<number | null>(selectedStaffId ? parseInt(selectedStaffId) : null);
-  const [activeTab, setActiveTab] = useState<'services' | 'locations'>('services');
+  const [activeTab, setActiveTab] = useState<'services' | 'locations' | 'availability'>('services');
   const [serviceModalOpen, setServiceModalOpen] = useState(false);
   const [locationModalOpen, setLocationModalOpen] = useState(false);
   const [editingCompetency, setEditingCompetency] = useState<EnhancedStaffServiceCompetency | null>(null);
@@ -697,6 +698,13 @@ const StaffManagement: React.FC = () => {
                  >
                    Locations ({staffLocationAssignments.length})
                  </Button>
+                 <Button 
+                   variant={activeTab === 'availability' ? 'filled' : 'light'}
+                   size="sm"
+                   onClick={() => setActiveTab('availability')}
+                 >
+                   Availability
+                 </Button>
                </Group>
 
               {/* Tab Content with independent scrolling */}
@@ -728,7 +736,7 @@ const StaffManagement: React.FC = () => {
                         ))}
                       </Stack>
                     )
-                  ) : (
+                  ) : activeTab === 'locations' ? (
                     staffLocationAssignments.length === 0 ? (
                       <EmptyState
                         title="No Location Assignments"
@@ -751,6 +759,12 @@ const StaffManagement: React.FC = () => {
                         ))}
                       </Stack>
                     )
+                  ) : (
+                    // Availability Tab Content
+                    <LocationAvailabilityManagement
+                      selectedStaff={selectedStaff}
+                      staffLocationAssignments={staffLocationAssignments}
+                    />
                   )}
                 </ScrollArea>
               </div>
