@@ -56,7 +56,6 @@ interface DaySchedule {
 
 const DAYS_OF_WEEK = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
 
-// Local EmptyState Component
 const EmptyState: React.FC<{ 
   title: string; 
   description: string; 
@@ -100,10 +99,8 @@ const LocationAvailabilityManagement: React.FC<LocationAvailabilityManagementPro
     return defaultSchedule;
   });
 
-  // Fetch location availabilities using real API
   const { data: locationAvailabilities = [], isLoading, refetch } = useGetStaffLocationAvailability(selectedStaff || undefined);
   
-  // Mutations
   const createAvailabilityMutation = useCreateStaffLocationAvailability();
   const updateAvailabilityMutation = useUpdateStaffLocationAvailability();
   const deleteAvailabilityMutation = useDeleteStaffLocationAvailability();
@@ -111,7 +108,6 @@ const LocationAvailabilityManagement: React.FC<LocationAvailabilityManagementPro
   const handleOpenAvailabilityModal = (assignment: StaffLocationAssignment) => {
     setSelectedLocationAssignment(assignment);
     
-          // Check if there's existing availability for this location
       const existingAvailability = locationAvailabilities.find(
         (avail: LocationAvailability) => avail.staff_location === assignment.id
       );
@@ -120,7 +116,6 @@ const LocationAvailabilityManagement: React.FC<LocationAvailabilityManagementPro
       setScheduleState(existingAvailability.schedule);
       setIsEditing(true);
     } else {
-      // Reset to default schedule
       const defaultSchedule: Record<string, DaySchedule> = {};
       DAYS_OF_WEEK.forEach(day => {
         defaultSchedule[day] = { isOpen: false, shifts: [] };
@@ -149,13 +144,11 @@ const LocationAvailabilityManagement: React.FC<LocationAvailabilityManagementPro
         is_active: true
       };
       
-      // Check if we're editing existing availability
       const existingAvailability = locationAvailabilities.find(
         (avail: LocationAvailability) => avail.staff_location === selectedLocationAssignment.id
       );
       
       if (existingAvailability) {
-        // Update existing availability
         await updateAvailabilityMutation.mutateAsync({
           id: existingAvailability.id!,
           data: availabilityData
@@ -167,7 +160,6 @@ const LocationAvailabilityManagement: React.FC<LocationAvailabilityManagementPro
           color: 'green',
         });
       } else {
-        // Create new availability
         await createAvailabilityMutation.mutateAsync(availabilityData);
         
         notifications.show({
@@ -177,7 +169,6 @@ const LocationAvailabilityManagement: React.FC<LocationAvailabilityManagementPro
         });
       }
       
-      // Refresh data and close modal
       await refetch();
       setAvailabilityModalOpen(false);
       setSelectedLocationAssignment(null);

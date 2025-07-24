@@ -347,6 +347,12 @@ interface BookingFormData {
   staff_exception_advance_notice_hours: number;
   staff_max_exceptions_per_month: number;
   send_staff_exception_notifications: boolean;
+  
+  // Last booking cutoff settings
+  enable_last_booking_cutoff: boolean;
+  last_booking_cutoff_minutes: number;
+  apply_cutoff_to_all_days: boolean;
+  per_day_cutoff_overrides: Record<string, number>;
 }
 
 const BookingSettings: React.FC<BookingSettingsProps> = ({
@@ -388,6 +394,10 @@ const BookingSettings: React.FC<BookingSettingsProps> = ({
       reschedule_fee_policy: '',
       allow_admin_deletion: true,
       require_deletion_reason: true,
+      enable_last_booking_cutoff: false,
+      last_booking_cutoff_minutes: 60,
+      apply_cutoff_to_all_days: true,
+      per_day_cutoff_overrides: {},
     },
   });
 
@@ -965,6 +975,89 @@ const BookingSettings: React.FC<BookingSettingsProps> = ({
                           )}
                         </div>
                       )}
+                      
+                      {/* Last Booking Cutoff Settings */}
+                      <div className='space-y-4 p-4 bg-orange-50 rounded-lg border border-orange-200'>
+                        <div className='flex items-center justify-between'>
+                          <div>
+                            <label className='text-primary text-sm font-medium'>Last Booking Cutoff</label>
+                            <p className='text-gray-500 text-xs'>Prevent appointments too close to closing time</p>
+                          </div>
+                          <Controller
+                            name='enable_last_booking_cutoff'
+                            control={methods.control}
+                            render={({ field }) => (
+                              <input
+                                type='checkbox'
+                                checked={field.value}
+                                onChange={field.onChange}
+                                className='w-4 h-4 text-secondary bg-gray-100 border-gray-300 rounded focus:ring-secondary focus:ring-2'
+                              />
+                            )}
+                          />
+                        </div>
+
+                        {methods.watch('enable_last_booking_cutoff') && (
+                          <div className='space-y-4'>
+                            <Controller
+                              name='last_booking_cutoff_minutes'
+                              control={methods.control}
+                              render={({ field }) => (
+                                <div>
+                                  <label className='block text-primary text-sm font-medium mb-1'>
+                                    Stop accepting bookings (minutes before closing)
+                                  </label>
+                                  <select
+                                    {...field}
+                                    value={field.value?.toString() || '60'}
+                                    onChange={(e) => field.onChange(parseInt(e.target.value))}
+                                    className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary focus:border-transparent'
+                                  >
+                                    <option value="15">15 minutes before closing</option>
+                                    <option value="30">30 minutes before closing</option>
+                                    <option value="60">1 hour before closing</option>
+                                    <option value="90">1.5 hours before closing</option>
+                                    <option value="120">2 hours before closing</option>
+                                    <option value="180">3 hours before closing</option>
+                                  </select>
+                                  <p className='text-xs text-gray-500 mt-1'>
+                                    Example: If you close at 8 PM and select "1 hour before closing", 
+                                    the last appointment will be at 7 PM.
+                                  </p>
+                                </div>
+                              )}
+                            />
+
+                            <div className='flex items-center justify-between'>
+                              <div>
+                                <label className='text-primary text-sm font-medium'>Apply to All Days</label>
+                                <p className='text-gray-500 text-xs'>Use the same cutoff time for all days</p>
+                              </div>
+                              <Controller
+                                name='apply_cutoff_to_all_days'
+                                control={methods.control}
+                                render={({ field }) => (
+                                  <input
+                                    type='checkbox'
+                                    checked={field.value}
+                                    onChange={field.onChange}
+                                    className='w-4 h-4 text-secondary bg-gray-100 border-gray-300 rounded focus:ring-secondary focus:ring-2'
+                                  />
+                                )}
+                              />
+                            </div>
+
+                            {!methods.watch('apply_cutoff_to_all_days') && (
+                              <div className='p-3 bg-gray-100 rounded-md'>
+                                <p className='text-xs text-gray-600 mb-2'>
+                                  <strong>Note:</strong> Per-day customization is available but requires additional setup. 
+                                  For now, we recommend using the same cutoff time for all days for simplicity.
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   )}
 
