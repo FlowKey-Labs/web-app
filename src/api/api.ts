@@ -75,6 +75,7 @@ const END_POINTS = {
     STAFF_DATA: `${BASE_URL}/api/staff/staff/`,
     COMPETENCIES: `${BASE_URL}/api/staff/competencies/`,
     LOCATIONS: `${BASE_URL}/api/staff/locations/`,
+    LOCATION_AVAILABILITY: `${BASE_URL}/api/staff/location-availability/`,
     EXCEPTIONS: `${BASE_URL}/api/staff/exceptions/`,
     PORTAL: `${BASE_URL}/api/staff/portal/`,
     MY_EXCEPTIONS: `${BASE_URL}/api/staff/portal/my-exceptions/`,
@@ -1357,6 +1358,52 @@ const delete_staff_location = async (id: number) => {
   return data;
 };
 
+// Staff Location Availability functions
+const get_staff_location_availability = async (staffId?: number, locationId?: number) => {
+  let url = END_POINTS.STAFF.LOCATION_AVAILABILITY;
+  const params = new URLSearchParams();
+  
+  if (staffId) params.append('staff_id', staffId.toString());
+  if (locationId) params.append('location_id', locationId.toString());
+  
+  if (params.toString()) {
+    url += `?${params.toString()}`;
+  }
+  
+  const { data } = await api.get(url);
+  return data;
+};
+
+const create_staff_location_availability = async (availabilityData: {
+  staff_location: number;
+  working_hours?: Record<string, any>;
+  available_days?: string[];
+  appointment_duration_override?: number;
+  timezone_override?: string;
+  is_active?: boolean;
+  schedule?: Record<string, { isOpen: boolean; shifts: Array<{ start: string; end: string }> }>;
+}) => {
+  const { data } = await api.post(END_POINTS.STAFF.LOCATION_AVAILABILITY, availabilityData);
+  return data;
+};
+
+const update_staff_location_availability = async (id: number, availabilityData: {
+  working_hours?: Record<string, any>;
+  available_days?: string[];
+  appointment_duration_override?: number;
+  timezone_override?: string;
+  is_active?: boolean;
+  schedule?: Record<string, { isOpen: boolean; shifts: Array<{ start: string; end: string }> }>;
+}) => {
+  const { data } = await api.put(`${END_POINTS.STAFF.LOCATION_AVAILABILITY}${id}/`, availabilityData);
+  return data;
+};
+
+const delete_staff_location_availability = async (id: number) => {
+  const { data } = await api.delete(`${END_POINTS.STAFF.LOCATION_AVAILABILITY}${id}/`);
+  return data;
+};
+
 const get_staff_exceptions = async () => {
   const { data } = await api.get(END_POINTS.STAFF.EXCEPTIONS);
   return data;
@@ -1554,6 +1601,11 @@ export {
   create_staff_location,
   update_staff_location,
   delete_staff_location,
+  // Staff Location Availability exports
+  get_staff_location_availability,
+  create_staff_location_availability,
+  update_staff_location_availability,
+  delete_staff_location_availability,
   get_staff_exceptions,
   create_staff_exception,
   update_staff_exception,

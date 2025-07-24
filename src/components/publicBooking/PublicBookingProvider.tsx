@@ -65,10 +65,15 @@ function bookingReducer(state: BookingFlowState & { bookingConfirmation?: Bookin
         isFlexibleBooking: false,
         bookingMode: 'fixed',
       };
-    case 'SELECT_SERVICE_CATEGORY':
-      // Handle service category selection (potentially flexible bookings)
+    case 'SELECT_SERVICE_CATEGORY': {
+      // Handle service category selection (check business settings for flexible booking)
       const category = action.payload as PublicServiceCategory;
       const hasSubcategories = category.subcategories && category.subcategories.length > 0;
+      
+      // Only enable flexible booking if business settings allow it AND there are subcategories
+      const businessAllowsFlexible = state.businessInfo?.booking_settings?.enable_flexible_booking && 
+                                     state.businessInfo?.booking_settings?.available_booking_types?.flexible;
+      const shouldUseFlexible = businessAllowsFlexible && hasSubcategories;
       
       return {
         ...state,
@@ -81,11 +86,16 @@ function bookingReducer(state: BookingFlowState & { bookingConfirmation?: Bookin
         selectedSlot: null,
         selectedTimeSlot: null,
         formData: { ...state.formData },
-        isFlexibleBooking: hasSubcategories,
-        bookingMode: hasSubcategories ? 'flexible' : 'fixed',
+        isFlexibleBooking: shouldUseFlexible,
+        bookingMode: shouldUseFlexible ? 'flexible' : 'fixed',
       };
-    case 'SELECT_SERVICE_SUBCATEGORY':
+    }
+    case 'SELECT_SERVICE_SUBCATEGORY': {
       // Handle service subcategory selection (flexible bookings)
+      // Only allow flexible booking if business settings permit it
+      const businessAllowsFlexibleSubcat = state.businessInfo?.booking_settings?.enable_flexible_booking && 
+                                          state.businessInfo?.booking_settings?.available_booking_types?.flexible;
+      
       return {
         ...state,
         selectedServiceSubcategory: action.payload as PublicServiceSubcategory,
@@ -95,9 +105,10 @@ function bookingReducer(state: BookingFlowState & { bookingConfirmation?: Bookin
         selectedSlot: null,
         selectedTimeSlot: null,
         formData: { ...state.formData, service_id: action.payload?.id },
-        isFlexibleBooking: true,
-        bookingMode: 'flexible',
+        isFlexibleBooking: businessAllowsFlexibleSubcat,
+        bookingMode: businessAllowsFlexibleSubcat ? 'flexible' : 'fixed',
       };
+    }
     case 'SELECT_STAFF':
       console.log('🎯 SELECT_STAFF action - Preserving location state:', {
         currentLocation: state.selectedLocation,
