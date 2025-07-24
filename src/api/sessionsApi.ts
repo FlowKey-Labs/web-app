@@ -170,6 +170,12 @@ export const create_session_subcategory = async (subcategoryData: {
   name: string;
   description?: string;
   category: number;
+  is_service?: boolean;
+  base_price?: number;
+  default_duration?: number;
+  min_duration?: number;
+  max_duration?: number;
+  price_per_minute?: number;
 }) => {
   const { data } = await api.post(END_POINTS.SUBCATEGORIES, subcategoryData);
   return data;
@@ -182,7 +188,17 @@ export const get_session_subcategories = async () => {
 
 export const update_session_subcategory = async (
   id: number,
-  subcategoryData: { name: string; description?: string; category: number }
+  subcategoryData: { 
+    name: string; 
+    description?: string; 
+    category: number;
+    is_service?: boolean;
+    base_price?: number;
+    default_duration?: number;
+    min_duration?: number;
+    max_duration?: number;
+    price_per_minute?: number;
+  }
 ) => {
   const { data } = await api.patch(
     `${END_POINTS.SUBCATEGORIES}${id}/`,

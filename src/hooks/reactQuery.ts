@@ -939,11 +939,33 @@ export const useCreateSessionSubCategory = () => {
       name,
       description,
       category,
+      is_service,
+      base_price,
+      default_duration,
+      min_duration,
+      max_duration,
+      price_per_minute,
     }: {
       name: string;
       description?: string;
       category: number;
-    }) => create_session_subcategory({ name, description, category }),
+      is_service?: boolean;
+      base_price?: number;
+      default_duration?: number;
+      min_duration?: number;
+      max_duration?: number;
+      price_per_minute?: number;
+    }) => create_session_subcategory({ 
+      name, 
+      description, 
+      category, 
+      is_service, 
+      base_price, 
+      default_duration, 
+      min_duration, 
+      max_duration, 
+      price_per_minute 
+    }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['session_subcategories'] });
     },
@@ -961,12 +983,34 @@ export const useUpdateSessionSubCategory = () => {
       name,
       description,
       category,
+      is_service,
+      base_price,
+      default_duration,
+      min_duration,
+      max_duration,
+      price_per_minute,
     }: {
       id: number;
       name: string;
       description?: string;
       category: number;
-    }) => update_session_subcategory(id, { name, description, category }),
+      is_service?: boolean;
+      base_price?: number;
+      default_duration?: number;
+      min_duration?: number;
+      max_duration?: number;
+      price_per_minute?: number;
+    }) => update_session_subcategory(id, { 
+      name, 
+      description, 
+      category, 
+      is_service, 
+      base_price, 
+      default_duration, 
+      min_duration, 
+      max_duration, 
+      price_per_minute 
+    }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['session_subcategories'] });
     },
@@ -2715,6 +2759,84 @@ export const useDeleteStaffLocationAssignment = () => {
       },
     }),
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['staff-location-assignments'] });
+      queryClient.invalidateQueries({ queryKey: ['staff'] });
+    },
+  });
+};
+
+// Staff Location Availability Hooks
+export const useGetStaffLocationAvailability = (staffId?: number, locationId?: number) => {
+  return useQuery({
+    queryKey: ['staff-location-availability', staffId, locationId],
+    queryFn: async () => {
+      const { get_staff_location_availability } = await import('../api/api');
+      return await get_staff_location_availability(staffId, locationId);
+    },
+    enabled: !!staffId || !!locationId, // Only run if we have at least one parameter
+  });
+};
+
+export const useCreateStaffLocationAvailability = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (data: {
+      staff_location: number;
+      working_hours?: Record<string, any>;
+      available_days?: string[];
+      appointment_duration_override?: number;
+      timezone_override?: string;
+      is_active?: boolean;
+      schedule?: Record<string, { isOpen: boolean; shifts: Array<{ start: string; end: string }> }>;
+    }) => {
+      const { create_staff_location_availability } = await import('../api/api');
+      return await create_staff_location_availability(data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['staff-location-availability'] });
+      queryClient.invalidateQueries({ queryKey: ['staff-location-assignments'] });
+      queryClient.invalidateQueries({ queryKey: ['staff'] });
+    },
+  });
+};
+
+export const useUpdateStaffLocationAvailability = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, data }: {
+      id: number;
+      data: {
+        working_hours?: Record<string, any>;
+        available_days?: string[];
+        appointment_duration_override?: number;
+        timezone_override?: string;
+        is_active?: boolean;
+        schedule?: Record<string, { isOpen: boolean; shifts: Array<{ start: string; end: string }> }>;
+      };
+    }) => {
+      const { update_staff_location_availability } = await import('../api/api');
+      return await update_staff_location_availability(id, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['staff-location-availability'] });
+      queryClient.invalidateQueries({ queryKey: ['staff-location-assignments'] });
+      queryClient.invalidateQueries({ queryKey: ['staff'] });
+    },
+  });
+};
+
+export const useDeleteStaffLocationAvailability = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: number) => {
+      const { delete_staff_location_availability } = await import('../api/api');
+      return await delete_staff_location_availability(id);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['staff-location-availability'] });
       queryClient.invalidateQueries({ queryKey: ['staff-location-assignments'] });
       queryClient.invalidateQueries({ queryKey: ['staff'] });
     },

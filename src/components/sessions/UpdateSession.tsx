@@ -59,6 +59,12 @@ const UpdateSession = ({
     sessionId || ''
   );
   const updateSessionMutation = useUpdateSession();
+  
+  // Check if this is a private session that shouldn't be edited
+  const isPrivateSession = sessionData?.class_type_detail?.name === 'Private' || 
+                           sessionData?.class_type === 'Private' ||
+                           (sessionData?.title && sessionData.title.includes(' for ')) ||
+                           (sessionData as any)?.is_bookable === false;
   type CustomSessionData = Omit<
     CreateSessionData,
     'repetition' | 'class_type'
@@ -734,6 +740,41 @@ const UpdateSession = ({
     </div>
   ) : null;
 
+  const privateSessionNotice = isPrivateSession ? (
+    <div className='bg-red-50 p-3 mb-4 rounded-md border border-red-200'>
+      <div className='flex items-start'>
+        <div className='flex-shrink-0 pt-0.5'>
+          <svg
+            xmlns='http://www.w3.org/2000/svg'
+            className='h-5 w-5 text-red-500'
+            viewBox='0 0 20 20'
+            fill='currentColor'
+          >
+            <path
+              fillRule='evenodd'
+              d='M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z'
+              clipRule='evenodd'
+            />
+          </svg>
+        </div>
+        <div className='ml-3'>
+          <h3 className='text-sm font-medium text-red-800'>
+            Private Client Session
+          </h3>
+          <div className='mt-1 text-sm text-red-700'>
+            <p>
+              This is a private session created for a specific client booking. 
+              These sessions cannot be edited to maintain privacy and booking integrity.
+            </p>
+            <p className='mt-1'>
+              To make changes, please contact the client directly or cancel and recreate the booking.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  ) : null;
+
   return (
     <>
       <Drawer
@@ -777,6 +818,14 @@ const UpdateSession = ({
             >
               <div className='flex-1 p-8'>
                 {pendingClientNotice}
+                {privateSessionNotice}
+                {isPrivateSession ? (
+                  <div className='text-center py-8'>
+                    <div className='text-gray-500 text-lg'>
+                      This session cannot be edited
+                    </div>
+                  </div>
+                ) : (
                 <div className='space-y-6'>
                   {methods.watch('session_type') === 'class' ? (
                     <div className='space-y-4'>
@@ -2451,10 +2500,20 @@ const UpdateSession = ({
                     </div>
                   ) : null}
                 </div>
+                )}
               </div>
 
               <div className='p-8'>
                 <div className='flex justify-end gap-4'>
+                  <Button
+                    onClick={onClose}
+                    variant='outline'
+                    color='#6B7280'
+                    radius='8px'
+                  >
+                    {isPrivateSession ? 'Close' : 'Cancel'}
+                  </Button>
+                  {!isPrivateSession && (
                   <Button
                     type='submit'
                     variant='filled'
@@ -2477,6 +2536,7 @@ const UpdateSession = ({
                       ? 'Update Appointment'
                       : 'Update Event'}
                   </Button>
+                  )}
                 </div>
               </div>
             </form>
