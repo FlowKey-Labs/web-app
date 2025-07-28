@@ -4,7 +4,6 @@ import closeIcon from '../../assets/icons/close.svg';
 import { Dictionary } from '@fullcalendar/core/internal';
 import { CalendarSessionType } from '../../types/sessionTypes';
 import moment from 'moment';
-import { subHours } from 'date-fns';
 import successIcon from '../../assets/icons/success.svg';
 import errorIcon from '../../assets/icons/error.svg';
 
@@ -15,6 +14,7 @@ import {
   getParticipantSummary,
   processSessionParticipants,
 } from '../../utils/sessionUtils';
+import { formatCalendarSessionTimes } from '../../utils/calendarTimeUtils';
 
 const formatSessionInfo = (
   session: CalendarSessionType | null
@@ -23,11 +23,15 @@ const formatSessionInfo = (
     return { dateStr: '', timeStr: '', repeatStr: '' };
   }
 
-  const start = moment(subHours(new Date(session.start_time), 3));
-  const end = moment(subHours(new Date(session.end_time), 3));
+  // Use the new calendar-specific timezone utility
+  const { timeRange, formattedDate } = formatCalendarSessionTimes(
+    session.start_time,
+    session.end_time,
+    session.business_timezone || 'Africa/Nairobi'
+  );
 
-  const dateStr = start.format('dddd, MMMM D');
-  const timeStr = `${start.format('h:mm a')} – ${end.format('h:mm a')}`;
+  const dateStr = formattedDate;
+  const timeStr = timeRange;
 
   let repeatStr = '';
   if (

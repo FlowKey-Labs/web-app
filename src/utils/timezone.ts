@@ -574,11 +574,13 @@ export function parseBackendDateTime(
 
 /**
  * Format session times consistently throughout the app
+ * Now properly handles timezone conversion for booking display
  */
 export function formatSessionTimes(
   startTime: string,
   endTime: string,
-  timezone: string = 'Africa/Nairobi'
+  timezone: string = 'Africa/Nairobi',
+  sourceTimezone?: string
 ): { 
   startFormatted: string;
   endFormatted: string;
@@ -586,10 +588,22 @@ export function formatSessionTimes(
   timezoneAbbr: string;
 } {
   try {
-    const start = DateTime.fromISO(startTime).setZone(timezone);
-    const end = DateTime.fromISO(endTime).setZone(timezone);
+    let start: DateTime;
+    let end: DateTime;
+    
+    // If sourceTimezone is provided, convert from source to target timezone
+    if (sourceTimezone && sourceTimezone !== timezone) {
+      // Parse in source timezone and convert to target
+      start = DateTime.fromISO(startTime, { zone: sourceTimezone }).setZone(timezone);
+      end = DateTime.fromISO(endTime, { zone: sourceTimezone }).setZone(timezone);
+    } else {
+      // Direct parsing in target timezone
+      start = DateTime.fromISO(startTime).setZone(timezone);
+      end = DateTime.fromISO(endTime).setZone(timezone);
+    }
     
     if (!start.isValid || !end.isValid) {
+      console.warn('Invalid datetime for session times:', { startTime, endTime, timezone, sourceTimezone });
       return {
         startFormatted: 'Invalid time',
         endFormatted: 'Invalid time',

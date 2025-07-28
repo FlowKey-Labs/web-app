@@ -323,10 +323,7 @@ interface BookingFormData {
   auto_release_expired: boolean;
   send_expiry_notifications: boolean;
   
-  // Customization
-  booking_page_title: string;
-  booking_page_description: string;
-  success_message: string;
+
   
   // Policies
   allow_client_cancellation: boolean;
@@ -380,9 +377,6 @@ const BookingSettings: React.FC<BookingSettingsProps> = ({
       reminder_hours_before: 24,
       auto_release_expired: true,
       send_expiry_notifications: true,
-      booking_page_title: '',
-      booking_page_description: '',
-      success_message: '',
       allow_client_cancellation: true,
       cancellation_deadline_hours: 24,
       send_cancellation_emails: true,
@@ -1672,119 +1666,7 @@ const BookingSettings: React.FC<BookingSettingsProps> = ({
             )}
           </div>
 
-          {/* Page Customization */}
-          <div className={`group border transition-all duration-300 rounded-xl overflow-hidden ${
-            openedAccordion === 'customization' 
-              ? 'border-[#1D9B5E] shadow-lg shadow-[#1D9B5E]/10 bg-gradient-to-r from-[#1D9B5E]/5 to-[#1D9B5E]/2' 
-              : 'border-gray-200 hover:border-gray-300 hover:shadow-md'
-          }`}>
-            <button
-              onClick={() => setOpenedAccordion(openedAccordion === 'customization' ? null : 'customization')}
-              className="w-full p-4 flex items-center justify-between transition-all duration-200"
-            >
-              <div className="flex items-center gap-3">
-                <div className={`relative rounded-lg p-2.5 transition-all duration-300 ${
-                  openedAccordion === 'customization' 
-                    ? 'bg-[#1D9B5E] shadow-lg shadow-[#1D9B5E]/25' 
-                    : 'bg-gray-100 group-hover:bg-gray-200'
-                }`}>
-                  <PageCustomizationIcon isActive={openedAccordion === 'customization'} />
-                  {openedAccordion === 'customization' && (
-                    <div className="absolute -top-1 -right-1 w-3 h-3 bg-[#D2F801] rounded-full border-2 border-white"></div>
-                  )}
-                </div>
-                <div className="text-left">
-                  <h3 className={`text-base font-semibold transition-colors duration-200 ${
-                    openedAccordion === 'customization' 
-                      ? 'text-[#1D9B5E]' 
-                      : 'text-[#162F3B] group-hover:text-[#1D9B5E]'
-                  }`}>
-                    Page Customization
-                  </h3>
-                  <p className={`text-xs transition-colors duration-200 ${
-                    openedAccordion === 'customization' 
-                      ? 'text-[#1D9B5E]/70' 
-                      : 'text-gray-600'
-                  }`}>
-                    Customize your booking page appearance
-                  </p>
-                </div>
-              </div>
-              <div className={`transition-transform duration-300 ${
-                openedAccordion === 'customization' ? 'rotate-180' : 'rotate-0'
-              }`}>
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" className={
-                  openedAccordion === 'customization' ? 'text-[#1D9B5E]' : 'text-gray-400'
-                }>
-                  <path d="M5 7.5L10 12.5L15 7.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </div>
-            </button>
-            {openedAccordion === 'customization' && (
-              <div className="px-6 pb-6 border-t border-[#1D9B5E]/20 bg-white/50">
-                <div className='py-4 space-y-4'>
-                  <Controller
-                    name='booking_page_title'
-                    control={methods.control}
-                    render={({ field }) => (
-                      <Input
-                        label='Booking Page Title'
-                        placeholder='Book a Session'
-                        {...field}
-                      />
-                    )}
-                  />
 
-                  <Controller
-                    name='booking_page_description'
-                    control={methods.control}
-                    render={({ field }) => (
-                      <div>
-                        <label className='block text-primary text-sm font-medium mb-1'>
-                          Booking Page Description
-                        </label>
-                        <textarea
-                          {...field}
-                          rows={3}
-                          className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary focus:border-transparent'
-                          placeholder='Welcome! Select a session to book...'
-                        />
-                      </div>
-                    )}
-                  />
-
-                  <Controller
-                    name='success_message'
-                    control={methods.control}
-                    render={({ field }) => (
-                      <div>
-                        <label className='block text-primary text-sm font-medium mb-1'>
-                          Success Message
-                        </label>
-                        <textarea
-                          {...field}
-                          rows={3}
-                          className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary focus:border-transparent'
-                          placeholder='Thank you! Your booking request has been submitted...'
-                        />
-                      </div>
-                    )}
-                  />
-
-                  <div className='pt-4'>
-                    <Button
-                      type='submit'
-                      loading={updateSettings.isPending}
-                      onClick={methods.handleSubmit(onSubmit)}
-                      className='w-auto'
-                    >
-                      Save Customization Settings
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
         </div>
       </FormProvider>
     </div>

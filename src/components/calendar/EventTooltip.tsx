@@ -1,6 +1,7 @@
 import React from 'react';
 import { EventImpl } from '@fullcalendar/core/internal';
-import { Attendance } from '../../types/sessionTypes';
+import { CalendarSessionType, Attendance } from '../../types/sessionTypes';
+import { formatCalendarTooltipTime } from '../../utils/calendarTimeUtils';
 
 interface ClientData {
   id?: number;
@@ -17,6 +18,9 @@ interface SessionData {
   attendances?: Attendance[];
   clients?: ClientData[];
   client_ids?: number[];
+  start_time?: string;
+  end_time?: string;
+  business_timezone?: string;
   [key: string]: any;
 }
 
@@ -145,7 +149,13 @@ export const EventTooltip: React.FC<EventTooltipProps> = ({ event }) => {
             <span className='text-gray-500 text-sm'>⏰</span>
           </div>
           <p className='text-gray-700 text-xs'>
-            {event.start
+            {session && session.start_time && session.end_time
+              ? formatCalendarTooltipTime(
+                  session.start_time,
+                  session.end_time,
+                  session.business_timezone || 'Africa/Nairobi'
+                )
+              : event.start
               ? new Date(event.start).toLocaleTimeString('en-US', {
                   hour: '2-digit',
                   minute: '2-digit',

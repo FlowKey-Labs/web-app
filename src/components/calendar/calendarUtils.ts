@@ -1,10 +1,11 @@
 import { CalendarSessionType } from "../../types/sessionTypes";
+import { convertSessionToCalendarEvent } from "../../utils/calendarTimeUtils";
 
 export interface FullCalendarEvent {
   id: string | number;
   title: string;
   start: string;
-  end?: string;
+  end: string;
   extendedProps?: Record<string, unknown>;
 }
 
@@ -18,22 +19,27 @@ export function mapSessionToFullCalendarEvents(
     return [];
   }
 
-  const sessionDate = new Date(session.date);
-  const startTime = new Date(session.start_time);
-  const endTime = new Date(session.end_time);
+  // Use our new calendar timezone utility for proper conversion
+  const calendarEvent = convertSessionToCalendarEvent({
+    id: session.id,
+    title: session.title,
+    start_time: session.start_time,
+    end_time: session.end_time,
+    business_timezone: session.business_timezone || 'Africa/Nairobi'
+  });
+
+  if (!calendarEvent) {
+    console.warn('Failed to convert session to calendar event:', session);
+    return [];
+  }
 
   // For one-time session (no recurrence)
   if (!session.repeat_unit || !session.repeat_every) {
-    return [{
-      id: session.id,
-      title: session.title,
-      start: startTime.toISOString(),
-      end: endTime.toISOString(),
-      extendedProps: { session }
-    }];
+    return [calendarEvent as FullCalendarEvent];
   }
 
   // Handle recurring sessions
+  const sessionDate = new Date(session.date);
   let repeatEndDate: Date;
 
   if (session.repeat_end_type === 'on' && session.repeat_end_date) {
@@ -46,6 +52,9 @@ export function mapSessionToFullCalendarEvents(
     repeatEndDate = new Date(sessionDate);
     repeatEndDate.setFullYear(repeatEndDate.getFullYear() + 2);
   }
+
+  const startTime = new Date(session.start_time);
+  const endTime = new Date(session.end_time);
 
   return generateRecurringEvents(
     session,
