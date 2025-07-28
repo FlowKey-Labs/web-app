@@ -162,13 +162,13 @@ const EnhancedBusinessProfile = ({ businessInfo, bookingInfo }: EnhancedBusiness
             <div className="flex items-center justify-between">
               <Text className="text-slate-600">Date:</Text>
               <Text fw={600} className="text-slate-900">
-                {DateTime.fromISO(bookingInfo.session.start_time).toFormat('DDD')}
+                {DateTime.fromISO(bookingInfo.session.start_time, { zone: 'Africa/Nairobi' }).toFormat('DDD')}
               </Text>
             </div>
             <div className="flex items-center justify-between">
               <Text className="text-slate-600">Time:</Text>
               <Text fw={600} className="text-slate-900">
-                {DateTime.fromISO(bookingInfo.session.start_time).toFormat('h:mm a')} - {DateTime.fromISO(bookingInfo.session.end_time).toFormat('h:mm a')}
+                {DateTime.fromISO(bookingInfo.session.start_time, { zone: 'Africa/Nairobi' }).toFormat('h:mm a')} - {DateTime.fromISO(bookingInfo.session.end_time, { zone: 'Africa/Nairobi' }).toFormat('h:mm a')}
               </Text>
             </div>
             <div className="flex items-center justify-between">

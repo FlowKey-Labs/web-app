@@ -246,71 +246,74 @@ export function BookingDetailsStep({ businessInfo }: BookingDetailsStepProps) {
                 </div>
               </div>
 
-              <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-4 lg:p-6 border border-white/30">
-                <Title order={4} className="text-base lg:text-lg font-semibold text-slate-800 mb-4 lg:mb-6 flex items-center gap-2">
-                  <span className="text-emerald-600">⚙️</span>
-                  Booking Options
-                </Title>
-                
-                <div className="space-y-4 lg:space-y-6">
-                  <div className="p-4 mt-4 bg-slate-50/60 rounded-xl border border-slate-200/50">
-                    <Checkbox
-                      label="This is a group booking"
-                      description="Check this if you're booking for multiple people"
-                      checked={isGroupBooking}
-                      onChange={(event) => setIsGroupBooking(event.currentTarget.checked)}
-                      classNames={{
-                        label: "text-slate-800 font-medium",
-                        description: "text-slate-600"
-                      }}
-                    />
+              {/* Hide Booking Options for flexible bookings as they only support single bookings */}
+              {!state.isFlexibleBooking && (
+                <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-4 lg:p-6 border border-white/30">
+                  <Title order={4} className="text-base lg:text-lg font-semibold text-slate-800 mb-4 lg:mb-6 flex items-center gap-2">
+                    <span className="text-emerald-600">⚙️</span>
+                    Booking Options
+                  </Title>
+                  
+                  <div className="space-y-4 lg:space-y-6">
+                    <div className="p-4 mt-4 bg-slate-50/60 rounded-xl border border-slate-200/50">
+                      <Checkbox
+                        label="This is a group booking"
+                        description="Check this if you're booking for multiple people"
+                        checked={isGroupBooking}
+                        onChange={(event) => setIsGroupBooking(event.currentTarget.checked)}
+                        classNames={{
+                          label: "text-slate-800 font-medium",
+                          description: "text-slate-600"
+                        }}
+                      />
+                    </div>
+
+                    {isGroupBooking && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        <NumberInput
+                          label="Number of People"
+                          description={`Available spots: ${state.selectedTimeSlot?.available_spots}`}
+                          min={1}
+                          max={maxQuantity}
+                          {...form.getInputProps('quantity')}
+                          classNames={{
+                            input: "bg-white/80 border-white/30 focus:border-emerald-300",
+                            label: "text-slate-700 font-medium",
+                            description: "text-slate-600"
+                          }}
+                        />
+                      </motion.div>
+                    )}
+
+                    {isGroupBooking && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.3, delay: 0.1 }}
+                      >
+                        <Textarea
+                          label="Group Details"
+                          description="Tell us about your group (ages, special requirements, etc.)"
+                          placeholder="Provide details about your group..."
+                          {...form.getInputProps('group_booking_notes')}
+                          minRows={3}
+                          classNames={{
+                            input: "bg-white/80 border-white/30 focus:border-emerald-300",
+                            label: "text-slate-700 font-medium",
+                            description: "text-slate-600"
+                          }}
+                        />
+                      </motion.div>
+                    )}
                   </div>
-
-                  {isGroupBooking && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      exit={{ opacity: 0, height: 0 }}
-                      transition={{ duration: 0.3 }}
-                    >
-                      <NumberInput
-                        label="Number of People"
-                        description={`Available spots: ${state.selectedTimeSlot?.available_spots}`}
-                        min={1}
-                        max={maxQuantity}
-                        {...form.getInputProps('quantity')}
-                        classNames={{
-                          input: "bg-white/80 border-white/30 focus:border-emerald-300",
-                          label: "text-slate-700 font-medium",
-                          description: "text-slate-600"
-                        }}
-                      />
-                    </motion.div>
-                  )}
-
-                  {isGroupBooking && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      exit={{ opacity: 0, height: 0 }}
-                      transition={{ duration: 0.3, delay: 0.1 }}
-                    >
-                      <Textarea
-                        label="Group Details"
-                        description="Tell us about your group (ages, special requirements, etc.)"
-                        placeholder="Provide details about your group..."
-                        {...form.getInputProps('group_booking_notes')}
-                        minRows={3}
-                        classNames={{
-                          input: "bg-white/80 border-white/30 focus:border-emerald-300",
-                          label: "text-slate-700 font-medium",
-                          description: "text-slate-600"
-                        }}
-                      />
-                    </motion.div>
-                  )}
                 </div>
-              </div>
+              )}
 
               <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-4 lg:p-6 border border-white/30">
                 <Title order={4} className="text-base lg:text-lg font-semibold text-slate-800 mb-4 lg:mb-6 flex items-center gap-2">

@@ -8,7 +8,7 @@ interface WithBrandingLayoutProps {
 
 const WithBrandingLayout: React.FC<WithBrandingLayoutProps> = ({
   children,
-  showHelpText = true,
+  showHelpText = false,
 }) => {
   return (
     <div

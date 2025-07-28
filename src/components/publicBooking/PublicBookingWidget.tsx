@@ -193,7 +193,7 @@ function BookingWidgetContent({ businessSlug }: { businessSlug: string }) {
 
   return (
     <div className="relative">
-      {["service", "date"].includes(state.currentStep) && (
+      {/* {["service", "date"].includes(state.currentStep) && (
         <div className="absolute top-4 right-4 z-50">
           <h3 className="text-sm text-primary">
             Having trouble?{" "}
@@ -202,7 +202,7 @@ function BookingWidgetContent({ businessSlug }: { businessSlug: string }) {
             </span>
           </h3>
         </div>
-      )}
+      )} */}
 
       <WithBrandingLayout showHelpText={false}>
         <Box style={{ display: "flex", width: "100%", height: "100vh" }}>

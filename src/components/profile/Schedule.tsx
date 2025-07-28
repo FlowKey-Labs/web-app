@@ -27,6 +27,39 @@ type Exception = {
   }[];
 };
 
+const CustomToggle = ({ 
+  checked, 
+  onChange, 
+  disabled = false 
+}: { 
+  checked: boolean; 
+  onChange: (checked: boolean) => void; 
+  disabled?: boolean;
+}) => {
+  const handleClick = () => {
+    if (!disabled) {
+      onChange(!checked);
+    }
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={handleClick}
+      disabled={disabled}
+      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 ${
+        checked ? 'bg-emerald-500 shadow-lg' : 'bg-gray-300'
+      } ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:shadow-md'}`}
+    >
+      <span
+        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-all duration-200 shadow-sm ${
+          checked ? 'translate-x-6 shadow-md' : 'translate-x-1'
+        }`}
+      />
+    </button>
+  );
+};
+
 const Schedule = () => {
   const timeOptions = useMemo(() => generateTimeOptions(), []);
 
@@ -238,11 +271,9 @@ const Schedule = () => {
                 <div className='flex items-center justify-between'>
                   <p className='text-primary font-semibold text-sm'>{day}</p>
                   <div className='flex items-center gap-4'>
-                    <Switch
+                    <CustomToggle
                       checked={schedule[day].isOpen}
                       onChange={() => handleDayToggle(day)}
-                      color='#1D9B5E'
-                      size='xs'
                     />
                     <p className='text-primary text-sm justify-end w-8'>
                       {schedule[day].isOpen ? 'Open' : 'Closed'}
@@ -414,11 +445,9 @@ const Schedule = () => {
                   </div>
 
                   <div className='flex items-center gap-2 mb-4'>
-                    <Switch
+                    <CustomToggle
                       checked={exception.isAllDay}
                       onChange={() => handleToggleAllDay(exception.id)}
-                      size='xs'
-                      color='#1D9B5E'
                     />
                     <span className='text-primary text-sm'>
                       {exception.isAllDay ? 'All day' : 'Specific hours'}
