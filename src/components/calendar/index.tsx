@@ -6,7 +6,7 @@ import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import Button from '../common/Button';
 import plusIcon from '../../assets/icons/plusWhite.svg';
-import { addHours, format, isPast, parse } from 'date-fns';
+import { isPast } from 'date-fns';
 import DropDownMenu from '../common/DropdownMenu';
 import dropdownIcon from '../../assets/icons/dropIcon.svg';
 import { cn } from '../../utils/mergeClass';
@@ -21,6 +21,7 @@ import { mapSessionToFullCalendarEvents as convertSessionToEvents } from './cale
 import { CalendarSessionType } from '../../types/sessionTypes';
 import { Loader, Tooltip } from '@mantine/core';
 import EventTooltip from './EventTooltip';
+import { formatCalendarTooltipTime } from '../../utils/calendarTimeUtils';
 
 const popupWidth = 400;
 const popupHeight = 500;
@@ -219,23 +220,16 @@ const CalendarView = () => {
       };
     }) => {
       try {
-        let displayTime;
+        let timeString = '';
+        
+        // Use FullCalendar's built-in time text since we've set timeZone to 'Africa/Nairobi'
         if (eventInfo.timeText) {
-          const cleanTime = eventInfo.timeText.replace(/[^0-9:]/g, '').trim();
-          const parsedTime = parse(cleanTime, 'HH:mm', new Date());
-
-          if (!isNaN(parsedTime.getTime())) {
-            displayTime = parsedTime;
-          }
+          timeString = eventInfo.timeText;
+        } else if (eventInfo.event.start) {
+          // If no timeText, format the start time properly in business timezone
+          // Since FullCalendar is already handling timezone conversion, we can use the start time directly
+          timeString = formatCalendarTooltipTime(eventInfo.event.start);
         }
-
-        if (!displayTime && eventInfo.event.start) {
-          displayTime = new Date(addHours(eventInfo.event.start, -3));
-        }
-
-        const timeString = displayTime
-          ? format(displayTime, 'HH:mm a')
-          : eventInfo.timeText || '';
 
         const eventContent = (
           <div className='flex justify-between w-full h-full py-1 cursor-pointer'>
