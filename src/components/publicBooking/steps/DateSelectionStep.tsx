@@ -24,6 +24,39 @@ import { useGetPublicAvailability } from '../../../hooks/reactQuery';
 import { useViewportSize, useScrollIntoView } from '@mantine/hooks';
 import { MobileBusinessHeader } from '../components/MobileBusinessHeader';
 
+const CustomToggle = ({ 
+  checked, 
+  onChange, 
+  disabled = false 
+}: { 
+  checked: boolean; 
+  onChange: (checked: boolean) => void; 
+  disabled?: boolean;
+}) => {
+  const handleClick = () => {
+    if (!disabled) {
+      onChange(!checked);
+    }
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={handleClick}
+      disabled={disabled}
+      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 ${
+        checked ? 'bg-emerald-500 shadow-lg' : 'bg-gray-300'
+      } ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:shadow-md'}`}
+    >
+      <span
+        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-all duration-200 shadow-sm ${
+          checked ? 'translate-x-6' : 'translate-x-1'
+        }`}
+      />
+    </button>
+  );
+};
+
 interface DateSelectionStepProps {
   businessSlug: string;
   businessInfo: PublicBusinessInfo;
@@ -400,11 +433,9 @@ export function DateSelectionStep({ businessSlug, businessInfo }: DateSelectionS
               />
               
               <div className="flex items-center gap-2 mt-6">
-                <Switch
+                <CustomToggle
                   checked={use24Hour}
-                  onChange={(event) => timezoneActions.setUse24Hour(event.currentTarget.checked)}
-                  size="sm"
-                  color="#1D9B5E"
+                  onChange={(checked) => timezoneActions.setUse24Hour(checked)}
                 />
                 <Text size="xs" className="text-slate-600">
                   24-hour format
