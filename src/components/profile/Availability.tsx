@@ -222,13 +222,13 @@ const CustomToggle = ({
       type="button"
       onClick={handleClick}
       disabled={disabled}
-      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-secondary focus:ring-offset-2 ${
-        checked ? 'bg-secondary' : 'bg-gray-300'
-      } ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 ${
+        checked ? 'bg-emerald-500 shadow-lg' : 'bg-gray-300'
+      } ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:shadow-md'}`}
     >
       <span
-        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-          checked ? 'translate-x-6' : 'translate-x-1'
+        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-all duration-200 shadow-sm ${
+          checked ? 'translate-x-6 shadow-md' : 'translate-x-1'
         }`}
       />
     </button>

@@ -910,6 +910,7 @@ const StaffPortalContent: React.FC = () => {
              <Switch
                label="All Day"
                description="Check if this applies to the entire day"
+               color="#1D9B5E"
                {...exceptionForm.getInputProps('is_all_day', { type: 'checkbox' })}
              />
 

@@ -7,7 +7,7 @@ interface WithBrandingOptions {
 
 export function withBranding<T extends object>(
   WrappedComponent: React.ComponentType<T>,
-  options: WithBrandingOptions = { showHelpText: true }
+  options: WithBrandingOptions = { showHelpText: false }
 ) {
   const WithBrandingHOC = (props: T) => {
     return (

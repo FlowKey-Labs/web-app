@@ -977,6 +977,7 @@ const AllClients = () => {
           onClose={() => setShowEmptyState(false)}
           opened={
             showEmptyState &&
+            activeView !== 'bookings' &&
             (activeView === 'clients'
               ? data.items?.length === 0 || !data?.items
               : groupsData.items?.length === 0 || !groupsData?.items) &&

@@ -270,6 +270,7 @@ const LocationAvailabilityManagement: React.FC<LocationAvailabilityManagementPro
               checked={daySchedule.isOpen}
               onChange={(event) => handleToggle(event.currentTarget.checked)}
               size="sm"
+              color="#1D9B5E"
             />
           </Group>
           

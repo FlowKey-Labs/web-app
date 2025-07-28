@@ -17,6 +17,7 @@ import {
   useGetStaff,
   useGetClients,
   useGetSessionCategories,
+  useGetSessionSubCategories,
   useGetLocations,
   useGetPolicies,
   useGetBookingSettings,
@@ -132,6 +133,7 @@ const AddSession = ({
   const { data: clientsData, isLoading: isClientsLoading } = useGetClients();
 
   const { data: categoriesData } = useGetSessionCategories();
+  const { data: subcategoriesData } = useGetSessionSubCategories();
   const { data: locationsData, isLoading: isLocationsLoading } =
     useGetLocations();
   const { data: policiesData, isLoading: isPoliciesLoading } = useGetPolicies();
@@ -153,6 +155,7 @@ const AddSession = ({
   );
   const [occurrences, setOccurrences] = useState(2);
   const [value, setValue] = useState<Date | null>(null);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
 
   useEffect(() => {
     const currentType = methods.watch('session_type');
@@ -1324,7 +1327,7 @@ const AddSession = ({
                         />
 
                         {/* Flexible Booking Options */}
-                        {bookingSettings?.enable_flexible_booking && (
+                        {/* {bookingSettings?.enable_flexible_booking && (
                           <div className='space-y-4 p-4 bg-blue-50 rounded-lg border border-blue-200'>
                             <div className='flex items-center justify-between'>
                               <div>
@@ -1489,7 +1492,7 @@ const AddSession = ({
                               Booking Settings first.
                             </div>
                           </div>
-                        )}
+                        )} */}
                       </>
                     ) : methods.watch('session_type') === 'appointment' ? (
                       <>
@@ -1624,68 +1627,83 @@ const AddSession = ({
                               )}
                             />
 
+                            {/* Session Category Dropdown */}
                             <Controller
-                              name='class_type'
+                              name='category_id'
                               control={methods.control}
-                              render={({ field }) => {
-                                let stringValue: string | undefined = undefined;
-
-                                if (field.value) {
-                                  if (
-                                    typeof field.value === 'object' &&
-                                    field.value !== null &&
-                                    'value' in field.value
-                                  ) {
-                                    const dropdownItem = field.value as {
-                                      value: string | number;
-                                    };
-                                    stringValue = String(dropdownItem.value);
-                                  } else {
-                                    stringValue = String(field.value);
-                                  }
-                                }
-
-                                // Map class types to dropdown options
-                                const classTypeOptions = (classTypes || []).map(
-                                  (type: any) => ({
-                                    label: type.name,
-                                    value: type.id.toString(),
-                                    description: type.description || '',
-                                  })
-                                );
-
-                                return (
-                                  <div className='mb-4'>
-                                    <DropdownSelectInput
-                                      value={stringValue}
-                                      label='Session Type'
-                                      placeholder={
-                                        isLoadingClassTypes
-                                          ? 'Loading session types...'
-                                          : 'Select Session Type'
-                                      }
-                                      options={classTypeOptions}
-                                      onSelectItem={(selectedItem) => {
-                                        if (selectedItem) {
-                                          field.onChange(selectedItem);
-                                        }
-                                      }}
-                                      createLabel='Create new session type'
-                                      createDrawerType='session'
-                                      isLoading={isLoadingClassTypes}
-                                    />
-                                    {methods.formState.errors.class_type && (
-                                      <p className='mt-1 text-sm text-red-500'>
-                                        {
-                                          methods.formState.errors.class_type
-                                            .message as string
-                                        }
-                                      </p>
-                                    )}
-                                  </div>
-                                );
-                              }}
+                              render={({ field }) => (
+                                <div className='mb-4'>
+                                  <DropdownSelectInput
+                                    value={field.value?.toString() || ''}
+                                    label='Session Category'
+                                    placeholder='Select Session Category'
+                                    options={
+                                      categoriesData
+                                        ? categoriesData.map((category: Category) => ({
+                                            label: category.name,
+                                            value: category.id.toString(),
+                                          }))
+                                        : []
+                                    }
+                                    onSelectItem={(selectedItem) => {
+                                      const categoryId = selectedItem ? parseInt(selectedItem.value) : null;
+                                      field.onChange(categoryId);
+                                      setSelectedCategoryId(categoryId);
+                                      // Clear subcategory when category changes
+                                      methods.setValue('subcategory_id', null);
+                                    }}
+                                    createLabel='Create new category'
+                                    createDrawerType='category'
+                                  />
+                                  {methods.formState.errors.category_id && (
+                                    <p className='mt-1 text-sm text-red-500'>
+                                      {methods.formState.errors.category_id.message as string}
+                                    </p>
+                                  )}
+                                </div>
+                              )}
                             />
+
+                            {/* Session Subcategory Dropdown - Only show if category is selected */}
+                            {selectedCategoryId && (
+                              <Controller
+                                name='subcategory_id'
+                                control={methods.control}
+                                render={({ field }) => {
+                                  // Filter subcategories by selected category
+                                  const filteredSubcategories = subcategoriesData?.filter(
+                                    (sub: any) => sub.category === selectedCategoryId
+                                  ) || [];
+
+                                  return (
+                                    <div className='mb-4'>
+                                      <DropdownSelectInput
+                                        value={field.value?.toString() || ''}
+                                        label='Session Subcategory'
+                                        placeholder='Select Session Subcategory'
+                                        options={
+                                          filteredSubcategories.map((subcategory: any) => ({
+                                            label: subcategory.name,
+                                            value: subcategory.id.toString(),
+                                          }))
+                                        }
+                                        onSelectItem={(selectedItem) => {
+                                          const subcategoryId = selectedItem ? parseInt(selectedItem.value) : null;
+                                          field.onChange(subcategoryId);
+                                        }}
+                                        createLabel='Create new subcategory'
+                                        createDrawerType='subcategory'
+                                      />
+                                      {methods.formState.errors.subcategory_id && (
+                                        <p className='mt-1 text-sm text-red-500'>
+                                          {methods.formState.errors.subcategory_id.message as string}
+                                        </p>
+                                      )}
+                                    </div>
+                                  );
+                                }}
+                              />
+                            )}
 
                             <Controller
                               name='description'
@@ -1874,7 +1892,7 @@ const AddSession = ({
                         </div>
 
                         {/* Flexible Booking Options for Appointments */}
-                        {bookingSettings?.enable_flexible_booking && (
+                        {/* {bookingSettings?.enable_flexible_booking && (
                           <div className='space-y-4 p-4 bg-blue-50 rounded-lg border border-blue-200'>
                             <div className='flex items-center justify-between'>
                               <div>
@@ -2040,7 +2058,7 @@ const AddSession = ({
                               Booking Settings first.
                             </div>
                           </div>
-                        )}
+                        )} */}
                       </>
                     ) : (
                       <>
@@ -2116,45 +2134,6 @@ const AddSession = ({
                               />
                             )}
                           />
-                          <div>
-                            <Controller
-                              name='category_id'
-                              control={methods.control}
-                              render={({ field }) => (
-                                <DropdownSelectInput
-                                  label='Category'
-                                  placeholder='Select a category'
-                                  options={
-                                    categoriesData
-                                      ? categoriesData.map(
-                                          (category: Category) => ({
-                                            label: category.name,
-                                            value: category.id.toString(),
-                                          })
-                                        )
-                                      : []
-                                  }
-                                  value={
-                                    field.value
-                                      ? (typeof field.value === 'object'
-                                          ? field.value.value
-                                          : field.value
-                                        )?.toString()
-                                      : undefined
-                                  }
-                                  onSelectItem={(selectedItem) => {
-                                    field.onChange(
-                                      selectedItem
-                                        ? parseInt(selectedItem.value)
-                                        : null
-                                    );
-                                  }}
-                                  createLabel='Create new category'
-                                  createDrawerType='category'
-                                />
-                              )}
-                            />
-                          </div>
                         </div>
                         <div className='space-y-4'>
                           <h3 className='text-lg font-bold text-gray-700'>
@@ -2460,7 +2439,7 @@ const AddSession = ({
                         />
 
                         {/* Flexible Booking Options */}
-                        {bookingSettings?.enable_flexible_booking && (
+                        {/* {bookingSettings?.enable_flexible_booking && (
                           <div className='space-y-4 p-4 bg-blue-50 rounded-lg border border-blue-200'>
                             <div className='flex items-center justify-between'>
                               <div>
@@ -2625,7 +2604,7 @@ const AddSession = ({
                               Booking Settings first.
                             </div>
                           </div>
-                        )}
+                        )} */}
                       </>
                     )}
                   </div>

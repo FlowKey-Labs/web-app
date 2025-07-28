@@ -136,7 +136,16 @@ const BookingRequestsTable: React.FC<BookingRequestsTableProps> = ({
       cell: (info) => {
         const booking = info.row.original;
         const businessTimezone = booking.business_timezone || 'Africa/Nairobi';
-        const sessionTimes = formatSessionTimes(booking.session_date, booking.session_end_time, businessTimezone);
+        const clientTimezone = 'Africa/Nairobi'; // Use EAT as default client timezone for now
+        
+        // Use proper timezone conversion when business timezone differs from display timezone
+        const sessionTimes = formatSessionTimes(
+          booking.session_date, 
+          booking.session_end_time, 
+          clientTimezone,
+          businessTimezone // Pass business timezone as source
+        );
+        
         return (
           <div className="flex flex-col">
             <Text size="sm" fw={500}>{booking.session_title}</Text>

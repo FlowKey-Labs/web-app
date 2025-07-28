@@ -1475,27 +1475,7 @@ const BookingManage: React.FC = () => {
     timezoneActions,
   ]);
 
-  // Set default selected date based on available sessions
-  useEffect(() => {
-    if (
-      typedRescheduleData?.available_sessions?.length &&
-      !selectedDate &&
-      !isSuccess
-    ) {
-      // Find the first available session date that's not today
-      const firstAvailableSession = typedRescheduleData.available_sessions
-        .map((session) => DateTime.fromISO(session.date))
-        .filter((date) => date > DateTime.now())
-        .sort((a, b) => a.toMillis() - b.toMillis())[0];
-
-      if (firstAvailableSession) {
-        setSelectedDate(firstAvailableSession.toJSDate());
-      } else {
-        // Fallback to tomorrow if no available sessions
-        setSelectedDate(DateTime.now().plus({ days: 1 }).toJSDate());
-      }
-    }
-  }, [typedRescheduleData?.available_sessions, selectedDate, isSuccess]);
+  // Removed automatic date selection to let users choose their own date
 
   // No need for redirect since we're using mutation state directly
 
@@ -1554,16 +1534,22 @@ const BookingManage: React.FC = () => {
         let timeToFormat: DateTime;
 
         if (date) {
+          // Create datetime in business timezone, then convert to selected timezone
           timeToFormat = DateTime.fromISO(`${date}T${time}:00`, {
             zone: timezoneState.businessTimezone,
           }).setZone(timezoneState.selectedTimezone);
         } else {
-          timeToFormat = DateTime.fromISO(`2000-01-01T${time}:00`);
+          // For time-only formatting, use business timezone context
+          const baseDate = DateTime.now().toFormat('yyyy-MM-dd');
+          timeToFormat = DateTime.fromISO(`${baseDate}T${time}:00`, {
+            zone: timezoneState.businessTimezone,
+          }).setZone(timezoneState.selectedTimezone);
         }
 
         const format = timezoneState.use24Hour ? "HH:mm" : "h:mm a";
         return timeToFormat.toFormat(format);
-      } catch {
+      } catch (error) {
+        console.warn('Error formatting time:', error);
         return time;
       }
     },
@@ -2026,22 +2012,33 @@ const BookingManage: React.FC = () => {
                       <div>
                         <strong>Date:</strong>{" "}
                         {DateTime.fromISO(
-                          typedRescheduleData.current_booking.session.start_time
-                        ).toFormat("DDDD")}
+                          typedRescheduleData.current_booking.session.start_time,
+                          { zone: timezoneState.businessTimezone }
+                        ).setZone(timezoneState.selectedTimezone).toFormat("DDDD")}
                       </div>
                       <div>
                         <strong>Time:</strong>{" "}
                         {formatTime(
                           DateTime.fromISO(
                             typedRescheduleData.current_booking.session
-                              .start_time
-                          ).toFormat("HH:mm")
+                              .start_time,
+                            { zone: timezoneState.businessTimezone }
+                          ).setZone(timezoneState.selectedTimezone).toFormat("HH:mm"),
+                          DateTime.fromISO(
+                            typedRescheduleData.current_booking.session.start_time,
+                            { zone: timezoneState.businessTimezone }
+                          ).toFormat("yyyy-MM-dd")
                         )}{" "}
                         -{" "}
                         {formatTime(
                           DateTime.fromISO(
-                            typedRescheduleData.current_booking.session.end_time
-                          ).toFormat("HH:mm")
+                            typedRescheduleData.current_booking.session.end_time,
+                            { zone: timezoneState.businessTimezone }
+                          ).setZone(timezoneState.selectedTimezone).toFormat("HH:mm"),
+                          DateTime.fromISO(
+                            typedRescheduleData.current_booking.session.end_time,
+                            { zone: timezoneState.businessTimezone }
+                          ).toFormat("yyyy-MM-dd")
                         )}
                       </div>
                       <div>

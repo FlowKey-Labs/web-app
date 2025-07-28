@@ -404,7 +404,7 @@ export function DateSelectionStep({ businessSlug, businessInfo }: DateSelectionS
                   checked={use24Hour}
                   onChange={(event) => timezoneActions.setUse24Hour(event.currentTarget.checked)}
                   size="sm"
-                  color="teal"
+                  color="#1D9B5E"
                 />
                 <Text size="xs" className="text-slate-600">
                   24-hour format
