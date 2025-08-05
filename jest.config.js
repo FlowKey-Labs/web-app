@@ -1,17 +1,20 @@
 export default {
-  preset: 'ts-jest',
-  testEnvironment: 'node',
-  extensionsToTreatAsEsm: ['.ts', '.tsx'],
+  preset: 'ts-jest/presets/js-with-ts',
+  testEnvironment: 'jsdom',
+  setupFilesAfterEnv: ['@testing-library/jest-dom'],
   moduleNameMapper: {
-    '^(\\.{1,2}/.*)\\.js$': '$1',
+    '^@/(.*)$': '<rootDir>/src/$1',
+    '^\\.(css|less|scss|sass)$': 'identity-obj-proxy',
   },
   transform: {
     '^.+\\.(ts|tsx)$': [
       'ts-jest',
       {
         useESM: true,
-        tsconfig: 'tsconfig.test.json'
+        tsconfig: 'tsconfig.test.json',
       },
     ],
   },
-}; 
+  testMatch: ['**/__tests__/**/*.test.(ts|tsx)'],
+  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
+};
