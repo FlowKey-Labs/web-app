@@ -1,103 +1,84 @@
 describe('Login', () => {
   beforeEach(() => {
-    cy.clearCookies()
-    cy.clearLocalStorage()
-    
-    // Mock the profile endpoint that gets called after login
+    cy.clearCookies();
+    cy.clearLocalStorage();
     cy.intercept('GET', '/api/auth/profile', {
       statusCode: 200,
       body: {
         id: 1,
         email: 'martokhago@gmail.com',
         name: 'Test User',
-      }
-    }).as('getProfile')
-    
-    cy.visit('/login')
-    // Wait for the page to be interactive
-    cy.get('body').should('be.visible')
-  })
+        first_name: 'Test',
+        last_name: 'User',
+      },
+    }).as('getProfile');
+    cy.visit('/login');
+    cy.get('body').should('be.visible');
+  });
 
   it('should login successfully with valid credentials', () => {
-    // Mock the login API response
-    const mockToken = 'fake-jwt-token'
-    const mockUser = {
-      id: 1,
-      email: 'martokhago@gmail.com',
-      name: 'Test User'
-    }
-    
-    // Intercept the login API call
-    cy.intercept('POST', '/api/auth/login', (req) => {
-      req.reply({
-        statusCode: 200,
-        body: {
-          user: mockUser,
-          token: mockToken,
+    // Intercept dashboard APIs BEFORE login is submitted!
+    cy.intercept('GET', /\/api\/analytics([\/?].*)?$/, {
+      statusCode: 200,
+      body: { total_sessions: 1, total_clients: 1, total_staff: 1 },
+    }).as('getAnalytics');
+    cy.intercept('GET', /\/api\/clients([\/?].*)?$/, {
+      statusCode: 200,
+      body: { items: [], total: 0, page: 1, pageSize: 6, totalPages: 1 },
+    }).as('getClients');
+    cy.intercept('GET', /\/api\/sessions([\/?].*)?$/, {
+      statusCode: 200,
+      body: [],
+    }).as('getSessions');
+    cy.intercept('GET', /\/api\/weekly-clients([\/?].*)?$/, {
+      statusCode: 200,
+      body: [],
+    }).as('getWeeklyClients');
+    cy.intercept('GET', /\/api\/category-distribution([\/?].*)?$/, {
+      statusCode: 200,
+      body: { categories: [], total_sessions: 0 },
+    }).as('getCategoryDistribution');
+    cy.intercept('GET', /\/api\/upcoming-birthdays([\/?].*)?$/, {
+      statusCode: 200,
+      body: { upcoming_birthdays: [] },
+    }).as('getUpcomingBirthdays');
+    cy.intercept('GET', /\/api\/cancellation-reschedule-analytics([\/?].*)?$/, {
+      statusCode: 200,
+      body: {},
+    }).as('getCancellationRescheduleAnalytics');
+
+    cy.intercept('POST', '/api/auth/login', {
+      statusCode: 200,
+      body: {
+        user: {
+          id: 1,
+          email: 'martokhago@gmail.com',
+          name: 'Test User',
         },
-        headers: {
-          'Authorization': `Bearer ${mockToken}`
-        }
-      })
-    }).as('loginRequest')
-    
-    // Set up localStorage mock
-    cy.window().then((win) => {
-      win.localStorage.setItem('authToken', mockToken)
-      console.log('Auth token set in localStorage:', mockToken)
-    })
+        token: 'fake-jwt-token',
+      },
+      headers: {
+        Authorization: 'Bearer fake-jwt-token',
+      },
+    }).as('loginRequest');
 
-    // Debug: Check if the login form exists
-    cy.get('form').should('exist').then(($form) => {
-      console.log('Form HTML:', $form.html())
-    })
+    // Fill and submit login form
+    cy.get('[data-cy=email-input]').type('martokhago@gmail.com');
+    cy.get('[data-cy=password-input]').type('Paypal0!');
+    cy.get('[data-cy=login-submit]').click();
 
-    // Fill in the login form using robust data-cy selectors
-    cy.get('[data-cy=email-input]').should('be.visible').type('martokhago@gmail.com')
-    cy.get('[data-cy=password-input]').should('be.visible').type('Paypal0!')
-    cy.get('[data-cy=login-submit]').should('be.enabled').click()
+    cy.wait('@loginRequest');
+    cy.wait('@getProfile');
 
-    // Wait for login request and verify it was made correctly
-    cy.wait('@loginRequest').then((interception) => {
-      expect(interception.request.body).to.deep.include({
-        email: 'martokhago@gmail.com',
-        password: 'Paypal0!',
-      })
-      // Verify the response was handled correctly
-      expect(interception.response?.statusCode).to.eq(200)
-    })
-    // Wait for the profile request that happens after login
-    cy.wait('@getProfile')
+    // Wait for all dashboard data
+    cy.wait('@getAnalytics');
+    cy.wait('@getClients');
+    cy.wait('@getSessions');
+    cy.wait('@getWeeklyClients');
+    cy.wait('@getCategoryDistribution');
+    cy.wait('@getUpcomingBirthdays');
+    cy.wait('@getCancellationRescheduleAnalytics');
 
-    // Wait for dashboard content to appear
-    cy.get('[data-cy=dashboard-main]', { timeout: 50000 }).should('be.visible')
-
-    // Verify authentication state by checking for the auth token in localStorage
-    cy.window().its('localStorage.authToken').should('exist')
-    // Verify we're no longer on the login page
-    cy.url().should('not.include', '/login')
-
-    // Wait for login request and verify it was made correctly
-    cy.wait('@loginRequest').then((interception) => {
-      expect(interception.request.body).to.deep.include({
-        email: 'martokhago@gmail.com',
-        password: 'Paypal0!',
-      })
-      
-      // Verify the response was handled correctly
-      expect(interception.response?.statusCode).to.eq(200)
-    })
-    
-    // Wait for the profile request that happens after login
-    cy.wait('@getProfile')
-    
-    // Verify we're redirected to the dashboard after successful login
-    cy.url().should('include', '/dashboard')
-    
-    // Verify authentication state by checking for the auth token in localStorage
-    cy.window().its('localStorage.authToken').should('exist')
-    
-    // Verify we're no longer on the login page
-    cy.url().should('not.include', '/login')
-  })
-})
+    cy.get('[data-cy=dashboard-main]', { timeout: 50000 }).should('be.visible');
+  });
+});

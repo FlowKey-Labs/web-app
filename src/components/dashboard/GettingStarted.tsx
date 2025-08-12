@@ -116,7 +116,7 @@ const GettingStarted = () => {
 
   return (
     <ErrorBoundary>
-      <div className='flex flex-col h-screen bg-cardsBg w-full overflow-y-auto'>
+      <div className='flex flex-col h-screen bg-cardsBg w-full overflow-y-auto' data-cy="dashboard-main">
         <div className='bg-white border-b border-gray-100 shadow-sm'>
           <Header showSearch={false} />
         </div>
