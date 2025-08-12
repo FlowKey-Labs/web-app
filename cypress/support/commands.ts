@@ -1,58 +1,86 @@
-// ***********************************************
-// Custom Cypress commands
-// ***********************************************
+/// <reference types="cypress" />
 
-// -- Login command --
-Cypress.Commands.add('login', (email: string, password: string) => {
-  // Clear cookies and local storage before login
-  cy.clearCookies();
-  cy.clearLocalStorage();
-  
-  // Visit the login page with retry logic
-  cy.visit('/login', {
-    timeout: 60000,
-    retryOnStatusCodeFailure: true,
-    retryOnNetworkFailure: true
-  });
-
-  // Check if we're on the login page by looking for the email field
-  cy.get('body').then(($body) => {
-    // If we're already logged in, just return
-    if ($body.find('[data-testid="user-menu"]').length > 0) {
-      cy.log('Already logged in');
-      return;
-    }
-
-    // Wait for the login form to be visible
-    cy.get('input[name="email"]', { timeout: 10000 })
-      .should('be.visible')
-      .type(email);
-      
-    cy.get('input[name="password"]')
-      .should('be.visible')
-      .type(password, { log: false }); // Don't log the password
-      
-    cy.get('button[type="submit"]')
-      .should('be.visible')
-      .should('not.be.disabled')
-      .click();
-
-    // Wait for login to complete - adjust the selector to match your app
-    cy.get('[data-testid="user-menu"]', { timeout: 20000 }).should('be.visible');
-    
-    // Ensure we're not on the login page anymore
-    cy.url().should('not.include', '/login');
-  });
-});
-
-// Add type definitions for custom commands
+// Custom command type definitions
 declare global {
-  // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Cypress {
-    interface Chainable<Subject = any> {
+    interface Chainable {
+      /**
+       * Custom command to login via API with session management
+       * @example cy.login('user@example.com', 'password')
+       */
       login(email: string, password: string): Chainable<void>;
+
+      /**
+       * Custom command to login via API (legacy)
+       * @example cy.loginByApi('user@example.com', 'password')
+       */
+      loginByApi(email: string, password: string): Chainable<void>;
+
+      /**
+       * Custom command to make authenticated API requests
+       * @example cy.apiRequest('GET', '/users/me')
+       */
+      apiRequest(method: string, url: string, body?: any): Chainable<any>;
     }
   }
 }
 
+// This export makes the file a module
 export {};
+
+// New login command with session management
+Cypress.Commands.add('login', (email: string, password: string) => {
+  cy.session([email, password], () => {
+    cy.request({
+      method: 'POST',
+      url: `${Cypress.env('apiUrl') || 'http://localhost:8000'}/api/auth/login`,
+      body: { email, password },
+      failOnStatusCode: false
+    }).then((response) => {
+      if (response.status !== 200) {
+        throw new Error(`Login failed: ${response.status} - ${JSON.stringify(response.body)}`);
+      }
+      // Store the auth state
+      window.localStorage.setItem('authToken', response.body.token);
+      window.localStorage.setItem('user', JSON.stringify(response.body.user));
+    });
+  });
+  
+  // Visit a page that requires auth to ensure session is established
+  cy.visit('/dashboard');
+});
+
+// Legacy login command (for backward compatibility)
+Cypress.Commands.add('loginByApi', (email: string, password: string) => {
+  cy.request({
+    method: 'POST',
+    url: `${Cypress.env('apiUrl') || 'http://localhost:8000'}/api/auth/login`,
+    body: { email, password },
+    failOnStatusCode: false
+  }).then((response) => {
+    expect(response.status).to.eq(200);
+    // Store token in localStorage
+    window.localStorage.setItem('authToken', response.body.token);
+    window.localStorage.setItem('user', JSON.stringify(response.body.user));
+  });
+});
+
+// Authenticated API request command
+Cypress.Commands.add(
+  'apiRequest',
+  (method: string, url: string, body?: any) => {
+    const token = window.localStorage.getItem('authToken');
+
+    cy.request({
+      method,
+      url: `${Cypress.env('apiUrl')}/api${url}`,
+      body,
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+  }
+);
+
+

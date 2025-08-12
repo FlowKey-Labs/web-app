@@ -1,12 +1,13 @@
 {
+  "extends": "../tsconfig.json",
   "compilerOptions": {
     "target": "es5",
     "lib": ["es5", "dom"],
     "types": ["cypress", "node"],
-    "strict": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true
+    "isolatedModules": false,
+    "noEmit": true,
+    "skipLibCheck": true
   },
-  "include": ["**/*.ts"]
+  "include": ["**/*.ts", "**/*.tsx"],
+  "exclude": []
 }

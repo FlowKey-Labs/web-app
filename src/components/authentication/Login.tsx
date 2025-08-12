@@ -116,6 +116,7 @@ const Login = () => {
                 label='Email address'
                 type='email'
                 placeholder='Enter your email'
+                data-cy='email-input'
               />
             )}
           />
@@ -133,6 +134,7 @@ const Login = () => {
                   label='Password'
                   type={showPassword ? 'text' : 'password'}
                   placeholder='Enter your password'
+                  data-cy='password-input'
                 />
                 <button
                   type='button'
@@ -170,6 +172,7 @@ const Login = () => {
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
             disabled={isPending}
+            data-cy='login-submit'
           >
             {isPending ? 'Logging in...' : 'Log In'}
           </Button>
