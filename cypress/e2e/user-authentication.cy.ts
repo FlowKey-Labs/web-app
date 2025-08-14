@@ -1,23 +1,28 @@
-describe('Login', () => {
-  beforeEach(() => {
+describe('Login', function () {
+  const user = {
+    email: 'martokhago@gmail.com',
+    password: 'Paypal0!',
+    name: 'Test User',
+    id: 1,
+    first_name: 'Test',
+    last_name: 'User',
+  };
+
+  beforeEach(function () {
     cy.clearCookies();
     cy.clearLocalStorage();
     cy.intercept('GET', '/api/auth/profile', {
       statusCode: 200,
       body: {
-        id: 1,
-        email: 'martokhago@gmail.com',
-        name: 'Test User',
-        first_name: 'Test',
-        last_name: 'User',
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        first_name: user.first_name,
+        last_name: user.last_name,
       },
     }).as('getProfile');
-    cy.visit('/login');
-    cy.get('body').should('be.visible');
-  });
 
-  it('should login successfully with valid credentials', () => {
-    // Intercept dashboard APIs BEFORE login is submitted!
+    // Dashboard intercepts
     cy.intercept('GET', /\/api\/analytics([\/?].*)?$/, {
       statusCode: 200,
       body: { total_sessions: 1, total_clients: 1, total_staff: 1 },
@@ -47,13 +52,18 @@ describe('Login', () => {
       body: {},
     }).as('getCancellationRescheduleAnalytics');
 
+    cy.visit('/login');
+    cy.get('body').should('be.visible');
+  });
+
+  it('sets auth token and loads dashboard on login', function () {
     cy.intercept('POST', '/api/auth/login', {
       statusCode: 200,
       body: {
         user: {
-          id: 1,
-          email: 'martokhago@gmail.com',
-          name: 'Test User',
+          id: user.id,
+          email: user.email,
+          name: user.name,
         },
         token: 'fake-jwt-token',
       },
@@ -62,15 +72,11 @@ describe('Login', () => {
       },
     }).as('loginRequest');
 
-    // Fill and submit login form
-    cy.get('[data-cy=email-input]').type('martokhago@gmail.com');
-    cy.get('[data-cy=password-input]').type('Paypal0!');
-    cy.get('[data-cy=login-submit]').click();
+    cy.get('[data-cy=email-input]').type(user.email);
+    cy.get('[data-cy=password-input]').type(`${user.password}{enter}`);
 
     cy.wait('@loginRequest');
     cy.wait('@getProfile');
-
-    // Wait for all dashboard data
     cy.wait('@getAnalytics');
     cy.wait('@getClients');
     cy.wait('@getSessions');
@@ -79,6 +85,9 @@ describe('Login', () => {
     cy.wait('@getUpcomingBirthdays');
     cy.wait('@getCancellationRescheduleAnalytics');
 
+    cy.url().should('include', '/dashboard');
     cy.get('[data-cy=dashboard-main]', { timeout: 50000 }).should('be.visible');
+    cy.window().its('localStorage.authToken').should('exist');
+    cy.contains(user.name).should('exist');
   });
 });
