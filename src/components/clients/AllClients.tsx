@@ -102,11 +102,13 @@ const TabButton = ({
   onClick,
   children,
   hasActivity,
+  ...props
 }: {
   active: boolean;
   onClick: () => void;
   children: React.ReactNode;
   hasActivity?: boolean;
+  [key: string]: any;
 }) => (
   <div className='relative'>
     <MantineButton
@@ -114,6 +116,7 @@ const TabButton = ({
       onClick={onClick}
       color='#1D9B5E'
       size='sm'
+      {...props}
     >
       {children}
     </MantineButton>
@@ -903,6 +906,13 @@ const AllClients = () => {
               ? 'Add Group'
               : undefined
           }
+          buttonDataCy={
+            activeView === 'clients'
+              ? 'add-client-button'
+              : activeView === 'groups'
+              ? 'add-group-button'
+              : ''
+          }
           searchPlaceholder={
             activeView === 'clients'
               ? 'Search by Name, Email or Phone Number'
@@ -933,6 +943,7 @@ const AllClients = () => {
             <TabButton
               active={activeView === 'groups'}
               onClick={() => handleViewChange('groups')}
+              data-cy='groups-tab'
             >
               Groups
             </TabButton>

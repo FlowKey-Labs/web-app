@@ -55,6 +55,7 @@ const NewStaffProfile = ({ onNext, initialData }: NewStaffProfileProps) => {
                 render={({ field }) => (
                   <Input
                     {...field}
+                    data-cy="staff-email-input"
                     label='Email'
                     type='email'
                     placeholder='user@email.com'
@@ -71,6 +72,7 @@ const NewStaffProfile = ({ onNext, initialData }: NewStaffProfileProps) => {
                 render={({ field }) => (
                   <Input
                     {...field}
+                    data-cy="staff-id-input"
                     label='National ID/ Passport No'
                     placeholder='Enter National ID/ Passport No'
                     type='text'
@@ -81,6 +83,7 @@ const NewStaffProfile = ({ onNext, initialData }: NewStaffProfileProps) => {
           </div>
           <div className='flex justify-end mt-8'>
             <Button
+              data-cy="continue-button"
               radius='md'
               w={120}
               h={52}

@@ -20,6 +20,7 @@ const DisplayInput: React.FC<DisplayInputProps> = ({
 }) => (
   <div className='mt-4 relative'>
     <input
+      data-cy={`review-${label.toLowerCase().replace(/\s+/g, '-')}-input`}
       {...props}
       value={value}
       disabled
@@ -198,6 +199,7 @@ const NewStaffReview = ({
 
       <div className='flex justify-between w-full mt-8 self-end gap-6'>
         <Button
+          data-cy="back-button"
           variant='outline'
           type='button'
           onClick={onBack}

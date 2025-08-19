@@ -644,6 +644,7 @@ const AllSessions = () => {
           leftIcon={plusIcon}
           onButtonClick={handleOpenAddSession}
           showButton={permissions?.can_create_sessions}
+          buttonDataCy="add-session-button"
         />
         <div className='flex mt-12 self-center md:mt-0 md:h-[70px] w-[80%] md:w-[70%] md:ml-6 text-sm p-2 border rounded-md bg-white shadow-sm'>
           <div className='flex flex-col md:flex-row items-center justify-between w-full px-6 py-2 md:py-0 font-bold space-y-2 md:space-y-0'>

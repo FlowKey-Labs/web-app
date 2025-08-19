@@ -94,6 +94,7 @@ const NewStaffRoles = ({ onNext, onBack, initialData }: NewStaffRolesProps) => {
           <div className='flex-grow overflow-y-auto px-2 space-y-8'>
             <div className='space-y-4 pb-8'>
               <DropdownSelectInput
+                data-cy='role-dropdown'
                 label='Role'
                 options={roles.map((role: Role) => ({
                   label: role.name,
@@ -113,6 +114,7 @@ const NewStaffRoles = ({ onNext, onBack, initialData }: NewStaffRolesProps) => {
               />
 
               <DropdownSelectInput
+                data-cy='pay-type-dropdown'
                 label='Pay Type'
                 options={payTypeOptions}
                 placeholder='Select pay type'
@@ -146,6 +148,7 @@ const NewStaffRoles = ({ onNext, onBack, initialData }: NewStaffRolesProps) => {
                         : 'focus:ring-[#1D9B5E]'
                     } focus:border-transparent outline-none`}
                     placeholder='Ksh 0.00'
+                    data-cy='hourly-rate-input'
                   />
                   <label
                     htmlFor={`roles.0.hourlyRate`}
@@ -169,6 +172,7 @@ const NewStaffRoles = ({ onNext, onBack, initialData }: NewStaffRolesProps) => {
           <div className='flex justify-between w-full mt-8 self-end gap-2 md:gap-0'>
             <Button
               variant='outline'
+              data-cy='back-button'
               type='button'
               onClick={onBack}
               radius='md'
@@ -184,6 +188,7 @@ const NewStaffRoles = ({ onNext, onBack, initialData }: NewStaffRolesProps) => {
               Back
             </Button>
             <Button
+              data-cy='continue-button'
               radius='md'
               w={120}
               h={52}
@@ -199,39 +204,6 @@ const NewStaffRoles = ({ onNext, onBack, initialData }: NewStaffRolesProps) => {
               Continue
             </Button>
           </div>
-          {/* <div className='flex justify-between w-full mt-8 gap-4 self-end md:hidden'>
-            <Button
-              variant='outline'
-              type='button'
-              onClick={onBack}
-              radius='md'
-              color='#1D9B5E'
-              w={100}
-              h={40}
-              style={{
-                color: '#1D9B5E',
-                fontSize: '14px',
-                fontWeight: '700',
-              }}
-            >
-              Back
-            </Button>
-            <Button
-              radius='md'
-              w={100}
-              h={40}
-              type='submit'
-              disabled={!methods.formState.isValid}
-              style={{
-                backgroundColor: '#1D9B5E',
-                color: '#FFF',
-                fontSize: '12px',
-                fontWeight: '700',
-              }}
-            >
-              Continue
-            </Button>
-          </div> */}
         </form>
       </div>
     </FormProvider>

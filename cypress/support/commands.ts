@@ -1,14 +1,16 @@
 /// <reference types="cypress" />
 
-// Custom command type definitions
+// Export an empty object to make this file a module
+export {};
+
 declare global {
   namespace Cypress {
     interface Chainable {
       /**
-       * Custom command to login via API with session management
-       * @example cy.login('user@example.com', 'password')
+       * Custom command to login via UI with session management
+       * @example cy.login('admin@example.com', 'password123')
        */
-      login(email: string, password: string): Chainable<void>;
+      login(email?: string, password?: string): Chainable<void>;
 
       /**
        * Custom command to login via API (legacy)
@@ -21,6 +23,8 @@ declare global {
        * @example cy.apiRequest('GET', '/users/me')
        */
       apiRequest(method: string, url: string, body?: any): Chainable<any>;
+
+      setupPolicyTests(): Chainable<void>;
     }
   }
 }
@@ -28,48 +32,40 @@ declare global {
 // This export makes the file a module
 export {};
 
-// New login command with session management
 Cypress.Commands.add('login', (email: string, password: string) => {
   cy.session([email, password], () => {
-    cy.request({
-      method: 'POST',
-      url: `${Cypress.env('apiUrl') || 'http://localhost:8000'}/api/auth/login`,
-      body: { email, password },
-      failOnStatusCode: false
-    }).then((response) => {
-      if (response.status !== 200) {
-        throw new Error(`Login failed: ${response.status} - ${JSON.stringify(response.body)}`);
-      }
-      // Store the auth state
-      window.localStorage.setItem('authToken', response.body.token);
-      window.localStorage.setItem('user', JSON.stringify(response.body.user));
+    cy.clearCookies();
+    cy.clearLocalStorage();
+
+    cy.visit('/login');
+
+    cy.get('[data-cy=email-input]').type(email);
+    cy.get('[data-cy=password-input]').type(`${password}{enter}`);
+
+    // Wait for login to complete and verify navigation to dashboard
+    cy.url().should('include', '/dashboard', { timeout: 30000 });
+    cy.get('[data-cy=dashboard-main]', { timeout: 30000 }).should('be.visible');
+    
+    // Verify authentication state
+    cy.window().then((win) => {
+      expect(win.localStorage.getItem('accessToken')).to.exist;
+      expect(win.localStorage.getItem('refresh')).to.exist;
     });
   });
   
-  // Visit a page that requires auth to ensure session is established
+  // After session is established, visit dashboard
   cy.visit('/dashboard');
+  cy.get('[data-cy=dashboard-main]').should('be.visible');
 });
 
-// Legacy login command (for backward compatibility)
-Cypress.Commands.add('loginByApi', (email: string, password: string) => {
-  cy.request({
-    method: 'POST',
-    url: `${Cypress.env('apiUrl') || 'http://localhost:8000'}/api/auth/login`,
-    body: { email, password },
-    failOnStatusCode: false
-  }).then((response) => {
-    expect(response.status).to.eq(200);
-    // Store token in localStorage
-    window.localStorage.setItem('authToken', response.body.token);
-    window.localStorage.setItem('user', JSON.stringify(response.body.user));
-  });
-});
-
-// Authenticated API request command
 Cypress.Commands.add(
   'apiRequest',
   (method: string, url: string, body?: any) => {
-    const token = window.localStorage.getItem('authToken');
+    const token = window.localStorage.getItem('accessToken');
+
+    if (!token) {
+      throw new Error('No access token found');
+    }
 
     cy.request({
       method,
@@ -83,4 +79,23 @@ Cypress.Commands.add(
   }
 );
 
-
+Cypress.Commands.add('setupPolicyTests', () => {
+  // Mock only the necessary API endpoints with correct paths
+  cy.intercept('GET', '/api/policy/policies/', { 
+    statusCode: 200, 
+    body: [] 
+  }).as('getPolicies');
+  
+  cy.intercept('POST', '/api/policy/policies/').as('createPolicy');
+  
+  // Visit settings and wait for the page to be ready
+  cy.visit('/settings');
+  
+  // Wait for the policies tab to be visible and click it
+  cy.get('[data-cy="policies-tab"]', { timeout: 30000 })
+    .should('be.visible')
+    .click();
+    
+  // Wait for any initial data loading to complete
+  cy.wait('@getPolicies');
+});

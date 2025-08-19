@@ -610,6 +610,7 @@ export default function ClientDrawer({
                   ? 'text-primary bg-[#1D9B5E33]'
                   : 'text-gray-500 bg-gray-100'
               }`}
+              data-cy='open-group-form'
             >
               Group
             </button>
@@ -687,6 +688,7 @@ export default function ClientDrawer({
                           {...field}
                           label='First Name'
                           placeholder='Enter first name'
+                          data-cy='first-name-input'
                         />
                         {(formErrors.first_name ||
                           fieldState.error?.message) && (
@@ -707,6 +709,7 @@ export default function ClientDrawer({
                           {...field}
                           label='Last Name'
                           placeholder='Enter last name'
+                          data-cy='last-name-input'
                         />
                         {(formErrors.last_name ||
                           fieldState.error?.message) && (
@@ -735,6 +738,7 @@ export default function ClientDrawer({
                         label='Phone Number'
                         placeholder='Enter phone number'
                         type='tel'
+                        data-cy='phone-input'
                       />
                       {(formErrors.phone_number ||
                         fieldState.error?.message) && (
@@ -762,6 +766,7 @@ export default function ClientDrawer({
                         label='Email Address'
                         placeholder='Enter email'
                         type='email'
+                        data-cy='email-input'
                       />
                       {(formErrors.email || fieldState.error?.message) && (
                         <p className='text-red-500 text-xs mt-1'>
@@ -780,7 +785,7 @@ export default function ClientDrawer({
                       <DropdownSelectInput
                         {...field}
                         label='Location'
-                        placeholder='Select a location'
+                        placeholder='Select location'
                         options={
                           locationsData
                             ? locationsData
@@ -798,6 +803,7 @@ export default function ClientDrawer({
                         isLoading={isLocationsLoading}
                         createLabel='Create new location'
                         createDrawerType='location'
+                        data-cy='location-select'
                       />
                       {formErrors.location && (
                         <p className='text-red-500 text-xs mt-1'>
@@ -848,6 +854,7 @@ export default function ClientDrawer({
                           onSelectItem={(selected) => {
                             field.onChange(selected.value);
                           }}
+                          data-cy='gender-select'
                         />
                         {formErrors.gender && (
                           <p className='text-red-500 text-xs mt-1'>
@@ -928,6 +935,7 @@ export default function ClientDrawer({
                   className='w-full md:w-auto'
                   disabled={isAddingClient || isUpdatingClient}
                   loading={isAddingClient || isUpdatingClient}
+                  data-cy='submit-button'
                 >
                   {isEditing
                     ? isUpdatingClient
@@ -1011,6 +1019,7 @@ export default function ClientDrawer({
                       {...field}
                       label='Group Name'
                       placeholder='Enter group name'
+                      data-cy='group-name-input'
                     />
                   )}
                 />
@@ -1025,6 +1034,7 @@ export default function ClientDrawer({
                       rows={4}
                       label='Group Description'
                       placeholder='Enter additional information about the group (optional)'
+                      data-cy='group-description-input'
                     />
                   )}
                 />
@@ -1056,6 +1066,7 @@ export default function ClientDrawer({
                       }}
                       createLabel='Create new location'
                       createDrawerType='location'
+                      data-cy='group-location-select'
                     />
                   )}
                 />
@@ -1095,6 +1106,7 @@ export default function ClientDrawer({
                           )
                         );
                       }}
+                      data-cy='group-members-select'
                     />
                   )}
                 />
@@ -1125,6 +1137,7 @@ export default function ClientDrawer({
                           selected.value ? parseInt(selected.value) : null
                         );
                       }}
+                      data-cy='contact-person-select'
                     />
                   )}
                 />
@@ -1138,6 +1151,7 @@ export default function ClientDrawer({
                   className='w-full md:w-auto'
                   disabled={isAddingGroup}
                   loading={isAddingGroup}
+                  data-cy='group-submit-button'
                 >
                   {isAddingGroup ? 'Creating...' : 'Create Group'}
                 </Button>

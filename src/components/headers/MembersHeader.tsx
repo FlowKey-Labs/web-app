@@ -17,6 +17,7 @@ interface HeaderProps {
   showFilterIcons?: boolean;
   showButton?: boolean;
   showSearch?: boolean;
+  buttonDataCy?: string;
 }
 
 const Header = ({
@@ -31,6 +32,7 @@ const Header = ({
   showFilterIcons = false,
   showButton = true,
   showSearch = true,
+  buttonDataCy = '',
 }: HeaderProps) => {
   const searchInputRef = useRef<HTMLInputElement>(null);
 
@@ -97,6 +99,7 @@ const Header = ({
                 h={52}
                 size='sm'
                 radius='md'
+                data-cy={buttonDataCy}
                 leftSection={
                   leftIcon && (
                     <img src={leftIcon} alt='Icon' className='w-3 h-3' />

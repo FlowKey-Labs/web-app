@@ -633,6 +633,7 @@ const AddSession = ({
                                     createLabel='Create new class type'
                                     createDrawerType='session'
                                     isLoading={isLoadingClassTypes}
+                                    data-cy='class-type-select'
                                   />
                                   {methods.formState.errors.class_type && (
                                     <p className='mt-1 text-sm text-red-500'>
@@ -655,6 +656,7 @@ const AddSession = ({
                                 {...field}
                                 label='Class Name'
                                 placeholder='Enter Class Name'
+                                data-cy='session-title'
                               />
                             )}
                           />
@@ -670,6 +672,7 @@ const AddSession = ({
                                 placeholder='Enter session description'
                                 rows={4}
                                 containerClassName='mb-4'
+                                data-cy='session-description'
                               />
                             )}
                           />
@@ -708,6 +711,7 @@ const AddSession = ({
                                   }}
                                   createLabel='Create new category'
                                   createDrawerType='category'
+                                  data-cy='session-category-select'
                                 />
                               )}
                             />
@@ -725,6 +729,7 @@ const AddSession = ({
                                 <div className='w-full mt-4 mb-6'>
                                   <div className='relative w-full'>
                                     <input
+                                      data-cy='session-date'
                                       type='date'
                                       id='date'
                                       value={field.value || ''}
@@ -754,6 +759,7 @@ const AddSession = ({
                                 render={({ field }) => (
                                   <Input
                                     {...field}
+                                    data-cy='event-start-time'
                                     type='time'
                                     label='Start Time'
                                     placeholder='12:00 PM'
@@ -766,6 +772,7 @@ const AddSession = ({
                                 render={({ field }) => (
                                   <Input
                                     {...field}
+                                    data-cy='event-end-time'
                                     type='time'
                                     label='End Time'
                                     placeholder='12:00 PM'
@@ -780,6 +787,7 @@ const AddSession = ({
                             render={({ field }) => (
                               <div>
                                 <DropdownSelectInput
+                                  data-cy='repetition'
                                   value={field.value}
                                   label='Set Repetition'
                                   placeholder='Does not repeat'
@@ -828,6 +836,7 @@ const AddSession = ({
                               render={({ field }) => (
                                 <Input
                                   {...field}
+                                  data-cy='event-spots'
                                   type='number'
                                   label='Spots Available'
                                   placeholder='Enter number of spots'
@@ -955,6 +964,7 @@ const AddSession = ({
                                   control={methods.control}
                                   render={({ field }) => (
                                     <DropdownSelectInput
+                                      data-cy='staff-selector'
                                       label='Assign Staff'
                                       placeholder='Select Staff'
                                       options={
@@ -1155,6 +1165,7 @@ const AddSession = ({
                                   }}
                                   createLabel='Add new client'
                                   createDrawerType='client'
+                                  data-cy='clients-select'
                                 />
                               )}
                             </>
@@ -1176,6 +1187,7 @@ const AddSession = ({
                                   }`}
                                 >
                                   <DropdownSelectInput
+                                    // data-cy='location-selector'
                                     label='Locations (Multiple)'
                                     placeholder='Select Multiple Locations'
                                     singleSelect={false}
@@ -1280,6 +1292,7 @@ const AddSession = ({
                                 }}
                                 createLabel='Create new location'
                                 createDrawerType='location'
+                                data-cy='location-selector'
                               />
                             )}
                           />
@@ -1319,6 +1332,7 @@ const AddSession = ({
                               }}
                               createLabel='Create new policy'
                               createDrawerType='policy'
+                              data-cy='policy-selector'
                             />
                           )}
                         />
@@ -1588,6 +1602,7 @@ const AddSession = ({
                               render={({ field }) => (
                                 <Input
                                   {...field}
+                                  data-cy='client-email'
                                   label='Email'
                                   placeholder='Enter client email'
                                 />
@@ -1599,6 +1614,7 @@ const AddSession = ({
                               render={({ field }) => (
                                 <Input
                                   {...field}
+                                  data-cy='client-phone'
                                   label='Phone Number'
                                   placeholder='Enter client phone number'
                                 />
@@ -1617,6 +1633,7 @@ const AddSession = ({
                               render={({ field }) => (
                                 <Input
                                   {...field}
+                                  data-cy='session-title'
                                   label='Appointment Name'
                                   placeholder='Enter Appointment Name'
                                   containerClassName='mb-4'
@@ -1673,6 +1690,7 @@ const AddSession = ({
                                       createLabel='Create new session type'
                                       createDrawerType='session'
                                       isLoading={isLoadingClassTypes}
+                                      data-cy='session-type'
                                     />
                                     {methods.formState.errors.class_type && (
                                       <p className='mt-1 text-sm text-red-500'>
@@ -1737,6 +1755,7 @@ const AddSession = ({
                                 render={({ field }) => (
                                   <Input
                                     {...field}
+                                    data-cy='event-start-time'
                                     type='time'
                                     label='Start Time'
                                     placeholder='12:00 PM'
@@ -1749,6 +1768,7 @@ const AddSession = ({
                                 render={({ field }) => (
                                   <Input
                                     {...field}
+                                    data-cy='event-end-time'
                                     type='time'
                                     label='End Time'
                                     placeholder='12:00 PM'
@@ -2052,6 +2072,7 @@ const AddSession = ({
                             render={({ field }) => (
                               <Input
                                 {...field}
+                                data-cy='event-title'
                                 label='Event Name'
                                 placeholder='Enter Event Name'
                               />
@@ -2108,6 +2129,7 @@ const AddSession = ({
                             render={({ field }) => (
                               <Input
                                 {...field}
+                                data-cy='event-description'
                                 type='textarea'
                                 label='Description (Optional)'
                                 placeholder='Enter event description'
@@ -2168,6 +2190,7 @@ const AddSession = ({
                                 <div className='w-full mt-4 mb-6'>
                                   <div className='relative w-full'>
                                     <input
+                                      data-cy='event-date'
                                       type='date'
                                       id='event-date'
                                       value={field.value || ''}
@@ -2197,6 +2220,7 @@ const AddSession = ({
                                 render={({ field }) => (
                                   <Input
                                     {...field}
+                                    data-cy='event-start-time'
                                     type='time'
                                     label='Start Time'
                                     placeholder='12:00 PM'
@@ -2209,6 +2233,7 @@ const AddSession = ({
                                 render={({ field }) => (
                                   <Input
                                     {...field}
+                                    data-cy='event-end-time'
                                     type='time'
                                     label='End Time'
                                     placeholder='12:00 PM'
@@ -2224,6 +2249,7 @@ const AddSession = ({
                               render={({ field }) => (
                                 <Input
                                   {...field}
+                                  data-cy='event-spots'
                                   type='number'
                                   label='Spots Available'
                                   placeholder='Enter number of spots'
@@ -2239,6 +2265,7 @@ const AddSession = ({
                                 control={methods.control}
                                 render={({ field }) => (
                                   <DropdownSelectInput
+                                    data-cy='staff-selector'
                                     label='Assign Staff'
                                     placeholder='Select Staff'
                                     options={
@@ -2636,6 +2663,7 @@ const AddSession = ({
                 <div className='flex justify-end gap-4 pr-8'>
                   <Button
                     type='submit'
+                    data-cy='submit-session'
                     color='#1D9B5E'
                     radius='8px'
                     disabled={

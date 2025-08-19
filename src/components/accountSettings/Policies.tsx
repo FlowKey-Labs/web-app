@@ -344,6 +344,7 @@ const Policies = () => {
           size='sm'
           leftSection={<IconPlus size={16} />}
           onClick={() => handleOpenPolicyDrawer()}
+          data-cy='policies-tab'
         >
           Create Policy
         </MantineButton>

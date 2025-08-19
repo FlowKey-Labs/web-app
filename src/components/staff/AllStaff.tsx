@@ -431,6 +431,7 @@ const AllStaff = () => {
             (hasNoStaff || hasNoSearchResults) && !isLoading && !isError
           }
           showButton={permisions?.can_create_staff}
+          dataCyPrefix="add-staff-button"
         />
 
         {hasSearchResults && (

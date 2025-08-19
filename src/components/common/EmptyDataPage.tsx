@@ -14,6 +14,7 @@ interface EmptyDataPageProps {
   opened?: boolean;
   filterType?: string;
   filterValue?: string;
+  dataCyPrefix?: string;
 }
 
 const EmptyDataPage: React.FC<EmptyDataPageProps> = ({
@@ -28,6 +29,7 @@ const EmptyDataPage: React.FC<EmptyDataPageProps> = ({
   opened = true,
   filterType,
   filterValue,
+  dataCyPrefix,
 }) => {
   const [isMobile, setIsMobile] = useState(false);
 
@@ -113,7 +115,9 @@ const EmptyDataPage: React.FC<EmptyDataPageProps> = ({
           alt="Empty data"
           className="mb-3 w-16 h-16 sm:w-20 sm:h-20"
         />
-        <p className="text-gray-700 text-lg sm:text-xl font-semibold">{title}</p>
+        <p className="text-gray-700 text-lg sm:text-xl font-semibold">
+          {title}
+        </p>
         <p className="text-gray-500 text-sm sm:text-base mt-1 px-2">
           {getFilteredDescription()}
         </p>
@@ -126,6 +130,7 @@ const EmptyDataPage: React.FC<EmptyDataPageProps> = ({
               onButtonClick();
               onClose?.();
             }}
+            data-cy={dataCyPrefix ? `${dataCyPrefix}` : undefined}
           >
             {buttonText}
           </Button>
