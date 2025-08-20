@@ -14,7 +14,7 @@ describe('Session Class Management', () => {
     title: 'Test Yoga Class',
     description: 'Test session description',
     category: 'Yoga',
-    date: new Date(Date.now() + 86400000).toISOString().split('T')[0], 
+    date: new Date(Date.now() + 86400000).toISOString().split('T')[0],
     startTime: '09:30',
     endTime: '10:00',
     spots: '10',
@@ -133,7 +133,7 @@ describe('Session Class Management', () => {
       .as('clientMenu')
       .then(($menu) => {
         cy.wait(500);
-        
+
         const options = $menu.find('div[class*="option"]');
         const optionTexts = options.map((i, el) => el.innerText.trim()).get();
         cy.log('Available client options:', optionTexts);
@@ -146,9 +146,9 @@ describe('Session Class Management', () => {
           cy.get('@clientMenu')
             .find('input[type="text"]')
             .should('be.visible')
-            .type(testSession.clientIds, { 
-              force: true, 
-              delay: 100 
+            .type(testSession.clientIds, {
+              force: true,
+              delay: 100,
             });
 
           cy.get('div[class*="option"]', { timeout: 5000 })
@@ -162,16 +162,18 @@ describe('Session Class Management', () => {
 
     cy.get('[data-cy="policy-selector"]').within(() => {
       cy.get('.react-select__control').click({ force: true });
-      
+
       cy.get('.react-select__menu', { timeout: 10000 })
         .should('be.visible')
         .as('policyMenu')
         .find('.react-select__option')
         .should('exist')
         .then(($options) => {
-          const optionTexts = $options.map((i, el) => el.innerText.trim()).get();
+          const optionTexts = $options
+            .map((i, el) => el.innerText.trim())
+            .get();
           cy.log('Available policy options:', optionTexts);
-          
+
           if ($options.length > 1) {
             cy.wrap($options.eq(1))
               .should('be.visible')
@@ -190,38 +192,37 @@ describe('Session Class Management', () => {
 
     cy.wait('@createSession').then((interception) => {
       const requestBody = interception.request.body;
-      
-      
+
       interface ExpectedBody {
         title: string;
         session_type: string;
         spots: number;
         date: string;
-        start_time?: string | null; 
-        end_time?: string | null;    
-        repetition?: string;       
+        start_time?: string | null;
+        end_time?: string | null;
+        repetition?: string;
       }
-      
+
       const expectedBody: ExpectedBody = {
         title: testSession.title,
         session_type: 'class',
         spots: parseInt(testSession.spots),
         date: testSession.date,
       };
-      
+
       if (requestBody.start_time !== null) {
         expectedBody.start_time = testSession.startTime;
       }
       if (requestBody.end_time !== null) {
         expectedBody.end_time = testSession.endTime;
       }
-      
+
       if (requestBody.repetition !== undefined) {
         expectedBody.repetition = testSession.repetition.toUpperCase();
       }
-      
+
       expect(requestBody).to.include(expectedBody);
-      
+
       if (Array.isArray(requestBody.location_ids)) {
         expect(requestBody.location_ids.length).to.be.greaterThan(0);
       }
@@ -236,5 +237,4 @@ describe('Session Class Management', () => {
       }
     });
   });
-
 });
