@@ -4,7 +4,10 @@ import { notifications } from '@mantine/notifications';
 import successIcon from '../../assets/icons/success.svg';
 import errorIcon from '../../assets/icons/error.svg';
 
-import { useGetSessionCategories, useDeleteSessionCategory } from '../../hooks/reactQuery';
+import {
+  useGetSessionCategories,
+  useDeleteSessionCategory,
+} from '../../hooks/reactQuery';
 import { useUIStore } from '../../store/ui';
 
 import Button from '../common/Button';
@@ -39,7 +42,7 @@ const Categories = () => {
   const handleAddCategory = () => {
     openDrawer({
       type: 'category',
-      isEditing: false
+      isEditing: false,
     });
   };
 
@@ -47,7 +50,7 @@ const Categories = () => {
     openDrawer({
       type: 'category',
       entityId: category.id,
-      isEditing: true
+      isEditing: true,
     });
   };
 
@@ -137,6 +140,7 @@ const Categories = () => {
                 key={category.id}
                 className='border border-gray-200 bg-cardsBg rounded-lg p-4 shadow-sm transition-shadow font-sans cursor-pointer'
                 onClick={() => setSelectedCategoryId(category.id)}
+                data-cy={`category${category.id}`}
               >
                 <div className='flex justify-between items-start'>
                   <h3 className='text-sm font-medium text-primary font-sans'>
@@ -150,9 +154,10 @@ const Categories = () => {
                       onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
                         e.stopPropagation();
                         e.preventDefault();
-                        handleEditCategory(category)
+                        handleEditCategory(category);
                       }}
                       className='hover:bg-blue-50'
+                      data-cy={`edit-category-${category.id}`}
                     >
                       <IconEdit size={16} />
                     </ActionIcon>
@@ -163,9 +168,10 @@ const Categories = () => {
                       onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
                         e.stopPropagation();
                         e.preventDefault();
-                        handleDeleteCategory(category)
+                        handleDeleteCategory(category);
                       }}
                       className='hover:bg-red-50'
+                      data-cy={`delete-category-${category.id}`}
                     >
                       <IconTrash size={16} />
                     </ActionIcon>
@@ -181,7 +187,7 @@ const Categories = () => {
           </div>
         </div>
       )}
-      
+
       <Modal
         opened={deleteModalOpen}
         className='font-sans'
@@ -217,7 +223,7 @@ const Categories = () => {
         </div>
         <div className='flex justify-end gap-2 mt-4'>
           <Button
-            variant="default"
+            variant='default'
             onClick={() => {
               setDeleteModalOpen(false);
               setCategoryToDelete(null);
@@ -225,7 +231,12 @@ const Categories = () => {
           >
             Cancel
           </Button>
-          <Button color='red' onClick={confirmDeleteCategory} radius='md'>
+          <Button
+            color='red'
+            onClick={confirmDeleteCategory}
+            radius='md'
+            data-cy='confirm-delete-category'
+          >
             Delete
           </Button>
         </div>

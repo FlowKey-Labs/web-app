@@ -23,8 +23,6 @@ declare global {
        * @example cy.apiRequest('GET', '/users/me')
        */
       apiRequest(method: string, url: string, body?: any): Chainable<any>;
-
-      setupPolicyTests(): Chainable<void>;
     }
   }
 }
@@ -45,14 +43,14 @@ Cypress.Commands.add('login', (email: string, password: string) => {
     // Wait for login to complete and verify navigation to dashboard
     cy.url().should('include', '/dashboard', { timeout: 30000 });
     cy.get('[data-cy=dashboard-main]', { timeout: 30000 }).should('be.visible');
-    
+
     // Verify authentication state
     cy.window().then((win) => {
       expect(win.localStorage.getItem('accessToken')).to.exist;
       expect(win.localStorage.getItem('refresh')).to.exist;
     });
   });
-  
+
   // After session is established, visit dashboard
   cy.visit('/dashboard');
   cy.get('[data-cy=dashboard-main]').should('be.visible');
@@ -78,24 +76,3 @@ Cypress.Commands.add(
     });
   }
 );
-
-Cypress.Commands.add('setupPolicyTests', () => {
-  // Mock only the necessary API endpoints with correct paths
-  cy.intercept('GET', '/api/policy/policies/', { 
-    statusCode: 200, 
-    body: [] 
-  }).as('getPolicies');
-  
-  cy.intercept('POST', '/api/policy/policies/').as('createPolicy');
-  
-  // Visit settings and wait for the page to be ready
-  cy.visit('/settings');
-  
-  // Wait for the policies tab to be visible and click it
-  cy.get('[data-cy="policies-tab"]', { timeout: 30000 })
-    .should('be.visible')
-    .click();
-    
-  // Wait for any initial data loading to complete
-  cy.wait('@getPolicies');
-});

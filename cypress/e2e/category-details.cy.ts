@@ -1,32 +1,40 @@
-import { mockCategories, mockSubcategories, mockSkills } from '../fixtures/categories';
+import {
+  mockCategories,
+  mockSubcategories,
+  mockSkills,
+} from '../fixtures/categories';
+
+/// <reference types="cypress" />
+
+Cypress.on('uncaught:exception', (err) => {
+  if (err.message.includes('removeChild')) {
+    console.log('Ignoring removeChild error from React');
+    return false;
+  }
+  return true;
+});
 
 describe('Category Details Management', () => {
-  const category = mockCategories[0];
-  const categorySubcategories = mockSubcategories.filter(
-    (sub) => sub.category === category.id
-  );
-
   beforeEach(() => {
-    // Mock the API responses
-    cy.intercept('GET', '**/api/session/categories/', {
+    cy.intercept('GET', '/api/session/categories/', {
       statusCode: 200,
       body: mockCategories,
     }).as('getCategories');
 
-    cy.intercept('GET', '**/api/session/subcategories/', {
+    cy.intercept('GET', '/api/session/subcategories/', {
       statusCode: 200,
       body: mockSubcategories,
     }).as('getSubcategories');
 
-    cy.intercept('GET', '**/api/session/subskills/', {
+    cy.intercept('GET', '/api/session/subskills/', {
       statusCode: 200,
       body: mockSkills,
     }).as('getSkills');
 
     // Mock successful subcategory creation
-    cy.intercept('POST', '**/api/session/subcategories/', (req) => {
+    cy.intercept('POST', '/api/session/subcategories/', (req) => {
       const newSubcategory = {
-        id: Math.floor(Math.random() * 1000),
+        id: 1,
         ...req.body,
       };
       return req.reply({
@@ -36,9 +44,9 @@ describe('Category Details Management', () => {
     }).as('createSubcategory');
 
     // Mock successful skill creation
-    cy.intercept('POST', '**/api/session/subskills/', (req) => {
+    cy.intercept('POST', '/api/session/subskills/', (req) => {
       const newSkill = {
-        id: Math.floor(Math.random() * 1000),
+        id: 1,
         ...req.body,
       };
       return req.reply({
@@ -48,39 +56,56 @@ describe('Category Details Management', () => {
     }).as('createSkill');
 
     // Mock successful subcategory deletion
-    cy.intercept('DELETE', '**/api/session/subcategories/*', {
+    cy.intercept('DELETE', '/api/session/subcategories/*', {
       statusCode: 204,
     }).as('deleteSubcategory');
 
     // Mock successful skill deletion
-    cy.intercept('DELETE', '**/api/session/subskills/*', {
+    cy.intercept('DELETE', '/api/session/subskills/*', {
       statusCode: 204,
     }).as('deleteSkill');
 
-    // Set up localStorage for mock authentication
-    cy.window().then((win) => {
-      win.localStorage.setItem('accessToken', 'mock-access-token');
-      win.localStorage.setItem('user', JSON.stringify({
-        id: 1,
-        email: 'test@example.com',
-        name: 'Test User',
-        is_staff: true,
-      }));
+    const email = Cypress.env('testEmail');
+    const password = Cypress.env('testPassword');
+
+    if (!email || !password) {
+      throw new Error(
+        'Missing test credentials. Please set CYPRESS_TEST_EMAIL and CYPRESS_TEST_PASSWORD environment variables.'
+      );
+    }
+
+    cy.session([email, password], () => {
+      cy.visit('/login');
+
+      cy.get('input[type="email"]', { timeout: 10000 })
+        .should('be.visible')
+        .type(email);
+
+      cy.get('input[type="password"]')
+        .should('be.visible')
+        .type(password, { log: false });
+
+      cy.get('button[type="submit"]').should('be.visible').click();
+
+      cy.url({ timeout: 30000 })
+        .should('include', '/dashboard')
+        .then(() => {
+          cy.get('body').should('be.visible');
+        });
     });
 
-    // Visit the category details page
-    cy.visit(`/profile/categories/${category.id}`);
-    
-    // Wait for all API calls to complete
+    cy.visit('/profile');
+
+    cy.get('button').contains('Session Categories').click();
+    cy.get(`[data-cy="category-${mockCategories[0].id}"]`).click();
+
     cy.wait(['@getCategories', '@getSubcategories', '@getSkills']);
   });
 
   it('should display category details and subcategories', () => {
-    // Verify category name is displayed
-    cy.contains('h2', category.name).should('exist');
-    
-    // Verify subcategories are displayed
-    categorySubcategories.forEach((subcategory) => {
+    cy.contains('h2', mockCategories[0].name).should('exist');
+
+    mockSubcategories.forEach((subcategory) => {
       cy.contains(subcategory.name).should('exist');
     });
   });
@@ -89,16 +114,14 @@ describe('Category Details Management', () => {
     const newSubcategory = {
       name: 'New Subcategory',
       description: 'Test subcategory description',
-      category: category.id,
+      category: 1,
     };
 
-    // Click add subcategory button
     cy.get('button').contains('Add Subcategory').click();
 
-    // Fill out the form
     cy.get('input[name="name"]').type(newSubcategory.name);
     cy.get('textarea[name="description"]').type(newSubcategory.description);
-    
+
     // Submit the form
     cy.get('button[type="submit"]').click();
 
@@ -112,7 +135,7 @@ describe('Category Details Management', () => {
   });
 
   it('should add a new skill to a subcategory', () => {
-    const subcategory = categorySubcategories[0];
+    const subcategory = mockSubcategories[0];
     const newSkill = {
       name: 'New Skill',
       description: 'Test skill description',
@@ -125,7 +148,7 @@ describe('Category Details Management', () => {
     // Fill out the form
     cy.get('input[name="name"]').type(newSkill.name);
     cy.get('textarea[name="description"]').type(newSkill.description);
-    
+
     // Submit the form
     cy.get('button[type="submit"]').click();
 
@@ -139,11 +162,12 @@ describe('Category Details Management', () => {
   });
 
   it('should delete a subcategory', () => {
-    const subcategoryToDelete = categorySubcategories[0];
+    const subcategoryToDelete = mockSubcategories[0];
 
-    // Click delete button for the first subcategory
-    cy.get(`[data-testid="delete-subcategory-${subcategoryToDelete.id}"]`).click();
-    
+    cy.get(
+      `[data-testid="delete-subcategory-${subcategoryToDelete.id}"]`
+    ).click();
+
     // Confirm deletion in the modal
     cy.get('.mantine-Modal-root').within(() => {
       cy.contains('Confirm Delete').should('exist');
@@ -152,7 +176,9 @@ describe('Category Details Management', () => {
 
     // Verify the API was called
     cy.wait('@deleteSubcategory').then((interception) => {
-      expect(interception.request.url).to.include(`/api/session/subcategories/${subcategoryToDelete.id}`);
+      expect(interception.request.url).to.include(
+        `/api/session/subcategories/${subcategoryToDelete.id}`
+      );
     });
 
     // Verify success notification

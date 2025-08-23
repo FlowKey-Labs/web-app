@@ -241,6 +241,7 @@ const Policies = () => {
                       src={actionOptionIcon}
                       alt='Options'
                       className='w-4 h-4 cursor-pointer'
+                      data-cy='policy-actions-dropdown'
                     />
                   </Menu.Target>
                   <Menu.Dropdown>
@@ -253,6 +254,7 @@ const Policies = () => {
                         if (!currentPolicy) return;
                         handleOpenPolicyDrawer(currentPolicy);
                       }}
+                      data-cy='edit-policy-button'
                     >
                       Edit
                     </Menu.Item>

@@ -409,6 +409,7 @@ const AllStaff = () => {
           leftIcon={plusIcon}
           onButtonClick={handleOpenStaffDrawer}
           showButton={permisions?.can_create_staff}
+          buttonDataCy="add-staff-button"
         />
 
         <EmptyDataPage

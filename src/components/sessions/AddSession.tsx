@@ -1590,6 +1590,7 @@ const AddSession = ({
                                     }}
                                     createLabel='Add new client'
                                     createDrawerType='client'
+                                    data-cy='clients-select'
                                   />
                                 )}
                               </>
@@ -1605,6 +1606,7 @@ const AddSession = ({
                                   data-cy='client-email'
                                   label='Email'
                                   placeholder='Enter client email'
+                                  data-cy="email-input"
                                 />
                               )}
                             />
@@ -1617,6 +1619,7 @@ const AddSession = ({
                                   data-cy='client-phone'
                                   label='Phone Number'
                                   placeholder='Enter client phone number'
+                                  data-cy="phone-input"
                                 />
                               )}
                             />
@@ -1637,6 +1640,7 @@ const AddSession = ({
                                   label='Appointment Name'
                                   placeholder='Enter Appointment Name'
                                   containerClassName='mb-4'
+                                  data-cy="session-title"
                                 />
                               )}
                             />
@@ -1690,7 +1694,7 @@ const AddSession = ({
                                       createLabel='Create new session type'
                                       createDrawerType='session'
                                       isLoading={isLoadingClassTypes}
-                                      data-cy='session-type'
+                                      data-cy="class-type-select"
                                     />
                                     {methods.formState.errors.class_type && (
                                       <p className='mt-1 text-sm text-red-500'>
@@ -1716,6 +1720,7 @@ const AddSession = ({
                                   placeholder='Enter appointment description'
                                   rows={4}
                                   containerClassName='mb-4'
+                                  data-cy="session-description"
                                 />
                               )}
                             />
@@ -1737,6 +1742,7 @@ const AddSession = ({
                                         );
                                       }}
                                       className='w-full h-[58px] border border-gray-300 rounded-lg px-4 pt-6 pb-2 text-xs focus:outline-none focus:ring-[1px] focus:border-none focus:ring-secondary focus:border-secondary'
+                                      data-cy="session-date"
                                     />
                                     <label
                                       htmlFor='appointment-date'
@@ -1845,6 +1851,7 @@ const AddSession = ({
                                 }}
                                 createLabel='Create new staff'
                                 createDrawerType='staff'
+                                data-cy="staff-selector"
                               />
                             )}
                           />
@@ -2072,9 +2079,9 @@ const AddSession = ({
                             render={({ field }) => (
                               <Input
                                 {...field}
-                                data-cy='event-title'
                                 label='Event Name'
                                 placeholder='Enter Event Name'
+                                data-cy="event-title"
                               />
                             )}
                           />
@@ -2173,6 +2180,7 @@ const AddSession = ({
                                   }}
                                   createLabel='Create new category'
                                   createDrawerType='category'
+                                  data-cy="event-category-select"
                                 />
                               )}
                             />
@@ -2442,6 +2450,7 @@ const AddSession = ({
                                   }}
                                   createLabel='Add new client'
                                   createDrawerType='client'
+                                  data-cy="clients-select"
                                 />
                               )}
                             </>
@@ -2482,6 +2491,7 @@ const AddSession = ({
                               }}
                               createLabel='Create new policy'
                               createDrawerType='policy'
+                              data-cy="policy-selector"
                             />
                           )}
                         />

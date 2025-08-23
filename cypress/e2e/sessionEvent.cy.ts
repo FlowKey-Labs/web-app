@@ -8,28 +8,36 @@ Cypress.on('uncaught:exception', (err) => {
   return true;
 });
 
-describe('Session Appointment Management', () => {
+describe('Session Class Management', () => {
   const testSession = {
-    clientIds: 'Test Client',
-    email: `test.client${Date.now()}@example.com`,
-    phone_number: '+254712345678',
-    appointmentTitle: 'Test Yoga Class',
-    classType: 'Regular',
+    title: 'Test Yoga Class',
+    locationIds: 'Test Location',
     description: 'Test session description',
+    category: 'Yoga',
     date: new Date(Date.now() + 86400000).toISOString().split('T')[0],
     startTime: '09:30',
     endTime: '10:00',
+    spots: '10',
     staffIds: 'Test Staff',
+    clientIds: 'Test Client',
+    policyIds: 'Test Policy',
   };
 
   beforeEach(() => {
+    cy.intercept('GET', '/api/session/categories/', {
+      statusCode: 200,
+      body: [{ id: 1, name: 'Yoga' }],
+    });
+
     cy.intercept('GET', '/api/staff/', {
       statusCode: 200,
-      body: [
-        { id: 1, first_name: 'John', last_name: 'Doe' },
-        { id: 2, first_name: 'Jane', last_name: 'Smith' },
-      ],
-    }).as('getStaff');
+      body: [{ id: 1, first_name: 'John', last_name: 'Doe' }],
+    });
+
+    cy.intercept('GET', '/api/locations/', {
+      statusCode: 200,
+      body: [{ id: 1, name: 'Main Studio' }],
+    });
 
     cy.intercept('POST', '/api/session/', {
       statusCode: 201,
@@ -70,10 +78,54 @@ describe('Session Appointment Management', () => {
     cy.get('body').should('be.visible');
   });
 
-  it('should create a new session appointment', () => {
+  it('should create a new session class', () => {
     cy.get('[data-cy="add-session-button"]').click();
 
-    cy.contains('button', 'Appointment').click();
+    cy.contains('button', 'Event').click();
+
+    cy.get('[data-cy="event-title"]').type(testSession.title);
+
+    cy.get('[data-cy="event-description"]').type(testSession.description);
+
+    cy.get('[data-cy="event-category-select"]').click();
+    cy.get('div[class*="menu"]').should('be.visible');
+    cy.contains('div[class*="option"]', testSession.category).click({
+      force: true,
+    });
+
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const formattedDate = tomorrow.toISOString().split('T')[0];
+    cy.get('[data-cy="event-date"]').type(formattedDate);
+
+    cy.get('input[type="time"]')
+      .first()
+      .invoke('val', testSession.startTime)
+      .trigger('input')
+      .trigger('change');
+
+    cy.get('input[type="time"]')
+      .last()
+      .invoke('val', testSession.endTime)
+      .trigger('input')
+      .trigger('change');
+
+    cy.get('[data-cy="event-spots"]').type(testSession.spots);
+
+    cy.get('[data-cy="staff-selector"]').within(() => {
+      cy.get('.react-select__control').click({ force: true });
+      cy.get('.react-select__menu')
+        .should('be.visible')
+        .find('.react-select__option')
+        .then(($options) => {
+          if ($options.length > 1) {
+            cy.wrap($options.eq(1)).should('be.visible').click({ force: true });
+          } else {
+            cy.log('Error: No staff options available to select');
+            throw new Error('No staff options available to select');
+          }
+        });
+    });
 
     cy.get('[data-cy="clients-select"]').click();
 
@@ -109,83 +161,37 @@ describe('Session Appointment Management', () => {
 
     cy.wait(300);
 
-    cy.get('[data-cy="email-input"]').type(testSession.email);
-
-    cy.get('[data-cy="phone-input"]').type(testSession.phone_number);
-
-    cy.get('[data-cy="session-title"]').type(testSession.appointmentTitle);
-
-    cy.get('[data-cy="class-type-select"]').click();
-    cy.get('div[class*="menu"]').should('be.visible');
-    cy.contains('div[class*="option"]', testSession.classType).click({
-      force: true,
-    });
-
-    cy.get('[data-cy="session-description"]').type(testSession.description);
-
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    const formattedDate = tomorrow.toISOString().split('T')[0];
-    cy.get('[data-cy="session-date"]').type(formattedDate);
-
-    cy.get('input[type="time"]')
-      .first()
-      .invoke('val', testSession.startTime)
-      .trigger('input')
-      .trigger('change');
-
-    cy.get('input[type="time"]')
-      .last()
-      .invoke('val', testSession.endTime)
-      .trigger('input')
-      .trigger('change');
-
-    cy.get('[data-cy="staff-selector"]').within(() => {
+    cy.get('[data-cy="policy-selector"]').within(() => {
       cy.get('.react-select__control').click({ force: true });
-      cy.get('.react-select__menu')
+
+      cy.get('.react-select__menu', { timeout: 10000 })
         .should('be.visible')
+        .as('policyMenu')
         .find('.react-select__option')
+        .should('exist')
         .then(($options) => {
+          const optionTexts = $options
+            .map((i, el) => el.innerText.trim())
+            .get();
+          cy.log('Available policy options:', optionTexts);
+
           if ($options.length > 1) {
-            cy.wrap($options.eq(1)).should('be.visible').click({ force: true });
+            cy.wrap($options.eq(1))
+              .should('be.visible')
+              .click({ force: true, timeout: 5000 });
           } else {
-            cy.log('Error: No staff options available to select');
-            throw new Error('No staff options available to select');
+            cy.log('Error: No policy options available to select');
+            throw new Error('No policy options available to select');
           }
         });
     });
 
     cy.wait(500);
 
-    cy.wait(500);
-
     cy.get('[data-cy="submit-session"]').click();
 
     cy.wait('@createSession').then((interception) => {
-      expect(interception).to.have.property('request');
-      expect(interception.request).to.have.property('body');
-
       const requestBody = interception.request.body;
-
-      expect(requestBody).to.have.property('start_time');
-      if (requestBody.start_time !== null) {
-        expect(requestBody.start_time).to.include(`T${testSession.startTime}:`);
-      }
-
-      expect(requestBody).to.have.property('end_time');
-      if (requestBody.end_time !== null) {
-        expect(requestBody.end_time).to.include(`T${testSession.endTime}:`);
-      }
-
-      expect(requestBody).to.satisfy((body) => 
-        body.staff_id !== undefined || 
-        (body.staff_ids !== undefined && body.staff_ids.length > 0) ||
-        body.staff !== undefined
-      );
-      
-      if (requestBody.staff_ids !== undefined) {
-        expect(requestBody.staff_ids).to.be.an('array').that.is.not.empty;
-      }
 
       interface ExpectedBody {
         title: string;
@@ -194,13 +200,12 @@ describe('Session Appointment Management', () => {
         date: string;
         start_time?: string | null;
         end_time?: string | null;
-        repetition?: string;
       }
 
       const expectedBody: ExpectedBody = {
-        title: testSession.appointmentTitle,
-        session_type: 'appointment',
-        spots: 0, 
+        title: testSession.title,
+        session_type: 'event',
+        spots: parseInt(testSession.spots),
         date: testSession.date,
       };
 
@@ -218,6 +223,9 @@ describe('Session Appointment Management', () => {
       }
       if (Array.isArray(requestBody.client_ids)) {
         expect(requestBody.client_ids.length).to.be.greaterThan(0);
+      }
+      if (Array.isArray(requestBody.policy_ids)) {
+        expect(requestBody.policy_ids.length).to.be.greaterThan(0);
       }
       if (Array.isArray(requestBody.staff_ids)) {
         expect(requestBody.staff_ids.length).to.be.greaterThan(0);

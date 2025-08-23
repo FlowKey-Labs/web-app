@@ -309,11 +309,21 @@ const GettingStarted = () => {
                       Clients Overview
                     </h4>
                     <div className='w-full h-[240px]'>
-                      <DonutChart
-                        data={analytics?.gender_distribution || []}
-                        height={180}
-                        width={400}
-                      />
+                      {isLoadingAnalytics ? (
+                        <div className='h-full flex items-center justify-center'>
+                          <Skeleton height={180} width="100%" />
+                        </div>
+                      ) : analytics?.gender_distribution ? (
+                        <DonutChart
+                          data={analytics.gender_distribution}
+                          height={180}
+                          width={400}
+                        />
+                      ) : (
+                        <div className='h-full flex items-center justify-center text-gray-500'>
+                          No gender distribution data available
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
