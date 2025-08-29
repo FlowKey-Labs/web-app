@@ -13,6 +13,7 @@ import {
   useGetBusinessProfile,
 } from '../../hooks/reactQuery';
 import { getCurrencyPlaceholder } from '../../utils/stringUtils';
+import { ServiceLocationPricing } from '../profile/ServiceLocationPricing';
 
 import successIcon from '../../assets/icons/success.svg';
 import errorIcon from '../../assets/icons/error.svg';
@@ -633,6 +634,16 @@ export default function SubcategoryDrawer({
                 </div>
               </Stack>
             </Card>
+          )}
+
+          {/* Location-Specific Pricing Section - Only show for services being edited */}
+          {isService && isEditing && entityId && (
+            <ServiceLocationPricing
+              serviceId={parseInt(entityId.toString())}
+              serviceName={methods.watch('name') || 'This Service'}
+              basePrice={methods.watch('base_price') || 0}
+              pricePerMinute={methods.watch('price_per_minute')}
+            />
           )}
 
           {/* Actions */}

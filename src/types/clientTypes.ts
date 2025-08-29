@@ -541,6 +541,14 @@ export interface PublicLocation {
   image_url?: string;
   is_available?: boolean;
   is_primary?: boolean;
+  effective_pricing?: {
+    base_price: number;
+    formatted_price: string;
+    currency: string;
+    currency_symbol: string;
+    has_location_override: boolean;
+    pricing_source: string;
+  };
 }
 
 export interface FlexibleBookingSettings {

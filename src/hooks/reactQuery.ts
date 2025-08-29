@@ -2752,15 +2752,38 @@ export const useDeleteStaffLocationAssignment = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: number) => fetch(`/api/staff/locations/${id}/`, {
-      method: 'DELETE',
-      headers: {
-        'Authorization': `Bearer ${useAuthStore.getState().accessToken}`,
-      },
-    }),
-    onSuccess: () => {
+    mutationFn: async (id: number) => {
+      const { delete_staff_location } = await import('../api/api');
+      return await delete_staff_location(id);
+    },
+    onSuccess: (data) => {
+      // Invalidate relevant queries to refresh data
       queryClient.invalidateQueries({ queryKey: ['staff-location-assignments'] });
       queryClient.invalidateQueries({ queryKey: ['staff'] });
+      
+      // Show detailed success notification with context about what happened
+      const { notifications } = require('@mantine/notifications');
+      const message = data.primary_reassigned 
+        ? `${data.staff_name || 'Staff member'} removed from ${data.location_name || 'location'}. Primary location automatically reassigned to ${data.new_primary_location}.`
+        : `${data.staff_name || 'Staff member'} removed from ${data.location_name || 'location'} successfully.`;
+      
+      notifications.show({
+        title: 'Location Removed',
+        message: message,
+        color: 'green',
+        autoClose: 5000,
+      });
+    },
+    onError: (error: Error) => {
+      // Show specific error notification based on the error type
+      const { notifications } = require('@mantine/notifications');
+      
+      notifications.show({
+        title: 'Removal Failed',
+        message: error.message,
+        color: 'red',
+        autoClose: false, // Keep error messages visible until manually dismissed
+      });
     },
   });
 };
