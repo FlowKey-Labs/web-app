@@ -20,6 +20,7 @@ import {
   Chip
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
+import { useDisclosure } from '@mantine/hooks';
 import { useForm, Controller } from 'react-hook-form';
 import { 
   IconEdit, 
@@ -353,6 +354,12 @@ const StaffManagement: React.FC = () => {
   const [serviceModalOpen, setServiceModalOpen] = useState(false);
   const [locationModalOpen, setLocationModalOpen] = useState(false);
   const [editingCompetency, setEditingCompetency] = useState<EnhancedStaffServiceCompetency | null>(null);
+  
+  // Confirmation modals state
+  const [locationDeleteModalOpened, { open: openLocationDeleteModal, close: closeLocationDeleteModal }] = useDisclosure(false);
+  const [serviceDeleteModalOpened, { open: openServiceDeleteModal, close: closeServiceDeleteModal }] = useDisclosure(false);
+  const [locationToDelete, setLocationToDelete] = useState<StaffLocationAssignment | null>(null);
+  const [competencyToDelete, setCompetencyToDelete] = useState<EnhancedStaffServiceCompetency | null>(null);
 
   // Data fetching with forced refresh
   const { data: staff = [], isLoading: staffLoading } = useGetStaff();
@@ -521,42 +528,82 @@ const StaffManagement: React.FC = () => {
   };
 
   // Handle competency deletion
-  const handleDeleteCompetency = async (competency: EnhancedStaffServiceCompetency) => {
+  const handleDeleteCompetency = (competency: EnhancedStaffServiceCompetency) => {
+    setCompetencyToDelete(competency);
+    openServiceDeleteModal();
+  };
+  
+  // Actual competency deletion after confirmation
+  const confirmDeleteCompetency = async () => {
+    if (!competencyToDelete) return;
+    
     try {
-      await deleteCompetencyMutation.mutateAsync(competency.id);
+      await deleteCompetencyMutation.mutateAsync(competencyToDelete.id);
+      await refetchCompetencies();
+      
       notifications.show({
         title: 'Success',
         message: 'Service competency removed successfully',
         color: 'green'
       });
-      
-      // Force refresh data
-      await refetchCompetencies();
     } catch (error: any) {
       notifications.show({
         title: 'Error',
         message: error.message || 'Failed to remove service competency',
         color: 'red'
       });
+    } finally {
+      // Always close modal and reset state
+      closeServiceDeleteModal();
+      setCompetencyToDelete(null);
     }
   };
 
-  // Handle location assignment deletion
-  const handleDeleteLocationAssignment = async (assignment: StaffLocationAssignment) => {
+  // Handle location assignment deletion with enhanced confirmation and error handling
+  const handleDeleteLocationAssignment = (assignment: StaffLocationAssignment) => {
+    // Check if staff has multiple locations before allowing deletion
+    const staffCurrentLocations = staffLocationAssignments.filter(loc => 
+      loc.staff === assignment.staff && loc.is_active
+    );
+    
+    if (staffCurrentLocations.length <= 1) {
+      notifications.show({
+        title: 'Cannot Remove Location',
+        message: `${assignment.staff_name || 'This staff member'} must have at least one active location assignment.`,
+        color: 'orange',
+        icon: <IconMapPin size={16} />
+      });
+      return;
+    }
+    
+    setLocationToDelete(assignment);
+    openLocationDeleteModal();
+  };
+  
+  // Actual location deletion after confirmation
+  const confirmDeleteLocation = async () => {
+    if (!locationToDelete) return;
+    
     try {
-      await deleteLocationAssignment.mutateAsync(assignment.id);
+      await deleteLocationAssignment.mutateAsync(locationToDelete.id);
+      await refetchLocations();
+      
       notifications.show({
         title: 'Success',
         message: 'Location assignment removed successfully',
         color: 'green'
       });
-      await refetchLocations();
     } catch (error: any) {
+      console.error('Error removing location assignment:', error);
       notifications.show({
-        title: 'Error',
+        title: 'Error', 
         message: error.message || 'Failed to remove location assignment',
         color: 'red'
       });
+    } finally {
+      // Always close modal and reset state
+      closeLocationDeleteModal();
+      setLocationToDelete(null);
     }
   };
 
@@ -934,6 +981,104 @@ const StaffManagement: React.FC = () => {
             </Group>
           </Stack>
         </form>
+      </Modal>
+
+      {/* Location Deletion Confirmation Modal */}
+      <Modal
+        opened={locationDeleteModalOpened}
+        onClose={closeLocationDeleteModal}
+        title={
+          <Text fw={600} size='lg'>
+            Remove Staff Location
+          </Text>
+        }
+        centered
+        radius='md'
+        size='md'
+        withCloseButton={false}
+        overlayProps={{
+          backgroundOpacity: 0.55,
+          blur: 3,
+        }}
+        shadow='xl'
+      >
+        <div className='flex items-start space-x-4 mb-6'>
+          <div className='flex-shrink-0 w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center'>
+            <img src={errorIcon} alt='Warning' className='w-5 h-5' />
+          </div>
+          <div>
+            <Text fw={500} size='md' mb={8} c='gray.8'>
+              Remove {locationToDelete?.staff_name || 'staff member'} from {locationToDelete?.location_name || 'this location'}?
+            </Text>
+            <Text size='sm' c='gray.6'>
+              {locationToDelete?.is_primary 
+                ? 'This is their primary location. Another location will automatically become primary.'
+                : 'This will remove their assignment to this location.'}
+            </Text>
+          </div>
+        </div>
+
+        <div className='flex justify-end gap-2 mt-4'>
+          <Button variant="default" onClick={closeLocationDeleteModal}>
+            Cancel
+          </Button>
+          <Button
+            color='orange'
+            onClick={confirmDeleteLocation}
+            loading={deleteLocationAssignment.isPending}
+            radius='md'
+          >
+            Remove Location
+          </Button>
+        </div>
+      </Modal>
+
+      {/* Service Competency Deletion Confirmation Modal */}
+      <Modal
+        opened={serviceDeleteModalOpened}
+        onClose={closeServiceDeleteModal}
+        title={
+          <Text fw={600} size='lg'>
+            Remove Service Competency
+          </Text>
+        }
+        centered
+        radius='md'
+        size='md'
+        withCloseButton={false}
+        overlayProps={{
+          backgroundOpacity: 0.55,
+          blur: 3,
+        }}
+        shadow='xl'
+      >
+        <div className='flex items-start space-x-4 mb-6'>
+          <div className='flex-shrink-0 w-10 h-10 rounded-full bg-red-100 flex items-center justify-center'>
+            <img src={errorIcon} alt='Warning' className='w-5 h-5' />
+          </div>
+          <div>
+            <Text fw={500} size='md' mb={8} c='gray.8'>
+              Remove {competencyToDelete?.service?.name || 'this service'} competency?
+            </Text>
+            <Text size='sm' c='gray.6'>
+              This action cannot be undone. The staff member will no longer be able to provide this service.
+            </Text>
+          </div>
+        </div>
+
+        <div className='flex justify-end gap-2 mt-4'>
+          <Button variant="default" onClick={closeServiceDeleteModal}>
+            Cancel
+          </Button>
+          <Button
+            color='red'
+            onClick={confirmDeleteCompetency}
+            loading={deleteCompetencyMutation.isPending}
+            radius='md'
+          >
+            Remove Service
+          </Button>
+        </div>
       </Modal>
     </div>
   );

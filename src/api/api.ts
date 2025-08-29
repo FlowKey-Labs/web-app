@@ -1353,9 +1353,58 @@ const update_staff_location = async (id: number, locationData: {
   return data;
 };
 
-const delete_staff_location = async (id: number) => {
-  const { data } = await api.delete(`${END_POINTS.STAFF.LOCATIONS}${id}/`);
-  return data;
+const delete_staff_location = async (id: number): Promise<{
+  detail: string;
+  staff_name?: string;
+  location_name?: string;
+  primary_reassigned?: boolean;
+  new_primary_location?: string;
+  deleted_by?: string;
+  error_code?: string;
+  help_text?: string;
+}> => {
+  try {
+    const response = await api.delete(`${END_POINTS.STAFF.LOCATIONS}${id}/`);
+    
+    // Handle both 200 and 204 responses (204 is standard for DELETE)
+    if (response.status === 204) {
+      // 204 No Content - successful deletion but no response body
+      return {
+        detail: "Location assignment removed successfully"
+      };
+    } else if (response.status === 200 || response.data) {
+      // 200 OK with response data
+      return response.data;
+    } else {
+      throw new Error(`Unexpected response status: ${response.status}`);
+    }
+    
+  } catch (error: any) {
+    if (error.response?.data) {
+      const errorData = error.response.data;
+      
+      // Handle specific error cases from backend
+      if (errorData.error_code === 'ONLY_LOCATION') {
+        throw new Error(
+          `Cannot remove ${errorData.staff_name} from ${errorData.location_name} - this is their only active location. ${errorData.help_text || ''}`
+        );
+      }
+      
+      // Handle other specific error messages
+      const message = errorData.detail || 
+                     errorData.message || 
+                     'Failed to remove staff location assignment';
+      throw new Error(message);
+    }
+    
+    // Handle network errors
+    if (error.code === 'NETWORK_ERROR' || !error.response) {
+      throw new Error('Network error occurred while removing location assignment. Please check your connection and try again.');
+    }
+    
+    // Generic error fallback
+    throw new Error(error.message || 'Failed to remove staff location assignment');
+  }
 };
 
 // Staff Location Availability functions

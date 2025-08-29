@@ -73,6 +73,9 @@ export function LocationSelectionStep({
     return [];
   }, [locationsResponse]);
 
+  // Check if any location has pricing information
+  // const hasPricingInfo = locations.some((location: PublicLocation) => location.effective_pricing);
+
   // Handle scroll for mobile header
   React.useEffect(() => {
     if (!isMobile) return;
@@ -479,6 +482,32 @@ const LocationCard: React.FC<{
                   {location.city}
                 </Text>
               </div>
+              
+              {/* Location-specific pricing display */}
+              {location.effective_pricing && (
+                <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded-md">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Text size="xs" className="text-gray-600">
+                        Price at this location:
+                      </Text>
+                      <Text size="sm" className="font-semibold text-blue-900">
+                        {location.effective_pricing.formatted_price}
+                      </Text>
+                    </div>
+                    {location.effective_pricing.has_location_override && (
+                      <Badge 
+                        color="blue" 
+                        variant="light" 
+                        size="xs"
+                        className="text-xs"
+                      >
+                        Special Price
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>

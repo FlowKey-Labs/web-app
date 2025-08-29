@@ -38,6 +38,7 @@ import {
   IconClock,
   IconUsers,
   IconMapPin,
+  IconCoins,
   IconCheck,
   IconX,
   IconAlertCircle,
@@ -565,8 +566,79 @@ const BookingRequestDetails: React.FC = () => {
             </Card>
           </Grid.Col>
 
-          {(booking.selected_staff || booking.selected_location) && (
+          {(booking.has_pricing_info || booking.formatted_price) && (
             <Grid.Col span={{ base: 12, md: 6 }} order={{ base: 4, md: 4 }}>
+              <Card withBorder className="h-full">
+                <Stack gap="md">
+                  <Group>
+                    <IconCoins size={20} className="text-green-600" />
+                    <Title order={4} size="md">
+                      Pricing Information
+                    </Title>
+                  </Group>
+                  <Divider />
+
+                  <div className="space-y-3">
+                    {booking.formatted_price && (
+                      <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                        <Text size="sm" fw={500} c="green.8">
+                          Total Price
+                        </Text>
+                        <Text size="lg" fw={700} c="green.8">
+                          {booking.formatted_price}
+                        </Text>
+                      </div>
+                    )}
+
+                    {booking.pricing_details && (
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                          <Text size="xs" c="dimmed" fw={500}>
+                            Service
+                          </Text>
+                          <Text size="xs" fw={500}>
+                            {booking.pricing_details.service_name}
+                          </Text>
+                        </div>
+                        
+                        <div className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                          <Text size="xs" c="dimmed" fw={500}>
+                            Unit Price
+                          </Text>
+                          <Text size="xs" fw={500}>
+                            {booking.pricing_details.currency} {booking.pricing_details.unit_price?.toFixed(2)}
+                          </Text>
+                        </div>
+
+                        <div className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                          <Text size="xs" c="dimmed" fw={500}>
+                            Quantity
+                          </Text>
+                          <Text size="xs" fw={500}>
+                            {booking.pricing_details.quantity}
+                          </Text>
+                        </div>
+
+                        {booking.pricing_details.pricing_source && (
+                          <div className="flex items-center justify-between p-2 bg-blue-50 rounded">
+                            <Text size="xs" c="dimmed" fw={500}>
+                              Pricing Source
+                            </Text>
+                            <Text size="xs" fw={500} c="blue.7">
+                              {booking.pricing_details.pricing_source.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                            </Text>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </Stack>
+              </Card>
+            </Grid.Col>
+          )}
+
+          {(booking.selected_staff || booking.selected_location) && (
+            <Grid.Col span={{ base: 12, md: 6 }} order={{ base: 5, md: 5 }}>
               <Card withBorder className="h-full">
                 <Stack gap="md">
                   <Group>

@@ -13,6 +13,7 @@ import StaffManagement from './StaffManagement';
 import StaffPortal from './StaffPortal';
 import ClassTypes from './SessionClassTypes/ClassTypes';
 
+
 type TabType = 
   | 'business' 
   | 'locations' 
