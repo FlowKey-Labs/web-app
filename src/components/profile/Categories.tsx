@@ -140,7 +140,7 @@ const Categories = () => {
                 key={category.id}
                 className='border border-gray-200 bg-cardsBg rounded-lg p-4 shadow-sm transition-shadow font-sans cursor-pointer'
                 onClick={() => setSelectedCategoryId(category.id)}
-                data-cy={`category${category.id}`}
+                data-cy={`category-${category.id}`}
               >
                 <div className='flex justify-between items-start'>
                   <h3 className='text-sm font-medium text-primary font-sans'>

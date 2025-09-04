@@ -244,6 +244,7 @@ export default function SubcategoryDrawer({
                   placeholder='Enter subcategory name'
                   error={fieldState.error?.message}
                   containerClassName='mb-0'
+                  data-cy='subcategory-name'
                 />
               )}
             />
@@ -260,6 +261,7 @@ export default function SubcategoryDrawer({
                   placeholder='Enter subcategory description'
                   error={fieldState.error?.message}
                   containerClassName='mb-0'
+                  data-cy='subcategory-description'
                 />
               )}
             />
@@ -652,6 +654,7 @@ export default function SubcategoryDrawer({
               radius='lg' 
               size='md'
               className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700"
+              data-cy='submit-subcategory'
             >
               {isEditing ? 'Update' : 'Add'} Subcategory
             </Button>

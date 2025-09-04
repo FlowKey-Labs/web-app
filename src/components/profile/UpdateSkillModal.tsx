@@ -120,6 +120,7 @@ const UpdateSkillModal = ({
                     {...field}
                     label='Skill Name'
                     placeholder='Enter skill name'
+                    data-cy={`skill-name-${index}`}
                   />
                 )}
               />
@@ -134,6 +135,7 @@ const UpdateSkillModal = ({
                     placeholder='Enter skill description'
                     type='textarea'
                     rows={3}
+                    data-cy={`skill-description-${index}`}
                   />
                 )}
               />
@@ -154,6 +156,7 @@ const UpdateSkillModal = ({
               radius='md'
               size='sm'
               loading={isLoading}
+              data-cy='update-skill'
             >
               Update Skills
             </Button>

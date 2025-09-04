@@ -105,6 +105,7 @@ const CreateSkillModal = ({
                     label='Skill Name'
                     placeholder='Enter skill name'
                     containerClassName={fields.length > 1 ? 'pt-4' : ''}
+                    data-cy={`skill-name-${index}`}
                   />
                 )}
               />
@@ -119,6 +120,7 @@ const CreateSkillModal = ({
                     placeholder='Enter skill description'
                     type='textarea'
                     rows={3}
+                    data-cy={`skill-description-${index}`}
                   />
                 )}
               />
@@ -140,6 +142,7 @@ const CreateSkillModal = ({
               size='sm'
               leftSection={<IconPlus size={16} />}
               onClick={() => append({ name: '', description: '' })}
+              data-cy='add-another-skill'
             >
               Add Another Skill
             </Button>
@@ -151,6 +154,7 @@ const CreateSkillModal = ({
               radius='md'
               size='sm'
               loading={isLoading}
+              data-cy='create-skill'
             >
               Create {fields.length > 1 ? `${fields.length} Skills` : 'Skill'}
             </Button>

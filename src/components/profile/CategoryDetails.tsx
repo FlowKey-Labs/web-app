@@ -705,7 +705,7 @@ const CategoryDetails = ({
         size: 180, // Fixed width for service details column
         cell: ({ row }) => {
           const subcategory = row.original;
-          
+
           if (!subcategory.is_service) {
             return <span className='text-gray-400 text-sm'>-</span>;
           }
@@ -715,20 +715,46 @@ const CategoryDetails = ({
               {subcategory.base_price && (
                 <div className='flex items-center space-x-2'>
                   <div className='flex items-center justify-center w-5 h-5 rounded bg-green-100'>
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                    <svg
+                      xmlns='http://www.w3.org/2000/svg'
+                      className='h-3 w-3 text-green-600'
+                      fill='none'
+                      viewBox='0 0 24 24'
+                      stroke='currentColor'
+                    >
+                      <path
+                        strokeLinecap='round'
+                        strokeLinejoin='round'
+                        strokeWidth={2}
+                        d='M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1'
+                      />
                     </svg>
                   </div>
                   <span className='font-medium text-green-600'>
-                    {formatCurrency(subcategory.base_price, businessProfile?.currency, businessProfile?.currency_symbol)}
+                    {formatCurrency(
+                      subcategory.base_price,
+                      businessProfile?.currency,
+                      businessProfile?.currency_symbol
+                    )}
                   </span>
                 </div>
               )}
               {subcategory.default_duration && (
                 <div className='flex items-center space-x-2'>
                   <div className='flex items-center justify-center w-5 h-5 rounded bg-blue-100'>
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    <svg
+                      xmlns='http://www.w3.org/2000/svg'
+                      className='h-3 w-3 text-blue-600'
+                      fill='none'
+                      viewBox='0 0 24 24'
+                      stroke='currentColor'
+                    >
+                      <path
+                        strokeLinecap='round'
+                        strokeLinejoin='round'
+                        strokeWidth={2}
+                        d='M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z'
+                      />
                     </svg>
                   </div>
                   <span className='font-medium text-gray-700'>
@@ -739,8 +765,19 @@ const CategoryDetails = ({
               {subcategory.min_duration && subcategory.max_duration && (
                 <div className='flex items-center space-x-2'>
                   <div className='flex items-center justify-center w-5 h-5 rounded bg-purple-100'>
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    <svg
+                      xmlns='http://www.w3.org/2000/svg'
+                      className='h-3 w-3 text-purple-600'
+                      fill='none'
+                      viewBox='0 0 24 24'
+                      stroke='currentColor'
+                    >
+                      <path
+                        strokeLinecap='round'
+                        strokeLinejoin='round'
+                        strokeWidth={2}
+                        d='M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z'
+                      />
                     </svg>
                   </div>
                   <span className='text-sm text-gray-600 font-medium'>
@@ -836,6 +873,7 @@ const CategoryDetails = ({
                       src={actionOptionIcon}
                       alt='Options'
                       className='w-4 h-4 cursor-pointer'
+                      data-cy='action-options'
                     />
                   </Menu.Target>
                   <Menu.Dropdown>
@@ -845,6 +883,7 @@ const CategoryDetails = ({
                         <img src={editIcon} alt='Edit' className='w-4 h-4' />
                       }
                       onClick={() => handleEditSubcategory(subcategory)}
+                      data-cy={`edit-subcategory-${subcategory.id}`}
                     >
                       Edit
                     </Menu.Item>
@@ -854,6 +893,7 @@ const CategoryDetails = ({
                         <img src={plusIcon} alt='Add' className='w-4 h-4' />
                       }
                       onClick={() => handleAddSkill(subcategory)}
+                      data-cy={`add-skill-${subcategory.id}`}
                     >
                       Add Skills
                     </Menu.Item>
@@ -869,6 +909,7 @@ const CategoryDetails = ({
                           handleEditSkill(skills);
                         }
                       }}
+                      data-cy={`edit-skill-${subcategory.id}`}
                     >
                       Edit Skills
                     </Menu.Item>
@@ -882,6 +923,7 @@ const CategoryDetails = ({
                         />
                       }
                       onClick={() => handleDeleteSubcategory(subcategory)}
+                      data-cy={`delete-subcategory-${subcategory.id}`}
                     >
                       Delete
                     </Menu.Item>
@@ -1009,7 +1051,12 @@ const CategoryDetails = ({
           </div>
         </div>
         <div className='flex justify-end gap-2 mt-4'>
-          <Button color='red' onClick={confirmDeleteSubcategory} radius='md'>
+          <Button
+            color='red'
+            onClick={confirmDeleteSubcategory}
+            radius='md'
+            data-cy='confirm-delete-subcategory'
+          >
             Delete
           </Button>
         </div>
