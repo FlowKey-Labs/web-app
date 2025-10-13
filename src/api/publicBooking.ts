@@ -1,7 +1,8 @@
 import axios from 'axios';
 import { PublicBusinessInfo, PublicService, PublicBookingRequest, AvailabilitySlot } from '../types/clientTypes';
+import config from '../utils/config';
 
-const API_BASE_URL = import.meta.env.VITE_APP_BASEURL || 'http://localhost:8000';
+const API_BASE_URL = config.getApiUrl();
 
 // Get public business information
 export const getPublicBusinessInfo = async (businessSlug: string): Promise<PublicBusinessInfo> => {

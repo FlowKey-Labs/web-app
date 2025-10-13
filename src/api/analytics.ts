@@ -1,6 +1,7 @@
-import { api } from '../lib/axios';
+import { api } from "../lib/axios";
+import config from "../utils/config";
 
-const BASE_URL = import.meta.env.VITE_APP_BASEURL;
+const BASE_URL = config.getApiUrl();
 
 const END_POINTS = {
   UPCOMING_BIRTHDAYS: `${BASE_URL}/api/dashboard/upcoming-birthdays/`,
@@ -26,7 +27,7 @@ export const get_sessions_per_staff = async () => {
 };
 
 export const get_cancellation_reschedule_analytics = async (
-  timeFilter: string = 'last_30_days'
+  timeFilter: string = "last_30_days"
 ) => {
   const { data } = await api.get(END_POINTS.CANCELLATION_RESCHEDULE_ANALYTICS, {
     params: {

@@ -3,7 +3,7 @@ import {
   useQuery,
   useQueryClient,
   UseQueryResult,
-} from '@tanstack/react-query';
+} from "@tanstack/react-query";
 import {
   registerUser,
   loginUser,
@@ -114,7 +114,7 @@ import {
   get_staff_own_exceptions,
   create_staff_own_exception,
   update_staff_own_exception,
-} from '../api/api';
+} from "../api/api";
 
 import {
   create_session,
@@ -162,16 +162,16 @@ import {
   update_class_type,
   delete_class_type,
   get_class_type,
-} from '../api/sessionsApi';
+} from "../api/sessionsApi";
 
-import { Role, useAuthStore } from '../store/auth';
-import { AddClient, Client, BookingRequest } from '../types/clientTypes';
-import { CreateStaffRequest, StaffResponse } from '../types/staffTypes';
+import { Role, useAuthStore } from "../store/auth";
+import { AddClient, Client, BookingRequest } from "../types/clientTypes";
+import { CreateStaffRequest, StaffResponse } from "../types/staffTypes";
 import {
   AnalyticsData,
   DateFilterOption,
   UpcomingSession,
-} from '../types/dashboard';
+} from "../types/dashboard";
 import {
   AttendedSession,
   CancelledSession,
@@ -180,12 +180,12 @@ import {
   ProgressFeedback,
   Session,
   SessionFilters,
-} from '../types/sessionTypes';
-import { CreateLocationData } from '../types/location';
-import { Group, GroupData } from '../types/clientTypes';
-import { SeriesLevel, SeriesProgress } from '../store/progressStore';
+} from "../types/sessionTypes";
+import { CreateLocationData } from "../types/location";
+import { Group, GroupData } from "../types/clientTypes";
+import { SeriesLevel, SeriesProgress } from "../store/progressStore";
 
-import type { Location } from '../types/location';
+import type { Location } from "../types/location";
 
 export const useRegisterUser = () => {
   const queryClient = useQueryClient();
@@ -198,7 +198,7 @@ export const useRegisterUser = () => {
       setAuth(data.access, data.refresh, data.user);
     },
     onError: (error) => {
-      console.error('Failed to register==>', error);
+      console.error("Failed to register==>", error);
     },
   });
 };
@@ -214,7 +214,7 @@ export const useLoginUser = () => {
       setAuth(data.access, data.refresh, data.user);
     },
     onError: (error) => {
-      console.error('Failed to log in==>', error);
+      console.error("Failed to log in==>", error);
     },
   });
 };
@@ -228,7 +228,7 @@ export const useSetStaffPassword = () => {
       queryClient.invalidateQueries();
     },
     onError: (error) => {
-      console.error('Failed to set staff passsword==>', error);
+      console.error("Failed to set staff passsword==>", error);
     },
   });
 };
@@ -242,7 +242,7 @@ export const usePasswordResetRequest = () => {
       queryClient.invalidateQueries();
     },
     onError: (error) => {
-      console.error('Failed to send reset password request==>', error);
+      console.error("Failed to send reset password request==>", error);
     },
   });
 };
@@ -256,7 +256,7 @@ export const useResetPassword = () => {
       queryClient.invalidateQueries();
     },
     onError: (error) => {
-      console.error('Failed to reset password==>', error);
+      console.error("Failed to reset password==>", error);
     },
   });
 };
@@ -265,7 +265,7 @@ export const useResetPassword = () => {
 
 export const useGetPolicies = () => {
   return useQuery({
-    queryKey: ['policies'],
+    queryKey: ["policies"],
     queryFn: getPolicies,
   });
 };
@@ -275,7 +275,7 @@ export const useCreatePolicy = () => {
   return useMutation({
     mutationFn: createPolicy,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['policies'] });
+      queryClient.invalidateQueries({ queryKey: ["policies"] });
     },
   });
 };
@@ -294,7 +294,7 @@ export const useUpdatePolicy = () => {
       file?: File;
     }) => updatePolicy(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['policies'] });
+      queryClient.invalidateQueries({ queryKey: ["policies"] });
     },
   });
 };
@@ -304,7 +304,7 @@ export const useDeletePolicy = () => {
   return useMutation({
     mutationFn: (id: number) => deletePolicy(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['policies'] });
+      queryClient.invalidateQueries({ queryKey: ["policies"] });
     },
   });
 };
@@ -313,7 +313,7 @@ export const useDeletePolicy = () => {
 
 export const useGetRoles = () => {
   return useQuery({
-    queryKey: ['roles'],
+    queryKey: ["roles"],
     queryFn: getRoles,
   });
 };
@@ -323,7 +323,7 @@ export const useCreateRole = () => {
   return useMutation({
     mutationFn: createRole,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['roles'] });
+      queryClient.invalidateQueries({ queryKey: ["roles"] });
     },
   });
 };
@@ -338,7 +338,7 @@ export const useUpdateRole = () => {
       id: string;
     } & Role) => updateRole(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['roles'] });
+      queryClient.invalidateQueries({ queryKey: ["roles"] });
     },
   });
 };
@@ -348,14 +348,14 @@ export const useDeleteRole = () => {
   return useMutation({
     mutationFn: (id: string) => deleteRole(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['roles'] });
+      queryClient.invalidateQueries({ queryKey: ["roles"] });
     },
   });
 };
 
 export const useGetUserProfile = (options = {}) => {
   return useQuery({
-    queryKey: ['user_profile'],
+    queryKey: ["user_profile"],
     queryFn: get_user_profile,
     ...options,
   });
@@ -380,10 +380,10 @@ export const useUpdateUserProfile = () => {
       return update_user_profile(updateData);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['user_profile'] });
-      queryClient.invalidateQueries({ queryKey: ['business_profile'] });
+      queryClient.invalidateQueries({ queryKey: ["user_profile"] });
+      queryClient.invalidateQueries({ queryKey: ["business_profile"] });
     },
-    onError: (error) => console.error('Update user profile error:', error),
+    onError: (error) => console.error("Update user profile error:", error),
   });
 };
 
@@ -392,7 +392,7 @@ export const useLogout = () => {
 
   return () => {
     logout();
-    window.location.href = '/login';
+    window.location.href = "/login";
   };
 };
 
@@ -404,7 +404,7 @@ export const useBusinessProfile = () => {
       queryClient.invalidateQueries();
     },
     onError: (error) => {
-      console.error('Failed to update business profile==>', error);
+      console.error("Failed to update business profile==>", error);
     },
   });
 };
@@ -432,20 +432,20 @@ export const useUpdateBusinessProfile = () => {
     onSuccess: () => {
       queryClient.invalidateQueries();
     },
-    onError: (error) => console.error('Update error:', error),
+    onError: (error) => console.error("Update error:", error),
   });
 };
 
 export const useGetBusinessProfile = () =>
   useQuery({
-    queryKey: ['business-profile'],
+    queryKey: ["business-profile"],
     queryFn: get_business_profile,
   });
 
 // Availability hooks
 export const useGetAvailability = () => {
   return useQuery({
-    queryKey: ['availability'],
+    queryKey: ["availability"],
     queryFn: get_availability,
     staleTime: 1000 * 60 * 5, // 5 minutes
     gcTime: 1000 * 60 * 30, // 30 minutes cache time
@@ -477,13 +477,13 @@ export const useCreateAvailability = () => {
   return useMutation({
     mutationFn: create_availability,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['availability'] });
+      queryClient.invalidateQueries({ queryKey: ["availability"] });
       // Also invalidate related queries that might be affected
-      queryClient.invalidateQueries({ queryKey: ['calendar-sessions'] });
-      queryClient.invalidateQueries({ queryKey: ['booking-settings'] });
+      queryClient.invalidateQueries({ queryKey: ["calendar-sessions"] });
+      queryClient.invalidateQueries({ queryKey: ["booking-settings"] });
     },
     onError: (error: any) => {
-      console.error('Create availability error:', error);
+      console.error("Create availability error:", error);
       // Don't throw here, let component handle the error
     },
     retry: 1, // Retry once for mutations
@@ -495,12 +495,12 @@ export const useUpdateAvailability = () => {
   return useMutation({
     mutationFn: update_availability,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['availability'] });
-      queryClient.invalidateQueries({ queryKey: ['calendar-sessions'] });
-      queryClient.invalidateQueries({ queryKey: ['booking-settings'] });
+      queryClient.invalidateQueries({ queryKey: ["availability"] });
+      queryClient.invalidateQueries({ queryKey: ["calendar-sessions"] });
+      queryClient.invalidateQueries({ queryKey: ["booking-settings"] });
     },
     onError: (error: any) => {
-      console.error('Update availability error:', error);
+      console.error("Update availability error:", error);
     },
     retry: 1,
   });
@@ -511,12 +511,12 @@ export const usePartialUpdateAvailability = () => {
   return useMutation({
     mutationFn: partial_update_availability,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['availability'] });
-      queryClient.invalidateQueries({ queryKey: ['calendar-sessions'] });
-      queryClient.invalidateQueries({ queryKey: ['booking-settings'] });
+      queryClient.invalidateQueries({ queryKey: ["availability"] });
+      queryClient.invalidateQueries({ queryKey: ["calendar-sessions"] });
+      queryClient.invalidateQueries({ queryKey: ["booking-settings"] });
     },
     onError: (error: any) => {
-      console.error('Partial update availability error:', error);
+      console.error("Partial update availability error:", error);
     },
     retry: 1,
   });
@@ -526,14 +526,14 @@ export const useSearchCities = () => {
   return useMutation({
     mutationFn: searchCities,
     onError: (error) => {
-      console.error('Failed to search cities:', error);
+      console.error("Failed to search cities:", error);
     },
   });
 };
 
 export const useGetBusinessServices = () => {
   return useQuery({
-    queryKey: ['business-services'],
+    queryKey: ["business-services"],
     queryFn: get_business_services,
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
@@ -543,7 +543,7 @@ export const useGetBusinessServices = () => {
 
 export const useGetLocations = () => {
   return useQuery<Location[]>({
-    queryKey: ['locations'],
+    queryKey: ["locations"],
     queryFn: async () => {
       const data = await get_locations();
       return data as unknown as Location[];
@@ -556,7 +556,7 @@ export const useGetLocations = () => {
 
 export const useGetLocation = (id: number) => {
   return useQuery({
-    queryKey: ['locations', id],
+    queryKey: ["locations", id],
     queryFn: () => get_location(id),
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
@@ -570,9 +570,9 @@ export const useCreateLocation = () => {
   return useMutation({
     mutationFn: create_location,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['locations'] });
+      queryClient.invalidateQueries({ queryKey: ["locations"] });
     },
-    onError: (error) => console.error('Create location error:', error),
+    onError: (error) => console.error("Create location error:", error),
   });
 };
 
@@ -589,9 +589,9 @@ export const useUpdateLocation = () => {
       return update_location(id, data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['locations'] });
+      queryClient.invalidateQueries({ queryKey: ["locations"] });
     },
-    onError: (error) => console.error('Update location error:', error),
+    onError: (error) => console.error("Update location error:", error),
   });
 };
 
@@ -600,9 +600,9 @@ export const useDeleteLocation = () => {
   return useMutation({
     mutationFn: delete_location,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['locations'] });
+      queryClient.invalidateQueries({ queryKey: ["locations"] });
     },
-    onError: (error) => console.error('Delete location error:', error),
+    onError: (error) => console.error("Delete location error:", error),
   });
 };
 
@@ -611,9 +611,9 @@ export const useSetPrimaryLocation = () => {
   return useMutation({
     mutationFn: set_primary_location,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['locations'] });
+      queryClient.invalidateQueries({ queryKey: ["locations"] });
     },
-    onError: (error) => console.error('Set primary location error:', error),
+    onError: (error) => console.error("Set primary location error:", error),
   });
 };
 
@@ -623,7 +623,7 @@ export const useGetClients = (
   search?: string
 ): UseQueryResult<PaginatedResponse<Client>, Error> => {
   return useQuery({
-    queryKey: ['clients', pageIndex, pageSize, search],
+    queryKey: ["clients", pageIndex, pageSize, search],
     queryFn: () => get_clients(pageIndex, pageSize, search),
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
@@ -633,7 +633,7 @@ export const useGetClients = (
 
 export const useGetClient = (id: string) => {
   return useQuery({
-    queryKey: ['client', id],
+    queryKey: ["client", id],
     queryFn: () => get_client(id),
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
@@ -653,21 +653,21 @@ export const useAddClient = () => {
         last_name: data.last_name,
         email: data.email,
         phone_number: data.phone_number,
-        location: data.location || '',
+        location: data.location || "",
         gender: data.gender,
         dob: data.dob,
         session_ids: data.session_ids,
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['clients'] });
+      queryClient.invalidateQueries({ queryKey: ["clients"] });
     },
-    onError: (error) => console.error('Add client error:', error),
+    onError: (error) => console.error("Add client error:", error),
   });
 };
 
 export const useGetStaff = () => {
   return useQuery({
-    queryKey: ['staff'],
+    queryKey: ["staff"],
     queryFn: get_staff,
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
@@ -677,7 +677,7 @@ export const useGetStaff = () => {
 
 export const useGetStaffMember = (id: string) => {
   return useQuery({
-    queryKey: ['staff', id],
+    queryKey: ["staff", id],
     queryFn: () => get_staff_member(id),
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
@@ -691,9 +691,9 @@ export const useCreateStaffMember = () => {
   return useMutation<StaffResponse, Error, CreateStaffRequest>({
     mutationFn: (data: CreateStaffRequest) => create_staff(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['staff'] });
+      queryClient.invalidateQueries({ queryKey: ["staff"] });
     },
-    onError: (error) => console.error('Create staff member error ====>', error),
+    onError: (error) => console.error("Create staff member error ====>", error),
   });
 };
 
@@ -708,16 +708,16 @@ export const useUpdateStaffMember = () => {
       updateStaffData: any;
     }) => update_staff_member(id, updateStaffData),
     onSuccess: (_, { id }) => {
-      queryClient.invalidateQueries({ queryKey: ['staff'] });
-      queryClient.invalidateQueries({ queryKey: ['staff', id] });
+      queryClient.invalidateQueries({ queryKey: ["staff"] });
+      queryClient.invalidateQueries({ queryKey: ["staff", id] });
     },
-    onError: (error) => console.error('Update staff member error ====>', error),
+    onError: (error) => console.error("Update staff member error ====>", error),
   });
 };
 
 export const useGetAnalytics = (filterOption?: DateFilterOption) => {
   return useQuery<AnalyticsData>({
-    queryKey: ['analytics', filterOption],
+    queryKey: ["analytics", filterOption],
     queryFn: () => get_analytics(filterOption),
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
@@ -727,7 +727,7 @@ export const useGetAnalytics = (filterOption?: DateFilterOption) => {
 
 export const useGetUpcomingSessions = () => {
   return useQuery<UpcomingSession[]>({
-    queryKey: ['upcoming_sessions'],
+    queryKey: ["upcoming_sessions"],
     queryFn: get_upcoming_sessions,
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
@@ -740,8 +740,8 @@ export const useCancelSession = () => {
   return useMutation({
     mutationFn: (sessionId: string) => cancel_session(sessionId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['upcoming_sessions'] });
-      queryClient.invalidateQueries({ queryKey: ['analytics'] });
+      queryClient.invalidateQueries({ queryKey: ["upcoming_sessions"] });
+      queryClient.invalidateQueries({ queryKey: ["analytics"] });
     },
   });
 };
@@ -757,16 +757,16 @@ export const useRescheduleSession = () => {
       newDateTime: { date: string; startTime: string; endTime: string };
     }) => reschedule_session(sessionId, newDateTime),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['upcoming_sessions'] });
-      queryClient.invalidateQueries({ queryKey: ['analytics'] });
-      queryClient.invalidateQueries({ queryKey: ['sessions'] });
+      queryClient.invalidateQueries({ queryKey: ["upcoming_sessions"] });
+      queryClient.invalidateQueries({ queryKey: ["analytics"] });
+      queryClient.invalidateQueries({ queryKey: ["sessions"] });
     },
   });
 };
 
 export const useGetSessionAnalytics = (sessionId: string) => {
   return useQuery({
-    queryKey: ['session_analytics', sessionId],
+    queryKey: ["session_analytics", sessionId],
     queryFn: () => get_session_analytics(sessionId),
     staleTime: 0, // Set to 0 to ensure it always fetches fresh data
     refetchOnWindowFocus: true,
@@ -778,7 +778,7 @@ export const useGetSessionAnalytics = (sessionId: string) => {
 
 export const useGetClientAnalytics = (clientId: string) => {
   return useQuery({
-    queryKey: ['client_analytics', clientId],
+    queryKey: ["client_analytics", clientId],
     queryFn: () => get_client_analytics(clientId),
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
@@ -795,7 +795,7 @@ export const useGetSessions = (
   searchQuery?: string
 ): UseQueryResult<PaginatedResponse<Session>, Error> => {
   return useQuery<PaginatedResponse<Session>, Error>({
-    queryKey: ['sessions', pageIndex, pageSize, filters, searchQuery],
+    queryKey: ["sessions", pageIndex, pageSize, filters, searchQuery],
     queryFn: () => get_sessions(filters, pageIndex, pageSize, searchQuery),
     gcTime: 5 * 60 * 1000, // Keep unused data in cache for 5 minutes
     refetchOnWindowFocus: true,
@@ -811,14 +811,14 @@ export const useDeleteSession = () => {
   return useMutation({
     mutationFn: (sessionId: string) => delete_session(sessionId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['sessions'] });
+      queryClient.invalidateQueries({ queryKey: ["sessions"] });
     },
   });
 };
 
 export const useGetCalendarSessions = (): UseQueryResult<Session[], Error> => {
   return useQuery<Session[], Error>({
-    queryKey: ['sessions'],
+    queryKey: ["sessions"],
     queryFn: () => get_calendar_sessions(),
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
@@ -830,7 +830,7 @@ export const useGetStaffSessions = (
   id: string
 ): UseQueryResult<Session[], Error> => {
   return useQuery<Session[], Error>({
-    queryKey: ['sessions', id],
+    queryKey: ["sessions", id],
     queryFn: () => get_staff_sessions(id),
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
@@ -840,7 +840,7 @@ export const useGetStaffSessions = (
 
 export const useGetClassSessions = () => {
   return useQuery<Session[]>({
-    queryKey: ['class_sessions'],
+    queryKey: ["class_sessions"],
     queryFn: get_class_sessions,
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
@@ -850,7 +850,7 @@ export const useGetClassSessions = () => {
 
 export const useGetSessionDetail = <T = Session>(id: string) => {
   return useQuery<Session, Error, T>({
-    queryKey: ['session', id],
+    queryKey: ["session", id],
     queryFn: () => get_session_detail(id),
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
@@ -863,7 +863,7 @@ export const useGetSessionDetail = <T = Session>(id: string) => {
 
 export const useGetSessionCategories = () => {
   return useQuery({
-    queryKey: ['session_categories'],
+    queryKey: ["session_categories"],
     queryFn: get_session_categories,
     staleTime: 1000 * 60 * 10,
     refetchOnWindowFocus: false,
@@ -881,10 +881,10 @@ export const useCreateSessionCategory = () => {
       description?: string;
     }) => create_session_category({ name, description }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['session_categories'] });
+      queryClient.invalidateQueries({ queryKey: ["session_categories"] });
     },
     onError: (error) => {
-      console.error('Failed to create session category:', error);
+      console.error("Failed to create session category:", error);
     },
   });
 };
@@ -902,10 +902,10 @@ export const useUpdateSessionCategory = () => {
       description?: string;
     }) => update_session_category(id, { name, description }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['session_categories'] });
+      queryClient.invalidateQueries({ queryKey: ["session_categories"] });
     },
     onError: (error) => {
-      console.error('Failed to update session category:', error);
+      console.error("Failed to update session category:", error);
     },
   });
 };
@@ -915,17 +915,17 @@ export const useDeleteSessionCategory = () => {
   return useMutation({
     mutationFn: ({ id }: { id: number }) => delete_session_category(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['session_categories'] });
+      queryClient.invalidateQueries({ queryKey: ["session_categories"] });
     },
     onError: (error) => {
-      console.error('Failed to delete session category:', error);
+      console.error("Failed to delete session category:", error);
     },
   });
 };
 
 export const useGetSessionSubCategories = () => {
   return useQuery({
-    queryKey: ['session_subcategories'],
+    queryKey: ["session_subcategories"],
     queryFn: get_session_subcategories,
     staleTime: 1000 * 60 * 10,
     refetchOnWindowFocus: false,
@@ -955,22 +955,23 @@ export const useCreateSessionSubCategory = () => {
       min_duration?: number;
       max_duration?: number;
       price_per_minute?: number;
-    }) => create_session_subcategory({ 
-      name, 
-      description, 
-      category, 
-      is_service, 
-      base_price, 
-      default_duration, 
-      min_duration, 
-      max_duration, 
-      price_per_minute 
-    }),
+    }) =>
+      create_session_subcategory({
+        name,
+        description,
+        category,
+        is_service,
+        base_price,
+        default_duration,
+        min_duration,
+        max_duration,
+        price_per_minute,
+      }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['session_subcategories'] });
+      queryClient.invalidateQueries({ queryKey: ["session_subcategories"] });
     },
     onError: (error) => {
-      console.error('Failed to create session subcategory:', error);
+      console.error("Failed to create session subcategory:", error);
     },
   });
 };
@@ -1000,22 +1001,23 @@ export const useUpdateSessionSubCategory = () => {
       min_duration?: number;
       max_duration?: number;
       price_per_minute?: number;
-    }) => update_session_subcategory(id, { 
-      name, 
-      description, 
-      category, 
-      is_service, 
-      base_price, 
-      default_duration, 
-      min_duration, 
-      max_duration, 
-      price_per_minute 
-    }),
+    }) =>
+      update_session_subcategory(id, {
+        name,
+        description,
+        category,
+        is_service,
+        base_price,
+        default_duration,
+        min_duration,
+        max_duration,
+        price_per_minute,
+      }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['session_subcategories'] });
+      queryClient.invalidateQueries({ queryKey: ["session_subcategories"] });
     },
     onError: (error) => {
-      console.error('Failed to update session subcategory:', error);
+      console.error("Failed to update session subcategory:", error);
     },
   });
 };
@@ -1025,17 +1027,17 @@ export const useDeleteSessionSubCategory = () => {
   return useMutation({
     mutationFn: ({ id }: { id: number }) => delete_session_subcategory(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['session_subcategories'] });
+      queryClient.invalidateQueries({ queryKey: ["session_subcategories"] });
     },
     onError: (error) => {
-      console.error('Failed to delete session subcategory:', error);
+      console.error("Failed to delete session subcategory:", error);
     },
   });
 };
 
 export const useGetSessionSkills = () => {
   return useQuery({
-    queryKey: ['session_skills'],
+    queryKey: ["session_skills"],
     queryFn: get_session_skills,
     staleTime: 1000 * 60 * 10,
     refetchOnWindowFocus: false,
@@ -1055,10 +1057,10 @@ export const useCreateSessionSkill = () => {
       subcategory: number;
     }) => create_session_skill({ name, description, subcategory }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['session_skills'] });
+      queryClient.invalidateQueries({ queryKey: ["session_skills"] });
     },
     onError: (error) => {
-      console.error('Failed to create session skill:', error);
+      console.error("Failed to create session skill:", error);
     },
   });
 };
@@ -1078,10 +1080,10 @@ export const useUpdateSessionSkill = () => {
       subcategory: number;
     }) => update_session_skill(id, { name, description, subcategory }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['session_skills'] });
+      queryClient.invalidateQueries({ queryKey: ["session_skills"] });
     },
     onError: (error) => {
-      console.error('Failed to update session skill:', error);
+      console.error("Failed to update session skill:", error);
     },
   });
 };
@@ -1091,17 +1093,17 @@ export const useDeleteSessionSkill = () => {
   return useMutation({
     mutationFn: ({ id }: { id: number }) => delete_session_skill(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['session_skills'] });
+      queryClient.invalidateQueries({ queryKey: ["session_skills"] });
     },
     onError: (error) => {
-      console.error('Failed to delete session skill:', error);
+      console.error("Failed to delete session skill:", error);
     },
   });
 };
 
 export const useGetSessionClients = (sessionId: string) => {
   return useQuery({
-    queryKey: ['session_clients', sessionId],
+    queryKey: ["session_clients", sessionId],
     queryFn: () => get_session_clients(sessionId),
     staleTime: 0,
     refetchOnWindowFocus: false,
@@ -1119,23 +1121,23 @@ export const useCreateSession = () => {
     onSuccess: async () => {
       await Promise.all([
         queryClient.invalidateQueries({
-          queryKey: ['sessions'],
-          refetchType: 'active',
+          queryKey: ["sessions"],
+          refetchType: "active",
           exact: false,
         }),
         queryClient.invalidateQueries({
-          queryKey: ['upcoming_sessions'],
-          refetchType: 'active',
+          queryKey: ["upcoming_sessions"],
+          refetchType: "active",
           exact: true,
         }),
         queryClient.invalidateQueries({
-          queryKey: ['calendar_sessions'],
-          refetchType: 'active',
+          queryKey: ["calendar_sessions"],
+          refetchType: "active",
           exact: true,
         }),
         queryClient.refetchQueries({
-          queryKey: ['sessions'],
-          type: 'active',
+          queryKey: ["sessions"],
+          type: "active",
           exact: false,
         }),
       ]);
@@ -1149,9 +1151,9 @@ export const useUpdateSession = () => {
     mutationFn: ({ id, updateData }: { id: string; updateData: any }) =>
       update_session(id, updateData),
     onSuccess: (_, { id }) => {
-      queryClient.invalidateQueries({ queryKey: ['sessions'] });
-      queryClient.invalidateQueries({ queryKey: ['session', id] });
-      queryClient.invalidateQueries({ queryKey: ['upcoming_sessions'] });
+      queryClient.invalidateQueries({ queryKey: ["sessions"] });
+      queryClient.invalidateQueries({ queryKey: ["session", id] });
+      queryClient.invalidateQueries({ queryKey: ["upcoming_sessions"] });
     },
   });
 };
@@ -1176,14 +1178,14 @@ export const useUpdateClient = () => {
       };
     }) => update_client(id, updateData),
     onSuccess: (_, { id }) => {
-      queryClient.invalidateQueries({ queryKey: ['clients'] });
-      queryClient.invalidateQueries({ queryKey: ['client', id] });
-      queryClient.invalidateQueries({ queryKey: ['client_members', id] });
-      queryClient.invalidateQueries({ queryKey: ['sessions'] });
-      queryClient.invalidateQueries({ queryKey: ['class_sessions'] });
-      queryClient.invalidateQueries({ queryKey: ['upcoming_sessions'] });
+      queryClient.invalidateQueries({ queryKey: ["clients"] });
+      queryClient.invalidateQueries({ queryKey: ["client", id] });
+      queryClient.invalidateQueries({ queryKey: ["client_members", id] });
+      queryClient.invalidateQueries({ queryKey: ["sessions"] });
+      queryClient.invalidateQueries({ queryKey: ["class_sessions"] });
+      queryClient.invalidateQueries({ queryKey: ["upcoming_sessions"] });
     },
-    onError: (error) => console.error('Update client error:', error),
+    onError: (error) => console.error("Update client error:", error),
   });
 };
 
@@ -1192,7 +1194,7 @@ export const useDeactivateClient = () => {
   return useMutation({
     mutationFn: deactivate_client,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['clients'] });
+      queryClient.invalidateQueries({ queryKey: ["clients"] });
     },
   });
 };
@@ -1202,7 +1204,7 @@ export const useActivateClient = () => {
   return useMutation({
     mutationFn: activate_client,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['clients'] });
+      queryClient.invalidateQueries({ queryKey: ["clients"] });
     },
   });
 };
@@ -1220,46 +1222,46 @@ export const useMarkClientAttended = () => {
     onSuccess: (data, { clientId, sessionId }) => {
       // Invalidate session-related queries
       queryClient.invalidateQueries({
-        queryKey: ['session_clients', sessionId],
+        queryKey: ["session_clients", sessionId],
       });
       queryClient.invalidateQueries({
-        queryKey: ['session_analytics', sessionId],
+        queryKey: ["session_analytics", sessionId],
       });
       queryClient.invalidateQueries({
-        queryKey: ['session', sessionId],
+        queryKey: ["session", sessionId],
       });
 
       // Invalidate client-related queries
       queryClient.invalidateQueries({
-        queryKey: ['client_analytics', clientId],
+        queryKey: ["client_analytics", clientId],
       });
       queryClient.invalidateQueries({
-        queryKey: ['client_sessions', clientId],
+        queryKey: ["client_sessions", clientId],
       });
       queryClient.invalidateQueries({
-        queryKey: ['client_session_details', clientId],
+        queryKey: ["client_session_details", clientId],
       });
       queryClient.invalidateQueries({
-        queryKey: ['client', clientId],
+        queryKey: ["client", clientId],
       });
 
       // Invalidate global analytics and sessions queries
       queryClient.invalidateQueries({
-        queryKey: ['client_analytics'],
+        queryKey: ["client_analytics"],
       });
       queryClient.invalidateQueries({
-        queryKey: ['class_sessions'],
+        queryKey: ["class_sessions"],
       });
       queryClient.invalidateQueries({
-        queryKey: ['sessions'],
+        queryKey: ["sessions"],
       });
 
       // Force a full refetch of the data
       queryClient.refetchQueries({
-        queryKey: ['session_clients', sessionId],
+        queryKey: ["session_clients", sessionId],
       });
       queryClient.refetchQueries({
-        queryKey: ['client_sessions', clientId],
+        queryKey: ["client_sessions", clientId],
       });
 
       return data;
@@ -1280,46 +1282,46 @@ export const useMarkClientNotAttended = () => {
     onSuccess: (data, { clientId, sessionId }) => {
       // Invalidate session-related queries
       queryClient.invalidateQueries({
-        queryKey: ['session_clients', sessionId],
+        queryKey: ["session_clients", sessionId],
       });
       queryClient.invalidateQueries({
-        queryKey: ['session_analytics', sessionId],
+        queryKey: ["session_analytics", sessionId],
       });
       queryClient.invalidateQueries({
-        queryKey: ['session', sessionId],
+        queryKey: ["session", sessionId],
       });
 
       // Invalidate client-related queries
       queryClient.invalidateQueries({
-        queryKey: ['client_analytics', clientId],
+        queryKey: ["client_analytics", clientId],
       });
       queryClient.invalidateQueries({
-        queryKey: ['client_sessions', clientId],
+        queryKey: ["client_sessions", clientId],
       });
       queryClient.invalidateQueries({
-        queryKey: ['client_session_details', clientId],
+        queryKey: ["client_session_details", clientId],
       });
       queryClient.invalidateQueries({
-        queryKey: ['client', clientId],
+        queryKey: ["client", clientId],
       });
 
       // Invalidate global analytics and sessions queries
       queryClient.invalidateQueries({
-        queryKey: ['client_analytics'],
+        queryKey: ["client_analytics"],
       });
       queryClient.invalidateQueries({
-        queryKey: ['class_sessions'],
+        queryKey: ["class_sessions"],
       });
       queryClient.invalidateQueries({
-        queryKey: ['sessions'],
+        queryKey: ["sessions"],
       });
 
       // Force a full refetch of the data
       queryClient.refetchQueries({
-        queryKey: ['session_clients', sessionId],
+        queryKey: ["session_clients", sessionId],
       });
       queryClient.refetchQueries({
-        queryKey: ['client_sessions', clientId],
+        queryKey: ["client_sessions", clientId],
       });
 
       return data;
@@ -1342,46 +1344,46 @@ export const useUpdateAttendanceStatus = () => {
     onSuccess: (data, { clientId, sessionId }) => {
       // Invalidate session-related queries
       queryClient.invalidateQueries({
-        queryKey: ['session_clients', sessionId],
+        queryKey: ["session_clients", sessionId],
       });
       queryClient.invalidateQueries({
-        queryKey: ['session_analytics', sessionId],
+        queryKey: ["session_analytics", sessionId],
       });
       queryClient.invalidateQueries({
-        queryKey: ['session', sessionId],
+        queryKey: ["session", sessionId],
       });
 
       // Invalidate client-related queries
       queryClient.invalidateQueries({
-        queryKey: ['client_analytics', clientId],
+        queryKey: ["client_analytics", clientId],
       });
       queryClient.invalidateQueries({
-        queryKey: ['client_sessions', clientId],
+        queryKey: ["client_sessions", clientId],
       });
       queryClient.invalidateQueries({
-        queryKey: ['client_session_details', clientId],
+        queryKey: ["client_session_details", clientId],
       });
       queryClient.invalidateQueries({
-        queryKey: ['client', clientId],
+        queryKey: ["client", clientId],
       });
 
       // Invalidate global analytics and sessions queries
       queryClient.invalidateQueries({
-        queryKey: ['client_analytics'],
+        queryKey: ["client_analytics"],
       });
       queryClient.invalidateQueries({
-        queryKey: ['class_sessions'],
+        queryKey: ["class_sessions"],
       });
       queryClient.invalidateQueries({
-        queryKey: ['sessions'],
+        queryKey: ["sessions"],
       });
 
       // Force a full refetch of the data
       queryClient.refetchQueries({
-        queryKey: ['session_clients', sessionId],
+        queryKey: ["session_clients", sessionId],
       });
       queryClient.refetchQueries({
-        queryKey: ['client_sessions', clientId],
+        queryKey: ["client_sessions", clientId],
       });
 
       return data;
@@ -1394,8 +1396,8 @@ export const useActivateSession = () => {
   return useMutation({
     mutationFn: activate_session,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['sessions'] });
-      queryClient.invalidateQueries({ queryKey: ['session'] });
+      queryClient.invalidateQueries({ queryKey: ["sessions"] });
+      queryClient.invalidateQueries({ queryKey: ["session"] });
     },
   });
 };
@@ -1405,8 +1407,8 @@ export const useDeactivateSession = () => {
   return useMutation({
     mutationFn: deactivate_session,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['sessions'] });
-      queryClient.invalidateQueries({ queryKey: ['session'] });
+      queryClient.invalidateQueries({ queryKey: ["sessions"] });
+      queryClient.invalidateQueries({ queryKey: ["session"] });
     },
   });
 };
@@ -1424,27 +1426,27 @@ export const useRemoveClientFromSession = () => {
     onSuccess: (_, { clientId, sessionId }) => {
       // Invalidate session-related queries
       queryClient.invalidateQueries({
-        queryKey: ['session_clients', sessionId],
+        queryKey: ["session_clients", sessionId],
       });
       queryClient.invalidateQueries({
-        queryKey: ['session_analytics', sessionId],
+        queryKey: ["session_analytics", sessionId],
       });
 
       // Invalidate client-related queries
       queryClient.invalidateQueries({
-        queryKey: ['client_analytics', clientId],
+        queryKey: ["client_analytics", clientId],
       });
       queryClient.invalidateQueries({
-        queryKey: ['client_sessions', clientId],
+        queryKey: ["client_sessions", clientId],
       });
 
       // Invalidate global queries
-      queryClient.invalidateQueries({ queryKey: ['dashboard_analytics'] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard_analytics"] });
       queryClient.invalidateQueries({
-        queryKey: ['client_analytics'],
+        queryKey: ["client_analytics"],
       });
       queryClient.invalidateQueries({
-        queryKey: ['class_sessions'],
+        queryKey: ["class_sessions"],
       });
     },
   });
@@ -1455,7 +1457,7 @@ export const useActivateStaff = () => {
   return useMutation({
     mutationFn: activate_staff,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['staff'] });
+      queryClient.invalidateQueries({ queryKey: ["staff"] });
     },
   });
 };
@@ -1465,7 +1467,7 @@ export const useDeactivateStaff = () => {
   return useMutation({
     mutationFn: deactivate_staff,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['staff'] });
+      queryClient.invalidateQueries({ queryKey: ["staff"] });
     },
   });
 };
@@ -1477,7 +1479,7 @@ export const useGetGroups = (
   search?: string
 ): UseQueryResult<PaginatedResponse<GroupData>, Error> => {
   return useQuery({
-    queryKey: ['groups', pageIndex, pageSize, search],
+    queryKey: ["groups", pageIndex, pageSize, search],
     queryFn: () => get_groups(pageIndex, pageSize, search),
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
@@ -1486,7 +1488,7 @@ export const useGetGroups = (
 
 export const useGetGroup = (id: string) => {
   return useQuery<Group>({
-    queryKey: ['group', id],
+    queryKey: ["group", id],
     queryFn: () => get_group(id),
     enabled: !!id,
   });
@@ -1497,10 +1499,10 @@ export const useAddGroup = () => {
   return useMutation({
     mutationFn: add_group,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['groups'] });
+      queryClient.invalidateQueries({ queryKey: ["groups"] });
     },
     onError: (error) => {
-      console.error('Failed to add group:', error);
+      console.error("Failed to add group:", error);
     },
   });
 };
@@ -1523,19 +1525,19 @@ export const useUpdateGroup = () => {
       return update_group(id, dataToUpdate as any);
     },
     onSuccess: (_, { id }) => {
-      queryClient.invalidateQueries({ queryKey: ['groups'] });
-      queryClient.invalidateQueries({ queryKey: ['group', id] });
-      queryClient.invalidateQueries({ queryKey: ['group_members', id] });
+      queryClient.invalidateQueries({ queryKey: ["groups"] });
+      queryClient.invalidateQueries({ queryKey: ["group", id] });
+      queryClient.invalidateQueries({ queryKey: ["group_members", id] });
     },
     onError: (error) => {
-      console.error('Failed to update group:', error);
+      console.error("Failed to update group:", error);
     },
   });
 };
 
 export const useGetGroupMembers = (groupId: string) => {
   return useQuery({
-    queryKey: ['group_members', groupId],
+    queryKey: ["group_members", groupId],
     queryFn: () => get_group_members(groupId),
     enabled: !!groupId,
   });
@@ -1552,8 +1554,8 @@ export const useAddMemberToGroup = () => {
       clientId: string;
     }) => add_member_to_group(groupId, clientId),
     onSuccess: (_, { groupId }) => {
-      queryClient.invalidateQueries({ queryKey: ['group_members', groupId] });
-      queryClient.invalidateQueries({ queryKey: ['group', groupId] });
+      queryClient.invalidateQueries({ queryKey: ["group_members", groupId] });
+      queryClient.invalidateQueries({ queryKey: ["group", groupId] });
     },
   });
 };
@@ -1569,8 +1571,8 @@ export const useRemoveMemberFromGroup = () => {
       clientId: string;
     }) => remove_member_from_group(groupId, clientId),
     onSuccess: (_, { groupId }) => {
-      queryClient.invalidateQueries({ queryKey: ['group_members', groupId] });
-      queryClient.invalidateQueries({ queryKey: ['group', groupId] });
+      queryClient.invalidateQueries({ queryKey: ["group_members", groupId] });
+      queryClient.invalidateQueries({ queryKey: ["group", groupId] });
     },
   });
 };
@@ -1578,7 +1580,7 @@ export const useRemoveMemberFromGroup = () => {
 // Makeup Session related hooks
 export const useGetMakeupSessions = () => {
   return useQuery({
-    queryKey: ['makeup_sessions'],
+    queryKey: ["makeup_sessions"],
     queryFn: getMakeupSessions,
     staleTime: 1000 * 60 * 5, // 5 minutes
     refetchOnWindowFocus: false,
@@ -1590,10 +1592,10 @@ export const useCreateMakeupSession = () => {
   return useMutation({
     mutationFn: createMakeupSession,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['makeup_sessions'] });
+      queryClient.invalidateQueries({ queryKey: ["makeup_sessions"] });
     },
     onError: (error) => {
-      console.error('Failed to create makeup session:', error);
+      console.error("Failed to create makeup session:", error);
     },
   });
 };
@@ -1609,10 +1611,10 @@ export const useUpdateMakeupSession = () => {
       makeupSessionData: MakeUpSession;
     }) => updateMakeupSession(id, makeupSessionData),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['makeup_sessions'] });
+      queryClient.invalidateQueries({ queryKey: ["makeup_sessions"] });
     },
     onError: (error) => {
-      console.error('Failed to update makeup session:', error);
+      console.error("Failed to update makeup session:", error);
     },
   });
 };
@@ -1622,10 +1624,10 @@ export const useDeleteMakeupSession = () => {
   return useMutation({
     mutationFn: ({ id }: { id: string }) => deleteMakeupSession(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['makeup_sessions'] });
+      queryClient.invalidateQueries({ queryKey: ["makeup_sessions"] });
     },
     onError: (error) => {
-      console.error('Failed to delete makeup session:', error);
+      console.error("Failed to delete makeup session:", error);
     },
   });
 };
@@ -1633,7 +1635,7 @@ export const useDeleteMakeupSession = () => {
 // Attended Session related hooks
 export const useGetAttendedSessions = () => {
   return useQuery({
-    queryKey: ['attended_sessions'],
+    queryKey: ["attended_sessions"],
     queryFn: getAttendedSessions,
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
@@ -1642,7 +1644,7 @@ export const useGetAttendedSessions = () => {
 
 export const useGetProgressSeries = () => {
   return useQuery<SeriesLevel[]>({
-    queryKey: ['series'],
+    queryKey: ["series"],
     queryFn: getSeries,
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
@@ -1654,10 +1656,10 @@ export const useCreateAttendedSession = () => {
   return useMutation({
     mutationFn: createAttendedSession,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['attended_sessions'] });
+      queryClient.invalidateQueries({ queryKey: ["attended_sessions"] });
     },
     onError: (error) => {
-      console.error('Failed to create attended session:', error);
+      console.error("Failed to create attended session:", error);
     },
   });
 };
@@ -1673,10 +1675,10 @@ export const useUpdateAttendedSession = () => {
       attendedSessionData: AttendedSession;
     }) => updateAttendedSession(id, attendedSessionData),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['attended_sessions'] });
+      queryClient.invalidateQueries({ queryKey: ["attended_sessions"] });
     },
     onError: (error) => {
-      console.error('Failed to update attended session:', error);
+      console.error("Failed to update attended session:", error);
     },
   });
 };
@@ -1686,10 +1688,10 @@ export const useDeleteAttendedSession = () => {
   return useMutation({
     mutationFn: ({ id }: { id: string }) => deleteAttendedSession(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['attended_sessions'] });
+      queryClient.invalidateQueries({ queryKey: ["attended_sessions"] });
     },
     onError: (error) => {
-      console.error('Failed to delete attended session:', error);
+      console.error("Failed to delete attended session:", error);
     },
   });
 };
@@ -1707,31 +1709,31 @@ export const useBulkMarkAttendance = () => {
     onSuccess: (data, { sessionId }) => {
       // Invalidate session-related queries
       queryClient.invalidateQueries({
-        queryKey: ['session_clients', sessionId],
+        queryKey: ["session_clients", sessionId],
       });
       queryClient.invalidateQueries({
-        queryKey: ['session_analytics', sessionId],
+        queryKey: ["session_analytics", sessionId],
       });
       queryClient.invalidateQueries({
-        queryKey: ['session', sessionId],
+        queryKey: ["session", sessionId],
       });
 
       // Invalidate global analytics and sessions queries
       queryClient.invalidateQueries({
-        queryKey: ['class_sessions'],
+        queryKey: ["class_sessions"],
       });
       queryClient.invalidateQueries({
-        queryKey: ['sessions'],
+        queryKey: ["sessions"],
       });
 
       // Invalidate attended sessions to refresh the client's attendance data
       queryClient.invalidateQueries({
-        queryKey: ['attended_sessions'],
+        queryKey: ["attended_sessions"],
       });
 
       // Force a full refetch of the data
       queryClient.refetchQueries({
-        queryKey: ['session_clients', sessionId],
+        queryKey: ["session_clients", sessionId],
       });
 
       return data;
@@ -1755,29 +1757,29 @@ export const useBulkCreateMakeupSessions = () => {
     onSuccess: (data, { session }) => {
       // Invalidate session-related queries
       queryClient.invalidateQueries({
-        queryKey: ['session_clients', session],
+        queryKey: ["session_clients", session],
       });
       queryClient.invalidateQueries({
-        queryKey: ['session_analytics', session],
+        queryKey: ["session_analytics", session],
       });
       queryClient.invalidateQueries({
-        queryKey: ['session', session],
+        queryKey: ["session", session],
       });
       queryClient.invalidateQueries({
-        queryKey: ['makeup_sessions'],
+        queryKey: ["makeup_sessions"],
       });
 
       // Invalidate global analytics and sessions queries
       queryClient.invalidateQueries({
-        queryKey: ['class_sessions'],
+        queryKey: ["class_sessions"],
       });
       queryClient.invalidateQueries({
-        queryKey: ['sessions'],
+        queryKey: ["sessions"],
       });
 
       // Force a full refetch of the data
       queryClient.refetchQueries({
-        queryKey: ['session_clients', session],
+        queryKey: ["session_clients", session],
       });
 
       return data;
@@ -1798,29 +1800,29 @@ export const useBulkCancelSessions = () => {
     onSuccess: (data, { session }) => {
       // Invalidate session-related queries
       queryClient.invalidateQueries({
-        queryKey: ['session_clients', session],
+        queryKey: ["session_clients", session],
       });
       queryClient.invalidateQueries({
-        queryKey: ['session_analytics', session],
+        queryKey: ["session_analytics", session],
       });
       queryClient.invalidateQueries({
-        queryKey: ['session', session],
+        queryKey: ["session", session],
       });
       queryClient.invalidateQueries({
-        queryKey: ['cancelled_sessions'],
+        queryKey: ["cancelled_sessions"],
       });
 
       // Invalidate global analytics and sessions queries
       queryClient.invalidateQueries({
-        queryKey: ['class_sessions'],
+        queryKey: ["class_sessions"],
       });
       queryClient.invalidateQueries({
-        queryKey: ['sessions'],
+        queryKey: ["sessions"],
       });
 
       // Force a full refetch of the data
       queryClient.refetchQueries({
-        queryKey: ['session_clients', session],
+        queryKey: ["session_clients", session],
       });
 
       return data;
@@ -1831,7 +1833,7 @@ export const useBulkCancelSessions = () => {
 // Cancelled Session related hooks
 export const useGetCancelledSessions = () => {
   return useQuery({
-    queryKey: ['cancelled_sessions'],
+    queryKey: ["cancelled_sessions"],
     queryFn: getCancelledSessions,
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
@@ -1840,7 +1842,7 @@ export const useGetCancelledSessions = () => {
 
 export const useGetClientProgress = (clientId: string) => {
   return useQuery<SeriesProgress>({
-    queryKey: ['client_progress', clientId],
+    queryKey: ["client_progress", clientId],
     queryFn: () => getClientProgress(clientId),
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
@@ -1852,17 +1854,17 @@ export const useCreateCancelledSession = () => {
   return useMutation({
     mutationFn: createCancelledSession,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['cancelled_sessions'] });
+      queryClient.invalidateQueries({ queryKey: ["cancelled_sessions"] });
     },
     onError: (error) => {
-      console.error('Failed to create cancelled session:', error);
+      console.error("Failed to create cancelled session:", error);
     },
   });
 };
 
 export const useGetOutcomes = (clientId: string) => {
   return useQuery<SeriesLevel[]>({
-    queryKey: ['outcomes', clientId],
+    queryKey: ["outcomes", clientId],
     queryFn: () => getOutcomes(clientId),
     staleTime: 1000 * 60 * 5, // 5 minutes
     refetchOnWindowFocus: false,
@@ -1899,7 +1901,7 @@ export const useSubmitProgressFeedback = () => {
     mutationFn: (payload: ProgressFeedback) => submitProgressFeedback(payload),
     onSuccess: (_, { client_id, subcategory_id }) => {
       queryClient.invalidateQueries({
-        queryKey: ['levelFeedback', client_id, subcategory_id],
+        queryKey: ["levelFeedback", client_id, subcategory_id],
       });
     },
   });
@@ -1916,10 +1918,10 @@ export const useUpdateCancelledSession = () => {
       cancelledSessionData: CancelledSession;
     }) => updateCancelledSession(id, cancelledSessionData),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['cancelled_sessions'] });
+      queryClient.invalidateQueries({ queryKey: ["cancelled_sessions"] });
     },
     onError: (error) => {
-      console.error('Failed to update cancelled session:', error);
+      console.error("Failed to update cancelled session:", error);
     },
   });
 };
@@ -1929,10 +1931,10 @@ export const useDeleteCancelledSession = () => {
   return useMutation({
     mutationFn: ({ id }: { id: string }) => deleteCancelledSession(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['cancelled_sessions'] });
+      queryClient.invalidateQueries({ queryKey: ["cancelled_sessions"] });
     },
     onError: (error) => {
-      console.error('Failed to delete cancelled session:', error);
+      console.error("Failed to delete cancelled session:", error);
     },
   });
 };
@@ -1944,7 +1946,7 @@ export const useGetBookingRequests = (
   searchQuery?: string
 ): UseQueryResult<PaginatedResponse<BookingRequest>, Error> => {
   return useQuery({
-    queryKey: ['booking_requests', pageIndex, pageSize, searchQuery],
+    queryKey: ["booking_requests", pageIndex, pageSize, searchQuery],
     queryFn: () => get_booking_requests(pageIndex, pageSize, searchQuery),
     staleTime: 1000 * 60 * 2, // Shorter stale time for booking requests
     refetchOnWindowFocus: true,
@@ -1958,27 +1960,27 @@ export const useApproveBookingRequest = () => {
     mutationFn: (requestId: number) => approve_booking_request(requestId),
     onSuccess: () => {
       // Invalidate queries to refresh the table
-      queryClient.invalidateQueries({ queryKey: ['booking_requests'] });
-      queryClient.invalidateQueries({ queryKey: ['clients'] });
-      queryClient.invalidateQueries({ queryKey: ['booking-notifications'] });
+      queryClient.invalidateQueries({ queryKey: ["booking_requests"] });
+      queryClient.invalidateQueries({ queryKey: ["clients"] });
+      queryClient.invalidateQueries({ queryKey: ["booking-notifications"] });
 
       // Show success notification
-      import('@mantine/notifications').then(({ notifications }) => {
+      import("@mantine/notifications").then(({ notifications }) => {
         notifications.show({
-          title: 'Success',
-          message: 'Booking request approved successfully',
-          color: 'green',
+          title: "Success",
+          message: "Booking request approved successfully",
+          color: "green",
         });
       });
     },
     onError: (error) => {
-      console.error('Approve booking request error:', error);
+      console.error("Approve booking request error:", error);
       // Show error notification
-      import('@mantine/notifications').then(({ notifications }) => {
+      import("@mantine/notifications").then(({ notifications }) => {
         notifications.show({
-          title: 'Error',
-          message: 'Failed to approve booking request',
-          color: 'red',
+          title: "Error",
+          message: "Failed to approve booking request",
+          color: "red",
         });
       });
     },
@@ -1997,27 +1999,27 @@ export const useRejectBookingRequest = () => {
     }) => reject_booking_request(requestId, reason),
     onSuccess: (data) => {
       // Invalidate queries to refresh the table
-      queryClient.invalidateQueries({ queryKey: ['booking_requests'] });
-      queryClient.invalidateQueries({ queryKey: ['clients'] });
-      queryClient.invalidateQueries({ queryKey: ['booking-notifications'] });
+      queryClient.invalidateQueries({ queryKey: ["booking_requests"] });
+      queryClient.invalidateQueries({ queryKey: ["clients"] });
+      queryClient.invalidateQueries({ queryKey: ["booking-notifications"] });
 
       // Show success notification
-      import('@mantine/notifications').then(({ notifications }) => {
+      import("@mantine/notifications").then(({ notifications }) => {
         notifications.show({
-          title: 'Success',
-          message: 'Booking request rejected successfully',
-          color: 'orange',
+          title: "Success",
+          message: "Booking request rejected successfully",
+          color: "orange",
         });
       });
     },
     onError: (error) => {
-      console.error('Reject booking request error:', error);
+      console.error("Reject booking request error:", error);
       // Show error notification
-      import('@mantine/notifications').then(({ notifications }) => {
+      import("@mantine/notifications").then(({ notifications }) => {
         notifications.show({
-          title: 'Error',
-          message: 'Failed to reject booking request',
-          color: 'red',
+          title: "Error",
+          message: "Failed to reject booking request",
+          color: "red",
         });
       });
     },
@@ -2029,11 +2031,11 @@ export const useConvertClientToRegular = () => {
   return useMutation({
     mutationFn: (clientId: number) => convert_client_to_regular(clientId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['clients'] });
-      queryClient.invalidateQueries({ queryKey: ['booking_requests'] });
+      queryClient.invalidateQueries({ queryKey: ["clients"] });
+      queryClient.invalidateQueries({ queryKey: ["booking_requests"] });
     },
     onError: (error) =>
-      console.error('Convert client to regular error:', error),
+      console.error("Convert client to regular error:", error),
   });
 };
 
@@ -2042,10 +2044,10 @@ export const useConvertClientToBooking = () => {
   return useMutation({
     mutationFn: (clientId: number) => convert_client_to_booking(clientId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['clients'] });
+      queryClient.invalidateQueries({ queryKey: ["clients"] });
     },
     onError: (error) => {
-      console.error('Error converting client to booking:', error);
+      console.error("Error converting client to booking:", error);
     },
   });
 };
@@ -2058,7 +2060,7 @@ export const useGetProgressFeedback = (
     feedback: string;
     attachment: string;
   }>({
-    queryKey: ['levelFeedback', clientId, subcategoryId],
+    queryKey: ["levelFeedback", clientId, subcategoryId],
     queryFn: () => getLevelFeedback(clientId, subcategoryId),
     staleTime: 1000 * 60 * 5, // 5 minutes
     refetchOnWindowFocus: false,
@@ -2077,27 +2079,27 @@ export const useCancelBookingRequest = () => {
     }) => cancel_booking_request(requestId, reason),
     onSuccess: () => {
       // Invalidate queries to refresh the table
-      queryClient.invalidateQueries({ queryKey: ['booking_requests'] });
-      queryClient.invalidateQueries({ queryKey: ['clients'] });
-      queryClient.invalidateQueries({ queryKey: ['booking-notifications'] });
+      queryClient.invalidateQueries({ queryKey: ["booking_requests"] });
+      queryClient.invalidateQueries({ queryKey: ["clients"] });
+      queryClient.invalidateQueries({ queryKey: ["booking-notifications"] });
 
       // Show success notification
-      import('@mantine/notifications').then(({ notifications }) => {
+      import("@mantine/notifications").then(({ notifications }) => {
         notifications.show({
-          title: 'Success',
-          message: 'Booking request cancelled successfully',
-          color: 'orange',
+          title: "Success",
+          message: "Booking request cancelled successfully",
+          color: "orange",
         });
       });
     },
     onError: (error) => {
-      console.error('Cancel booking request error:', error);
+      console.error("Cancel booking request error:", error);
       // Show error notification
-      import('@mantine/notifications').then(({ notifications }) => {
+      import("@mantine/notifications").then(({ notifications }) => {
         notifications.show({
-          title: 'Error',
-          message: 'Failed to cancel booking request',
-          color: 'red',
+          title: "Error",
+          message: "Failed to cancel booking request",
+          color: "red",
         });
       });
     },
@@ -2107,7 +2109,7 @@ export const useCancelBookingRequest = () => {
 // Booking Settings APIs
 export const useGetBookingSettings = () => {
   return useQuery({
-    queryKey: ['booking-settings'],
+    queryKey: ["booking-settings"],
     queryFn: get_booking_settings,
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
@@ -2118,8 +2120,8 @@ export const useUpdateBookingSettings = () => {
   return useMutation({
     mutationFn: update_booking_settings,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['booking-settings'] });
-      queryClient.invalidateQueries({ queryKey: ['user-profile'] });
+      queryClient.invalidateQueries({ queryKey: ["booking-settings"] });
+      queryClient.invalidateQueries({ queryKey: ["user-profile"] });
     },
   });
 };
@@ -2127,7 +2129,7 @@ export const useUpdateBookingSettings = () => {
 // Booking Notifications APIs
 export const useGetBookingNotifications = () => {
   return useQuery({
-    queryKey: ['booking-notifications'],
+    queryKey: ["booking-notifications"],
     queryFn: get_booking_notifications,
     staleTime: 1 * 60 * 1000, // 1 minute for notifications
   });
@@ -2138,7 +2140,7 @@ export const useMarkNotificationAsRead = () => {
   return useMutation({
     mutationFn: mark_notification_as_read,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['booking-notifications'] });
+      queryClient.invalidateQueries({ queryKey: ["booking-notifications"] });
     },
   });
 };
@@ -2148,7 +2150,7 @@ export const useMarkAllNotificationsAsRead = () => {
   return useMutation({
     mutationFn: mark_all_notifications_as_read,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['booking-notifications'] });
+      queryClient.invalidateQueries({ queryKey: ["booking-notifications"] });
     },
   });
 };
@@ -2156,7 +2158,7 @@ export const useMarkAllNotificationsAsRead = () => {
 // Booking Audit Logs APIs
 export const useGetBookingAuditLogs = () => {
   return useQuery({
-    queryKey: ['booking-audit-logs'],
+    queryKey: ["booking-audit-logs"],
     queryFn: get_booking_audit_logs,
     staleTime: 5 * 60 * 1000, // 5 minutes for audit logs
   });
@@ -2169,7 +2171,7 @@ export const useGetBookingAuditLogs = () => {
 // Get public business information
 export const useGetPublicBusinessInfo = (businessSlug: string) => {
   return useQuery({
-    queryKey: ['publicBusinessInfo', businessSlug],
+    queryKey: ["publicBusinessInfo", businessSlug],
     queryFn: () => get_public_business_info(businessSlug),
     enabled: !!businessSlug,
   });
@@ -2178,7 +2180,7 @@ export const useGetPublicBusinessInfo = (businessSlug: string) => {
 // Get public business services
 export const useGetPublicBusinessServices = (businessSlug: string) => {
   return useQuery({
-    queryKey: ['publicBusinessServices', businessSlug],
+    queryKey: ["publicBusinessServices", businessSlug],
     queryFn: () => get_public_business_services(businessSlug),
     enabled: !!businessSlug,
   });
@@ -2193,33 +2195,51 @@ export const useGetPublicAvailability = (
   staffId?: number | null,
   locationId?: number | null
 ) => {
-  console.log('🔌 DEBUG: useGetPublicAvailability hook called with:', {
+  console.log("🔌 DEBUG: useGetPublicAvailability hook called with:", {
     businessSlug,
     serviceId,
     startDate,
     endDate,
     staffId,
-    locationId
+    locationId,
   });
 
   return useQuery({
-    queryKey: ['public-availability', businessSlug, serviceId, startDate, endDate, staffId, locationId],
+    queryKey: [
+      "public-availability",
+      businessSlug,
+      serviceId,
+      startDate,
+      endDate,
+      staffId,
+      locationId,
+    ],
     queryFn: async () => {
-      console.log('🚀 DEBUG: Executing API call get_public_availability with params:', {
-        businessSlug,
-        serviceId,
-        startDate,
-        endDate,
-        staffId,
-        locationId
-      });
-      
+      console.log(
+        "🚀 DEBUG: Executing API call get_public_availability with params:",
+        {
+          businessSlug,
+          serviceId,
+          startDate,
+          endDate,
+          staffId,
+          locationId,
+        }
+      );
+
       try {
-        const result = await get_public_availability(businessSlug, serviceId || 0, startDate, endDate, staffId, locationId);
-        console.log('✅ DEBUG: API call successful, response:', result);
+        const result = await get_public_availability(
+          businessSlug,
+          serviceId || 0,
+          startDate,
+          endDate,
+          staffId,
+          locationId
+        );
+        console.log("✅ DEBUG: API call successful, response:", result);
         return result;
       } catch (error) {
-        console.error('❌ DEBUG: API call failed:', error);
+        console.error("❌ DEBUG: API call failed:", error);
         throw error;
       }
     },
@@ -2264,21 +2284,21 @@ export const useCreatePublicBooking = () => {
       const response = await create_public_booking(businessSlug, bookingData);
 
       // Transform backend response to match BookingConfirmation interface
-      const sessionTitle = bookingData.session_title || 'Session';
+      const sessionTitle = bookingData.session_title || "Session";
       const bookingDate =
-        bookingData.selected_date || new Date().toISOString().split('T')[0];
-      const startTime = bookingData.selected_time || '09:00';
-      const endTime = bookingData.selected_end_time || '10:00';
+        bookingData.selected_date || new Date().toISOString().split("T")[0];
+      const startTime = bookingData.selected_time || "09:00";
+      const endTime = bookingData.selected_end_time || "10:00";
 
       return {
         booking_reference: response.booking_reference,
         status:
-          response.status === 'approved' ? 'auto_approved' : response.status,
+          response.status === "approved" ? "auto_approved" : response.status,
         message:
           response.message ||
           (response.requires_approval
-            ? 'Your booking request has been submitted and is pending approval.'
-            : 'Your booking has been confirmed successfully!'),
+            ? "Your booking request has been submitted and is pending approval."
+            : "Your booking has been confirmed successfully!"),
         requires_approval: response.requires_approval || false,
         session_details: {
           title: sessionTitle,
@@ -2293,34 +2313,34 @@ export const useCreatePublicBooking = () => {
           phone: bookingData.client_phone,
         },
         business_info: {
-          name: bookingData.business_name || 'Business',
+          name: bookingData.business_name || "Business",
           email: bookingData.business_email,
           phone: undefined,
         },
         next_steps: [
           response.requires_approval
             ? "You'll receive an email once your booking is approved"
-            : 'Check your email for booking confirmation and details',
-          'Add the appointment to your calendar',
-          'Arrive on time for your appointment',
+            : "Check your email for booking confirmation and details",
+          "Add the appointment to your calendar",
+          "Arrive on time for your appointment",
         ],
       };
     },
     onSuccess: () => {
       // Invalidate availability queries as they might have changed
-      queryClient.invalidateQueries({ queryKey: ['public-availability'] });
+      queryClient.invalidateQueries({ queryKey: ["public-availability"] });
     },
     onError: (error: unknown) => {
-      console.error('Failed to create booking:', error);
+      console.error("Failed to create booking:", error);
 
       // Enhanced error logging for production debugging
       const apiError = error as { response?: { data?: { code?: string } } };
       if (apiError?.response?.data) {
-        console.error('Backend error details:', apiError.response.data);
+        console.error("Backend error details:", apiError.response.data);
       }
 
       // Track common error patterns for monitoring
-      const errorCode = apiError?.response?.data?.code || 'UNKNOWN_ERROR';
+      const errorCode = apiError?.response?.data?.code || "UNKNOWN_ERROR";
       console.info(`Booking error code: ${errorCode}`);
     },
     // Enhanced retry logic for race condition scenarios
@@ -2330,18 +2350,18 @@ export const useCreatePublicBooking = () => {
 
       // Retry race condition and capacity-related errors once
       if (
-        errorCode === 'CAPACITY_CHANGED' ||
-        errorCode === 'BOOKING_CREATION_ERROR'
+        errorCode === "CAPACITY_CHANGED" ||
+        errorCode === "BOOKING_CREATION_ERROR"
       ) {
         return failureCount < 1;
       }
 
       // Don't retry validation or duplicate booking errors
       if (
-        errorCode === 'DUPLICATE_BOOKING' ||
-        errorCode === 'INSUFFICIENT_CAPACITY' ||
-        errorCode === 'SESSION_NOT_BOOKABLE' ||
-        errorCode === 'GROUP_BOOKINGS_DISABLED'
+        errorCode === "DUPLICATE_BOOKING" ||
+        errorCode === "INSUFFICIENT_CAPACITY" ||
+        errorCode === "SESSION_NOT_BOOKABLE" ||
+        errorCode === "GROUP_BOOKINGS_DISABLED"
       ) {
         return false;
       }
@@ -2356,8 +2376,8 @@ export const useCreatePublicBooking = () => {
 
       // Short delay for capacity conflicts to allow other bookings to complete
       if (
-        errorCode === 'CAPACITY_CHANGED' ||
-        errorCode === 'BOOKING_CREATION_ERROR'
+        errorCode === "CAPACITY_CHANGED" ||
+        errorCode === "BOOKING_CREATION_ERROR"
       ) {
         return 1000; // 1 second
       }
@@ -2371,12 +2391,12 @@ export const useCreatePublicBooking = () => {
 // Create service booking (flexible bookings)
 export const useCreateServiceBooking = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: async ({ 
-      businessSlug, 
-      bookingData 
-    }: { 
+    mutationFn: async ({
+      businessSlug,
+      bookingData,
+    }: {
       businessSlug: string;
       bookingData: {
         service_id: number;
@@ -2392,62 +2412,76 @@ export const useCreateServiceBooking = () => {
         quantity?: number;
         group_booking_notes?: string;
         client_timezone?: string;
-      }
+      };
     }) => {
       const response = await create_service_booking(businessSlug, bookingData);
-      
+
       // Transform backend response for service booking confirmation
-      const endTime = new Date(new Date(`${bookingData.date}T${bookingData.start_time}`).getTime() + (bookingData.duration_minutes || 60) * 60000).toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' });
-      
+      const endTime = new Date(
+        new Date(`${bookingData.date}T${bookingData.start_time}`).getTime() +
+          (bookingData.duration_minutes || 60) * 60000
+      ).toLocaleTimeString("en-US", {
+        hour12: false,
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+
       return {
         booking_reference: response.booking_reference,
-        status: response.status === 'approved' ? 'auto_approved' : response.status,
-        message: response.message || (response.requires_approval ? 'Your service booking request has been submitted and is pending approval.' : 'Your service booking has been confirmed successfully!'),
+        status:
+          response.status === "approved" ? "auto_approved" : response.status,
+        message:
+          response.message ||
+          (response.requires_approval
+            ? "Your service booking request has been submitted and is pending approval."
+            : "Your service booking has been confirmed successfully!"),
         requires_approval: response.requires_approval || false,
         session_details: {
-          title: response.service_name || 'Service',
+          title: response.service_name || "Service",
           date: bookingData.date,
           start_time: bookingData.start_time,
           end_time: endTime,
-          location: response.location_name
+          location: response.location_name,
         },
         client_info: {
           name: bookingData.client_name,
           email: bookingData.client_email,
-          phone: bookingData.client_phone
+          phone: bookingData.client_phone,
         },
         business_info: {
           name: undefined,
           email: undefined,
-          phone: undefined
+          phone: undefined,
         },
         next_steps: [
-          response.requires_approval ? 'You\'ll receive an email once your booking is approved' : 'Check your email for booking confirmation and details',
-          'Add the appointment to your calendar',
-          'Arrive on time for your appointment'
-        ]
+          response.requires_approval
+            ? "You'll receive an email once your booking is approved"
+            : "Check your email for booking confirmation and details",
+          "Add the appointment to your calendar",
+          "Arrive on time for your appointment",
+        ],
       };
     },
     onSuccess: () => {
       // Invalidate availability queries as they might have changed
-      queryClient.invalidateQueries({ queryKey: ['public-availability'] });
+      queryClient.invalidateQueries({ queryKey: ["public-availability"] });
     },
     onError: (error: unknown) => {
       console.error("Failed to create service booking:", error);
-      
+
       // Enhanced error logging for production debugging
       const apiError = error as { response?: { data?: { code?: string } } };
       if (apiError?.response?.data) {
         console.error("Backend error details:", apiError.response.data);
       }
-    }
+    },
   });
 };
 
 // Get booking status
 export const useGetBookingStatus = (bookingReference: string) => {
   return useQuery({
-    queryKey: ['booking-status', bookingReference],
+    queryKey: ["booking-status", bookingReference],
     queryFn: () => get_booking_status(bookingReference),
     enabled: !!bookingReference,
     staleTime: 1000 * 60 * 2, // 2 minutes
@@ -2457,7 +2491,7 @@ export const useGetBookingStatus = (bookingReference: string) => {
 // Get client booking info
 export const useGetClientBookingInfo = (bookingReference: string) => {
   return useQuery({
-    queryKey: ['client-booking-info', bookingReference],
+    queryKey: ["client-booking-info", bookingReference],
     queryFn: () => get_client_booking_info(bookingReference),
     enabled: !!bookingReference,
     staleTime: 1000 * 60 * 2, // 2 minutes
@@ -2489,15 +2523,15 @@ export const useCancelClientBooking = () => {
     onSuccess: (_, variables) => {
       // Invalidate client booking info and availability
       queryClient.invalidateQueries({
-        queryKey: ['client-booking-info', variables.bookingReference],
+        queryKey: ["client-booking-info", variables.bookingReference],
       });
       queryClient.invalidateQueries({
-        queryKey: ['booking-status', variables.bookingReference],
+        queryKey: ["booking-status", variables.bookingReference],
       });
-      queryClient.invalidateQueries({ queryKey: ['public-availability'] });
+      queryClient.invalidateQueries({ queryKey: ["public-availability"] });
     },
     onError: (error) => {
-      console.error('Failed to cancel booking:', error);
+      console.error("Failed to cancel booking:", error);
     },
   });
 };
@@ -2511,7 +2545,7 @@ export const useGetClientRescheduleOptions = (
 ) => {
   return useQuery({
     queryKey: [
-      'client-reschedule-options',
+      "client-reschedule-options",
       bookingReference,
       dateFrom,
       dateTo,
@@ -2531,7 +2565,7 @@ export const useGetClientRescheduleOptions = (
     refetchInterval: false, // Disable automatic refetch
     retry: (failureCount, error) => {
       // Don't retry if it's a reschedule not allowed error (400)
-      if (error && 'status' in error && error.status === 400) {
+      if (error && "status" in error && error.status === 400) {
         return false;
       }
       // Only retry once for other errors
@@ -2578,20 +2612,20 @@ export const useRescheduleClientBooking = () => {
       // 🔧 FIX: Remove reschedule options from cache instead of invalidating to prevent refetch
       // Remove reschedule options from cache since they're no longer needed after successful reschedule
       queryClient.removeQueries({
-        queryKey: ['client-reschedule-options', variables.bookingReference],
+        queryKey: ["client-reschedule-options", variables.bookingReference],
       });
 
       // Only invalidate booking info and availability which are needed for the success page
       queryClient.invalidateQueries({
-        queryKey: ['client-booking-info', variables.bookingReference],
+        queryKey: ["client-booking-info", variables.bookingReference],
       });
       queryClient.invalidateQueries({
-        queryKey: ['booking-status', variables.bookingReference],
+        queryKey: ["booking-status", variables.bookingReference],
       });
-      queryClient.invalidateQueries({ queryKey: ['public-availability'] });
+      queryClient.invalidateQueries({ queryKey: ["public-availability"] });
     },
     onError: (error) => {
-      console.error('Failed to reschedule booking:', error);
+      console.error("Failed to reschedule booking:", error);
     },
   });
 };
@@ -2602,7 +2636,7 @@ export const useGetAvailableSlots = (
   date: string
 ) => {
   return useQuery({
-    queryKey: ['availableSlots', businessSlug, serviceId, date],
+    queryKey: ["availableSlots", businessSlug, serviceId, date],
     queryFn: () => getAvailableSlots(businessSlug, serviceId, date),
     enabled: !!businessSlug && !!serviceId && !!date,
     refetchOnWindowFocus: true, // Refresh when user comes back to the page
@@ -2612,18 +2646,25 @@ export const useGetAvailableSlots = (
 
 // Get available staff for flexible booking
 export const useGetPublicAvailableStaff = (
-  businessSlug: string, 
-  sessionOrServiceId: number, 
-  date?: string, 
-  isServiceId: boolean = false, 
+  businessSlug: string,
+  sessionOrServiceId: number,
+  date?: string,
+  isServiceId: boolean = false,
   locationId?: number
 ) => {
-  const params = isServiceId 
+  const params = isServiceId
     ? { service_id: sessionOrServiceId, date, location_id: locationId }
     : { session_id: sessionOrServiceId, date, location_id: locationId };
-    
+
   return useQuery({
-    queryKey: ['publicAvailableStaff', businessSlug, sessionOrServiceId, date, isServiceId, locationId],
+    queryKey: [
+      "publicAvailableStaff",
+      businessSlug,
+      sessionOrServiceId,
+      date,
+      isServiceId,
+      locationId,
+    ],
     queryFn: () => get_public_available_staff(businessSlug, params),
     enabled: !!businessSlug && !!sessionOrServiceId,
     staleTime: 1000 * 60 * 2, // 2 minutes
@@ -2633,18 +2674,25 @@ export const useGetPublicAvailableStaff = (
 
 // Get available locations for flexible booking
 export const useGetPublicAvailableLocations = (
-  businessSlug: string, 
-  sessionOrServiceId: number, 
-  staffId?: number, 
-  date?: string, 
+  businessSlug: string,
+  sessionOrServiceId: number,
+  staffId?: number,
+  date?: string,
   isServiceId: boolean = false
 ) => {
-  const params = isServiceId 
+  const params = isServiceId
     ? { service_id: sessionOrServiceId, staff_id: staffId, date }
     : { session_id: sessionOrServiceId, staff_id: staffId, date };
-    
+
   return useQuery({
-    queryKey: ['public-available-locations', businessSlug, sessionOrServiceId, staffId, date, isServiceId],
+    queryKey: [
+      "public-available-locations",
+      businessSlug,
+      sessionOrServiceId,
+      staffId,
+      date,
+      isServiceId,
+    ],
     queryFn: () => get_public_available_locations(businessSlug, params),
     enabled: !!businessSlug && !!sessionOrServiceId,
     staleTime: 1000 * 60 * 2, // 2 minutes
@@ -2655,9 +2703,9 @@ export const useGetPublicAvailableLocations = (
 // Staff Service Competency Hooks
 export const useGetStaffServiceCompetencies = () => {
   return useQuery({
-    queryKey: ['staff-service-competencies'],
+    queryKey: ["staff-service-competencies"],
     queryFn: async () => {
-      const { get_staff_competencies } = await import('../api/api');
+      const { get_staff_competencies } = await import("../api/api");
       return await get_staff_competencies();
     },
     staleTime: 0, // Always refetch
@@ -2670,16 +2718,18 @@ export const useCreateStaffServiceCompetency = () => {
 
   return useMutation({
     mutationFn: async (data: any) => {
-      const { create_staff_competency } = await import('../api/api');
+      const { create_staff_competency } = await import("../api/api");
       return await create_staff_competency(data);
     },
     onSuccess: () => {
       // Force refresh by removing cached data
-      queryClient.removeQueries({ queryKey: ['staff-service-competencies'] });
-      queryClient.removeQueries({ queryKey: ['staff'] });
+      queryClient.removeQueries({ queryKey: ["staff-service-competencies"] });
+      queryClient.removeQueries({ queryKey: ["staff"] });
       // Then refetch
-      queryClient.invalidateQueries({ queryKey: ['staff-service-competencies'] });
-      queryClient.invalidateQueries({ queryKey: ['staff'] });
+      queryClient.invalidateQueries({
+        queryKey: ["staff-service-competencies"],
+      });
+      queryClient.invalidateQueries({ queryKey: ["staff"] });
     },
   });
 };
@@ -2689,16 +2739,18 @@ export const useUpdateStaffServiceCompetency = () => {
 
   return useMutation({
     mutationFn: async (data: any) => {
-      const { update_staff_competency } = await import('../api/api');
+      const { update_staff_competency } = await import("../api/api");
       return await update_staff_competency(data.id, data);
     },
     onSuccess: () => {
       // Force refresh by removing cached data
-      queryClient.removeQueries({ queryKey: ['staff-service-competencies'] });
-      queryClient.removeQueries({ queryKey: ['staff'] });
+      queryClient.removeQueries({ queryKey: ["staff-service-competencies"] });
+      queryClient.removeQueries({ queryKey: ["staff"] });
       // Then refetch
-      queryClient.invalidateQueries({ queryKey: ['staff-service-competencies'] });
-      queryClient.invalidateQueries({ queryKey: ['staff'] });
+      queryClient.invalidateQueries({
+        queryKey: ["staff-service-competencies"],
+      });
+      queryClient.invalidateQueries({ queryKey: ["staff"] });
     },
   });
 };
@@ -2708,16 +2760,18 @@ export const useDeleteStaffServiceCompetency = () => {
 
   return useMutation({
     mutationFn: async (id: number) => {
-      const { delete_staff_competency } = await import('../api/api');
+      const { delete_staff_competency } = await import("../api/api");
       return await delete_staff_competency(id);
     },
     onSuccess: () => {
       // Force refresh by removing cached data
-      queryClient.removeQueries({ queryKey: ['staff-service-competencies'] });
-      queryClient.removeQueries({ queryKey: ['staff'] });
+      queryClient.removeQueries({ queryKey: ["staff-service-competencies"] });
+      queryClient.removeQueries({ queryKey: ["staff"] });
       // Then refetch
-      queryClient.invalidateQueries({ queryKey: ['staff-service-competencies'] });
-      queryClient.invalidateQueries({ queryKey: ['staff'] });
+      queryClient.invalidateQueries({
+        queryKey: ["staff-service-competencies"],
+      });
+      queryClient.invalidateQueries({ queryKey: ["staff"] });
     },
   });
 };
@@ -2725,9 +2779,9 @@ export const useDeleteStaffServiceCompetency = () => {
 // Staff Location Assignment Hooks
 export const useGetStaffLocationAssignments = () => {
   return useQuery({
-    queryKey: ['staff-location-assignments'],
+    queryKey: ["staff-location-assignments"],
     queryFn: async () => {
-      const { get_staff_locations } = await import('../api/api');
+      const { get_staff_locations } = await import("../api/api");
       return await get_staff_locations();
     },
   });
@@ -2738,12 +2792,14 @@ export const useCreateStaffLocationAssignment = () => {
 
   return useMutation({
     mutationFn: async (data: any) => {
-      const { create_staff_location } = await import('../api/api');
+      const { create_staff_location } = await import("../api/api");
       return await create_staff_location(data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['staff-location-assignments'] });
-      queryClient.invalidateQueries({ queryKey: ['staff'] });
+      queryClient.invalidateQueries({
+        queryKey: ["staff-location-assignments"],
+      });
+      queryClient.invalidateQueries({ queryKey: ["staff"] });
     },
   });
 };
@@ -2753,35 +2809,43 @@ export const useDeleteStaffLocationAssignment = () => {
 
   return useMutation({
     mutationFn: async (id: number) => {
-      const { delete_staff_location } = await import('../api/api');
+      const { delete_staff_location } = await import("../api/api");
       return await delete_staff_location(id);
     },
     onSuccess: (data) => {
       // Invalidate relevant queries to refresh data
-      queryClient.invalidateQueries({ queryKey: ['staff-location-assignments'] });
-      queryClient.invalidateQueries({ queryKey: ['staff'] });
-      
+      queryClient.invalidateQueries({
+        queryKey: ["staff-location-assignments"],
+      });
+      queryClient.invalidateQueries({ queryKey: ["staff"] });
+
       // Show detailed success notification with context about what happened
-      const { notifications } = require('@mantine/notifications');
-      const message = data.primary_reassigned 
-        ? `${data.staff_name || 'Staff member'} removed from ${data.location_name || 'location'}. Primary location automatically reassigned to ${data.new_primary_location}.`
-        : `${data.staff_name || 'Staff member'} removed from ${data.location_name || 'location'} successfully.`;
-      
+      const { notifications } = require("@mantine/notifications");
+      const message = data.primary_reassigned
+        ? `${data.staff_name || "Staff member"} removed from ${
+            data.location_name || "location"
+          }. Primary location automatically reassigned to ${
+            data.new_primary_location
+          }.`
+        : `${data.staff_name || "Staff member"} removed from ${
+            data.location_name || "location"
+          } successfully.`;
+
       notifications.show({
-        title: 'Location Removed',
+        title: "Location Removed",
         message: message,
-        color: 'green',
+        color: "green",
         autoClose: 5000,
       });
     },
     onError: (error: Error) => {
       // Show specific error notification based on the error type
-      const { notifications } = require('@mantine/notifications');
-      
+      const { notifications } = require("@mantine/notifications");
+
       notifications.show({
-        title: 'Removal Failed',
+        title: "Removal Failed",
         message: error.message,
-        color: 'red',
+        color: "red",
         autoClose: false, // Keep error messages visible until manually dismissed
       });
     },
@@ -2789,11 +2853,14 @@ export const useDeleteStaffLocationAssignment = () => {
 };
 
 // Staff Location Availability Hooks
-export const useGetStaffLocationAvailability = (staffId?: number, locationId?: number) => {
+export const useGetStaffLocationAvailability = (
+  staffId?: number,
+  locationId?: number
+) => {
   return useQuery({
-    queryKey: ['staff-location-availability', staffId, locationId],
+    queryKey: ["staff-location-availability", staffId, locationId],
     queryFn: async () => {
-      const { get_staff_location_availability } = await import('../api/api');
+      const { get_staff_location_availability } = await import("../api/api");
       return await get_staff_location_availability(staffId, locationId);
     },
     enabled: !!staffId || !!locationId, // Only run if we have at least one parameter
@@ -2811,15 +2878,22 @@ export const useCreateStaffLocationAvailability = () => {
       appointment_duration_override?: number;
       timezone_override?: string;
       is_active?: boolean;
-      schedule?: Record<string, { isOpen: boolean; shifts: Array<{ start: string; end: string }> }>;
+      schedule?: Record<
+        string,
+        { isOpen: boolean; shifts: Array<{ start: string; end: string }> }
+      >;
     }) => {
-      const { create_staff_location_availability } = await import('../api/api');
+      const { create_staff_location_availability } = await import("../api/api");
       return await create_staff_location_availability(data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['staff-location-availability'] });
-      queryClient.invalidateQueries({ queryKey: ['staff-location-assignments'] });
-      queryClient.invalidateQueries({ queryKey: ['staff'] });
+      queryClient.invalidateQueries({
+        queryKey: ["staff-location-availability"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["staff-location-assignments"],
+      });
+      queryClient.invalidateQueries({ queryKey: ["staff"] });
     },
   });
 };
@@ -2828,7 +2902,10 @@ export const useUpdateStaffLocationAvailability = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, data }: {
+    mutationFn: async ({
+      id,
+      data,
+    }: {
       id: number;
       data: {
         working_hours?: Record<string, any>;
@@ -2836,16 +2913,23 @@ export const useUpdateStaffLocationAvailability = () => {
         appointment_duration_override?: number;
         timezone_override?: string;
         is_active?: boolean;
-        schedule?: Record<string, { isOpen: boolean; shifts: Array<{ start: string; end: string }> }>;
+        schedule?: Record<
+          string,
+          { isOpen: boolean; shifts: Array<{ start: string; end: string }> }
+        >;
       };
     }) => {
-      const { update_staff_location_availability } = await import('../api/api');
+      const { update_staff_location_availability } = await import("../api/api");
       return await update_staff_location_availability(id, data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['staff-location-availability'] });
-      queryClient.invalidateQueries({ queryKey: ['staff-location-assignments'] });
-      queryClient.invalidateQueries({ queryKey: ['staff'] });
+      queryClient.invalidateQueries({
+        queryKey: ["staff-location-availability"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["staff-location-assignments"],
+      });
+      queryClient.invalidateQueries({ queryKey: ["staff"] });
     },
   });
 };
@@ -2855,13 +2939,17 @@ export const useDeleteStaffLocationAvailability = () => {
 
   return useMutation({
     mutationFn: async (id: number) => {
-      const { delete_staff_location_availability } = await import('../api/api');
+      const { delete_staff_location_availability } = await import("../api/api");
       return await delete_staff_location_availability(id);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['staff-location-availability'] });
-      queryClient.invalidateQueries({ queryKey: ['staff-location-assignments'] });
-      queryClient.invalidateQueries({ queryKey: ['staff'] });
+      queryClient.invalidateQueries({
+        queryKey: ["staff-location-availability"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["staff-location-assignments"],
+      });
+      queryClient.invalidateQueries({ queryKey: ["staff"] });
     },
   });
 };
@@ -2869,7 +2957,7 @@ export const useDeleteStaffLocationAvailability = () => {
 // Staff Exception Hooks
 export const useGetStaffExceptions = () => {
   return useQuery({
-    queryKey: ['staff-exceptions'],
+    queryKey: ["staff-exceptions"],
     queryFn: get_staff_exceptions,
     staleTime: 0, // Always fetch fresh data
     gcTime: 0, // Don't cache the data
@@ -2893,8 +2981,8 @@ export const useCreateStaffException = () => {
       end_time?: string;
     }) => create_staff_exception(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['staff-exceptions'] });
-      queryClient.invalidateQueries({ queryKey: ['booking-notifications'] });
+      queryClient.invalidateQueries({ queryKey: ["staff-exceptions"] });
+      queryClient.invalidateQueries({ queryKey: ["booking-notifications"] });
     },
   });
 };
@@ -2914,8 +3002,8 @@ export const useUpdateStaffException = () => {
       admin_notes?: string;
     }) => update_staff_exception(data.id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['staff-exceptions'] });
-      queryClient.invalidateQueries({ queryKey: ['booking-notifications'] });
+      queryClient.invalidateQueries({ queryKey: ["staff-exceptions"] });
+      queryClient.invalidateQueries({ queryKey: ["booking-notifications"] });
     },
   });
 };
@@ -2924,11 +3012,11 @@ export const useApproveStaffException = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: { id: number; admin_notes: string }) => 
+    mutationFn: (data: { id: number; admin_notes: string }) =>
       approve_staff_exception(data.id, data.admin_notes),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['staff-exceptions'] });
-      queryClient.invalidateQueries({ queryKey: ['booking-notifications'] });
+      queryClient.invalidateQueries({ queryKey: ["staff-exceptions"] });
+      queryClient.invalidateQueries({ queryKey: ["booking-notifications"] });
     },
   });
 };
@@ -2937,11 +3025,11 @@ export const useDenyStaffException = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: { id: number; admin_notes: string }) => 
+    mutationFn: (data: { id: number; admin_notes: string }) =>
       deny_staff_exception(data.id, data.admin_notes),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['staff-exceptions'] });
-      queryClient.invalidateQueries({ queryKey: ['booking-notifications'] });
+      queryClient.invalidateQueries({ queryKey: ["staff-exceptions"] });
+      queryClient.invalidateQueries({ queryKey: ["booking-notifications"] });
     },
   });
 };
@@ -2949,7 +3037,7 @@ export const useDenyStaffException = () => {
 // Staff Portal Hook (for staff to access their own data)
 export const useGetStaffPortalData = () => {
   return useQuery({
-    queryKey: ['staff-portal'],
+    queryKey: ["staff-portal"],
     queryFn: get_staff_portal_data,
     retry: 2,
     staleTime: 0, // Always fetch fresh data
@@ -2963,7 +3051,7 @@ export const useGetStaffPortalData = () => {
 // Staff Own Exception Hooks (for staff to manage their own exceptions)
 export const useGetStaffOwnExceptions = () => {
   return useQuery({
-    queryKey: ['staff-own-exceptions'],
+    queryKey: ["staff-own-exceptions"],
     queryFn: get_staff_own_exceptions,
     staleTime: 0, // Always fetch fresh data
     gcTime: 0, // Don't cache the data
@@ -2986,9 +3074,9 @@ export const useCreateStaffOwnException = () => {
       end_time?: string;
     }) => create_staff_own_exception(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['staff-own-exceptions'] });
-      queryClient.invalidateQueries({ queryKey: ['staff-portal'] });
-      queryClient.invalidateQueries({ queryKey: ['booking-notifications'] });
+      queryClient.invalidateQueries({ queryKey: ["staff-own-exceptions"] });
+      queryClient.invalidateQueries({ queryKey: ["staff-portal"] });
+      queryClient.invalidateQueries({ queryKey: ["booking-notifications"] });
     },
   });
 };
@@ -3006,9 +3094,9 @@ export const useUpdateStaffOwnException = () => {
       end_time?: string;
     }) => update_staff_own_exception(data.id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['staff-own-exceptions'] });
-      queryClient.invalidateQueries({ queryKey: ['staff-portal'] });
-      queryClient.invalidateQueries({ queryKey: ['booking-notifications'] });
+      queryClient.invalidateQueries({ queryKey: ["staff-own-exceptions"] });
+      queryClient.invalidateQueries({ queryKey: ["staff-portal"] });
+      queryClient.invalidateQueries({ queryKey: ["booking-notifications"] });
     },
   });
 };
@@ -3016,8 +3104,49 @@ export const useUpdateStaffOwnException = () => {
 // Class Type Hooks
 export const useGetClassTypes = () => {
   return useQuery({
-    queryKey: ['classTypes'],
-    queryFn: get_class_types,
+    queryKey: ["classTypes"],
+    queryFn: async () => {
+      try {
+        const response = await get_class_types();
+        console.log("Class types API response:", response);
+
+        // Handle different possible response structures
+        if (Array.isArray(response)) {
+          console.log("Response is direct array, returning:", response);
+          return response;
+        }
+        // If it's an object with items (paginated response)
+        if (
+          response &&
+          typeof response === "object" &&
+          Array.isArray(response.items)
+        ) {
+          console.log("Response has items array, returning:", response.items);
+          return response.items;
+        }
+        // If it's an object with results (some API structures use this)
+        if (
+          response &&
+          typeof response === "object" &&
+          Array.isArray(response.results)
+        ) {
+          console.log(
+            "Response has results array, returning:",
+            response.results
+          );
+          return response.results;
+        }
+        // Fallback to empty array
+        console.log(
+          "Response structure unknown, falling back to empty array. Response was:",
+          response
+        );
+        return [];
+      } catch (error) {
+        console.error("Error in get_class_types:", error);
+        return [];
+      }
+    },
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
     retry: 2,
@@ -3026,7 +3155,7 @@ export const useGetClassTypes = () => {
 
 export const useGetClassType = (id?: string) => {
   return useQuery({
-    queryKey: ['classType', id],
+    queryKey: ["classType", id],
     queryFn: () => (id ? get_class_type(id) : null),
     enabled: !!id,
     staleTime: 1000 * 60 * 5,
@@ -3039,10 +3168,10 @@ export const useCreateClassType = () => {
   return useMutation({
     mutationFn: create_class_type,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['classTypes'] });
+      queryClient.invalidateQueries({ queryKey: ["classTypes"] });
     },
     onError: (error) => {
-      console.error('Failed to create class type:', error);
+      console.error("Failed to create class type:", error);
     },
   });
 };
@@ -3058,10 +3187,10 @@ export const useUpdateClassType = () => {
       classTypeData: ClassType;
     }) => update_class_type(id, classTypeData),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['classTypes'] });
+      queryClient.invalidateQueries({ queryKey: ["classTypes"] });
     },
     onError: (error) => {
-      console.error('Failed to update class type:', error);
+      console.error("Failed to update class type:", error);
     },
   });
 };
@@ -3071,10 +3200,10 @@ export const useDeleteClassType = () => {
   return useMutation({
     mutationFn: delete_class_type,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['classTypes'] });
+      queryClient.invalidateQueries({ queryKey: ["classTypes"] });
     },
     onError: (error) => {
-      console.error('Failed to delete class type:', error);
+      console.error("Failed to delete class type:", error);
     },
   });
 };

@@ -1,0 +1,110 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,100..900;1,100..900&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Space+Grotesk:ital,wght@0,300..700;1,300..700&family=Urbanist:ital,wght@0,100..900;1,100..900&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* CSS Reset & Base Styles */
+* {
+  box-sizing: border-box;
+}
+
+html {
+  font-family: "Inter", sans-serif;
+  scroll-behavior: smooth;
+}
+
+/* CSS Variables */
+:root {
+  --mantine-color-green-6: #1d9b5e;
+  --mantine-primary-color-filled: #1d9b5e;
+  --mantine-primary-color-light: #e8f5e8;
+}
+
+/* Essential Animations - Only keep what's actually used */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200px 0; }
+  100% { background-position: calc(200px + 100%) 0; }
+}
+
+/* Glassmorphism - Core utility classes */
+.glass-card {
+  backdrop-filter: blur(20px);
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 8px 32px rgba(31, 38, 135, 0.15);
+}
+
+.glass-panel {
+  backdrop-filter: blur(16px);
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 4px 24px rgba(31, 38, 135, 0.1);
+}
+
+/* Let Tailwind handle most utility classes - only add what Tailwind doesn't provide */
+
+/* Custom scrollbar styling */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Loading skeleton animation */
+.loading-skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* Essential Mantine overrides - only what you're actually using */
+.mantine-Calendar-day[data-selected] {
+  background-color: var(--mantine-color-green-6) !important;
+}
+
+.mantine-Select-item[data-selected] {
+  background-color: var(--mantine-primary-color-light) !important;
+  color: var(--mantine-color-green-6) !important;
+}
+
+/* Essential FullCalendar overrides */
+.fc-event-main {
+  cursor: pointer;
+}
+
+.fc-event {
+  border-color: transparent !important;
+  background-color: var(--mantine-color-green-6) !important;
+}
+
+/* Pattern utilities */
+.pattern-dots {
+  background-image: radial-gradient(circle, rgba(29, 155, 94, 0.1) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+/* Mobile-specific utilities */
+@media (max-width: 768px) {
+  .booking-mobile-content {
+    padding-bottom: 120px;
+  }
+}
