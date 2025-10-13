@@ -1,6 +1,7 @@
 import axios, { AxiosError, AxiosRequestConfig } from "axios";
 import { END_POINTS } from "../api/api";
 import { useAuthStore } from "../store/auth";
+import { config } from "../utils/config";
 
 type ErrorResponse = {
   code: string;
@@ -9,7 +10,7 @@ type ErrorResponse = {
 };
 
 export const api = axios.create({
-  baseURL: import.meta.env.VITE_APP_BASEURL,
+  baseURL: config.getApiUrl(),
 });
 
 let isRefreshing = false;
@@ -26,6 +27,15 @@ api.interceptors.request.use((config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+
+  // Add CSRF token if available (for Django backends)
+  const csrfToken = document
+    .querySelector('meta[name="csrf-token"]')
+    ?.getAttribute("content");
+  if (csrfToken) {
+    config.headers["X-CSRFToken"] = csrfToken;
+  }
+
   return config;
 });
 
@@ -70,11 +80,9 @@ api.interceptors.response.use(
 
         const user = useAuthStore.getState().user;
         if (user) {
-          useAuthStore.getState().setAuth(
-            newToken,
-            response.data.refresh,
-            user
-          );
+          useAuthStore
+            .getState()
+            .setAuth(newToken, response.data.refresh, user);
         } else {
           localStorage.setItem("accessToken", newToken);
           localStorage.setItem("refresh", response.data.refresh);
@@ -91,7 +99,6 @@ api.interceptors.response.use(
 
         return api(originalRequest);
       } catch (refreshError) {
-
         failedRequests.forEach((cb) => cb());
         failedRequests = [];
         isRefreshing = false;

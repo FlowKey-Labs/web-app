@@ -1,4 +1,4 @@
-import { api } from '../lib/axios';
+import { api } from "../lib/axios";
 import {
   AttendedSession,
   CancelledSession,
@@ -7,7 +7,8 @@ import {
   MakeUpSession,
   Session,
   SessionFilters,
-} from '../types/sessionTypes';
+} from "../types/sessionTypes";
+import config from "../utils/config";
 
 export interface PaginatedResponse<T> {
   items: T[];
@@ -16,8 +17,7 @@ export interface PaginatedResponse<T> {
   pageSize: number | undefined;
   totalPages: number | undefined;
 }
-
-const BASE_URL = import.meta.env.VITE_APP_BASEURL;
+const BASE_URL = config.getApiUrl();
 
 const END_POINTS = {
   SESSIONS_DATA: `${BASE_URL}/api/session/`,
@@ -43,6 +43,7 @@ const END_POINTS = {
 };
 
 export const get_calendar_sessions = async () => {
+  console.log("🚀 ~ get_calendar_sessions ~ END_POINTS:", END_POINTS);
   const { data } = await api.get(END_POINTS.CALENDAR_SESSIONS_DATA);
   return data;
 };
@@ -60,25 +61,25 @@ export const get_sessions = async (
   if (filters) {
     if (filters.sessionTypes && filters.sessionTypes.length > 0) {
       // Use class_type parameter for filtering by class type
-      params.append('class_type', filters.sessionTypes.join(','));
+      params.append("class_type", filters.sessionTypes.join(","));
     }
 
     if (filters.categories && filters.categories.length > 0) {
       // Join category IDs with commas for the backend to parse
-      params.append('category', filters.categories.join(','));
+      params.append("category", filters.categories.join(","));
     }
   }
 
   if (searchQuery) {
-    params.append('search', searchQuery);
+    params.append("search", searchQuery);
   }
 
   // Handle pagination
   if (pageIndex !== undefined) {
-    params.append('pageIndex', pageIndex.toString());
+    params.append("pageIndex", pageIndex.toString());
   }
   if (pageSize !== undefined) {
-    params.append('pageSize', pageSize.toString());
+    params.append("pageSize", pageSize.toString());
   }
 
   // Construct final URL
@@ -188,9 +189,9 @@ export const get_session_subcategories = async () => {
 
 export const update_session_subcategory = async (
   id: number,
-  subcategoryData: { 
-    name: string; 
-    description?: string; 
+  subcategoryData: {
+    name: string;
+    description?: string;
     category: number;
     is_service?: boolean;
     base_price?: number;

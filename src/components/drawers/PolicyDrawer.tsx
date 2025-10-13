@@ -1,33 +1,33 @@
-import { useEffect } from 'react';
-import { Drawer, Button, Group, Text, Image } from '@mantine/core';
-import { useForm, FormProvider, Controller } from 'react-hook-form';
-import { notifications } from '@mantine/notifications';
-import { Dropzone } from '@mantine/dropzone';
-import { useEditor, EditorContent } from '@tiptap/react';
-import StarterKit from '@tiptap/starter-kit';
-import Underline from '@tiptap/extension-underline';
-import Link from '@tiptap/extension-link';
-import TextStyle from '@tiptap/extension-text-style';
-import Color from '@tiptap/extension-color';
-import TextAlign from '@tiptap/extension-text-align';
-import FontFamily from '@tiptap/extension-font-family';
-import FontSize from '@tiptap/extension-font-size';
+import { useEffect } from "react";
+import { Drawer, Button, Group, Text, Image } from "@mantine/core";
+import { useForm, FormProvider, Controller } from "react-hook-form";
+import { notifications } from "@mantine/notifications";
+import { Dropzone } from "@mantine/dropzone";
+import { useEditor, EditorContent } from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";
+import { Underline } from "@tiptap/extension-underline";
+import { Link } from "@tiptap/extension-link";
+import { TextStyle } from "@tiptap/extension-text-style";
+import { Color } from "@tiptap/extension-color";
+import { TextAlign } from "@tiptap/extension-text-align";
+import { FontFamily } from "@tiptap/extension-font-family";
+import { FontSize } from "@tiptap/extension-font-size";
 
-import Input from '../common/Input';
-import DropdownSelectInput from '../common/Dropdown';
-import { useUIStore } from '../../store/ui';
+import Input from "../common/Input";
+import DropdownSelectInput from "../common/Dropdown";
+import { useUIStore } from "../../store/ui";
 import {
   useGetPolicies,
   useCreatePolicy,
   useUpdatePolicy,
 } from "../../hooks/reactQuery";
 import { Policy } from "../../types/policy";
-import '../accountSettings/tiptap.css';
+import "../accountSettings/tiptap.css";
 
-import successIcon from '../../assets/icons/success.svg';
-import errorIcon from '../../assets/icons/error.svg';
-import dropZoneIcon from '../../assets/icons/dropZone.svg';
-import styles from '../accountSettings/GeneralSettings.module.css';
+import successIcon from "../../assets/icons/success.svg";
+import errorIcon from "../../assets/icons/error.svg";
+import dropZoneIcon from "../../assets/icons/dropZone.svg";
+import styles from "../accountSettings/GeneralSettings.module.css";
 
 type PolicyFormData = {
   policyTitle: string;
@@ -42,10 +42,14 @@ interface PolicyDrawerProps {
   zIndex?: number;
 }
 
-export default function PolicyDrawer({ entityId, isEditing, zIndex }: PolicyDrawerProps) {
+export default function PolicyDrawer({
+  entityId,
+  isEditing,
+  zIndex,
+}: PolicyDrawerProps) {
   const { closeDrawer } = useUIStore();
   const editingId = entityId ? Number(entityId) : null;
-  
+
   const methods = useForm<PolicyFormData>({
     defaultValues: {
       policyTitle: "",
@@ -54,7 +58,7 @@ export default function PolicyDrawer({ entityId, isEditing, zIndex }: PolicyDraw
       policyType: "TEXT",
     },
   });
-  
+
   const { control, handleSubmit, reset, watch } = methods;
 
   const editor = useEditor({
@@ -75,19 +79,21 @@ export default function PolicyDrawer({ entityId, isEditing, zIndex }: PolicyDraw
       });
     },
   });
-  
+
   const { data: policies = [] } = useGetPolicies();
   const createPolicyMutation = useCreatePolicy();
   const updatePolicyMutation = useUpdatePolicy();
 
   useEffect(() => {
     if (editingId && policies.length > 0) {
-      const policyToEdit = policies.find((policy: Policy) => policy.id === editingId);
+      const policyToEdit = policies.find(
+        (policy: Policy) => policy.id === editingId
+      );
       if (policyToEdit) {
         methods.setValue("policyTitle", policyToEdit.title || "");
         methods.setValue("policyContent", policyToEdit.content || "");
         methods.setValue("policyType", policyToEdit.policy_type || "TEXT");
-        
+
         if (editor) {
           editor.commands.setContent(policyToEdit.content || "");
         }
@@ -113,36 +119,36 @@ export default function PolicyDrawer({ entityId, isEditing, zIndex }: PolicyDraw
 
     if (policyType === "PDF" && !data.policyFile) {
       notifications.show({
-        title: 'Error',
-        message: 'PDF file is required for PDF policy type',
-        color: 'red',
-        radius: 'md',
+        title: "Error",
+        message: "PDF file is required for PDF policy type",
+        color: "red",
+        radius: "md",
         icon: (
-          <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
-            <img src={errorIcon} alt='Error' className='w-4 h-4' />
+          <span className="flex items-center justify-center w-6 h-6 rounded-full bg-red-200">
+            <img src={errorIcon} alt="Error" className="w-4 h-4" />
           </span>
         ),
         withBorder: true,
         autoClose: 3000,
-        position: 'top-right',
+        position: "top-right",
       });
       return;
     }
 
     if (policyType === "TEXT" && !data.policyContent) {
       notifications.show({
-        title: 'Error',
-        message: 'Content is required for TEXT policy type',
-        color: 'red',
-        radius: 'md',
+        title: "Error",
+        message: "Content is required for TEXT policy type",
+        color: "red",
+        radius: "md",
         icon: (
-          <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
-            <img src={errorIcon} alt='Error' className='w-4 h-4' />
+          <span className="flex items-center justify-center w-6 h-6 rounded-full bg-red-200">
+            <img src={errorIcon} alt="Error" className="w-4 h-4" />
           </span>
         ),
         withBorder: true,
         autoClose: 3000,
-        position: 'top-right',
+        position: "top-right",
       });
       return;
     }
@@ -163,35 +169,35 @@ export default function PolicyDrawer({ entityId, isEditing, zIndex }: PolicyDraw
         {
           onSuccess: () => {
             notifications.show({
-              title: 'Success',
-              message: 'Policy updated successfully!',
-              color: 'green',
-              radius: 'md',
+              title: "Success",
+              message: "Policy updated successfully!",
+              color: "green",
+              radius: "md",
               icon: (
-                <span className='flex items-center justify-center w-6 h-6 rounded-full bg-green-200'>
-                  <img src={successIcon} alt='Success' className='w-4 h-4' />
+                <span className="flex items-center justify-center w-6 h-6 rounded-full bg-green-200">
+                  <img src={successIcon} alt="Success" className="w-4 h-4" />
                 </span>
               ),
               withBorder: true,
               autoClose: 3000,
-              position: 'top-right',
+              position: "top-right",
             });
             closeDrawer();
           },
           onError: () => {
             notifications.show({
-              title: 'Error',
-              message: 'Failed to update policy.',
-              color: 'red',
-              radius: 'md',
+              title: "Error",
+              message: "Failed to update policy.",
+              color: "red",
+              radius: "md",
               icon: (
-                <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
-                  <img src={errorIcon} alt='Error' className='w-4 h-4' />
+                <span className="flex items-center justify-center w-6 h-6 rounded-full bg-red-200">
+                  <img src={errorIcon} alt="Error" className="w-4 h-4" />
                 </span>
               ),
               withBorder: true,
               autoClose: 3000,
-              position: 'top-right',
+              position: "top-right",
             });
           },
         }
@@ -200,35 +206,35 @@ export default function PolicyDrawer({ entityId, isEditing, zIndex }: PolicyDraw
       createPolicyMutation.mutate(payload, {
         onSuccess: () => {
           notifications.show({
-            title: 'Success',
-            message: 'Policy created successfully!',
-            color: 'green',
-            radius: 'md',
+            title: "Success",
+            message: "Policy created successfully!",
+            color: "green",
+            radius: "md",
             icon: (
-              <span className='flex items-center justify-center w-6 h-6 rounded-full bg-green-200'>
-                <img src={successIcon} alt='Success' className='w-4 h-4' />
+              <span className="flex items-center justify-center w-6 h-6 rounded-full bg-green-200">
+                <img src={successIcon} alt="Success" className="w-4 h-4" />
               </span>
             ),
             withBorder: true,
             autoClose: 3000,
-            position: 'top-right',
+            position: "top-right",
           });
           closeDrawer();
         },
         onError: () => {
           notifications.show({
-            title: 'Error',
-            message: 'Failed to create policy.',
-            color: 'red',
-            radius: 'md',
+            title: "Error",
+            message: "Failed to create policy.",
+            color: "red",
+            radius: "md",
             icon: (
-              <span className='flex items-center justify-center w-6 h-6 rounded-full bg-red-200'>
-                <img src={errorIcon} alt='Error' className='w-4 h-4' />
+              <span className="flex items-center justify-center w-6 h-6 rounded-full bg-red-200">
+                <img src={errorIcon} alt="Error" className="w-4 h-4" />
               </span>
             ),
             withBorder: true,
             autoClose: 3000,
-            position: 'top-right',
+            position: "top-right",
           });
         },
       });
@@ -239,10 +245,10 @@ export default function PolicyDrawer({ entityId, isEditing, zIndex }: PolicyDraw
     <Drawer
       opened={true}
       onClose={closeDrawer}
-      title={editingId ? 'Update Policy' : 'Create Policy'}
-      position='right'
-      size='md'
-      padding='xl'
+      title={editingId ? "Update Policy" : "Create Policy"}
+      position="right"
+      size="md"
+      padding="xl"
       overlayProps={{ opacity: 0.5, blur: 2 }}
       zIndex={zIndex}
     >
@@ -252,7 +258,7 @@ export default function PolicyDrawer({ entityId, isEditing, zIndex }: PolicyDraw
             <Controller
               name="policyTitle"
               control={control}
-              rules={{ required: 'Policy title is required' }}
+              rules={{ required: "Policy title is required" }}
               render={({ field }) => (
                 <Input
                   {...field}
@@ -379,11 +385,7 @@ export default function PolicyDrawer({ entityId, isEditing, zIndex }: PolicyDraw
                         <button
                           type="button"
                           onClick={() =>
-                            editor
-                              ?.chain()
-                              .focus()
-                              .setTextAlign("center")
-                              .run()
+                            editor?.chain().focus().setTextAlign("center").run()
                           }
                           className={
                             editor?.isActive({ textAlign: "center" })
@@ -396,11 +398,7 @@ export default function PolicyDrawer({ entityId, isEditing, zIndex }: PolicyDraw
                         <button
                           type="button"
                           onClick={() =>
-                            editor
-                              ?.chain()
-                              .focus()
-                              .setTextAlign("right")
-                              .run()
+                            editor?.chain().focus().setTextAlign("right").run()
                           }
                           className={
                             editor?.isActive({ textAlign: "right" })
@@ -578,4 +576,4 @@ export default function PolicyDrawer({ entityId, isEditing, zIndex }: PolicyDraw
       </FormProvider>
     </Drawer>
   );
-} 
+}

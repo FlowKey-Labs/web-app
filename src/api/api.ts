@@ -1,12 +1,13 @@
-import { api } from '../lib/axios';
-import axios from 'axios';
+import { api } from "../lib/axios";
+import axios from "axios";
+import { config } from "../utils/config";
 
-import { ProgressFeedback } from '../types/sessionTypes';
-import { CreateLocationData } from '../types/location';
-import { Role } from '../store/auth';
-import { Client, GroupData } from '../types/clientTypes';
-import { BookingRequest } from '../types/clientTypes';
-import { BookingSettings } from '../types/bookingTypes';
+import { ProgressFeedback } from "../types/sessionTypes";
+import { CreateLocationData } from "../types/location";
+import { Role } from "../store/auth";
+import { Client, GroupData } from "../types/clientTypes";
+import { BookingRequest } from "../types/clientTypes";
+import { BookingSettings } from "../types/bookingTypes";
 
 export interface PaginatedResponse<T> {
   items: T[];
@@ -16,7 +17,8 @@ export interface PaginatedResponse<T> {
   totalPages: number | undefined;
 }
 
-const BASE_URL = import.meta.env.VITE_APP_BASEURL;
+const BASE_URL = config.getApiUrl();
+console.log("🚀 ~ BASE_URL:", BASE_URL);
 
 const GOOGLE_API_KEY = import.meta.env.VITE_APP_GOOGLE_API_KEY;
 
@@ -132,7 +134,12 @@ const registerUser = async (credentials: {
 };
 
 const loginUser = async (credentials: { email: string; password: string }) => {
-  const { data } = await axios.post(END_POINTS.AUTH.LOGIN, credentials);
+  // Send email field as the backend expects it
+  const requestData = {
+    email: credentials.email, // ✅ FIXED: Backend expects 'email' field
+    password: credentials.password,
+  };
+  const { data } = await axios.post(END_POINTS.AUTH.LOGIN, requestData);
   return data;
 };
 
@@ -231,7 +238,7 @@ const searchCities = async (query: string) => {
   const { data } = await axios.get(END_POINTS.GOOGLE.PLACES_AUTOCOMPLETE, {
     params: {
       input: query,
-      types: '(cities)',
+      types: "(cities)",
       key: GOOGLE_API_KEY,
     },
   });
@@ -400,7 +407,7 @@ const mark_client_attended = async (clientId: string, sessionId: string) => {
     client: clientId,
     session: sessionId,
     attended: true,
-    status: 'attended',
+    status: "attended",
   });
   return data;
 };
@@ -413,7 +420,7 @@ const mark_client_not_attended = async (
     client: clientId,
     session: sessionId,
     attended: false,
-    status: 'missed',
+    status: "missed",
   });
   return data;
 };
@@ -483,7 +490,7 @@ const get_places_autocomplete = async (input: string) => {
     params: {
       input,
       key: GOOGLE_API_KEY,
-      types: 'geocode',
+      types: "geocode",
     },
   });
   return data.predictions;
@@ -592,7 +599,7 @@ const update_group = async (
   const dataToUpdate = { ...updateData };
   if (dataToUpdate.location !== undefined) {
     dataToUpdate.location =
-      typeof dataToUpdate.location === 'string'
+      typeof dataToUpdate.location === "string"
         ? parseInt(dataToUpdate.location, 10)
         : dataToUpdate.location;
   }
@@ -637,17 +644,17 @@ const createPolicy = async (policyData: {
   file?: File;
 }) => {
   const formData = new FormData();
-  formData.append('title', policyData.title);
-  formData.append('content', policyData.content);
-  formData.append('policy_type', policyData.policy_type);
+  formData.append("title", policyData.title);
+  formData.append("content", policyData.content);
+  formData.append("policy_type", policyData.policy_type);
 
   if (policyData.file) {
-    formData.append('file', policyData.file);
+    formData.append("file", policyData.file);
   }
 
   const { data } = await api.post(END_POINTS.POLICY.POLICIES, formData, {
     headers: {
-      'Content-Type': 'multipart/form-data',
+      "Content-Type": "multipart/form-data",
     },
   });
   return data;
@@ -664,13 +671,13 @@ const updatePolicy = async (
 ) => {
   const formData = new FormData();
 
-  if (policyData.title) formData.append('title', policyData.title);
-  if (policyData.content) formData.append('content', policyData.content);
+  if (policyData.title) formData.append("title", policyData.title);
+  if (policyData.content) formData.append("content", policyData.content);
   if (policyData.policy_type)
-    formData.append('policy_type', policyData.policy_type);
+    formData.append("policy_type", policyData.policy_type);
 
   if (policyData.file) {
-    formData.append('file', policyData.file);
+    formData.append("file", policyData.file);
   }
 
   const { data } = await api.patch(
@@ -678,7 +685,7 @@ const updatePolicy = async (
     formData,
     {
       headers: {
-        'Content-Type': 'multipart/form-data',
+        "Content-Type": "multipart/form-data",
       },
     }
   );
@@ -702,7 +709,7 @@ const createRole = async (roleData: Role) => {
   return data;
 };
 
-const updateRole = async (id: string, roleData: Omit<Role, 'id'>) => {
+const updateRole = async (id: string, roleData: Omit<Role, "id">) => {
   const { data } = await api.patch(END_POINTS.ROLE.ROLE_DETAIL(id), roleData);
   return data;
 };
@@ -757,12 +764,12 @@ const markOutcomeIncomplete = async (payload: {
 
 const submitProgressFeedback = async (payload: ProgressFeedback) => {
   const formData = new FormData();
-  formData.append('client_id', payload.client_id);
-  formData.append('subcategory_id', payload.subcategory_id);
-  formData.append('feedback', payload.feedback);
-  formData.append('attachment', payload.attachment);
+  formData.append("client_id", payload.client_id);
+  formData.append("subcategory_id", payload.subcategory_id);
+  formData.append("feedback", payload.feedback);
+  formData.append("attachment", payload.attachment);
   const { data } = await api.post(END_POINTS.PROGRESS.FEEDBACK, payload, {
-    headers: { 'Content-Type': 'multipart/form-data' },
+    headers: { "Content-Type": "multipart/form-data" },
   });
   return data;
 };
@@ -784,7 +791,7 @@ const get_booking_requests = async (
 
   // Add search query if provided
   if (searchQuery && searchQuery.trim()) {
-    const separator = url.includes('?') ? '&' : '?';
+    const separator = url.includes("?") ? "&" : "?";
     url += `${separator}search=${encodeURIComponent(searchQuery.trim())}`;
   }
 
@@ -805,7 +812,7 @@ const approve_booking_request = async (requestId: number) => {
   const { data } = await api.patch(
     END_POINTS.BOOKING.APPROVE_REQUEST(requestId),
     {
-      action: 'approve',
+      action: "approve",
     }
   );
   return data;
@@ -815,8 +822,8 @@ const reject_booking_request = async (requestId: number, reason?: string) => {
   const { data } = await api.patch(
     END_POINTS.BOOKING.REJECT_REQUEST(requestId),
     {
-      action: 'reject',
-      reason: reason || '',
+      action: "reject",
+      reason: reason || "",
     }
   );
   return data;
@@ -850,8 +857,8 @@ const cancel_booking_request = async (requestId: number, reason?: string) => {
   const { data } = await api.patch(
     END_POINTS.BOOKING.APPROVE_REQUEST(requestId),
     {
-      action: 'cancel',
-      reason: reason || '',
+      action: "cancel",
+      reason: reason || "",
     }
   );
   return data;
@@ -875,7 +882,7 @@ const get_availability = async () => {
     if (
       (error as { response?: { status?: number } })?.response?.status === 404
     ) {
-      console.log('No availability found for user, returning null');
+      console.log("No availability found for user, returning null");
       return null;
     }
     throw error;
@@ -936,23 +943,23 @@ const partial_update_availability = async (availabilityData: {
   appointment_duration?: number;
 }) => {
   console.log(
-    '🌐 partial_update_availability called with data:',
+    "🌐 partial_update_availability called with data:",
     availabilityData
   );
-  console.log('🌐 Exceptions in API request:', availabilityData.exceptions);
+  console.log("🌐 Exceptions in API request:", availabilityData.exceptions);
 
   try {
     const { data } = await api.patch(
       END_POINTS.PROFILE.AVAILABILITY,
       availabilityData
     );
-    console.log('🌐 partial_update_availability response:', data);
-    console.log('🌐 Exceptions in API response:', data.exceptions);
+    console.log("🌐 partial_update_availability response:", data);
+    console.log("🌐 Exceptions in API response:", data.exceptions);
     return data;
   } catch (error) {
-    console.error('🌐 partial_update_availability error:', error);
+    console.error("🌐 partial_update_availability error:", error);
     console.error(
-      '🌐 Error response:',
+      "🌐 Error response:",
       (error as { response?: { data?: unknown } })?.response?.data
     );
     throw error;
@@ -1042,19 +1049,19 @@ const get_public_availability = async (
   locationId?: number | null,
   categoryId?: number | null
 ) => {
-  console.log('🌐 DEBUG: get_public_availability API function called with:', {
+  console.log("🌐 DEBUG: get_public_availability API function called with:", {
     businessSlug,
     serviceId,
     startDate,
     endDate,
     staffId,
     locationId,
-    categoryId
+    categoryId,
   });
 
-  const params: { 
-    start_date: string; 
-    end_date: string; 
+  const params: {
+    start_date: string;
+    end_date: string;
     service_id?: number;
     staff_id?: number;
     location_id?: number;
@@ -1063,7 +1070,7 @@ const get_public_availability = async (
     start_date: startDate,
     end_date: endDate,
   };
-  
+
   // Only add service_id if it's not null
   if (serviceId !== null && serviceId > 0) {
     params.service_id = serviceId;
@@ -1084,9 +1091,9 @@ const get_public_availability = async (
     params.category_id = categoryId;
   }
 
-  console.log('🔧 DEBUG: API request params being sent:', params);
+  console.log("🔧 DEBUG: API request params being sent:", params);
   console.log(
-    '🔗 DEBUG: API endpoint:',
+    "🔗 DEBUG: API endpoint:",
     `/api/booking/${businessSlug}/availability/`
   );
 
@@ -1098,22 +1105,22 @@ const get_public_availability = async (
       }
     );
 
-    console.log('📦 DEBUG: Raw API response received:', data);
-    console.log('📊 DEBUG: Response slots array:', data?.slots);
-    console.log('📈 DEBUG: Response slots count:', data?.slots?.length || 0);
+    console.log("📦 DEBUG: Raw API response received:", data);
+    console.log("📊 DEBUG: Response slots array:", data?.slots);
+    console.log("📈 DEBUG: Response slots count:", data?.slots?.length || 0);
 
     return data;
   } catch (error: unknown) {
-    console.error('🚨 DEBUG: API request failed:', error);
-    if (error && typeof error === 'object' && 'response' in error) {
+    console.error("🚨 DEBUG: API request failed:", error);
+    if (error && typeof error === "object" && "response" in error) {
       const axiosError = error as {
         response: { status: number; data: unknown };
       };
       console.error(
-        '🚨 DEBUG: Error response status:',
+        "🚨 DEBUG: Error response status:",
         axiosError.response.status
       );
-      console.error('🚨 DEBUG: Error response data:', axiosError.response.data);
+      console.error("🚨 DEBUG: Error response data:", axiosError.response.data);
     }
     throw error;
   }
@@ -1163,7 +1170,10 @@ const create_service_booking = async (
     client_timezone?: string;
   }
 ) => {
-  const { data } = await api.post(`/api/booking/${businessSlug}/create-service-booking/`, bookingData);
+  const { data } = await api.post(
+    `/api/booking/${businessSlug}/create-service-booking/`,
+    bookingData
+  );
   return data;
 };
 
@@ -1312,16 +1322,25 @@ const create_staff_competency = async (competencyData: {
   hourly_rate?: number;
   is_active?: boolean;
 }) => {
-  const { data } = await api.post(END_POINTS.STAFF.COMPETENCIES, competencyData);
+  const { data } = await api.post(
+    END_POINTS.STAFF.COMPETENCIES,
+    competencyData
+  );
   return data;
 };
 
-const update_staff_competency = async (id: number, competencyData: {
-  skill_level?: string;
-  hourly_rate?: number;
-  is_active?: boolean;
-}) => {
-  const { data } = await api.put(`${END_POINTS.STAFF.COMPETENCIES}${id}/`, competencyData);
+const update_staff_competency = async (
+  id: number,
+  competencyData: {
+    skill_level?: string;
+    hourly_rate?: number;
+    is_active?: boolean;
+  }
+) => {
+  const { data } = await api.put(
+    `${END_POINTS.STAFF.COMPETENCIES}${id}/`,
+    competencyData
+  );
   return data;
 };
 
@@ -1345,15 +1364,23 @@ const create_staff_location = async (locationData: {
   return data;
 };
 
-const update_staff_location = async (id: number, locationData: {
-  is_primary?: boolean;
-  is_active?: boolean;
-}) => {
-  const { data } = await api.put(`${END_POINTS.STAFF.LOCATIONS}${id}/`, locationData);
+const update_staff_location = async (
+  id: number,
+  locationData: {
+    is_primary?: boolean;
+    is_active?: boolean;
+  }
+) => {
+  const { data } = await api.put(
+    `${END_POINTS.STAFF.LOCATIONS}${id}/`,
+    locationData
+  );
   return data;
 };
 
-const delete_staff_location = async (id: number): Promise<{
+const delete_staff_location = async (
+  id: number
+): Promise<{
   detail: string;
   staff_name?: string;
   location_name?: string;
@@ -1365,12 +1392,12 @@ const delete_staff_location = async (id: number): Promise<{
 }> => {
   try {
     const response = await api.delete(`${END_POINTS.STAFF.LOCATIONS}${id}/`);
-    
+
     // Handle both 200 and 204 responses (204 is standard for DELETE)
     if (response.status === 204) {
       // 204 No Content - successful deletion but no response body
       return {
-        detail: "Location assignment removed successfully"
+        detail: "Location assignment removed successfully",
       };
     } else if (response.status === 200 || response.data) {
       // 200 OK with response data
@@ -1378,47 +1405,56 @@ const delete_staff_location = async (id: number): Promise<{
     } else {
       throw new Error(`Unexpected response status: ${response.status}`);
     }
-    
   } catch (error: any) {
     if (error.response?.data) {
       const errorData = error.response.data;
-      
+
       // Handle specific error cases from backend
-      if (errorData.error_code === 'ONLY_LOCATION') {
+      if (errorData.error_code === "ONLY_LOCATION") {
         throw new Error(
-          `Cannot remove ${errorData.staff_name} from ${errorData.location_name} - this is their only active location. ${errorData.help_text || ''}`
+          `Cannot remove ${errorData.staff_name} from ${
+            errorData.location_name
+          } - this is their only active location. ${errorData.help_text || ""}`
         );
       }
-      
+
       // Handle other specific error messages
-      const message = errorData.detail || 
-                     errorData.message || 
-                     'Failed to remove staff location assignment';
+      const message =
+        errorData.detail ||
+        errorData.message ||
+        "Failed to remove staff location assignment";
       throw new Error(message);
     }
-    
+
     // Handle network errors
-    if (error.code === 'NETWORK_ERROR' || !error.response) {
-      throw new Error('Network error occurred while removing location assignment. Please check your connection and try again.');
+    if (error.code === "NETWORK_ERROR" || !error.response) {
+      throw new Error(
+        "Network error occurred while removing location assignment. Please check your connection and try again."
+      );
     }
-    
+
     // Generic error fallback
-    throw new Error(error.message || 'Failed to remove staff location assignment');
+    throw new Error(
+      error.message || "Failed to remove staff location assignment"
+    );
   }
 };
 
 // Staff Location Availability functions
-const get_staff_location_availability = async (staffId?: number, locationId?: number) => {
+const get_staff_location_availability = async (
+  staffId?: number,
+  locationId?: number
+) => {
   let url = END_POINTS.STAFF.LOCATION_AVAILABILITY;
   const params = new URLSearchParams();
-  
-  if (staffId) params.append('staff_id', staffId.toString());
-  if (locationId) params.append('location_id', locationId.toString());
-  
+
+  if (staffId) params.append("staff_id", staffId.toString());
+  if (locationId) params.append("location_id", locationId.toString());
+
   if (params.toString()) {
     url += `?${params.toString()}`;
   }
-  
+
   const { data } = await api.get(url);
   return data;
 };
@@ -1430,26 +1466,43 @@ const create_staff_location_availability = async (availabilityData: {
   appointment_duration_override?: number;
   timezone_override?: string;
   is_active?: boolean;
-  schedule?: Record<string, { isOpen: boolean; shifts: Array<{ start: string; end: string }> }>;
+  schedule?: Record<
+    string,
+    { isOpen: boolean; shifts: Array<{ start: string; end: string }> }
+  >;
 }) => {
-  const { data } = await api.post(END_POINTS.STAFF.LOCATION_AVAILABILITY, availabilityData);
+  const { data } = await api.post(
+    END_POINTS.STAFF.LOCATION_AVAILABILITY,
+    availabilityData
+  );
   return data;
 };
 
-const update_staff_location_availability = async (id: number, availabilityData: {
-  working_hours?: Record<string, any>;
-  available_days?: string[];
-  appointment_duration_override?: number;
-  timezone_override?: string;
-  is_active?: boolean;
-  schedule?: Record<string, { isOpen: boolean; shifts: Array<{ start: string; end: string }> }>;
-}) => {
-  const { data } = await api.put(`${END_POINTS.STAFF.LOCATION_AVAILABILITY}${id}/`, availabilityData);
+const update_staff_location_availability = async (
+  id: number,
+  availabilityData: {
+    working_hours?: Record<string, any>;
+    available_days?: string[];
+    appointment_duration_override?: number;
+    timezone_override?: string;
+    is_active?: boolean;
+    schedule?: Record<
+      string,
+      { isOpen: boolean; shifts: Array<{ start: string; end: string }> }
+    >;
+  }
+) => {
+  const { data } = await api.put(
+    `${END_POINTS.STAFF.LOCATION_AVAILABILITY}${id}/`,
+    availabilityData
+  );
   return data;
 };
 
 const delete_staff_location_availability = async (id: number) => {
-  const { data } = await api.delete(`${END_POINTS.STAFF.LOCATION_AVAILABILITY}${id}/`);
+  const { data } = await api.delete(
+    `${END_POINTS.STAFF.LOCATION_AVAILABILITY}${id}/`
+  );
   return data;
 };
 
@@ -1471,16 +1524,22 @@ const create_staff_exception = async (exceptionData: {
   return data;
 };
 
-const update_staff_exception = async (id: number, exceptionData: {
-  exception_type?: string;
-  reason?: string;
-  is_all_day?: boolean;
-  start_time?: string;
-  end_time?: string;
-  status?: string;
-  admin_notes?: string;
-}) => {
-  const { data } = await api.put(`${END_POINTS.STAFF.EXCEPTIONS}${id}/`, exceptionData);
+const update_staff_exception = async (
+  id: number,
+  exceptionData: {
+    exception_type?: string;
+    reason?: string;
+    is_all_day?: boolean;
+    start_time?: string;
+    end_time?: string;
+    status?: string;
+    admin_notes?: string;
+  }
+) => {
+  const { data } = await api.put(
+    `${END_POINTS.STAFF.EXCEPTIONS}${id}/`,
+    exceptionData
+  );
   return data;
 };
 
@@ -1495,15 +1554,18 @@ const get_staff_portal_data = async () => {
 };
 
 const approve_staff_exception = async (id: number, admin_notes: string) => {
-  const { data } = await api.post(`${END_POINTS.STAFF.EXCEPTIONS}${id}/approve/`, {
-    admin_notes
-  });
+  const { data } = await api.post(
+    `${END_POINTS.STAFF.EXCEPTIONS}${id}/approve/`,
+    {
+      admin_notes,
+    }
+  );
   return data;
 };
 
 const deny_staff_exception = async (id: number, admin_notes: string) => {
   const { data } = await api.post(`${END_POINTS.STAFF.EXCEPTIONS}${id}/deny/`, {
-    admin_notes
+    admin_notes,
   });
   return data;
 };
@@ -1521,18 +1583,27 @@ const create_staff_own_exception = async (exceptionData: {
   start_time?: string;
   end_time?: string;
 }) => {
-  const { data } = await api.post(END_POINTS.STAFF.MY_EXCEPTIONS, exceptionData);
+  const { data } = await api.post(
+    END_POINTS.STAFF.MY_EXCEPTIONS,
+    exceptionData
+  );
   return data;
 };
 
-const update_staff_own_exception = async (id: number, exceptionData: {
-  exception_type?: string;
-  reason?: string;
-  is_all_day?: boolean;
-  start_time?: string;
-  end_time?: string;
-}) => {
-  const { data } = await api.patch(`${END_POINTS.STAFF.MY_EXCEPTIONS}${id}/`, exceptionData);
+const update_staff_own_exception = async (
+  id: number,
+  exceptionData: {
+    exception_type?: string;
+    reason?: string;
+    is_all_day?: boolean;
+    start_time?: string;
+    end_time?: string;
+  }
+) => {
+  const { data } = await api.patch(
+    `${END_POINTS.STAFF.MY_EXCEPTIONS}${id}/`,
+    exceptionData
+  );
   return data;
 };
 

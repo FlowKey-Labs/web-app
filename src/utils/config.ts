@@ -1,34 +1,35 @@
 // Environment-based configuration
 export const config = {
   // Determine environment
-  isDevelopment: import.meta.env.MODE === 'development',
-  isProduction: import.meta.env.MODE === 'production',
-  
+  isDevelopment: import.meta.env.MODE === "development",
+  isProduction: import.meta.env.MODE === "production",
+
   // Base URLs based on environment
   getBaseUrl: () => {
-    if (import.meta.env.MODE === 'development') {
-      return 'http://localhost:5173';
+    if (import.meta.env.MODE === "development") {
+      return "http://localhost:5173";
     }
-    return 'https://flowkeylabs.com';
+    return "https://flowkeylabs.com";
   },
-  
+
   // Get current app origin for preview links
   getCurrentOrigin: () => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       return window.location.origin;
     }
     // Fallback for SSR
     return config.getBaseUrl();
   },
-  
+
   // API URLs
   getApiUrl: () => {
-    if (import.meta.env.MODE === 'development') {
-      return 'https://api-dev.flowkeylabs.com';
+    if (import.meta.env.MODE === "development") {
+      return ""; // Use Vite proxy - requests to /api will be proxied to localhost:8000
     }
-    return 'https://api.flowkeylabs.com';
+    // Use CloudFront URL - it handles HTTPS and routes /api/* to backend
+    return "";
   },
-  
+
   // Booking URLs
   getBookingUrl: (slug?: string) => {
     const baseUrl = config.getBaseUrl();
@@ -37,7 +38,7 @@ export const config = {
     }
     return `${baseUrl}/book/${slug}`;
   },
-  
+
   // Preview booking URL for admins (uses current app origin)
   getPreviewBookingUrl: (slug?: string) => {
     const currentOrigin = config.getCurrentOrigin();
@@ -46,20 +47,20 @@ export const config = {
     }
     return `${currentOrigin}/book/${slug}`;
   },
-  
+
   // Email addresses
   emails: {
-    support: 'info@flowkeylabs.com',
-    noreply: 'noreply@flowkeylabs.com',
-    dev: 'dev@flowkeylabs.com',
+    support: "info@flowkeylabs.com",
+    noreply: "noreply@flowkeylabs.com",
+    dev: "dev@flowkeylabs.com",
   },
-  
+
   // App information
   app: {
-    name: 'FlowKey',
-    company: 'FlowKey Labs',
-    supportEmail: 'info@flowkeylabs.com',
-  }
+    name: "FlowKey",
+    company: "FlowKey Labs",
+    supportEmail: "info@flowkeylabs.com",
+  },
 };
 
-export default config; 
+export default config;
